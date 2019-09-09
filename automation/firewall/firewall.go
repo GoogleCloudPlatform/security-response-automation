@@ -18,7 +18,7 @@ limitations under the License.
 package firewall
 
 import (
-	"automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
 
 	"fmt"
 

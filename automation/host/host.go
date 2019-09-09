@@ -18,10 +18,11 @@ limitations under the License.
 package host
 
 import (
-	"automation/clients"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
 
 	cs "google.golang.org/api/compute/v1"
 )

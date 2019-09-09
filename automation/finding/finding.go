@@ -87,7 +87,7 @@ type badNetworkFinding struct {
 			SourceInstance string
 			IP             []string
 		}
-	} `json:"jsonPayload"`
+	}
 }
 
 // Finding struct setting.
@@ -206,6 +206,7 @@ func (f *Finding) Zone() string {
 
 // RuleName returns the rule name.
 func (f *Finding) RuleName() string {
+	log.Printf("f: %+v %s", f.etd.JSONPayload.DetectionCategory, f.etd.JSONPayload.DetectionCategory.RuleName)
 	return f.etd.JSONPayload.DetectionCategory.RuleName
 }
 

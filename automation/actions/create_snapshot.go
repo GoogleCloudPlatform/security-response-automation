@@ -53,10 +53,8 @@ For a given supported finding pull each disk associated with the affected instan
 */
 func CreateSnapshot(ctx context.Context, m pubsub.Message, c clients.Clients) error {
 	log.Println("starting")
-
 	f := finding.NewFinding()
 	h := host.NewHost(c)
-	rule := strings.ReplaceAll(f.RuleName(), "_", "-")
 
 	if err := f.ReadFinding(&m); err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
@@ -66,7 +64,7 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, c clients.Clients) er
 		return nil
 	}
 
-	log.Println("listing disks for this instance")
+	rule := strings.ReplaceAll(f.RuleName(), "_", "-")
 	disks, err := h.ListInstanceDisks(f.ProjectID(), f.Zone(), f.Instance())
 	if err != nil {
 		return fmt.Errorf("failed to list disks: %q", err)

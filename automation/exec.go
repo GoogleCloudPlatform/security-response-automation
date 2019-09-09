@@ -20,8 +20,8 @@ package automation
 import (
 	"fmt"
 
-	"github.com/GoogleCloudPlatform/threat-automation/actions"
-	"github.com/GoogleCloudPlatform/threat-automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/automation/actions"
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
 
 	"context"
 

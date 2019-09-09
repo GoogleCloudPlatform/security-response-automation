@@ -18,9 +18,10 @@ limitations under the License.
 package firewall
 
 import (
-	"automation/clients"
-	cs "google.golang.org/api/compute/v1"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
+	cs "google.golang.org/api/compute/v1"
 )
 
 const (

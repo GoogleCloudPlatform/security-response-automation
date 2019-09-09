@@ -18,8 +18,9 @@ limitations under the License.
 package user
 
 import (
-	"automation/clients"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
 
 	stg "cloud.google.com/go/storage"
 	crm "google.golang.org/api/cloudresourcemanager/v1"

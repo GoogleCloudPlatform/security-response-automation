@@ -19,4 +19,4 @@ limitations under the License.
 Package automation contains the Cloud Function code to automate actions.
 
 */
-package automation // externally used as import "github.com/GoogleCloudPlatform/threat-automation"
+package automation // externally used as import "github.com/GoogleCloudPlatform/threat-automation/automation"

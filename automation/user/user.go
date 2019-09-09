@@ -18,7 +18,7 @@ limitations under the License.
 package user
 
 import (
-	"automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
 
 	"fmt"
 	"regexp"

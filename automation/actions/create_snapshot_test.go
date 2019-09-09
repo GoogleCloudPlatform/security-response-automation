@@ -154,7 +154,7 @@ func TestCreateSnapshot(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(mock.SavedCreateSnapshots, tt.expectedSnapshots) {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedSnapshots, mock.SavedCreateSnapshots)
+				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedSnapshots, mock.SavedCreateSnapshots)
 			}
 		})
 	}

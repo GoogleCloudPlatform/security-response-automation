@@ -18,8 +18,9 @@ limitations under the License.
 package host
 
 import (
-	"automation/clients"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
 
 	cs "google.golang.org/api/compute/v1"
 )
