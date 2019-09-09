@@ -1,0 +1,8 @@
+.terraform
+*.zip
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
+auth.json
+pkg
+src
