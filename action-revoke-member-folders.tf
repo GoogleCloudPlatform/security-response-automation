@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   region                = "${local.region}"
   entry_point           = "RevokeExternalGrantsFolders"
 
-  event_trigger = {
+  event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${local.findings-topic}"
   }
@@ -44,8 +44,8 @@ resource "google_storage_bucket_object" "revoke_storage_bucket_object" {
 
 data "archive_file" "revoke_member_zip" {
   type        = "zip"
-  source_dir  = "${path.root}/automation"
-  output_path = "${path.root}/revoke_member_folders.zip"
+  source_dir  = "${path.root}"
+  output_path = "${path.root}/deploy/revoke_member_folders.zip"
   depends_on  = ["local_file.cloudfunction-key-file"]
 }
 

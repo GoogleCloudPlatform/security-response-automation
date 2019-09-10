@@ -26,3 +26,9 @@ TIP: Instead of entering variables every time you can create `terraform.tfvars` 
 and input key value pairs there, i.e. `automation-project="aerial-jigsaw-235219"`.
 
 If at any point you want to revert the changes we've made just run `terraform destroy .`
+
+### Test
+
+```shell
+$ go test ./...
+```

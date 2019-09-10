@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "snapshot_disk_function" {
   region                = "${local.region}"
   entry_point           = "SnapshotDisk"
 
-  event_trigger = {
+  event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${local.findings-topic}"
   }
@@ -44,8 +44,8 @@ resource "google_storage_bucket_object" "snapshot_storage_bucket_object" {
 
 data "archive_file" "snapshot_cloud_function_zip" {
   type        = "zip"
-  source_dir  = "${path.root}/automation"
-  output_path = "${path.root}/create_snapshot.zip"
+  source_dir  = "${path.root}"
+  output_path = "${path.root}/deploy/create_snapshot.zip"
   depends_on  = ["local_file.cloudfunction-key-file"]
 }
 

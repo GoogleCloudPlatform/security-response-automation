@@ -1,5 +1,5 @@
 /*
-Package firewall contains methods to interact with firewall settings.
+Package entities contains abstractions around common objects.
 
 Copyright 2019 Google LLC
 
@@ -15,27 +15,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package firewall
+package entities
 
 import (
-	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/clients"
 
 	"fmt"
 
 	cs "google.golang.org/api/compute/v1"
 )
 
-type client interface {
+type firewallClient interface {
 	clients.ComputeService
 }
 
-// Firewall struct
+// Firewall struct.
 type Firewall struct {
-	c client
+	c firewallClient
 }
 
 // NewFirewall returns a new instance of firewall.
-func NewFirewall(c client) *Firewall {
+func NewFirewall(c firewallClient) *Firewall {
 	return &Firewall{c: c}
 }
 

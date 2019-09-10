@@ -1,5 +1,5 @@
 /*
-Package host contains methods to change host resources.
+Package entities contains abstractions around common objects.
 
 Copyright 2019 Google LLC
 
@@ -15,24 +15,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package host
+package entities
 
 import (
 	"testing"
 
-	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/clients"
 
 	cs "google.golang.org/api/compute/v1"
 )
 
-const (
-	projectID = "test-project-id"
-	zone      = "test-zone"
-	disk      = "test-disk"
-	snapshot  = "test-snapshot"
-)
-
 func TestCreateDiskSnapshot(t *testing.T) {
+	const (
+		projectID = "test-project-id"
+		zone      = "test-zone"
+		disk      = "test-disk"
+		snapshot  = "test-snapshot"
+	)
 	tests := []struct {
 		name             string
 		expectedError    error

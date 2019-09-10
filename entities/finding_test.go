@@ -1,5 +1,5 @@
 /*
-Package finding contains methods to deserialize and extract fields from findings.
+Package entities contains abstractions around common objects.
 
 Copyright 2019 Google LLC
 
@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package finding
+package entities
 
 import (
 	"fmt"

@@ -1,5 +1,5 @@
 /*
-Package actions provides the implementation of automated actions.
+Package cloudfunctions provides the implementation of automated actions.
 
 Copyright 2019 Google LLC
 
@@ -15,12 +15,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package actions
+package cloudfunctions
 
 import (
-	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
-	"github.com/GoogleCloudPlatform/threat-automation/automation/finding"
-	"github.com/GoogleCloudPlatform/threat-automation/automation/host"
+	"github.com/GoogleCloudPlatform/threat-automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/entities"
 
 	"context"
 	"fmt"
@@ -53,8 +52,8 @@ For a given supported finding pull each disk associated with the affected instan
 */
 func CreateSnapshot(ctx context.Context, m pubsub.Message, c clients.Clients) error {
 	log.Println("starting")
-	f := finding.NewFinding()
-	h := host.NewHost(c)
+	f := entities.NewFinding()
+	h := entities.NewHost(c)
 
 	if err := f.ReadFinding(&m); err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
@@ -125,7 +124,7 @@ func canCreateSnapshot(snapshots *cs.SnapshotList, disk *cs.Disk, rule string) (
 }
 
 // createSnaphot will create the snapshot and wait for its completion.
-func createSnapshot(h *host.Host, c clients.Clients, f *finding.Finding, disk *cs.Disk, name string) error {
+func createSnapshot(h *entities.Host, c clients.Clients, f *entities.Finding, disk *cs.Disk, name string) error {
 	op, err := h.CreateDiskSnapshot(f.ProjectID(), f.Zone(), disk.Name, name)
 	if err != nil {
 		return fmt.Errorf("failed to create disk snapshot: %q", err)
@@ -136,7 +135,7 @@ func createSnapshot(h *host.Host, c clients.Clients, f *finding.Finding, disk *c
 	return nil
 }
 
-func removeExistingSnapshots(c clients.Clients, f *finding.Finding, remove map[string]bool) error {
+func removeExistingSnapshots(c clients.Clients, f *entities.Finding, remove map[string]bool) error {
 	for k := range remove {
 		op, err := c.DeleteDiskSnapshot(f.ProjectID(), k)
 		if err != nil {

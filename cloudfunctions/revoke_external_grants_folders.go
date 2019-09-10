@@ -1,5 +1,5 @@
 /*
-Package actions provides the implementation of automated actions.
+Package cloudfunctions provides the implementation of automated actions.
 
 Copyright 2019 Google LLC
 
@@ -15,14 +15,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package actions
+package cloudfunctions
 
 import (
 	"log"
 
-	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
-	"github.com/GoogleCloudPlatform/threat-automation/automation/finding"
-	"github.com/GoogleCloudPlatform/threat-automation/automation/user"
+	"github.com/GoogleCloudPlatform/threat-automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/entities"
 
 	"context"
 	"fmt"
@@ -44,7 +43,7 @@ entire IAM policy for the resource.
 
 */
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, c clients.Clients, folderIDs []string, disallowed []string) error {
-	f := finding.NewFinding()
+	f := entities.NewFinding()
 
 	if err := f.ReadFinding(&m); err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
@@ -59,7 +58,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, c client
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
-	u := user.NewUser(c)
+	u := entities.NewUser(c)
 	remove := toRemove(f, disallowed)
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {
@@ -76,7 +75,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, c client
 }
 
 // toRemove returns a slice containing only external members that are disallowed.
-func toRemove(f *finding.Finding, disallowed []string) []string {
+func toRemove(f *entities.Finding, disallowed []string) []string {
 	r := []string{}
 	members := f.ExternalMembers()
 	for _, mm := range members {

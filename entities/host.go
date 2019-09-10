@@ -1,5 +1,5 @@
 /*
-Package host contains methods to change host resources.
+Package entities contains abstractions around common objects.
 
 Copyright 2019 Google LLC
 
@@ -15,29 +15,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package host
+package entities
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/GoogleCloudPlatform/threat-automation/automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/clients"
 
 	cs "google.golang.org/api/compute/v1"
 )
 
-type client interface {
+type hostClient interface {
 	clients.ComputeService
 }
 
-// Host struct
+// Host struct.
 type Host struct {
-	c client
+	c hostClient
 }
 
 // NewHost returns a new snapshot of a specified persistent disk.
-func NewHost(c client) *Host {
+func NewHost(c hostClient) *Host {
 	return &Host{c: c}
 }
 

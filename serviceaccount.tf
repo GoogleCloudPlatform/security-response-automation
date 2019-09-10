@@ -25,5 +25,5 @@ resource "google_service_account_key" "cloudfunction-key" {
 
 resource "local_file" "cloudfunction-key-file" {
   content  = "${base64decode(google_service_account_key.cloudfunction-key.private_key)}"
-  filename = "./automation/auth.json"
+  filename = "./src/auth.json"
 }
