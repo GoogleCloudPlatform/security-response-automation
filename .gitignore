@@ -3,4 +3,5 @@
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
-auth.json
+credentials
+deploy

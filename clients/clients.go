@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	authFile = "auth.json"
+	authFile = "credentials/auth.json"
 )
 
 // Clients is the minimum interface required for the provided clients.

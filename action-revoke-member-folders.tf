@@ -39,7 +39,7 @@ resource "google_storage_bucket" "revoke_member_bucket" {
 resource "google_storage_bucket_object" "revoke_storage_bucket_object" {
   name   = "revoke_member_folders.zip"
   bucket = "${google_storage_bucket.revoke_member_bucket.name}"
-  source = "${path.root}/revoke_member_folders.zip"
+  source = "${path.root}/deploy/revoke_member_folders.zip"
 }
 
 data "archive_file" "revoke_member_zip" {
@@ -47,6 +47,7 @@ data "archive_file" "revoke_member_zip" {
   source_dir  = "${path.root}"
   output_path = "${path.root}/deploy/revoke_member_folders.zip"
   depends_on  = ["local_file.cloudfunction-key-file"]
+  excludes    = ["deploy"]
 }
 
 

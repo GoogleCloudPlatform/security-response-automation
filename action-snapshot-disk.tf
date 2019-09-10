@@ -39,7 +39,7 @@ resource "google_storage_bucket" "snapshot_disk_bucket" {
 resource "google_storage_bucket_object" "snapshot_storage_bucket_object" {
   name   = "create_snapshot.zip"
   bucket = "${google_storage_bucket.snapshot_disk_bucket.name}"
-  source = "${path.root}/create_snapshot.zip"
+  source = "${path.root}/deploy/create_snapshot.zip"
 }
 
 data "archive_file" "snapshot_cloud_function_zip" {
@@ -47,6 +47,7 @@ data "archive_file" "snapshot_cloud_function_zip" {
   source_dir  = "${path.root}"
   output_path = "${path.root}/deploy/create_snapshot.zip"
   depends_on  = ["local_file.cloudfunction-key-file"]
+  excludes    = ["deploy"]
 }
 
 # Role "compute.instanceAdmin" required to get disk lists and create snapshots for GCE instances.
