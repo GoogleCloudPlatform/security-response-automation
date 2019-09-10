@@ -196,6 +196,7 @@ func (f *Finding) ExternalUsers() []string {
 	if f.ext.JSONPayload.Properties.ExternalMembers == nil {
 		return []string{}
 	}
+
 	return f.ext.JSONPayload.Properties.ExternalMembers
 }
 
@@ -206,24 +207,23 @@ func (f *Finding) Zone() string {
 
 // RuleName returns the rule name.
 func (f *Finding) RuleName() string {
-	log.Printf("f: %+v %s", f.etd.JSONPayload.DetectionCategory, f.etd.JSONPayload.DetectionCategory.RuleName)
 	return f.etd.JSONPayload.DetectionCategory.RuleName
 }
 
-// Instance returns the instance of affected project.
+// Instance returns the instance name of affected project.
 func (f *Finding) Instance() string {
-	aff := f.badNetwork.JSONPayload.Properties.SourceInstance
-	if aff == "" {
+	s := f.badNetwork.JSONPayload.Properties.SourceInstance
+	if s == "" {
 		return ""
 	}
-	i := extractInstance.FindStringSubmatch(aff)
+	i := extractInstance.FindStringSubmatch(s)
 	if len(i) != 2 {
 		return ""
 	}
 	return i[1]
 }
 
-// BadIPs returns a slice of bad ip.
+// BadIPs returns a slice of bad IPs from an ETD bad IP finding.
 func (f *Finding) BadIPs() []string {
 	return f.badNetwork.JSONPayload.Properties.IP
 }

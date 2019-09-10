@@ -239,8 +239,8 @@ func TestSubRule(t *testing.T) {
 	}
 }
 
-// TestExUsers attempts to list the external users.
-func TestExUsers(t *testing.T) {
+// TestExternalUsers attempts to list the external users.
+func TestExternalUsers(t *testing.T) {
 	test := []struct {
 		name    string
 		message *pubsub.Message
