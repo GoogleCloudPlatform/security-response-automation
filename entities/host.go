@@ -65,7 +65,7 @@ func (h *Host) ListProjectSnapshot(projectID string) (*cs.SnapshotList, error) {
 
 // ListInstanceDisks returns a list of disk names for a given instance.
 func (h *Host) ListInstanceDisks(projectID, zone, instance string) ([]*cs.Disk, error) {
-	ds, err := h.c.ListDisks(projectID, zone, instance)
+	ds, err := h.c.ListDisks(projectID, zone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list disks: %q", err)
 	}

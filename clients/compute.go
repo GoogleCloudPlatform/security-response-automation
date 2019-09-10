@@ -29,7 +29,7 @@ type ComputeService interface {
 	PatchFirewallRule(string, string, *cs.Firewall) (*cs.Operation, error)
 	CreateSnapshot(string, string, string, *cs.Snapshot) (*cs.Operation, error)
 	ListProjectSnapshots(string) (*cs.SnapshotList, error)
-	ListDisks(string, string, string) (*cs.DiskList, error)
+	ListDisks(string, string) (*cs.DiskList, error)
 	SetLabels(string, string, *cs.GlobalSetLabelsRequest) (*cs.Operation, error)
 }
 
@@ -54,8 +54,8 @@ func (c *Client) CreateSnapshot(projectID string, zone string, disk string, rb *
 	return c.cs.Disks.CreateSnapshot(projectID, zone, disk, rb).Context(c.ctx).Do()
 }
 
-// ListDisks returns a list of disk names for a given instance.
-func (c *Client) ListDisks(projectID, zone, instance string) (*cs.DiskList, error) {
+// ListDisks returns a list of disk names for a given project.
+func (c *Client) ListDisks(projectID, zone string) (*cs.DiskList, error) {
 	return c.cs.Disks.List(projectID, zone).Context(c.ctx).Do()
 }
 

@@ -113,7 +113,7 @@ func (m *MockClients) ListProjectSnapshots(_ string) (*cs.SnapshotList, error) {
 }
 
 // ListDisks returns a list of disks.
-func (m *MockClients) ListDisks(_, _, _ string) (*cs.DiskList, error) {
+func (m *MockClients) ListDisks(_, _ string) (*cs.DiskList, error) {
 	return m.fakeListDisks, nil
 }
 
