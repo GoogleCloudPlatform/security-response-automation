@@ -72,33 +72,3 @@ func TestCloseBucket(t *testing.T) {
 		})
 	}
 }
-
-// func createPolicy(members []string) []*crm.Binding {
-// 	return []*crm.Binding{
-// 		{
-// 			Role:    "roles/editor",
-// 			Members: members,
-// 		},
-// 	}
-// }
-
-// func createMessage(member string) pubsub.Message {
-// 	return pubsub.Message{Data: []byte(`{
-// 		"insertId": "eppsoda4",
-// 		"jsonPayload": {
-// 			"detectionCategory": {
-// 				"subRuleName": "external_member_added_to_policy",
-// 				"ruleName": "iam_anomalous_grant"
-// 			},
-// 			"affectedResources":[{
-// 				"gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/test-project-1-246321"
-// 			}],
-// 			"properties": {
-// 				"externalMembers": [
-// 					"` + member + `"
-// 				]
-// 			}
-// 		},
-// 		"logName": "projects/carise-etdeng-joonix/logs/threatdetection.googleapis.com%2Fdetection"
-// 	}`)}
-// }
