@@ -1,38 +1,33 @@
-/*
-Package cloudfunctions provides the implementation of automated actions.
-
-Copyright 2019 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cloudfunctions
+
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/GoogleCloudPlatform/threat-automation/clients"
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/threat-automation/entities"
 
 	"cloud.google.com/go/pubsub"
-
-	cs "google.golang.org/api/compute/v1"
+	"github.com/google/go-cmp/cmp"
+	compute "google.golang.org/api/compute/v1"
 )
 
 var (
-	fiveMinAgo = time.Now().Add(-time.Minute * 5).Format(time.RFC3339)
-
 	sampleFinding = pubsub.Message{Data: []byte(`{
                 "insertId": "eppsoda4",
                 "jsonPayload": {"detectionCategory": {"ruleName": "bad_ip"},
@@ -48,14 +43,16 @@ func TestCreateSnapshot(t *testing.T) {
 	ctx := context.Background()
 
 	var (
-		expectedSnapshot = map[string]cs.Snapshot{
+		// TODO(tomfitzgerald): Consider migrating to https://github.com/tflach/clockwork.
+		fiveMinAgo       = time.Now().Add(-time.Minute * 5).Format(time.RFC3339)
+		expectedSnapshot = map[string]compute.Snapshot{
 			"sample-disk-name": {
 				Description:       "Snapshot of sample-disk-name",
 				Name:              "forensic-snapshots-bad-ip-sample-disk-name",
 				CreationTimestamp: time.Now().Format(time.RFC3339),
 			},
 		}
-		expectedSnapshot2 = map[string]cs.Snapshot{
+		expectedSnapshot2 = map[string]compute.Snapshot{
 			"sample-disk-name": {
 				Description:       "Snapshot of sample-disk-name",
 				Name:              "forensic-snapshots-bad-ip-sample-disk-name",
@@ -73,26 +70,26 @@ func TestCreateSnapshot(t *testing.T) {
 	)
 	test := []struct {
 		name                  string
-		existingProjectDisks  []*cs.Disk
-		existingDiskSnapshots []*cs.Snapshot
-		expectedSnapshots     map[string]cs.Snapshot
+		existingProjectDisks  []*compute.Disk
+		existingDiskSnapshots []*compute.Snapshot
+		expectedSnapshots     map[string]compute.Snapshot
 	}{
 		{
 			name: "generate disk snapshot (1 disk and 1 snapshot)",
-			existingProjectDisks: []*cs.Disk{
+			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*cs.Snapshot{
+			existingDiskSnapshots: []*compute.Snapshot{
 				createSs(snapshotName, fiveMinAgo, diskName),
 			},
 			expectedSnapshots: expectedSnapshot,
 		},
 		{
 			name: "generate disk snapshot (1 disk and 2 snapshot)",
-			existingProjectDisks: []*cs.Disk{
+			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*cs.Snapshot{
+			existingDiskSnapshots: []*compute.Snapshot{
 				createSs(snapshotName, fiveMinAgo, diskName),
 				createSs(snapshotName, fiveMinAgo, diskName),
 			},
@@ -100,22 +97,22 @@ func TestCreateSnapshot(t *testing.T) {
 		},
 		{
 			name: "generate disk snapshot (2 disk and 1 snapshot)",
-			existingProjectDisks: []*cs.Disk{
+			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 				createDisk("sample-disk-name2", "instance1"),
 			},
-			existingDiskSnapshots: []*cs.Snapshot{
+			existingDiskSnapshots: []*compute.Snapshot{
 				createSs(snapshotName, fiveMinAgo, diskName),
 			},
 			expectedSnapshots: expectedSnapshot2,
 		},
 		{
 			name: "generate disk snapshot (2 disk and 2 snapshot)",
-			existingProjectDisks: []*cs.Disk{
+			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 				createDisk("sample-disk-name2", "instance1"),
 			},
-			existingDiskSnapshots: []*cs.Snapshot{
+			existingDiskSnapshots: []*compute.Snapshot{
 				createSs(snapshotName, fiveMinAgo, diskName),
 				createSs("forensic-snapshots-bad-ip-sample-disk-name2", fiveMinAgo, "sample-disk-name2"),
 			},
@@ -123,53 +120,57 @@ func TestCreateSnapshot(t *testing.T) {
 		},
 		{
 			name: "snapshotName preffix is different so generate disk snapshot",
-			existingProjectDisks: []*cs.Disk{
+			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*cs.Snapshot{
+			existingDiskSnapshots: []*compute.Snapshot{
 				createSs("forensic-snapshots-bad-domain-simple-disk-name", fiveMinAgo, diskName),
 			},
 			expectedSnapshots: expectedSnapshot,
 		},
 		{
 			name: "existing snapshot is new, skip",
-			existingProjectDisks: []*cs.Disk{
+			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*cs.Snapshot{
+			existingDiskSnapshots: []*compute.Snapshot{
 				createSs(snapshotName, time.Now().Add(-time.Minute*2).Format(time.RFC3339), diskName),
 			},
-			expectedSnapshots: make(map[string]cs.Snapshot),
+			expectedSnapshots: make(map[string]compute.Snapshot),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 
-			mock := clients.NewMockClients()
-			mock.AddListDisksFake(tt.existingProjectDisks)
-			mock.AddListProjectSnapshotsFake(tt.existingDiskSnapshots)
-
-			if err := CreateSnapshot(ctx, sampleFinding, mock); err != nil {
+			computeStub := &stubs.ComputeStub{}
+			computeStub.SavedCreateSnapshots = make(map[string]compute.Snapshot)
+			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
+			computeStub.StubbedListProjectSnapshots = &compute.SnapshotList{Items: tt.existingDiskSnapshots}
+			resourceManagerStub := &stubs.ResourceManagerStub{}
+			storageStub := &stubs.StorageStub{}
+			h := entities.NewHost(computeStub)
+			r := entities.NewResource(resourceManagerStub, storageStub)
+			if err := CreateSnapshot(ctx, sampleFinding, r, h); err != nil {
 				t.Errorf("failed to create snapshot :%q", err)
 			}
 
-			if !reflect.DeepEqual(mock.SavedCreateSnapshots, tt.expectedSnapshots) {
-				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedSnapshots, mock.SavedCreateSnapshots)
+			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {
+				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedSnapshots, computeStub.SavedCreateSnapshots)
 			}
 		})
 	}
 }
 
-func createDisk(name, instance string) *cs.Disk {
-	return &cs.Disk{
+func createDisk(name, instance string) *compute.Disk {
+	return &compute.Disk{
 		Name:     name,
 		SelfLink: "/projects/test-project/zones/test-zone/disks/" + name,
 		Users:    []string{"/projects/test-project/zones/test-zone/instances/" + instance},
 	}
 }
 
-func createSs(name, time, disk string) *cs.Snapshot {
-	return &cs.Snapshot{
+func createSs(name, time, disk string) *compute.Snapshot {
+	return &compute.Snapshot{
 		Name:              name,
 		CreationTimestamp: time,
 		SourceDisk:        "/projects/test-project/zones/test-zone/disks/" + disk,

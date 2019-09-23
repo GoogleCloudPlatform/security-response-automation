@@ -1,28 +1,25 @@
-/*
-Package entities contains abstractions around common objects.
-
-Copyright 2019 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package entities
+
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/google/go-cmp/cmp"
 )
 
 // TestForFailures attempts to unmarshal logs that are not valid.
@@ -35,17 +32,17 @@ func TestForFailures(t *testing.T) {
 		{
 			"empty message",
 			&pubsub.Message{},
-			ErrorUnmarshal,
+			ErrUnmarshal,
 		},
 		{
 			"not a stackdriver log",
 			&pubsub.Message{Data: []byte(`{"insertId": "r7erfra3"}`)},
-			ErrorParsing,
+			ErrParsing,
 		},
 		{
 			"not a finding",
 			&pubsub.Message{Data: []byte(`{"logName": "projects/foo-123/logs/something-else"}`)},
-			ErrorParsing,
+			ErrParsing,
 		},
 	}
 	for _, tt := range test {
@@ -232,8 +229,8 @@ func TestSubRule(t *testing.T) {
 				return
 			}
 			p := f.ext.JSONPayload.Properties.ExternalMembers
-			if !reflect.DeepEqual(p, tt.exp) {
-				t.Errorf("%s failed got:%q want:%q", tt.name, p, tt.exp)
+			if diff := cmp.Diff(p, tt.exp); diff != "" {
+				t.Errorf("%s failed got:%q want:%q", tt.name, tt.exp, p)
 			}
 		})
 	}
@@ -277,8 +274,8 @@ func TestExternalUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f.ReadFinding(tt.message)
 			eu := f.ExternalUsers()
-			if !reflect.DeepEqual(eu, tt.exp) {
-				t.Errorf("exp:%q got:%q", tt.exp, eu)
+			if diff := cmp.Diff(eu, tt.exp); diff != "" {
+				t.Errorf("%s failed got:%q want:%q", tt.name, tt.exp, eu)
 			}
 		})
 	}

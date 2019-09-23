@@ -47,9 +47,8 @@ data "archive_file" "revoke_member_zip" {
   source_dir  = "${path.root}"
   output_path = "${path.root}/deploy/revoke_member_folders.zip"
   depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy"]
+  excludes    = ["deploy", ".git", ".terraform"]
 }
-
 
 # Required by RevokeExternalGrantsFolders to revoke IAM grants on projects within this folder.
 resource "google_folder_iam_binding" "cloudfunction-folder-bind" {
@@ -57,4 +56,3 @@ resource "google_folder_iam_binding" "cloudfunction-folder-bind" {
   role    = "roles/resourcemanager.folderAdmin"
   members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
 }
-
