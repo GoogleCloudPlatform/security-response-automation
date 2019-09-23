@@ -1,29 +1,25 @@
-/*
-Package cloudfunctions provides the implementation of automated actions.
-
-Copyright 2019 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cloudfunctions
+
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import (
 	"context"
-	"errors"
-	"reflect"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/threat-automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/clients/stubs"
+	"github.com/GoogleCloudPlatform/threat-automation/entities"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/kylelemons/godebug/pretty"
@@ -35,7 +31,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 
 	test := []struct {
 		name          string
-		expectedError error
+		expectedError string
 		// Incoming finding.
 		incomingLog pubsub.Message
 		// Initial set of members on IAM policy from `GetIamPolicy`.
@@ -47,99 +43,114 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		// Set members from `SetIamPolicy`.
 		expectedMembers []string
 		// Incoming project's ancestry.
-		ancestry []string
+		ancestry *crm.GetAncestryResponse
 	}{
 		{
 			name:            "invalid finding",
-			expectedError:   errors.New(`failed to read finding: "failed to unmarshal"`),
+			expectedError:   `failed to read finding: "failed to unmarshal"`,
 			incomingLog:     pubsub.Message{},
 			initialMembers:  nil,
 			folderID:        []string{""},
 			disallowed:      []string{""},
 			expectedMembers: nil,
-			ancestry:        []string{},
+			ancestry:        createAncestors([]string{}),
 		},
 		{
 			name:            "no folder provided and doesn't remove members",
-			expectedError:   nil,
+			expectedError:   "",
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderID:        []string{""},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@gmail.com"},
-			ancestry:        []string{},
+			ancestry:        createAncestors([]string{}),
 		},
 		{
 			name:            "remove new gmail user",
-			expectedError:   nil,
+			expectedError:   "",
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderID:        []string{"folderID"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com"},
-			ancestry:        []string{"projects/projectID", "folders/folderID", "organizations/organizationID"},
+			ancestry:        createAncestors([]string{"projects/projectID", "folders/folderID", "organizations/organizationID"}),
 		},
 		{
 			name:            "remove new user only",
-			expectedError:   nil,
+			expectedError:   "",
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderID:        []string{"folderID"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
-			ancestry:        []string{"projects/projectID", "folders/folderID", "organizations/organizationID"},
+			ancestry:        createAncestors([]string{"projects/projectID", "folders/folderID", "organizations/organizationID"}),
 		},
 		{
 			name:            "domain not in disallowed list",
-			expectedError:   nil,
+			expectedError:   "",
 			incomingLog:     createMessage("user:tom@foo.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com"},
 			folderID:        []string{"folderID"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@foo.com"},
-			ancestry:        []string{"projects/projectID", "folders/folderID", "organiztions/organizationID"},
+			ancestry:        createAncestors([]string{"projects/projectID", "folders/folderID", "organiztions/organizationID"}),
 		},
 		{
 			name:            "provide multiple folders and remove gmail users",
-			expectedError:   nil,
+			expectedError:   "",
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderID:        []string{"folderID", "folderID1"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
-			ancestry:        []string{"projects/projectID", "folders/folderID1", "organizations/organizationID"},
+			ancestry:        createAncestors([]string{"projects/projectID", "folders/folderID1", "organizations/organizationID"}),
 		},
 		{
 			name:            "cannot revoke in this folder",
-			expectedError:   nil,
+			expectedError:   "",
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderID:        []string{"folderID", "folderID1"},
 			disallowed:      []string{"gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
-			ancestry:        []string{"projects/projectID", "folders/anotherfolderID", "organizations/organizationID"},
+			ancestry:        createAncestors([]string{"projects/projectID", "folders/anotherfolderID", "organizations/organizationID"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			mock := &clients.MockClients{}
-			mock.AddGetPolicyFake(createPolicy(tt.initialMembers))
-			mock.AddGetProjectAncestryFake(tt.ancestry)
-			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, mock, tt.folderID, tt.disallowed); !reflect.DeepEqual(err, tt.expectedError) {
-				if diff := pretty.Compare(err, tt.expectedError); diff != "" {
-					t.Errorf("%s failed want:%q got:%q", tt.name, tt.expectedError, diff)
+			crmStub := &stubs.ResourceManagerStub{}
+			storageStub := &stubs.StorageStub{}
+			r := entities.NewResource(crmStub, storageStub)
+			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
+			crmStub.GetAncestryResponse = tt.ancestry
+			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, r, tt.folderID, tt.disallowed); err != nil {
+				if tt.expectedError != err.Error() {
+					t.Errorf("%s test failed want:%q", tt.name, err)
 				}
 			}
 
-			if mock.SavedSetPolicy == nil {
+			if crmStub.SavedSetPolicy == nil {
 				return
 			}
 
-			if diff := pretty.Compare(mock.SavedSetPolicy.Bindings, createPolicy(tt.expectedMembers)); diff != "" {
+			if diff := pretty.Compare(crmStub.SavedSetPolicy.Bindings, createPolicy(tt.expectedMembers)); diff != "" {
 				t.Errorf("%s failed got:%q", tt.name, diff)
 			}
 		})
 	}
+}
+
+func createAncestors(members []string) *crm.GetAncestryResponse {
+	ancestors := []*crm.Ancestor{}
+	for _, m := range members {
+		ancestors = append(ancestors, &crm.Ancestor{
+			ResourceId: &crm.ResourceId{
+				Type: "folder",
+				Id:   m,
+			},
+		})
+	}
+	return &crm.GetAncestryResponse{Ancestor: ancestors}
 }
 
 func createPolicy(members []string) []*crm.Binding {

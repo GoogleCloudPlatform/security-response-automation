@@ -1,37 +1,36 @@
-/*
-Package entities contains abstractions around common objects.
-
-Copyright 2019 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package entities
 
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import (
+	"context"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/threat-automation/clients"
+	"github.com/GoogleCloudPlatform/threat-automation/clients/stubs"
 
-	stg "cloud.google.com/go/storage"
+	"cloud.google.com/go/storage"
+	"github.com/google/go-cmp/cmp"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
-
-	"gopkg.in/d4l3k/messagediff.v1"
 )
 
 // TestRemoveDomainsProject verifies RemoveDomains properly removes the selected domains from the given policy.
 func TestRemoveDomainsProject(t *testing.T) {
-	mock := &clients.MockClients{}
-	r := NewUser(mock)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := NewResource(crmStub, storageStub)
+	ctx := context.Background()
 	tests := []struct {
 		name              string
 		input             []*crm.Binding
@@ -79,9 +78,9 @@ func TestRemoveDomainsProject(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mock.AddGetPolicyFake(tt.input)
-			p, _ := r.RemoveDomainsProject(tt.name, tt.disallowedDomains)
-			if diff, equal := messagediff.PrettyDiff(p.Bindings, tt.expected); !equal {
+			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.input}
+			p, _ := r.RemoveDomainsProject(ctx, tt.name, tt.disallowedDomains)
+			if diff := cmp.Diff(p.Bindings, tt.expected); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})
@@ -90,8 +89,10 @@ func TestRemoveDomainsProject(t *testing.T) {
 
 // TestRemoveMembersProject tests the removal of members from a policy.
 func TestRemoveMembersProject(t *testing.T) {
-	mock := &clients.MockClients{}
-	r := NewUser(mock)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := NewResource(crmStub, storageStub)
+	ctx := context.Background()
 	tests := []struct {
 		name          string
 		input         []*crm.Binding
@@ -120,12 +121,12 @@ func TestRemoveMembersProject(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mock.AddGetPolicyFake(tt.input)
-			p, err := r.RemoveMembersProject(tt.name, tt.removeMembers)
+			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.input}
+			p, err := r.RemoveMembersProject(ctx, tt.name, tt.removeMembers)
 			if err != nil {
 				t.Errorf("%v failed, err: %+v", tt.name, err)
 			}
-			if diff, equal := messagediff.PrettyDiff(p.Bindings, tt.expected); !equal {
+			if diff := cmp.Diff(p.Bindings, tt.expected); diff != "" {
 				t.Errorf("%v failed, difference: %v", tt.name, diff)
 			}
 
@@ -144,38 +145,38 @@ func createBindings(members []string) []*crm.Binding {
 
 // RemoveEntityFromBucket tests the removal entities from a bucket.
 func TestRemoveEntityFromBucket(t *testing.T) {
-
 	const bucketName = "test-bucket-name"
-
-	mock := &clients.MockClients{}
-	r := NewUser(mock)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := NewResource(crmStub, storageStub)
+	ctx := context.Background()
 	tests := []struct {
 		name                            string
-		entity                          stg.ACLEntity
+		entity                          storage.ACLEntity
 		expectedError                   error
-		expectedSavedRemoveBucketEntity stg.ACLEntity
+		expectedSavedRemoveBucketEntity storage.ACLEntity
 	}{
 		{
 			name:                            "delete allUsers",
-			entity:                          stg.AllUsers,
+			entity:                          storage.AllUsers,
 			expectedError:                   nil,
-			expectedSavedRemoveBucketEntity: stg.AllUsers,
+			expectedSavedRemoveBucketEntity: storage.AllUsers,
 		},
 		{
 			name:                            "delete allAuthenticatedUsers",
-			entity:                          stg.AllAuthenticatedUsers,
+			entity:                          storage.AllAuthenticatedUsers,
 			expectedError:                   nil,
-			expectedSavedRemoveBucketEntity: stg.AllAuthenticatedUsers,
+			expectedSavedRemoveBucketEntity: storage.AllAuthenticatedUsers,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := r.RemoveEntityFromBucket(bucketName, tt.entity)
+			err := r.RemoveEntityFromBucket(ctx, bucketName, tt.entity)
 			if err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
 			}
-			if mock.SavedRemoveBucketUsers != tt.expectedSavedRemoveBucketEntity {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedSavedRemoveBucketEntity, mock.SavedRemoveBucketUsers)
+			if storageStub.RemovedBucketUsers != tt.expectedSavedRemoveBucketEntity {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedSavedRemoveBucketEntity, storageStub.RemovedBucketUsers)
 			}
 		})
 	}

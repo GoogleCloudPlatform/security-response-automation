@@ -1,28 +1,25 @@
-/*
-Package entities contains abstractions around common objects.
-
-Copyright 2019 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+// Package entities holds commonly used methods used in security automation.
 package entities
+
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-
 	"regexp"
 	"strings"
 
@@ -30,17 +27,18 @@ import (
 )
 
 const (
-	// ETDFindingSuffix is the log name suffix used by Event Threat Detection's findings.
-	ETDFindingSuffix = "/logs/threatdetection.googleapis.com%2Fdetection"
+	// etdFindingSuffix is the log name suffix used by Event Threat Detection's findings.
+	etdFindingSuffix = "/logs/threatdetection.googleapis.com%2Fdetection"
 )
 
 var (
-	// ErrorUnmarshal thrown when unable to unmarshal.
-	ErrorUnmarshal = errors.New("failed to unmarshal")
-	// ErrorParsing thrown when unable to parse.
-	ErrorParsing = errors.New("not a valid log")
-	// ErrorValueNotFound thrown when a value is requested but not found.
-	ErrorValueNotFound = errors.New("value not found")
+	// ErrUnmarshal thrown when unable to unmarshal.
+	ErrUnmarshal = errors.New("failed to unmarshal")
+	// ErrParsing thrown when unable to parse.
+	ErrParsing = errors.New("not a valid log")
+	// ErrValueNotFound thrown when a value is requested but not found.
+	ErrValueNotFound = errors.New("value not found")
+
 	// extractProject used to extract a project Number from an affected resource.
 	extractProject = regexp.MustCompile(`/projects/(.*)$`)
 	// extractResource used to extract a resource.
@@ -49,7 +47,7 @@ var (
 	extractInstance = regexp.MustCompile(`/instances/(.*)$`)
 )
 
-// stackdriverLog struct is the struct fit in only for the log from SD.
+// stackdriverLog struct fits StackDriver logs.
 type stackdriverLog struct {
 	InsertID string `json:"insertId"`
 	LogName  string `json:"logName"`
@@ -111,20 +109,19 @@ func NewFinding() *Finding {
 func (f *Finding) ReadFinding(m *pubsub.Message) error {
 	if err := json.Unmarshal(m.Data, &f.sd); err != nil {
 		log.Println("failed to read stackdriver finding")
-		return ErrorUnmarshal
+		return ErrUnmarshal
 	}
 
 	if f.sd.LogName == "" {
-		return ErrorParsing
+		return ErrParsing
 	}
 
-	if !strings.HasSuffix(f.sd.LogName, ETDFindingSuffix) {
-		return ErrorParsing
+	if !strings.HasSuffix(f.sd.LogName, etdFindingSuffix) {
+		return ErrParsing
 	}
 
 	if err := json.Unmarshal(m.Data, &f.etd); err != nil {
-		log.Println("failed to read etd finding")
-		return ErrorUnmarshal
+		return ErrUnmarshal
 	}
 
 	switch f.etd.JSONPayload.DetectionCategory.SubRuleName {
@@ -132,13 +129,13 @@ func (f *Finding) ReadFinding(m *pubsub.Message) error {
 	case "external_member_added_to_policy":
 		if err := json.Unmarshal(m.Data, &f.ext); err != nil {
 			log.Println("failed to read ext")
-			return ErrorUnmarshal
+			return ErrUnmarshal
 		}
 	// case for external user granted as project owner.
 	case "external_member_invited_to_policy":
 		if err := json.Unmarshal(m.Data, &f.ext); err != nil {
 			fmt.Println("fil2")
-			return ErrorUnmarshal
+			return ErrUnmarshal
 		}
 	}
 
@@ -147,7 +144,7 @@ func (f *Finding) ReadFinding(m *pubsub.Message) error {
 		fallthrough
 	case "bad_domain":
 		if err := json.Unmarshal(m.Data, &f.badNetwork); err != nil {
-			return ErrorUnmarshal
+			return ErrUnmarshal
 		}
 	}
 
@@ -164,7 +161,7 @@ func (f *Finding) ProjectID() string {
 	return f.etd.JSONPayload.Properties.ProjectID
 }
 
-// ProjectNumber returns the project number of the affected resource.
+// ProjectNumber returns the project number of the affected resource, or an empty string if it can't find one.
 func (f *Finding) ProjectNumber() string {
 	aff := f.etd.JSONPayload.AffectedResources
 	if len(aff) == 0 {

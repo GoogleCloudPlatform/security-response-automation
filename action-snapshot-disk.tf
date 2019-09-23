@@ -47,17 +47,25 @@ data "archive_file" "snapshot_cloud_function_zip" {
   source_dir  = "${path.root}"
   output_path = "${path.root}/deploy/create_snapshot.zip"
   depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy"]
+  excludes    = ["deploy", ".git", ".terraform"]
 }
 
 # Role "compute.instanceAdmin" required to get disk lists and create snapshots for GCE instances.
-# This can be applied either in folder level or project level.
-# This is used in actions/create-snapshot.go which creates new snapshots of the disk in the event
+# This must be placed on every project that you want to allow automated snapshots to be taken.
+# This is used in functions/create_snapshot.go which creates new snapshots of the disk in the event
 # of certain detectors triggering. These snapshots can help analysis of the event as the disk is
 # captured at the time the activity occurred. This binding can be removed if the action is not
 # being used.
-resource "google_project_iam_binding" "gce-snapshot-bind" {
+#
+# TODO: Remove these project declarations and instead support folders or org level grants.
+resource "google_project_iam_binding" "gce-snapshot-bind-automation-project" {
   project = "${var.automation-project}"
+  role    = "roles/compute.instanceAdmin.v1"
+  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
+}
+
+resource "google_project_iam_binding" "gce-snapshot-bind-findings-project" {
+  project = "${var.findings-project}"
   role    = "roles/compute.instanceAdmin.v1"
   members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
 }

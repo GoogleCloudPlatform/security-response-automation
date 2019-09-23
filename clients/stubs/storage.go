@@ -1,4 +1,4 @@
-package clients
+package stubs
 
 // Copyright 2019 Google LLC
 //
@@ -16,27 +16,18 @@ package clients
 
 import (
 	"context"
-	"fmt"
 
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/option"
 )
 
-// Storage client.
-type Storage struct {
-	service *storage.Client
-}
-
-// NewStorage returns and initializes the Storage client.
-func NewStorage(ctx context.Context, authFile string) (*Storage, error) {
-	c, err := storage.NewClient(ctx, option.WithCredentialsFile(authFile))
-	if err != nil {
-		return nil, fmt.Errorf("failed to init storage: %q", err)
-	}
-	return &Storage{service: c}, nil
+// StorageStub provides a stub for the Storage client.
+type StorageStub struct {
+	service            *storage.Client
+	RemovedBucketUsers storage.ACLEntity
 }
 
 // RemoveBucketUsers removes the users from the given bucket.
-func (s *Storage) RemoveBucketUsers(ctx context.Context, bucketName string, entity storage.ACLEntity) error {
-	return s.service.Bucket(bucketName).ACL().Delete(ctx, entity)
+func (s *StorageStub) RemoveBucketUsers(ctx context.Context, bucketName string, entity storage.ACLEntity) error {
+	s.RemovedBucketUsers = entity
+	return nil
 }

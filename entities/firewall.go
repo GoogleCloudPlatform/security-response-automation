@@ -1,60 +1,44 @@
-/*
-Package entities contains abstractions around common objects.
-
-Copyright 2019 Google LLC
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	https://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package entities
 
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import (
-	"github.com/GoogleCloudPlatform/threat-automation/clients"
-
-	"fmt"
-
-	cs "google.golang.org/api/compute/v1"
+	compute "google.golang.org/api/compute/v1"
 )
 
-type firewallClient interface {
-	clients.ComputeService
+// FirewallClient holds the minimum interface required by the firewall entity.
+type FirewallClient interface {
+	PatchFirewallRule(string, string, *compute.Firewall) (*compute.Operation, error)
 }
 
-// Firewall struct.
+// Firewall entity.
 type Firewall struct {
-	c firewallClient
+	c FirewallClient
 }
 
-// NewFirewall returns a new instance of firewall.
-func NewFirewall(c firewallClient) *Firewall {
-	return &Firewall{c: c}
+// NewFirewall returns a new firewall entity.
+func NewFirewall(cs FirewallClient) *Firewall {
+	return &Firewall{c: cs}
 }
 
 // EnableFirewallRule sets the firewall rule to enabled.
-func (f *Firewall) EnableFirewallRule(projectID string, name string) (*cs.Operation, error) {
-	rb := &cs.Firewall{Disabled: false}
-	resp, err := f.c.PatchFirewallRule(projectID, name, rb)
-	if err != nil {
-		return nil, fmt.Errorf("failed to enable firewall rule: %q", err)
-	}
-	return resp, nil
+func (f *Firewall) EnableFirewallRule(projectID, name string) (*compute.Operation, error) {
+	return f.c.PatchFirewallRule(projectID, name, &compute.Firewall{Disabled: false})
 }
 
 // DisableFirewallRule sets the firewall rule to disabled.
-func (f *Firewall) DisableFirewallRule(projectID string, name string) (*cs.Operation, error) {
-	rb := &cs.Firewall{Disabled: true}
-	resp, err := f.c.PatchFirewallRule(projectID, name, rb)
-	if err != nil {
-		return nil, fmt.Errorf("failed to disable firewall rule: %q", err)
-	}
-	return resp, nil
+func (f *Firewall) DisableFirewallRule(projectID, name string) (*compute.Operation, error) {
+	return f.c.PatchFirewallRule(projectID, name, &compute.Firewall{Disabled: true})
 }
