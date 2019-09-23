@@ -20,7 +20,7 @@ import (
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 
-	"cloud.google.com/go/storage"
+	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -143,40 +143,53 @@ func createBindings(members []string) []*crm.Binding {
 	}
 }
 
-// RemoveEntityFromBucket tests the removal entities from a bucket.
-func TestRemoveEntityFromBucket(t *testing.T) {
+// RemoveMembersFromBucket tests the removal of members from a bucket.
+func TestRemoveMembersFromBucket(t *testing.T) {
 	const bucketName = "test-bucket-name"
-	crmStub := &stubs.ResourceManagerStub{}
-	storageStub := &stubs.StorageStub{}
-	r := NewResource(crmStub, storageStub)
-	ctx := context.Background()
 	tests := []struct {
-		name                            string
-		entity                          storage.ACLEntity
-		expectedError                   error
-		expectedSavedRemoveBucketEntity storage.ACLEntity
+		name            string
+		toRemove        []string
+		existingMembers []string
+		expected        []string
 	}{
 		{
-			name:                            "delete allUsers",
-			entity:                          storage.AllUsers,
-			expectedError:                   nil,
-			expectedSavedRemoveBucketEntity: storage.AllUsers,
+			name:            "delete allUsers",
+			toRemove:        []string{"allUsers"},
+			existingMembers: []string{"allUsers", "member:tom@tom.com"},
+			expected:        []string{"member:tom@tom.com"},
 		},
 		{
-			name:                            "delete allAuthenticatedUsers",
-			entity:                          storage.AllAuthenticatedUsers,
-			expectedError:                   nil,
-			expectedSavedRemoveBucketEntity: storage.AllAuthenticatedUsers,
+			name:            "delete allAuthenticatedUsers",
+			toRemove:        []string{"allAuthenticatedUsers"},
+			existingMembers: []string{"member:tom@tom.com", "allAuthenticatedUsers", "member:foo@foo.com"},
+			expected:        []string{"member:tom@tom.com", "member:foo@foo.com"},
+		},
+		{
+			name:            "don't delete anything",
+			toRemove:        []string{""},
+			existingMembers: []string{"member:tom@tom.com", "allAuthenticatedUsers", "member:foo@foo.com"},
+			expected:        []string{"member:tom@tom.com", "allAuthenticatedUsers", "member:foo@foo.com"},
 		},
 	}
 	for _, tt := range tests {
+		crmStub := &stubs.ResourceManagerStub{}
+		storageStub := &stubs.StorageStub{}
+		r := NewResource(crmStub, storageStub)
+		storageStub.BucketPolicyResponse = &iam.Policy{}
+		ctx := context.Background()
+
+		for _, v := range tt.existingMembers {
+			storageStub.BucketPolicyResponse.Add(v, "project/viewer")
+		}
+
 		t.Run(tt.name, func(t *testing.T) {
-			err := r.RemoveEntityFromBucket(ctx, bucketName, tt.entity)
-			if err != tt.expectedError {
-				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			err := r.RemoveMembersFromBucket(ctx, bucketName, tt.toRemove)
+			if err != nil {
+				t.Errorf("%v failed exp:%v got: %v", tt.name, nil, err)
 			}
-			if storageStub.RemovedBucketUsers != tt.expectedSavedRemoveBucketEntity {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedSavedRemoveBucketEntity, storageStub.RemovedBucketUsers)
+			s := storageStub.BucketPolicyResponse.Members("project/viewer")
+			if diff := cmp.Diff(s, tt.expected); diff != "" {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expected, s)
 			}
 		})
 	}

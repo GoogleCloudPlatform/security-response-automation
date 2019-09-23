@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
 )
@@ -36,7 +37,12 @@ func NewStorage(ctx context.Context, authFile string) (*Storage, error) {
 	return &Storage{service: c}, nil
 }
 
-// RemoveBucketUsers removes the users from the given bucket.
-func (s *Storage) RemoveBucketUsers(ctx context.Context, bucketName string, entity storage.ACLEntity) error {
-	return s.service.Bucket(bucketName).ACL().Delete(ctx, entity)
+// SetBucketPolicy sets the policy for the given bucket.
+func (s *Storage) SetBucketPolicy(ctx context.Context, bucketName string, policy *iam.Policy) error {
+	return s.service.Bucket(bucketName).IAM().SetPolicy(ctx, policy)
+}
+
+// BucketPolicy gets the IAM policy for the given bucket.
+func (s *Storage) BucketPolicy(ctx context.Context, bucketName string) (*iam.Policy, error) {
+	return s.service.Bucket(bucketName).IAM().Policy(ctx)
 }

@@ -100,3 +100,18 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	h := entities.NewHost(cs)
 	return cloudfunctions.CreateSnapshot(ctx, m, r, h)
 }
+
+// CloseBucket will remove any public users from buckets found within the provided folders.
+func CloseBucket(ctx context.Context, m pubsub.Message) error {
+	crm, err := clients.NewCloudResourceManager(ctx, authFile)
+	if err != nil {
+		return fmt.Errorf("failed to initialize cloud resource manager client: %w", err)
+	}
+
+	stg, err := clients.NewStorage(ctx, authFile)
+	if err != nil {
+		return fmt.Errorf("failed to initialize storage client: %w", err)
+	}
+	r := entities.NewResource(crm, stg)
+	return cloudfunctions.CloseBucket(ctx, m, r, folderIDs)
+}

@@ -17,17 +17,24 @@ package stubs
 import (
 	"context"
 
+	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
 )
 
 // StorageStub provides a stub for the Storage client.
 type StorageStub struct {
-	service            *storage.Client
-	RemovedBucketUsers storage.ACLEntity
+	service              *storage.Client
+	BucketPolicyResponse *iam.Policy
+	RemoveBucketPolicy   *iam.Policy
 }
 
-// RemoveBucketUsers removes the users from the given bucket.
-func (s *StorageStub) RemoveBucketUsers(ctx context.Context, bucketName string, entity storage.ACLEntity) error {
-	s.RemovedBucketUsers = entity
+// SetBucketPolicy set a policy for the given bucket.
+func (s *StorageStub) SetBucketPolicy(ctx context.Context, bucketName string, p *iam.Policy) error {
+	s.RemoveBucketPolicy = p
 	return nil
+}
+
+// BucketPolicy gets a bucket's policy.
+func (s *StorageStub) BucketPolicy(ctx context.Context, bucketName string) (*iam.Policy, error) {
+	return s.BucketPolicyResponse, nil
 }

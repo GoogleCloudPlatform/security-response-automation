@@ -18,8 +18,6 @@ package entities
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -108,7 +106,6 @@ func NewFinding() *Finding {
 // ReadFinding unmarshals a finding from PubSub.
 func (f *Finding) ReadFinding(m *pubsub.Message) error {
 	if err := json.Unmarshal(m.Data, &f.sd); err != nil {
-		log.Println("failed to read stackdriver finding")
 		return ErrUnmarshal
 	}
 
@@ -128,13 +125,11 @@ func (f *Finding) ReadFinding(m *pubsub.Message) error {
 	// case for external user granted as project editor.
 	case "external_member_added_to_policy":
 		if err := json.Unmarshal(m.Data, &f.ext); err != nil {
-			log.Println("failed to read ext")
 			return ErrUnmarshal
 		}
 	// case for external user granted as project owner.
 	case "external_member_invited_to_policy":
 		if err := json.Unmarshal(m.Data, &f.ext); err != nil {
-			fmt.Println("fil2")
 			return ErrUnmarshal
 		}
 	}

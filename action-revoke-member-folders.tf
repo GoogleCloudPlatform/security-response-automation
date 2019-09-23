@@ -51,8 +51,22 @@ data "archive_file" "revoke_member_zip" {
 }
 
 # Required by RevokeExternalGrantsFolders to revoke IAM grants on projects within this folder.
-resource "google_folder_iam_binding" "cloudfunction-folder-bind" {
+resource "google_folder_iam_binding" "revoke_member_cloudfunction-folder-bind" {
   folder  = "folders/${var.revoke-within-folder}"
   role    = "roles/resourcemanager.folderAdmin"
+  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
+}
+
+# In order for this GCF to be able to enumerate and check to see if the affected project is within
+# the specified folder `resourcemanager.projects.get` is required. The function will attempt to
+# make this call but if the permission is not granted the function will fail.
+#
+# You could grant `resourcemanager.projects.get` to the service account at the organization level
+# or let it fail which also means the project is outside of the folder you care about.
+#
+# In this example we'll grant `roles/viewer` which has this permission to the folder.
+resource "google_folder_iam_binding" "revoke_member_viewer_cloudfunction-folder-bind" {
+  folder  = "folders/${var.revoke-within-folder}"
+  role    = "roles/viewer"
   members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
 }
