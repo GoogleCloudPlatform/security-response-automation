@@ -57,7 +57,7 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 		return nil
 	}
 
-	rule := strings.ReplaceAll(f.RuleName(), "_", "-")
+	rule := strings.Replace(f.RuleName(), "_", "-", -1)
 	disks, err := h.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
 	if err != nil {
 		return fmt.Errorf("failed to list disks: %q", err)
