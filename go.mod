@@ -6,6 +6,7 @@ replace google.golang.org/genproto/googleapis/cloud/securitycenter/v1p1alpha1 =>
 
 replace cloud.google.com/go/securitycenter/apiv1p1alpha1 => ./private/apiv1p1alpha1
 
+
 require (
 	cloud.google.com/go v0.45.1
 	cloud.google.com/go/pubsub v1.0.1

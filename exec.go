@@ -56,12 +56,12 @@ const (
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize cloud resource manager client: %w", err)
+		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
 	}
 
 	stg, err := clients.NewStorage(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize storage client: %w", err)
+		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
 
@@ -84,18 +84,18 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize cloud resource manager client: %w", err)
+		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
 	}
 
 	stg, err := clients.NewStorage(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize storage client: %w", err)
+		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
 
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize compute client: %w", err)
+		return fmt.Errorf("failed to initialize compute client: %q", err)
 	}
 	h := entities.NewHost(cs)
 	return cloudfunctions.CreateSnapshot(ctx, m, r, h)
@@ -105,12 +105,12 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize cloud resource manager client: %w", err)
+		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
 	}
 
 	stg, err := clients.NewStorage(ctx, authFile)
 	if err != nil {
-		return fmt.Errorf("failed to initialize storage client: %w", err)
+		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
 	return cloudfunctions.CloseBucket(ctx, m, r, folderIDs)

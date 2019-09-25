@@ -16,6 +16,7 @@
 locals {
   region         = "us-central1"
   findings-topic = "threat-findings"
+  golang-runtime = "go111"
 }
 
 provider "google" {

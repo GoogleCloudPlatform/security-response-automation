@@ -16,7 +16,7 @@
 resource "google_cloudfunctions_function" "snapshot_disk_function" {
   name                  = "SnapshotDisk"
   description           = "Takes a snapshot of a GCE disk."
-  runtime               = "go112"
+  runtime               = "${local.golang-runtime}"
   available_memory_mb   = 128
   source_archive_bucket = "${google_storage_bucket.snapshot_disk_bucket.name}"
   source_archive_object = "${google_storage_bucket_object.snapshot_storage_bucket_object.name}"
