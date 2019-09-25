@@ -14,7 +14,7 @@
 resource "google_cloudfunctions_function" "close_bucket_function" {
   name                  = "CloseBucket"
   description           = "Removes users that enable public viewing of GCS buckets."
-  runtime               = "go112"
+  runtime               = "${local.golang-runtime}"
   available_memory_mb   = 128
   source_archive_bucket = "${google_storage_bucket.revoke_member_bucket.name}"
   source_archive_object = "${google_storage_bucket_object.revoke_storage_bucket_object.name}"

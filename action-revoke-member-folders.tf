@@ -16,7 +16,7 @@
 resource "google_cloudfunctions_function" "revoke_member_function" {
   name                  = "RevokeExternalGrantsFolders"
   description           = "Revokes IAM Event Threat Detection anomalous IAM grants."
-  runtime               = "go112"
+  runtime               = "${local.golang-runtime}"
   available_memory_mb   = 128
   source_archive_bucket = "${google_storage_bucket.revoke_member_bucket.name}"
   source_archive_object = "${google_storage_bucket_object.revoke_storage_bucket_object.name}"
