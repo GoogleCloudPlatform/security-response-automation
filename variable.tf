@@ -17,9 +17,3 @@ variable "organization-id" {
   type        = "string"
   description = "Organization ID."
 }
-
-variable "golang-runtime" {
-  type        = "string"
-  default = "go111"
-}
-
