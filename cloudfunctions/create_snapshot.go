@@ -24,6 +24,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/providers/etd"
 )
 
 const (
@@ -47,10 +48,9 @@ var supportedRules = map[string]bool{"bad_ip": true, "bad_domain": true}
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
 func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource, h *entities.Host) error {
-	f := entities.NewFinding()
-
-	if err := f.ReadFinding(&m); err != nil {
-		return fmt.Errorf("failed to read finding: %q", err)
+	f, err := etd.NewBadIP(&m)
+	if err != nil {
+		return fmt.Errorf("failed to create bad ip: %q", err)
 	}
 
 	if !supportedRules[f.RuleName()] {
@@ -79,11 +79,11 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 			continue
 		}
 
-		if err := removeExistingSnapshots(h, f, removeExisting); err != nil {
+		if err := removeExistingSnapshots(h, f.ProjectID(), removeExisting); err != nil {
 			return err
 		}
 
-		if err := createSnapshot(ctx, h, f, disk, sn); err != nil {
+		if err := createSnapshot(ctx, h, disk, f.ProjectID(), f.Zone(), sn); err != nil {
 			return err
 		}
 		// TODO(tomfitzgerald): Add metadata (indicators) to snapshot labels.
@@ -114,24 +114,24 @@ func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule
 }
 
 // createSnaphot will create the snapshot and wait for its completion.
-func createSnapshot(ctx context.Context, h *entities.Host, f *entities.Finding, disk *compute.Disk, name string) error {
-	op, err := h.CreateDiskSnapshot(ctx, f.ProjectID(), f.Zone(), disk.Name, name)
+func createSnapshot(ctx context.Context, h *entities.Host, disk *compute.Disk, projectID, zone, name string) error {
+	op, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk.Name, name)
 	if err != nil {
 		return fmt.Errorf("failed to create disk snapshot: %q", err)
 	}
-	if errs := h.WaitZone(f.ProjectID(), f.Zone(), op); len(errs) > 0 {
+	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
 		return fmt.Errorf("failed waiting: first error: %s", errs[0])
 	}
 	return nil
 }
 
-func removeExistingSnapshots(h *entities.Host, f *entities.Finding, remove map[string]bool) error {
+func removeExistingSnapshots(h *entities.Host, projectID string, remove map[string]bool) error {
 	for k := range remove {
-		op, err := h.DeleteDiskSnapshot(f.ProjectID(), k)
+		op, err := h.DeleteDiskSnapshot(projectID, k)
 		if err != nil {
 			return err
 		}
-		if errs := h.WaitGlobal(f.ProjectID(), op); len(errs) > 0 {
+		if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
 			return fmt.Errorf("failed waiting")
 		}
 	}

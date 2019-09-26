@@ -16,17 +16,7 @@ package entities
 // limitations under the License.
 
 import (
-	"encoding/json"
-	"errors"
-	"regexp"
-	"strings"
-
-	"cloud.google.com/go/pubsub"
-)
-
-const (
-	// etdFindingSuffix is the log name suffix used by Event Threat Detection's findings.
-	etdFindingSuffix = "/logs/threatdetection.googleapis.com%2Fdetection"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -36,43 +26,27 @@ var (
 	ErrParsing = errors.New("not a valid log")
 	// ErrValueNotFound thrown when a value is requested but not found.
 	ErrValueNotFound = errors.New("value not found")
-
-	// extractProject used to extract a project Number from an affected resource.
-	extractProject = regexp.MustCompile(`/projects/(.*)$`)
-	// extractResource used to extract a resource.
-	extractResource = regexp.MustCompile(`/([^/]+?/[^/]+?)?$`)
-	// extractInstance used to extract a instance.
-	extractInstance = regexp.MustCompile(`/instances/(.*)$`)
 )
 
-// stackdriverLog struct fits StackDriver logs.
-type stackdriverLog struct {
+// Life of a finding
+//
+// Findings are deserialized with the Cloud Function that uses them. For example, the
+// CreateSnapshot Cloud Function will attempt to deserialize ETD bad_ip findings. In an effort to
+// reuse methods where possible (and without inheritence) we have a ETD base finding that all ETD
+// findings will satisfy then a separate structure for each finding. Since Go does not support
+// inheritence and we do not currenty have a published schema for each finding this means we
+// deserialize several times. `NewBadIP` will attempt to deserialize it as a bad_ip finding as well
+// as a base ETD finding.
+//
+// In order to get common values from findings we have helper methods associated with the base struct
+// `Finding` and on the specific types such as `BadIP`. In an effort to make deferencing these values
+// easily we wrap in a method without error checking. To prevent accesor failures each finding will
+// implement a `validate` method that ensure all 'getter' method calls will succeed.
+
+// StackDriverLog struct fits StackDriver logs.
+type StackDriverLog struct {
 	InsertID string `json:"insertId"`
 	LogName  string `json:"logName"`
-}
-
-type etdLog struct {
-	JSONPayload struct {
-		DetectionCategory struct {
-			SubRuleName string
-			RuleName    string
-		}
-		AffectedResources []struct {
-			GCPResourceName string
-		}
-		Properties struct {
-			ProjectID string `json:"project_id"`
-		}
-	}
-}
-
-// Anomalous IAM grant external member added sub rule properties.
-type externalMemberAdded struct {
-	JSONPayload struct {
-		Properties struct {
-			ExternalMembers []string
-		}
-	}
 }
 
 // badNetworkFinding contains any finding based off VPC flow logs.
@@ -84,138 +58,4 @@ type badNetworkFinding struct {
 			IP             []string
 		}
 	}
-}
-
-// Finding struct setting.
-type Finding struct {
-	// Properties associated with Stackdriver.
-	sd stackdriverLog
-	// Properties associated with an ETD finding.
-	etd etdLog
-	// Properties for ETD's anomalous IAM grant detector sub rule 'external member added to policy'.
-	ext externalMemberAdded
-	// Properties for any ETD finding based off VPC flow logs.
-	badNetwork badNetworkFinding
-}
-
-// NewFinding returns a new finding.
-func NewFinding() *Finding {
-	return &Finding{}
-}
-
-// ReadFinding unmarshals a finding from PubSub.
-func (f *Finding) ReadFinding(m *pubsub.Message) error {
-	if err := json.Unmarshal(m.Data, &f.sd); err != nil {
-		return ErrUnmarshal
-	}
-
-	if f.sd.LogName == "" {
-		return ErrParsing
-	}
-
-	if !strings.HasSuffix(f.sd.LogName, etdFindingSuffix) {
-		return ErrParsing
-	}
-
-	if err := json.Unmarshal(m.Data, &f.etd); err != nil {
-		return ErrUnmarshal
-	}
-
-	switch f.etd.JSONPayload.DetectionCategory.SubRuleName {
-	// case for external user granted as project editor.
-	case "external_member_added_to_policy":
-		if err := json.Unmarshal(m.Data, &f.ext); err != nil {
-			return ErrUnmarshal
-		}
-	// case for external user granted as project owner.
-	case "external_member_invited_to_policy":
-		if err := json.Unmarshal(m.Data, &f.ext); err != nil {
-			return ErrUnmarshal
-		}
-	}
-
-	switch f.etd.JSONPayload.DetectionCategory.RuleName {
-	case "bad_ip":
-		fallthrough
-	case "bad_domain":
-		if err := json.Unmarshal(m.Data, &f.badNetwork); err != nil {
-			return ErrUnmarshal
-		}
-	}
-
-	return nil
-}
-
-// ExternalMembers returns a slice of external members.
-func (f *Finding) ExternalMembers() []string {
-	return f.ext.JSONPayload.Properties.ExternalMembers
-}
-
-// ProjectID returns the projectID of the affected project.
-func (f *Finding) ProjectID() string {
-	return f.etd.JSONPayload.Properties.ProjectID
-}
-
-// ProjectNumber returns the project number of the affected resource, or an empty string if it can't find one.
-func (f *Finding) ProjectNumber() string {
-	aff := f.etd.JSONPayload.AffectedResources
-	if len(aff) == 0 {
-		return ""
-	}
-	results := extractProject.FindStringSubmatch(aff[0].GCPResourceName)
-	if len(results) != 2 {
-		return ""
-	}
-	return results[1]
-}
-
-// Resource returns the resource of affected project.
-func (f *Finding) Resource() string {
-	aff := f.etd.JSONPayload.AffectedResources
-	if len(aff) == 0 {
-		return ""
-	}
-	m := extractResource.FindStringSubmatch(aff[0].GCPResourceName)
-	if m == nil {
-		return ""
-	}
-	return m[1]
-
-}
-
-// ExternalUsers returns the external members found from an anomalous IAM grant.
-func (f *Finding) ExternalUsers() []string {
-	if f.ext.JSONPayload.Properties.ExternalMembers == nil {
-		return []string{}
-	}
-
-	return f.ext.JSONPayload.Properties.ExternalMembers
-}
-
-// Zone returns the zone of affected project.
-func (f *Finding) Zone() string {
-	return f.badNetwork.JSONPayload.Properties.Location
-}
-
-// RuleName returns the rule name.
-func (f *Finding) RuleName() string {
-	return f.etd.JSONPayload.DetectionCategory.RuleName
-}
-
-// Instance returns the instance name of affected project.
-func (f *Finding) Instance() string {
-	s := f.badNetwork.JSONPayload.Properties.SourceInstance
-	if s == "" {
-		return ""
-	}
-	i := extractInstance.FindStringSubmatch(s)
-	if len(i) != 2 {
-		return ""
-	}
-	return i[1]
-}
-
-// BadIPs returns a slice of bad IPs from an ETD bad IP finding.
-func (f *Finding) BadIPs() []string {
-	return f.badNetwork.JSONPayload.Properties.IP
 }

@@ -29,14 +29,24 @@ import (
 
 var (
 	sampleFinding = pubsub.Message{Data: []byte(`{
-                "insertId": "eppsoda4",
-                "jsonPayload": {"detectionCategory": {"ruleName": "bad_ip"},
-        "affectedResources":[{"gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/test-project"}],
-                "properties": {
-                        "location": "test-zone",
-                        "sourceInstance": "/projects/test-project/zones/test-zone/instances/instance1"
-		}
-        }, "logName": "projects/test-project/logs/threatdetection.googleapis.com%2Fdetection"}`)}
+  "insertId": "eppsoda4",
+  "jsonPayload": {
+    "detectionCategory": {
+      "ruleName": "bad_ip"
+    },
+    "affectedResources": [
+      {
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/test-project"
+      }
+    ],
+    "properties": {
+			"project_id": "foo-test",
+      "location": "test-zone",
+      "sourceInstance": "/projects/test-project/zones/test-zone/instances/instance1"
+    }
+  },
+  "logName": "projects/test-project/logs/threatdetection.googleapis.com%2Fdetection"
+}`)}
 )
 
 func TestCreateSnapshot(t *testing.T) {
@@ -151,9 +161,8 @@ func TestCreateSnapshot(t *testing.T) {
 			h := entities.NewHost(computeStub)
 			r := entities.NewResource(resourceManagerStub, storageStub)
 			if err := CreateSnapshot(ctx, sampleFinding, r, h); err != nil {
-				t.Errorf("failed to create snapshot :%q", err)
+				t.Errorf("%s failed to create snapshot :%q", tt.name, err)
 			}
-
 			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {
 				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedSnapshots, computeStub.SavedCreateSnapshots)
 			}
