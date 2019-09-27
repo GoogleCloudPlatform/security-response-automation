@@ -1,5 +1,5 @@
 // Package entities holds commonly used methods used in security automation.
-package entities
+package sha
 
 import (
 	"encoding/json"

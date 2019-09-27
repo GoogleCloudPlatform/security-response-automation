@@ -1,4 +1,4 @@
-package entities
+package sha
 
 import (
 	"testing"
