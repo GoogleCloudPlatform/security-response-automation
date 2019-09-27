@@ -45,7 +45,7 @@ func TestCloseBucket(t *testing.T) {
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
-			ancestry:       createAncestors([]string{"123"}),
+			ancestry:       createAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {

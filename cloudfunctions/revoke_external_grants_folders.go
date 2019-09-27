@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/providers/etd"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -35,14 +36,9 @@ import (
 // was to a domain explicitly disallowed and within the folder then remove the member from the
 // entire IAM policy for the resource.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, disallowed []string) error {
-	f := entities.NewFinding()
-
-	if err := f.ReadFinding(&m); err != nil {
+	f, err := etd.NewExternalMembersFinding(&m)
+	if err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
-	}
-
-	if eu := f.ExternalUsers(); len(eu) == 0 {
-		return fmt.Errorf("no external users")
 	}
 
 	ancestors, err := r.GetProjectAncestry(ctx, f.ProjectID())
@@ -50,7 +46,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
 
-	remove := toRemove(f, disallowed)
+	remove := toRemove(f.ExternalMembers(), disallowed)
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {
 			if resource != "folders/"+folderID {
@@ -65,9 +61,8 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 }
 
 // toRemove returns a slice containing only external members that are disallowed.
-func toRemove(f *entities.Finding, disallowed []string) []string {
+func toRemove(members []string, disallowed []string) []string {
 	r := []string{}
-	members := f.ExternalMembers()
 	for _, mm := range members {
 		for _, d := range disallowed {
 			if !strings.HasSuffix(mm, d) {
