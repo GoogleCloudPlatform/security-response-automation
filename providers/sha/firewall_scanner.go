@@ -26,12 +26,13 @@ type firewallSourceProperties struct {
 	}
 }
 
-// FirewallScanner
+// FirewallScanner a Security Health Analytics finding
 type FirewallScanner struct {
 	sf *Finding
 	fs firewallSourceProperties
 }
 
+// NewFirewallScanner creates a new FirewallScanner
 func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 	var f FirewallScanner
 	b := NewFinding()

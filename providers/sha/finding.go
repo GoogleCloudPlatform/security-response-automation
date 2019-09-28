@@ -1,12 +1,12 @@
-// Package entities holds commonly used methods used in security automation.
+// Package sha holds Security Health Analytics finding entities and functions
 package sha
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/pkg/errors"
 )
 
 // Copyright 2019 Google LLC
@@ -28,8 +28,6 @@ const (
 )
 
 var (
-	// ErrShaUnmarshal thrown when unable to unmarshal.
-	ErrShaUnmarshal = errors.New("failed to unmarshal")
 	// ErrNoResourceName thrown when finding does not have a resource name
 	ErrNoResourceName = errors.New("does not have a resource name")
 	// ErrNoCategory thrown when finding does not have a category
@@ -38,7 +36,7 @@ var (
 	ErrNoProjectID = errors.New("does not have a project id")
 )
 
-// SCCAttributes
+// SCCAttributes common attributes to all Security Command Center findings
 type SCCAttributes struct {
 	Finding struct {
 		Name         string `json:"name"`
@@ -52,8 +50,8 @@ type SCCAttributes struct {
 	}
 }
 
-// SHACommonSourceProperties
-type SHACommonSourceProperties struct {
+// CommonSourceProperties holds SCC source properties commom to all SHA findings
+type CommonSourceProperties struct {
 	Finding struct {
 		SourceProperties struct {
 			ReactivationCount     float64 `json:"ReactivationCount"`
@@ -72,7 +70,7 @@ type SHACommonSourceProperties struct {
 // Finding a Security Health Analytics finding
 type Finding struct {
 	a  SCCAttributes
-	sp SHACommonSourceProperties
+	sp CommonSourceProperties
 }
 
 // NewFinding returns a new ShaFinding.
@@ -83,11 +81,11 @@ func NewFinding() *Finding {
 // ReadFinding unmarshals a Security Health Analytics finding from PubSub
 func (f *Finding) ReadFinding(m *pubsub.Message) error {
 	if err := json.Unmarshal(m.Data, &f.a); err != nil {
-		return ErrShaUnmarshal
+		return errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
 	if err := json.Unmarshal(m.Data, &f.sp); err != nil {
-		return ErrShaUnmarshal
+		return errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
 	if f.a.Finding.ResourceName == "" {
@@ -102,6 +100,5 @@ func (f *Finding) ReadFinding(m *pubsub.Message) error {
 		return ErrNoProjectID
 	}
 
-	fmt.Println(f.a.Finding.Category)
 	return nil
 }
