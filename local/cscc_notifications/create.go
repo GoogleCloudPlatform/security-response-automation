@@ -10,9 +10,9 @@ import (
 	"log"
 	"os"
 
-	securitycenter "cloud.google.com/go/securitycenter/apiv1p1alpha1"
+	securitycenter "github.com/googlecloudplatform/threat-automation/clients/cscc/apiv1p1alpha1"
+	securitycenterpb "github.com/googlecloudplatform/threat-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/api/option"
-	securitycenterpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1p1alpha1"
 )
 
 const authFile = "./credentials/auth.json"

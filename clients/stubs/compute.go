@@ -17,12 +17,13 @@ package stubs
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	compute "google.golang.org/api/compute/v1"
 )
 
-//ErrorToStopInstance error instace raise in stop instance
-var ErrorToStopInstance = fmt.Errorf("not found instance error")
+// ErrNonexistentVM is a stub error returned simulating an error in case of VM not found.
+var ErrNonexistentVM = fmt.Errorf("googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/nonexistent' was not found, notFound")
 
 // ComputeStub provides a stub for the compute client.
 type ComputeStub struct {
@@ -69,7 +70,7 @@ func (c *ComputeStub) SetLabels(context.Context, string, string, *compute.Global
 // StopComputeInstance strop instance
 func (c *ComputeStub) StopComputeInstance(ctx context.Context, projectID string, zone string, instance string) (*compute.Operation, error) {
 	if "unknown_instance" == instance {
-		return nil, ErrorToStopInstance
+		return nil, ErrNonexistentVM
 	}
 	return c.StubbedStopComputeInstance, nil
 }
@@ -82,4 +83,12 @@ func (c *ComputeStub) WaitGlobal(_ string, _ *compute.Operation) []error {
 // WaitZone zone waits at the zone level.
 func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 	return []error{}
+}
+
+// StartInstance starts a given instance in given zone
+func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	if strings.HasPrefix(instance, "nonexistent") {
+		return nil, ErrNonexistentVM
+	}
+	return nil, nil
 }
