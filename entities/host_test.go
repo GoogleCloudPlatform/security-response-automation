@@ -59,22 +59,19 @@ func TestStartVm(t *testing.T) {
 		zone      = "test-zone"
 	)
 	tests := []struct {
-		name             string
-		instanceName     string
-		expectedError    error
-		expectedResponse *compute.Operation
+		name          string
+		instanceName  string
+		expectedError error
 	}{
 		{
-			name:             "test if starts successfully",
-			instanceName:     "existentVm",
-			expectedError:    nil,
-			expectedResponse: &compute.Operation{},
+			name:          "test if starts successfully",
+			instanceName:  "existentVm",
+			expectedError: nil,
 		},
 		{
-			name:             "should notify in case of error",
-			instanceName:     "nonexistent",
-			expectedError:    stubs.ErrNonexistentVM,
-			expectedResponse: &compute.Operation{},
+			name:          "should notify in case of error",
+			instanceName:  "nonexistent",
+			expectedError: stubs.ErrNonexistentVM,
 		},
 	}
 	for _, tt := range tests {

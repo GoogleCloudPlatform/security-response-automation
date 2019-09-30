@@ -22,7 +22,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-//ErrNonexistentVM is a stub error returned simulating an error in case of VM not found
+// ErrNonexistentVM is a stub error returned simulating an error in case of VM not found.
 var ErrNonexistentVM = fmt.Errorf("googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/nonexistent' was not found, notFound")
 
 // ComputeStub provides a stub for the compute client.
