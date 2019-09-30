@@ -22,6 +22,9 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
+//ErrNonexistentVM is a stub error returned simulating an error in case of VM not found
+var ErrNonexistentVM = fmt.Errorf("googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/nonexistent' was not found, notFound")
+
 // ComputeStub provides a stub for the compute client.
 type ComputeStub struct {
 	SavedFirewallRule           *compute.Firewall
@@ -74,8 +77,8 @@ func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 
 // StartInstance starts a given instance in given zone
 func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	if strings.HasPrefix(instance, "unexistent") {
-		return nil, fmt.Errorf("googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/unexistent' was not found, notFound")
+	if strings.HasPrefix(instance, "nonexistent") {
+		return nil, ErrNonexistentVM
 	}
 	return nil, nil
 }
