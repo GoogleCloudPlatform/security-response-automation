@@ -27,7 +27,7 @@ type CommandCenterClient interface {
 	AddSecurityMarks(context.Context, *crm.UpdateSecurityMarksRequest) (*crm.SecurityMarks, error)
 }
 
-// CommandCenter entity
+// CommandCenter entity.
 type CommandCenter struct {
 	c CommandCenterClient
 }
@@ -37,8 +37,8 @@ func NewCommandCenter(cc CommandCenterClient) *CommandCenter {
 	return &CommandCenter{c: cc}
 }
 
-// AddSecurityMarks to a finding or asset
-func (r *CommandCenter) AddSecurityMarks(ctx context.Context, findingID string, securityMarks map[string]string) (*crm.SecurityMarks, error) {
+// AddSecurityMarks to a finding or asset.
+func (r *CommandCenter) AddSecurityMarks(ctx context.Context, entityID string, securityMarks map[string]string) (*crm.SecurityMarks, error) {
 	var paths []string
 	for key := range securityMarks {
 		paths = append(paths, "marks."+key)
@@ -49,11 +49,9 @@ func (r *CommandCenter) AddSecurityMarks(ctx context.Context, findingID string, 
 			Paths: paths,
 		},
 		SecurityMarks: &crm.SecurityMarks{
-			Name: fmt.Sprintf("%s/securityMarks", findingID),
-			// Note keys correspond to the last part of each path.
+			Name:  fmt.Sprintf("%s/securityMarks", entityID),
 			Marks: securityMarks,
 		},
 	}
 	return r.c.AddSecurityMarks(ctx, request)
-
 }

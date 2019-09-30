@@ -27,7 +27,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 	tests := []struct {
 		name             string
 		securityMark     map[string]string
-		findingID        string
+		entityID         string
 		expectedError    error
 		expectedResponse *sccpb.SecurityMarks
 	}{
@@ -35,32 +35,32 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 		{
 			name:             "Add Security Mark on a existent finding",
 			securityMark:     map[string]string{"automationTest": "true"},
-			findingID:        "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
+			entityID:         "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
 			expectedError:    nil,
 			expectedResponse: &sccpb.SecurityMarks{Marks: map[string]string{"automationTest": "true"}},
 		},
 		{
 			name:             "Add Security Mark on a nonexistent finding",
 			securityMark:     map[string]string{"automationTest": "true"},
-			findingID:        "nonexistent",
+			entityID:         "nonexistent",
 			expectedError:    stubs.ErrEntityNonExistent,
 			expectedResponse: nil,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			commandCenterStub := &stubs.SecurityCommandCenterStub{}
 			commandCenterStub.GetUpdatedSecurityMarks = &sccpb.SecurityMarks{Marks: tt.securityMark}
 			ctx := context.Background()
 			c := NewCommandCenter(commandCenterStub)
-			_, err := c.AddSecurityMarks(ctx, tt.findingID, tt.securityMark)
+			_, err := c.AddSecurityMarks(ctx, tt.entityID, tt.securityMark)
 
 			if tt.expectedError != nil && err != tt.expectedError {
 				t.Errorf("%v failed exp: %v got: %v", tt.name, tt.expectedError, err)
 			} else if tt.expectedError == nil && commandCenterStub.GetUpdatedSecurityMarks.GetMarks()["automationTest"] != tt.expectedResponse.GetMarks()["automationTest"] {
 				t.Errorf("%v failed exp: %v got:%v", tt.name, tt.expectedResponse, commandCenterStub.GetUpdatedSecurityMarks)
 			}
-
 		})
 	}
 }
