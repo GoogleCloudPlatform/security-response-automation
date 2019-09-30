@@ -16,9 +16,13 @@ package stubs
 
 import (
 	"context"
+	"fmt"
 
 	compute "google.golang.org/api/compute/v1"
 )
+
+//ErrorToStopInstance error instace raise in stop instance
+var ErrorToStopInstance = fmt.Errorf("not found instance error")
 
 // ComputeStub provides a stub for the compute client.
 type ComputeStub struct {
@@ -32,6 +36,7 @@ type ComputeStub struct {
 // PatchFirewallRule updates the firewall rule for the given project.
 func (c *ComputeStub) PatchFirewallRule(_, _ string, rb *compute.Firewall) (*compute.Operation, error) {
 	c.SavedFirewallRule = rb
+
 	return nil, nil
 }
 
@@ -62,7 +67,10 @@ func (c *ComputeStub) SetLabels(context.Context, string, string, *compute.Global
 }
 
 // StopComputeInstance strop instance
-func (c *ComputeStub) StopComputeInstance(ctx context.Context, _ string, _ string, _ string) (*compute.Operation, error) {
+func (c *ComputeStub) StopComputeInstance(ctx context.Context, projectID string, zone string, instance string) (*compute.Operation, error) {
+	if "unknown_instance" == instance {
+		return nil, ErrorToStopInstance
+	}
 	return c.StubbedStopComputeInstance, nil
 }
 
