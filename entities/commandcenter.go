@@ -54,10 +54,6 @@ func (r *CommandCenter) AddSecurityMarks(ctx context.Context, findingID string, 
 			Marks: securityMarks,
 		},
 	}
-	resp, err := r.c.AddSecurityMarks(ctx, request)
-	if err != nil {
-		return nil, fmt.Errorf("failed to add security marks: %q", err)
-	}
+	return r.c.AddSecurityMarks(ctx, request)
 
-	return resp, nil
 }
