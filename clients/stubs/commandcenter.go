@@ -21,9 +21,15 @@ import (
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
 
-// SecurityCommandCenterStub provides a stub for the CRM client..
+// SecurityCommandCenterStub provides a stub for the Security Command center client..
 type SecurityCommandCenterStub struct {
 	GetUpdatedSecurityMarks *sccpb.SecurityMarks
+	GetUpdatedFindings      *sccpb.Finding
+}
+
+// UpdateFinding updates a finding in SCC.
+func (s *SecurityCommandCenterStub) UpdateFinding(ctx context.Context, request *sccpb.UpdateFindingRequest) (*sccpb.Finding, error) {
+	return s.GetUpdatedFindings, nil
 }
 
 // AddSecurityMarks to a finding or asset

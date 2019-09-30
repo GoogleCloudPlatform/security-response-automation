@@ -45,6 +45,5 @@ func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccp
 
 // AddSecurityMarks to a finding or asset
 func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
-	updatedMarks, err := s.service.UpdateSecurityMarks(ctx, request)
-	return updatedMarks, err
+	return s.service.UpdateSecurityMarks(ctx, request)
 }
