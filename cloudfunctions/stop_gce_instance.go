@@ -21,6 +21,6 @@ func StopInstance(ctx context.Context, m pubsub.Message, h *entities.Host) error
 		return err
 	}
 
-	fmt.Printf("%#v\n instance call stop:", resp)
+	fmt.Printf("%#v\n instance called to stop", resp)
 	return nil
 }

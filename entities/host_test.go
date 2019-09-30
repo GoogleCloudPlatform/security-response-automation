@@ -53,7 +53,7 @@ func TestCreateDiskSnapshot(t *testing.T) {
 	}
 }
 
-func TestStopInstance(t *testing.T) {
+func TestStopHost(t *testing.T) {
 	const (
 		projectID = "test-project-id"
 		zone      = "test-zone"
@@ -65,7 +65,7 @@ func TestStopInstance(t *testing.T) {
 		expectedResponse *compute.Operation
 	}{
 		{
-			name:             "TestStopInstance",
+			name:             "TestStopHost",
 			expectedError:    nil,
 			expectedResponse: &compute.Operation{},
 		},
