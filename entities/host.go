@@ -30,6 +30,7 @@ type ComputeClient interface {
 	ListDisks(context.Context, string, string) (*compute.DiskList, error)
 	SetLabels(context.Context, string, string, *compute.GlobalSetLabelsRequest) (*compute.Operation, error)
 	DeleteDiskSnapshot(string, string) (*compute.Operation, error)
+	StopComputeInstance(context.Context, string, string, string) (*compute.Operation, error)
 	WaitZone(string, string, *compute.Operation) []error
 	WaitGlobal(string, *compute.Operation) []error
 }
@@ -95,6 +96,11 @@ func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, name string, m 
 		return fmt.Errorf("failed to set disk labels: %q", err)
 	}
 	return nil
+}
+
+// StopComputeInstance stos the target project/zone/instance
+func (h *Host) StopComputeInstance(ctx context.Context, projectID string, zone string, instance string) (*compute.Operation, error) {
+	return h.c.StopComputeInstance(ctx, projectID, zone, instance)
 }
 
 // WaitZone will wait for the zonal operation to complete.

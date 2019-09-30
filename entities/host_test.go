@@ -52,3 +52,32 @@ func TestCreateDiskSnapshot(t *testing.T) {
 		})
 	}
 }
+
+func TestStopInstance(t *testing.T) {
+	const (
+		projectID = "test-project-id"
+		zone      = "test-zone"
+		instance  = "test-instance"
+	)
+	tests := []struct {
+		name             string
+		expectedError    error
+		expectedResponse *compute.Operation
+	}{
+		{
+			name:             "TestStopInstance",
+			expectedError:    nil,
+			expectedResponse: &compute.Operation{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			h := NewHost(&stubs.ComputeStub{})
+			if _, err := h.StopComputeInstance(ctx, projectID, zone, instance); err != tt.expectedError {
+				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+		})
+	}
+}

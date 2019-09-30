@@ -83,6 +83,11 @@ func (c *Compute) SetLabels(ctx context.Context, projectID, resource string, rb 
 	return c.compute.Snapshots.SetLabels(projectID, resource, rb).Context(ctx).Do()
 }
 
+// StopComputeInstance instance command to some instance/zone
+func (c *Compute) StopComputeInstance(ctx context.Context, projectID string, zone string, instance string) (*compute.Operation, error) {
+	return c.compute.Instances.Stop(projectID, zone, instance).Context(ctx).Do()
+}
+
 // WaitZone will wait for the zonal operation to complete.
 func (c *Compute) WaitZone(project, zone string, op *compute.Operation) []error {
 	return wait(op, func() (*compute.Operation, error) {

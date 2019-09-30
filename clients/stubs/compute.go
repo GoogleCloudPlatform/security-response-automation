@@ -26,6 +26,7 @@ type ComputeStub struct {
 	SavedCreateSnapshots        map[string]compute.Snapshot
 	StubbedListProjectSnapshots *compute.SnapshotList
 	StubbedListDisks            *compute.DiskList
+	StubbedStopComputeInstance  *compute.Operation
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
@@ -58,6 +59,11 @@ func (c *ComputeStub) ListDisks(ctx context.Context, _, _ string) (*compute.Disk
 // SetLabels sets the labels on a snapshot.
 func (c *ComputeStub) SetLabels(context.Context, string, string, *compute.GlobalSetLabelsRequest) (*compute.Operation, error) {
 	return nil, nil
+}
+
+// StopComputeInstance strop instance
+func (c *ComputeStub) StopComputeInstance(ctx context.Context, _ string, _ string, _ string) (*compute.Operation, error) {
+	return c.StubbedStopComputeInstance, nil
 }
 
 // WaitGlobal waits globally.
