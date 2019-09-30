@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 )
 
@@ -49,6 +50,71 @@ func TestCreateDiskSnapshot(t *testing.T) {
 			if _, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk, snapshot); err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
 			}
+		})
+	}
+}
+
+func TestStartVm(t *testing.T) {
+	const (
+		projectID = "test-project-id"
+		zone      = "test-zone"
+	)
+	tests := []struct {
+		name             string
+		instanceName     string
+		expectedError    error
+		expectedResponse *compute.Operation
+	}{
+		{
+			name:             "test if starts successfully",
+			instanceName:     "existentVm",
+			expectedError:    nil,
+			expectedResponse: &compute.Operation{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			computeStub := &stubs.ComputeStub{}
+
+			ctx := context.Background()
+			h := NewHost(computeStub)
+
+			if _, err := h.StartInstance(ctx, projectID, zone, tt.instanceName); err != tt.expectedError {
+				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestStartVmReceivingError(t *testing.T) {
+	const (
+		projectID = "test-project-id"
+		zone      = "test-zone"
+	)
+	tests := []struct {
+		name             string
+		instanceName     string
+		expectedError    error
+		expectedResponse *compute.Operation
+	}{
+		{
+			name:             "should notify in case of error",
+			instanceName:     "unexistentVm",
+			expectedError:    errors.New("failed to start instance: \"googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/unexistent' was not found, notFound\""),
+			expectedResponse: &compute.Operation{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			computeStub := &stubs.ComputeStub{}
+
+			ctx := context.Background()
+			h := NewHost(computeStub)
+
+			if _, err := h.StartInstance(ctx, projectID, zone, tt.instanceName); err.Error() != tt.expectedError.Error() {
+				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+
 		})
 	}
 }

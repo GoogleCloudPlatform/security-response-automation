@@ -16,6 +16,8 @@ package stubs
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	compute "google.golang.org/api/compute/v1"
 )
@@ -68,4 +70,12 @@ func (c *ComputeStub) WaitGlobal(_ string, _ *compute.Operation) []error {
 // WaitZone zone waits at the zone level.
 func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 	return []error{}
+}
+
+// StartInstance starts a given instance in given zone
+func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	if strings.HasPrefix(instance, "unexistent") {
+		return nil, fmt.Errorf("googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/unexistent' was not found, notFound")
+	}
+	return nil, nil
 }
