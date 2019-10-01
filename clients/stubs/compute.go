@@ -37,7 +37,6 @@ type ComputeStub struct {
 // PatchFirewallRule updates the firewall rule for the given project.
 func (c *ComputeStub) PatchFirewallRule(_, _ string, rb *compute.Firewall) (*compute.Operation, error) {
 	c.SavedFirewallRule = rb
-
 	return nil, nil
 }
 
