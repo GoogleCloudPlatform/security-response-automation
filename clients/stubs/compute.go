@@ -31,7 +31,7 @@ type ComputeStub struct {
 	SavedCreateSnapshots        map[string]compute.Snapshot
 	StubbedListProjectSnapshots *compute.SnapshotList
 	StubbedListDisks            *compute.DiskList
-	StubbedStopComputeInstance  *compute.Operation
+	StubbedStopInstance  *compute.Operation
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
@@ -67,14 +67,6 @@ func (c *ComputeStub) SetLabels(context.Context, string, string, *compute.Global
 	return nil, nil
 }
 
-// StopComputeInstance strop instance
-func (c *ComputeStub) StopComputeInstance(ctx context.Context, projectID string, zone string, instance string) (*compute.Operation, error) {
-	if "unknown_instance" == instance {
-		return nil, ErrNonexistentVM
-	}
-	return c.StubbedStopComputeInstance, nil
-}
-
 // WaitGlobal waits globally.
 func (c *ComputeStub) WaitGlobal(_ string, _ *compute.Operation) []error {
 	return []error{}
@@ -83,6 +75,14 @@ func (c *ComputeStub) WaitGlobal(_ string, _ *compute.Operation) []error {
 // WaitZone zone waits at the zone level.
 func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 	return []error{}
+}
+
+// StopInstance strop instance
+func (c *ComputeStub) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	if "unknown_instance" == instance {
+		return nil, ErrNonexistentVM
+	}
+	return c.StubbedStopInstance, nil
 }
 
 // StartInstance starts a given instance in given zone

@@ -30,9 +30,9 @@ type ComputeClient interface {
 	ListDisks(context.Context, string, string) (*compute.DiskList, error)
 	SetLabels(context.Context, string, string, *compute.GlobalSetLabelsRequest) (*compute.Operation, error)
 	DeleteDiskSnapshot(string, string) (*compute.Operation, error)
-	StopComputeInstance(context.Context, string, string, string) (*compute.Operation, error)
 	WaitZone(string, string, *compute.Operation) []error
 	WaitGlobal(string, *compute.Operation) []error
+	StopInstance(context.Context, string, string, string) (*compute.Operation, error)
 	StartInstance(context.Context, string, string, string) (*compute.Operation, error)
 }
 
@@ -99,11 +99,6 @@ func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, name string, m 
 	return nil
 }
 
-// StopComputeInstance stos the target project/zone/instance
-func (h *Host) StopComputeInstance(ctx context.Context, projectID string, zone string, instance string) (*compute.Operation, error) {
-	return h.c.StopComputeInstance(ctx, projectID, zone, instance)
-}
-
 // WaitZone will wait for the zonal operation to complete.
 func (h *Host) WaitZone(project, zone string, op *compute.Operation) []error {
 	return h.c.WaitZone(project, zone, op)
@@ -122,6 +117,11 @@ func (h *Host) diskBelongsToInstance(disks *compute.Disk, instance string) bool 
 		}
 	}
 	return false
+}
+
+// StopInstance stos the target project/zone/instance
+func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return h.c.StopInstance(ctx, projectID, zone, instance)
 }
 
 // StartInstance starts a given instance in given zone
