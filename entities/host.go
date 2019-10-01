@@ -142,6 +142,7 @@ func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance stri
 		return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
 	}
 	return nil
+}
 
 // DeleteInstance starts a given instance in given zone.
 func (h *Host) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
