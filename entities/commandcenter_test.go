@@ -33,14 +33,14 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 	}{
 
 		{
-			name:             "Add Security Mark on a existent finding",
+			name:             "add Security Mark on a existent finding",
 			securityMark:     map[string]string{"automationTest": "true"},
 			entityID:         "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
 			expectedError:    nil,
-			expectedResponse: &sccpb.SecurityMarks{Marks: map[string]string{"automationTest": "true"}},
+			expectedResponse: &sccpb.SecurityMarks{},
 		},
 		{
-			name:             "Add Security Mark on a nonexistent finding",
+			name:             "add Security Mark on a nonexistent finding",
 			securityMark:     map[string]string{"automationTest": "true"},
 			entityID:         "nonexistent",
 			expectedError:    stubs.ErrEntityNonExistent,
@@ -51,15 +51,28 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			commandCenterStub := &stubs.SecurityCommandCenterStub{}
-			commandCenterStub.GetUpdatedSecurityMarks = &sccpb.SecurityMarks{Marks: tt.securityMark}
 			ctx := context.Background()
 			c := NewCommandCenter(commandCenterStub)
 			_, err := c.AddSecurityMarks(ctx, tt.entityID, tt.securityMark)
 
+			if commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetName() != tt.entityID+"/securityMarks" {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.entityID+"/securityMarks", commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetName())
+			}
+
+			if commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetMarks()["automationTest"] != tt.securityMark["automationTest"] {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.securityMark["automationTest"], commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetMarks()["automationTest"])
+			}
+
+			if commandCenterStub.GetUpdateSecurityMarksRequest.UpdateMask.GetPaths()[0] != "marks.automationTest" {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, "marks.automationTest", commandCenterStub.GetUpdateSecurityMarksRequest.UpdateMask.GetPaths()[0])
+			}
+
 			if tt.expectedError != nil && err != tt.expectedError {
-				t.Errorf("%v failed exp: %v got: %v", tt.name, tt.expectedError, err)
-			} else if tt.expectedError == nil && commandCenterStub.GetUpdatedSecurityMarks.GetMarks()["automationTest"] != tt.expectedResponse.GetMarks()["automationTest"] {
-				t.Errorf("%v failed exp: %v got:%v", tt.name, tt.expectedResponse, commandCenterStub.GetUpdatedSecurityMarks)
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+			}
+
+			if tt.expectedError == nil && tt.expectedResponse == nil {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, commandCenterStub.GetUpdatedSecurityMarks)
 			}
 		})
 	}

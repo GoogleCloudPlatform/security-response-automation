@@ -16,7 +16,6 @@ package entities
 
 import (
 	"context"
-	"fmt"
 
 	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	"google.golang.org/genproto/protobuf/field_mask"
@@ -29,29 +28,28 @@ type CommandCenterClient interface {
 
 // CommandCenter entity.
 type CommandCenter struct {
-	c CommandCenterClient
+	client CommandCenterClient
 }
 
 // NewCommandCenter returns a commmand center entity.
 func NewCommandCenter(cc CommandCenterClient) *CommandCenter {
-	return &CommandCenter{c: cc}
+	return &CommandCenter{client: cc}
 }
 
 // AddSecurityMarks to a finding or asset.
 func (r *CommandCenter) AddSecurityMarks(ctx context.Context, entityID string, securityMarks map[string]string) (*crm.SecurityMarks, error) {
 	var paths []string
-	for key := range securityMarks {
-		paths = append(paths, "marks."+key)
+	for k := range securityMarks {
+		paths = append(paths, "marks."+k)
 	}
 
-	request := &crm.UpdateSecurityMarksRequest{
+	return r.client.AddSecurityMarks(ctx, &crm.UpdateSecurityMarksRequest{
 		UpdateMask: &field_mask.FieldMask{
 			Paths: paths,
 		},
 		SecurityMarks: &crm.SecurityMarks{
-			Name:  fmt.Sprintf("%s/securityMarks", entityID),
+			Name:  entityID + "/securityMarks",
 			Marks: securityMarks,
 		},
-	}
-	return r.c.AddSecurityMarks(ctx, request)
+	})
 }

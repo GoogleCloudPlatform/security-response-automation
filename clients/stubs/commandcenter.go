@@ -1,4 +1,3 @@
-// Package stubs provides testable stubs for clients.
 package stubs
 
 // Copyright 2019 Google LLC
@@ -18,29 +17,24 @@ package stubs
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
 
-// ErrEntityNonExistent is a stub error returned simulating an error in case of entity was not found.
+// ErrEntityNonExistent is an error throw if the entity was not found.
 var ErrEntityNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Requested entity was not found")
 
-// SecurityCommandCenterStub provides a stub for the Security Command center client..
+// SecurityCommandCenterStub provides a stub for the Security Command center client.
 type SecurityCommandCenterStub struct {
-	GetUpdatedSecurityMarks *sccpb.SecurityMarks
-	GetUpdatedFindings      *sccpb.Finding
+	GetUpdatedSecurityMarks       *sccpb.SecurityMarks
+	GetUpdateSecurityMarksRequest *sccpb.UpdateSecurityMarksRequest
 }
 
-// UpdateFinding updates a finding in SCC.
-func (s *SecurityCommandCenterStub) UpdateFinding(ctx context.Context, request *sccpb.UpdateFindingRequest) (*sccpb.Finding, error) {
-	return s.GetUpdatedFindings, nil
-}
-
-// AddSecurityMarks to a finding or asset.
+// AddSecurityMarks adds Security Marks to a finding or asset.
 func (s *SecurityCommandCenterStub) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
-	if strings.HasPrefix(request.SecurityMarks.GetName(), "nonexistent") {
+	s.GetUpdateSecurityMarksRequest = request
+	if request.SecurityMarks.GetName() == "nonexistent/securityMarks" {
 		return nil, ErrEntityNonExistent
 	}
-	return s.GetUpdatedSecurityMarks, nil
+	return &sccpb.SecurityMarks{}, nil
 }

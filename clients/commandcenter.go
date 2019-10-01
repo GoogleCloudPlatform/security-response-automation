@@ -43,7 +43,7 @@ func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccp
 	return s.service.UpdateFinding(ctx, request)
 }
 
-// AddSecurityMarks add security mark to a finding or asset.
+// AddSecurityMarks adds security mark to a finding or asset.
 func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
 	return s.service.UpdateSecurityMarks(ctx, request)
 }
