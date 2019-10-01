@@ -120,11 +120,25 @@ func (h *Host) diskBelongsToInstance(disks *compute.Disk, instance string) bool 
 }
 
 // StopInstance stops the provided instance.
-func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	return h.c.StopInstance(ctx, projectID, zone, instance)
+func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance string) error {
+	op, err := h.c.StopInstance(ctx, projectID, zone, instance)
+	if err != nil {
+		return fmt.Errorf("failed to stop instance: %q", err)
+	}
+	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
+		return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
+	}
+	return nil
 }
 
 // StartInstance starts a given instance in given zone
-func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	return h.c.StartInstance(ctx, projectID, zone, instance)
+func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance string) error {
+	op, err := h.c.StartInstance(ctx, projectID, zone, instance)
+	if err != nil {
+		return fmt.Errorf("failed to start instance: %q", err)
+	}
+	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
+		return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
+	}
+	return nil
 }
