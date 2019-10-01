@@ -99,7 +99,7 @@ func TestDeleteVm(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name:          "test if starts successfully",
+			name:          "test if deletes successfully",
 			instanceName:  "existentVm",
 			expectedError: nil,
 		},
