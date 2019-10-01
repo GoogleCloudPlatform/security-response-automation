@@ -17,7 +17,6 @@ package stubs
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	compute "google.golang.org/api/compute/v1"
 )
@@ -31,7 +30,8 @@ type ComputeStub struct {
 	SavedCreateSnapshots        map[string]compute.Snapshot
 	StubbedListProjectSnapshots *compute.SnapshotList
 	StubbedListDisks            *compute.DiskList
-	StubbedStopInstance  *compute.Operation
+	StubbedStopInstance         *compute.Operation
+	StubbedStartInstance        *compute.Operation
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
@@ -79,16 +79,10 @@ func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 
 // StopInstance strop instance
 func (c *ComputeStub) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	if "unknown_instance" == instance {
-		return nil, ErrNonexistentVM
-	}
 	return c.StubbedStopInstance, nil
 }
 
 // StartInstance starts a given instance in given zone
 func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	if strings.HasPrefix(instance, "nonexistent") {
-		return nil, ErrNonexistentVM
-	}
-	return nil, nil
+	return c.StubbedStartInstance, nil
 }

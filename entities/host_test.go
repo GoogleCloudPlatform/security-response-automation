@@ -70,12 +70,6 @@ func TestStopVm(t *testing.T) {
 			expectedResponse: &compute.Operation{},
 			instance:         "test-instance",
 		},
-		{
-			name:             "TestStopVm Not Found Instance",
-			expectedResponse: nil,
-			expectedError:    stubs.ErrNonexistentVM,
-			instance:         "unknown_instance",
-		},
 	}
 
 	for _, tt := range tests {
@@ -84,7 +78,7 @@ func TestStopVm(t *testing.T) {
 			ctx := context.Background()
 			h := NewHost(&stubs.ComputeStub{})
 
-			if _, err := h.StopComputeInstance(ctx, projectID, zone, tt.instance); err != tt.expectedError {
+			if _, err := h.StopInstance(ctx, projectID, zone, tt.instance); err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
 			}
 		})
@@ -104,11 +98,6 @@ func TestStartVm(t *testing.T) {
 			name:          "test if starts successfully",
 			instanceName:  "existentVm",
 			expectedError: nil,
-		},
-		{
-			name:          "should notify in case of error",
-			instanceName:  "nonexistent",
-			expectedError: stubs.ErrNonexistentVM,
 		},
 	}
 	for _, tt := range tests {
