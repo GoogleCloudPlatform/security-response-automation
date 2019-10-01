@@ -76,12 +76,20 @@ func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 	return []error{}
 }
 
-// StopInstance strop instance
+// StopInstance stops an instance.
 func (c *ComputeStub) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return c.StubbedStopInstance, nil
 }
 
-// StartInstance starts a given instance in given zone
+// StartInstance starts a given instance in given zone.
 func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return c.StubbedStartInstance, nil
+}
+
+// DeleteInstance starts a given instance in given zone.
+func (c *ComputeStub) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	if strings.HasPrefix(instance, "nonexistent") {
+		return nil, ErrNonexistentVM
+	}
+	return nil, nil
 }

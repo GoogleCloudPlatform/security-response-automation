@@ -34,6 +34,7 @@ type ComputeClient interface {
 	WaitGlobal(string, *compute.Operation) []error
 	StopInstance(context.Context, string, string, string) (*compute.Operation, error)
 	StartInstance(context.Context, string, string, string) (*compute.Operation, error)
+	DeleteInstance(context.Context, string, string, string) (*compute.Operation, error)
 }
 
 // Host entity.
@@ -131,7 +132,7 @@ func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance strin
 	return nil
 }
 
-// StartInstance starts a given instance in given zone
+// StartInstance starts a given instance in given zone.
 func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance string) error {
 	op, err := h.c.StartInstance(ctx, projectID, zone, instance)
 	if err != nil {
@@ -141,4 +142,8 @@ func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance stri
 		return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
 	}
 	return nil
+
+// DeleteInstance starts a given instance in given zone.
+func (h *Host) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return h.c.DeleteInstance(ctx, projectID, zone, instance)
 }

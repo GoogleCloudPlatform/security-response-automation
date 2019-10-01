@@ -102,9 +102,14 @@ func (c *Compute) StopInstance(ctx context.Context, projectID, zone, instance st
 	return c.compute.Instances.Stop(projectID, zone, instance).Context(ctx).Do()
 }
 
-// StartInstance starts a given instance in given zone
+// StartInstance starts a given instance in given zone.
 func (c *Compute) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return c.compute.Instances.Start(projectID, zone, instance).Context(ctx).Do()
+}
+
+// DeleteInstance deletes a given instance in given zone.
+func (c *Compute) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return c.compute.Instances.Delete(projectID, zone, instance).Context(ctx).Do()
 }
 
 func wait(op *compute.Operation, fn func() (*compute.Operation, error)) []error {
