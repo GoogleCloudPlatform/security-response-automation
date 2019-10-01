@@ -33,6 +33,7 @@ type ComputeClient interface {
 	WaitZone(string, string, *compute.Operation) []error
 	WaitGlobal(string, *compute.Operation) []error
 	StartInstance(context.Context, string, string, string) (*compute.Operation, error)
+	DeleteInstance(context.Context, string, string, string) (*compute.Operation, error)
 }
 
 // Host entity.
@@ -121,4 +122,9 @@ func (h *Host) diskBelongsToInstance(disks *compute.Disk, instance string) bool 
 // StartInstance starts a given instance in given zone
 func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return h.c.StartInstance(ctx, projectID, zone, instance)
+}
+
+// DeleteInstance starts a given instance in given zone
+func (h *Host) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return h.c.DeleteInstance(ctx, projectID, zone, instance)
 }

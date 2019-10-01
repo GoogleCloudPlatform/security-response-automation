@@ -82,3 +82,11 @@ func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instan
 	}
 	return nil, nil
 }
+
+// DeleteInstance starts a given instance in given zone
+func (c *ComputeStub) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	if strings.HasPrefix(instance, "nonexistent") {
+		return nil, ErrNonexistentVM
+	}
+	return nil, nil
+}
