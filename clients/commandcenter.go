@@ -38,7 +38,12 @@ func NewSecurityCommandCenter(ctx context.Context, authFile string) (*SecurityCo
 	return &SecurityCommandCenter{service: scc}, nil
 }
 
-// UpdateFinding updates a findig in SCC.
+// UpdateFinding updates a finding in SCC.
 func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccpb.UpdateFindingRequest) (*sccpb.Finding, error) {
 	return s.service.UpdateFinding(ctx, request)
+}
+
+// AddSecurityMarks adds security mark to a finding or asset.
+func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
+	return s.service.UpdateSecurityMarks(ctx, request)
 }
