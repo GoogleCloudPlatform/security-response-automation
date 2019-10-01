@@ -97,12 +97,12 @@ func (c *Compute) WaitGlobal(project string, op *compute.Operation) []error {
 	})
 }
 
-// StartInstance starts a given instance in given zone
+// StartInstance starts a given instance in given zone.
 func (c *Compute) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return c.compute.Instances.Start(projectID, zone, instance).Context(ctx).Do()
 }
 
-// DeleteInstance deletes a given instance in given zone
+// DeleteInstance deletes a given instance in given zone.
 func (c *Compute) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return c.compute.Instances.Delete(projectID, zone, instance).Context(ctx).Do()
 }
