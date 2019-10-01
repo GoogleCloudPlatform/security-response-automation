@@ -87,3 +87,38 @@ func TestStartVm(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteVm(t *testing.T) {
+	const (
+		projectID = "test-project-id"
+		zone      = "test-zone"
+	)
+	tests := []struct {
+		name          string
+		instanceName  string
+		expectedError error
+	}{
+		{
+			name:          "test if deletes successfully",
+			instanceName:  "existentVm",
+			expectedError: nil,
+		},
+		{
+			name:          "should notify in case of error",
+			instanceName:  "nonexistent",
+			expectedError: stubs.ErrNonexistentVM,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			computeStub := &stubs.ComputeStub{}
+
+			ctx := context.Background()
+			h := NewHost(computeStub)
+
+			if _, err := h.DeleteInstance(ctx, projectID, zone, tt.instanceName); err != tt.expectedError {
+				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+		})
+	}
+}
