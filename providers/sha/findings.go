@@ -47,3 +47,8 @@ func (f *Finding) validate() bool {
 	// TODO: Implement this.
 	return true
 }
+
+// Resource returns the affected resource name.
+func (f *Finding) Resource() string {
+	return f.base.Finding.ResourceName
+}
