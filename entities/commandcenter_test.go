@@ -18,9 +18,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 
+	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
+	"google.golang.org/genproto/protobuf/field_mask"
 )
 
 func TestAddSecurityMarkToFinding(t *testing.T) {
@@ -30,6 +33,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 		entityID         string
 		expectedError    error
 		expectedResponse *sccpb.SecurityMarks
+		expectedRequest  *sccpb.UpdateSecurityMarksRequest
 	}{
 
 		{
@@ -38,13 +42,31 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			entityID:         "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
 			expectedError:    nil,
 			expectedResponse: &sccpb.SecurityMarks{},
+			expectedRequest: &sccpb.UpdateSecurityMarksRequest{
+				UpdateMask: &field_mask.FieldMask{
+					Paths: []string{"marks.automationTest"},
+				},
+				SecurityMarks: &crm.SecurityMarks{
+					Name:  "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599/securityMarks",
+					Marks: map[string]string{"automationTest": "true"},
+				},
+			},
 		},
 		{
 			name:             "add Security Mark on a nonexistent finding",
-			securityMark:     map[string]string{"automationTest": "true"},
+			securityMark:     map[string]string{"automationTestFailing": "true"},
 			entityID:         "nonexistent",
 			expectedError:    stubs.ErrEntityNonExistent,
 			expectedResponse: nil,
+			expectedRequest: &sccpb.UpdateSecurityMarksRequest{
+				UpdateMask: &field_mask.FieldMask{
+					Paths: []string{"marks.automationTestFailing"},
+				},
+				SecurityMarks: &crm.SecurityMarks{
+					Name:  "nonexistent/securityMarks",
+					Marks: map[string]string{"automationTestFailing": "true"},
+				},
+			},
 		},
 	}
 
@@ -53,26 +75,18 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			commandCenterStub := &stubs.SecurityCommandCenterStub{}
 			ctx := context.Background()
 			c := NewCommandCenter(commandCenterStub)
-			_, err := c.AddSecurityMarks(ctx, tt.entityID, tt.securityMark)
+			r, err := c.AddSecurityMarks(ctx, tt.entityID, tt.securityMark)
 
-			if commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetName() != tt.entityID+"/securityMarks" {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.entityID+"/securityMarks", commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetName())
-			}
-
-			if commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetMarks()["automationTest"] != tt.securityMark["automationTest"] {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.securityMark["automationTest"], commandCenterStub.GetUpdateSecurityMarksRequest.SecurityMarks.GetMarks()["automationTest"])
-			}
-
-			if commandCenterStub.GetUpdateSecurityMarksRequest.UpdateMask.GetPaths()[0] != "marks.automationTest" {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, "marks.automationTest", commandCenterStub.GetUpdateSecurityMarksRequest.UpdateMask.GetPaths()[0])
+			if diff := cmp.Diff(commandCenterStub.GetUpdateSecurityMarksRequest, tt.expectedRequest); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 
 			if tt.expectedError != nil && err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
 
-			if tt.expectedError == nil && tt.expectedResponse == nil {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, commandCenterStub.GetUpdatedSecurityMarks)
+			if tt.expectedError == nil && r == nil {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
 			}
 		})
 	}

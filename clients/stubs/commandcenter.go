@@ -26,7 +26,6 @@ var ErrEntityNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Request
 
 // SecurityCommandCenterStub provides a stub for the Security Command center client.
 type SecurityCommandCenterStub struct {
-	GetUpdatedSecurityMarks       *sccpb.SecurityMarks
 	GetUpdateSecurityMarksRequest *sccpb.UpdateSecurityMarksRequest
 }
 
