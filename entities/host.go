@@ -119,7 +119,7 @@ func (h *Host) diskBelongsToInstance(disks *compute.Disk, instance string) bool 
 	return false
 }
 
-// StopInstance stos the target project/zone/instance
+// StopInstance stops the provided instance.
 func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
 	return h.c.StopInstance(ctx, projectID, zone, instance)
 }
