@@ -16,8 +16,8 @@ resource "google_cloudfunctions_function" "close_bucket_function" {
   description           = "Removes users that enable public viewing of GCS buckets."
   runtime               = "${local.golang-runtime}"
   available_memory_mb   = 128
-  source_archive_bucket = "${google_storage_bucket.revoke_member_bucket.name}"
-  source_archive_object = "${google_storage_bucket_object.revoke_storage_bucket_object.name}"
+  source_archive_bucket = "${google_storage_bucket.gcf_bucket.name}"
+  source_archive_object = "${google_storage_bucket_object.gcf_object.name}"
   timeout               = 60
   project               = "${var.automation-project}"
   region                = "${local.region}"
@@ -25,27 +25,8 @@ resource "google_cloudfunctions_function" "close_bucket_function" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${local.findings-topic}"
+    resource   = "${google_pubsub_topic.cscc-notifications-topic.name}"
   }
-}
-
-resource "google_storage_bucket" "close_bucket_bucket" {
-  name       = "${var.automation-project}-close-bucket-folders"
-  depends_on = ["local_file.cloudfunction-key-file"]
-}
-
-resource "google_storage_bucket_object" "close_bucket_storage_bucket_object" {
-  name   = "close_bucket_folders.zip"
-  bucket = "${google_storage_bucket.close_bucket_bucket.name}"
-  source = "${path.root}/deploy/close_bucket_folders.zip"
-}
-
-data "archive_file" "close_bucket_zip" {
-  type        = "zip"
-  source_dir  = "${path.root}"
-  output_path = "${path.root}/deploy/close_bucket_folders.zip"
-  depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy", ".git", ".terraform"]
 }
 
 # Required to retrieve ancestry for projects within this folder.

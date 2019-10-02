@@ -99,7 +99,7 @@ const (
     "category": "PUBLIC_BUCKET_ACL",
     "externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
     "sourceProperties": {
-      "ReactivationCount": 0,
+      "ReactivationCount": 0.0,
       "ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
       "SeverityLevel": "High",
       "Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
@@ -197,13 +197,17 @@ func TestForShaPublicBucket(t *testing.T) {
 		message        *pubsub.Message
 		expScannerName string
 		expProjectID   string
+		expCategory    string
 	}{
-		{name: "valid finding", message: &pubsub.Message{Data: []byte(publicBucketFinding)}, expScannerName: "STORAGE_SCANNER", expProjectID: "aerial-jigsaw-235219"}}
+		{name: "valid finding", message: &pubsub.Message{Data: []byte(publicBucketFinding)}, expScannerName: "STORAGE_SCANNER", expProjectID: "aerial-jigsaw-235219", expCategory: "PUBLIC_BUCKET_ACL"}}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := NewPublicBucket(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
+			}
+			if f.Category() != tt.expCategory {
+				t.Errorf("%s failed got:%q want:%q", tt.name, f.Category(), tt.expCategory)
 			}
 			if f.ScannerName() != tt.expScannerName {
 				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)

@@ -14,7 +14,7 @@ type publicBucket struct {
 	Finding                struct {
 		Name             string
 		SourceProperties struct {
-			ReactivationCount     int32
+			ReactivationCount     float32
 			ExceptionInstructions string
 			SeverityLevel         string
 			Recommendation        string

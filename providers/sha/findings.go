@@ -52,3 +52,8 @@ func (f *Finding) validate() bool {
 func (f *Finding) Resource() string {
 	return f.base.Finding.ResourceName
 }
+
+// Category returns the category of the finding.
+func (f *Finding) Category() string {
+	return f.base.Finding.Category
+}
