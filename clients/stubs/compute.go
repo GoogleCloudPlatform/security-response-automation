@@ -26,12 +26,18 @@ type ComputeStub struct {
 	SavedCreateSnapshots        map[string]compute.Snapshot
 	StubbedListProjectSnapshots *compute.SnapshotList
 	StubbedListDisks            *compute.DiskList
+	StubbedFireWall             *compute.Firewall
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
-func (c *ComputeStub) PatchFirewallRule(_, _ string, rb *compute.Firewall) (*compute.Operation, error) {
+func (c *ComputeStub) PatchFirewallRule(ctx context.Context, projectID string, rule string, rb *compute.Firewall) (*compute.Operation, error) {
 	c.SavedFirewallRule = rb
 	return nil, nil
+}
+
+// GetFirewallRule get the details of a firewall rule
+func (c *ComputeStub) GetFirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Firewall, error) {
+	return c.StubbedFireWall, nil
 }
 
 // CreateSnapshot creates a snapshot of a specified persistent disk.

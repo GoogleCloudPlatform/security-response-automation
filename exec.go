@@ -115,3 +115,13 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	r := entities.NewResource(crm, stg)
 	return cloudfunctions.CloseBucket(ctx, m, r, folderIDs)
 }
+
+// DisableFirewallRule
+func DisableFirewallRule(ctx context.Context, m pubsub.Message) error {
+	cs, err := clients.NewCompute(ctx, authFile)
+	if err != nil {
+		return fmt.Errorf("failed to initialize compute client: %q", err)
+	}
+	f := entities.NewFirewall(cs)
+	return cloudfunctions.DisableFirewall(ctx, m, f)
+}

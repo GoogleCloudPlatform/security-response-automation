@@ -274,3 +274,36 @@ func TestShaReadScannerName(t *testing.T) {
 		})
 	}
 }
+
+func TestShaReadFirewallID(t *testing.T) {
+	test := []struct {
+		name       string
+		message    *pubsub.Message
+		firewallID string
+	}{
+		{
+			"Read ResourceName successfully",
+			&pubsub.Message{Data: []byte(`{
+				"finding": {
+					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
+					"category": "OPEN_FIREWALL",
+					"sourceProperties": {
+						"ScannerName": "FIREWALL_SCANNER",
+						"ProjectId": "teste-project"
+					}}}`)},
+			"6190685430815455733",
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := NewFirewallScanner(tt.message)
+			if err != nil {
+				t.Errorf("failed reading SHA finding: %q", err)
+			}
+			z := f.FirewallID()
+			if z != tt.firewallID {
+				t.Errorf("%s failed got:%q want:%q", tt.name, z, tt.firewallID)
+			}
+		})
+	}
+}

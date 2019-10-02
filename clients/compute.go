@@ -63,6 +63,11 @@ func (c *Compute) PatchFirewallRule(ctx context.Context, projectID string, rule 
 	return c.compute.Firewalls.Patch(projectID, rule, rb).Context(ctx).Do()
 }
 
+// GetFirewallRule get the details of a firewall rule
+func (c *Compute) GetFirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Firewall, error) {
+	return c.compute.Firewalls.Get(projectID, ruleID).Context(ctx).Do()
+}
+
 // CreateSnapshot creates a snapshot of a specified persistent disk.
 func (c *Compute) CreateSnapshot(ctx context.Context, projectID, zone, disk string, rb *compute.Snapshot) (*compute.Operation, error) {
 	return c.compute.Disks.CreateSnapshot(projectID, zone, disk, rb).Context(ctx).Do()

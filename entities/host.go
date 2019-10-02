@@ -32,6 +32,8 @@ type ComputeClient interface {
 	DeleteDiskSnapshot(string, string) (*compute.Operation, error)
 	WaitZone(string, string, *compute.Operation) []error
 	WaitGlobal(string, *compute.Operation) []error
+	PatchFirewallRule(context.Context, string, string, *compute.Firewall) (*compute.Operation, error)
+	GetFirewallRule(context.Context, string, string) (*compute.Firewall, error)
 }
 
 // Host entity.

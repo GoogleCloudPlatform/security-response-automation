@@ -2,6 +2,7 @@ package sha
 
 import (
 	"encoding/json"
+	"regexp"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
@@ -13,6 +14,7 @@ var (
 	// ErrUnknownRule thrown when the rule is unknown
 	ErrUnknownRule         = errors.New("Unknown firewall category")
 	supportedFirewallRules = map[string]bool{"OPEN_SSH_PORT": true, "OPEN_RDP_PORT": true, "OPEN_FIREWALL": true}
+	extractFirewallID      = regexp.MustCompile(`/global/firewalls/(.*)$`)
 )
 
 type firewallSourceProperties struct {
@@ -76,4 +78,12 @@ func (f *FirewallScanner) ScannerName() string {
 // Category returns the finding Category
 func (f *FirewallScanner) Category() string {
 	return f.sf.a.Finding.Category
+}
+
+func (f *FirewallScanner) FirewallID() string {
+	i := extractFirewallID.FindStringSubmatch(f.sf.a.Finding.ResourceName)
+	if len(i) != 2 {
+		return ""
+	}
+	return i[1]
 }
