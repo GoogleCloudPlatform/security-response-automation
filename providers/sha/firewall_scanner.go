@@ -20,10 +20,10 @@ var (
 type firewallSourceProperties struct {
 	Finding struct {
 		SourceProperties struct {
-			Allowed           string `json:"Allowed"`
-			AllowedIPRange    string `json:"AllowedIpRange"`
-			ActivationTrigger string `json:"ActivationTrigger"`
-			SourceRange       string `json:"SourceRange"`
+			Allowed           string
+			AllowedIPRange    string
+			ActivationTrigger string
+			SourceRange       string
 		}
 	}
 }
@@ -80,6 +80,7 @@ func (f *FirewallScanner) Category() string {
 	return f.sf.a.Finding.Category
 }
 
+// FirewallID return the numerical ID of the firewall. It is not the firewall name provided on creation
 func (f *FirewallScanner) FirewallID() string {
 	i := extractFirewallID.FindStringSubmatch(f.sf.a.Finding.ResourceName)
 	if len(i) != 2 {

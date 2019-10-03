@@ -36,40 +36,41 @@ var (
 	ErrNoProjectID = errors.New("does not have a project id")
 )
 
-// SCCAttributes common attributes to all Security Command Center findings
-type SCCAttributes struct {
+// Attributes common attributes to all Security Command Center findings
+type Attributes struct {
 	Finding struct {
-		Name         string `json:"name"`
-		Parent       string `json:"parent"`
-		State        string `json:"state"`
-		ExternalURI  string `json:"externalUri"`
-		EventTime    string `json:"eventTime"`
-		CreateTime   string `json:"createTime"`
-		ResourceName string `json:"resourceName"`
-		Category     string `json:"category"`
+		Name         string
+		Parent       string
+		State        string
+		ExternalURI  string
+		EventTime    string
+		CreateTime   string
+		ResourceName string
+		Category     string
 	}
 }
 
-// CommonSourceProperties holds SCC source properties commom to all SHA findings
+// CommonSourceProperties holds SCC source properties common to all SHA findings
 type CommonSourceProperties struct {
 	Finding struct {
 		SourceProperties struct {
-			ReactivationCount     float64 `json:"ReactivationCount"`
-			ExceptionInstructions string  `json:"ExceptionInstructions"`
-			SeverityLevel         string  `json:"SeverityLevel"`
-			Recommendation        string  `json:"Recommendation"`
-			ProjectID             string  `json:"ProjectId"`
-			AssetCreationTime     string  `json:"AssetCreationTime"`
-			ScannerName           string  `json:"ScannerName"`
-			ScanRunID             string  `json:"ScanRunId"`
-			Explanation           string  `json:"Explanation"`
+			ReactivationCount     float32
+			ExceptionInstructions string
+			SeverityLevel         string
+			Recommendation        string
+			ProjectID             string
+			DeactivationReason    string
+			AssetCreationTime     string
+			ScannerName           string
+			ScanRunID             string
+			Explanation           string
 		}
 	}
 }
 
 // Finding a Security Health Analytics finding
 type Finding struct {
-	a  SCCAttributes
+	a  Attributes
 	sp CommonSourceProperties
 }
 
