@@ -39,14 +39,18 @@ var (
 // Attributes common attributes to all Security Command Center findings
 type Attributes struct {
 	Finding struct {
-		Name         string
-		Parent       string
-		State        string
-		ExternalURI  string
-		EventTime    string
-		CreateTime   string
-		ResourceName string
-		Category     string
+		Name          string
+		Parent        string
+		State         string
+		ExternalURI   string
+		EventTime     string
+		CreateTime    string
+		ResourceName  string
+		Category      string
+		SecurityMarks struct {
+			Name  string
+			Marks map[string]string
+		}
 	}
 }
 

@@ -126,7 +126,10 @@ func TestShaSuccess(t *testing.T) {
 					"Explanation": "Firewall rules that allow connections from all IP addresses or on all ports may expose resources to attackers." 
 				  },  
 				  "securityMarks": { 
-					"name": "organizations/1055058813388/sources/1986930501971458034/findings/cea981dd340112213827902b408b497e/securityMarks" 
+					"name": "organizations/1055058813388/sources/1986930501971458034/findings/cea981dd340112213827902b408b497e/securityMarks",
+					"marks": {
+						"sccquery94c23b35ea0b4f8388268415a0dc6c1b": "true"
+					}
 				  },  
 				  "eventTime": "2019-09-19T16:58:39.276Z",
 				  "createTime": "2019-09-16T22:11:59.977Z"
