@@ -49,9 +49,9 @@ import (
 	"log"
 	"os"
 
-	securitycenter "cloud.google.com/go/securitycenter/apiv1p1alpha1"
+	securitycenter "github.com/googlecloudplatform/threat-automation/clients/cscc/apiv1p1alpha1"
+	securitycenterpb "github.com/googlecloudplatform/threat-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/api/iterator"
-	securitycenterpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1p1alpha1"
 )
 
 var (
@@ -68,6 +68,7 @@ func main() {
 		log.Fatalf("failed to init client: %q", err)
 		os.Exit(1)
 	}
+	// s
 	switch *cmd {
 	case "list":
 		if *orgID == "" || *topic == "" {
