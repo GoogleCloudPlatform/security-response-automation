@@ -23,7 +23,6 @@ import (
 // CloudSQLClient contains minimum interface required by the cloud sql entity.
 type CloudSQLClient interface {
 	EnforceSSLConection(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
-	GetDataBaseInstance(context.Context, string, string, string) (*sqladmin.Database, error)
 }
 
 // CloudSQL entity.
@@ -36,15 +35,10 @@ func NewCloudSQL(cc CloudSQLClient) *CloudSQL {
 	return &CloudSQL{client: cc}
 }
 
-// GetDataBaseInstance gets details from a database
-func (s *CloudSQL) GetDataBaseInstance(ctx context.Context, project string, instance string, database string) (*sqladmin.Database, error) {
-	return s.GetDataBaseInstance(ctx, project, instance, database)
-}
-
 // EnforceSSLConnection enforces SSL Connection to a database.
-func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, project string, instance string, database string, region string) (*sqladmin.Operation, error) {
+func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, project string, instance string, region string) (*sqladmin.Operation, error) {
 	return s.client.EnforceSSLConection(ctx, project, instance, &sqladmin.DatabaseInstance{
-		Name:           database,
+		Name:           instance,
 		Project:        project,
 		ConnectionName: project + ":" + region + ":" + instance,
 		Settings: &sqladmin.Settings{

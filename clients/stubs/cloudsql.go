@@ -38,12 +38,3 @@ func (s *SQLAdminStub) EnforceSSLConection(ctx context.Context, project string, 
 
 	return &sqladmin.Operation{}, nil
 }
-
-// GetDataBaseInstance gets database information
-func (s *SQLAdminStub) GetDataBaseInstance(ctx context.Context, project string, instance string, database string) (*sqladmin.Database, error) {
-	if project == "nonexisting" || instance == "nonexisting" || database == "nonexisting" {
-		return nil, ErrResourceNonExistent
-	}
-
-	return &sqladmin.Database{}, nil
-}
