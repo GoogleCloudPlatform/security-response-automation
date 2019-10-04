@@ -16,9 +16,13 @@ package stubs
 
 import (
 	"context"
+	"fmt"
 
 	compute "google.golang.org/api/compute/v1"
 )
+
+// ErrNonexistentVM is a stub error returned simulating an error in case of VM not found.
+var ErrNonexistentVM = fmt.Errorf("googleapi: Error 404: The resource 'projects/test/zones/us-central1-a/instances/nonexistent' was not found, notFound")
 
 // ComputeStub provides a stub for the compute client.
 type ComputeStub struct {
@@ -26,6 +30,8 @@ type ComputeStub struct {
 	SavedCreateSnapshots        map[string]compute.Snapshot
 	StubbedListProjectSnapshots *compute.SnapshotList
 	StubbedListDisks            *compute.DiskList
+	StubbedStopInstance         *compute.Operation
+	StubbedStartInstance        *compute.Operation
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
@@ -68,4 +74,19 @@ func (c *ComputeStub) WaitGlobal(_ string, _ *compute.Operation) []error {
 // WaitZone zone waits at the zone level.
 func (c *ComputeStub) WaitZone(_, _ string, _ *compute.Operation) []error {
 	return []error{}
+}
+
+// StopInstance stops an instance.
+func (c *ComputeStub) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return c.StubbedStopInstance, nil
+}
+
+// StartInstance starts a given instance in given zone.
+func (c *ComputeStub) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return c.StubbedStartInstance, nil
+}
+
+// DeleteInstance starts a given instance in given zone.
+func (c *ComputeStub) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
+	return nil, nil
 }

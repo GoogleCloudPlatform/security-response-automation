@@ -18,8 +18,8 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   description           = "Revokes IAM Event Threat Detection anomalous IAM grants."
   runtime               = "${local.golang-runtime}"
   available_memory_mb   = 128
-  source_archive_bucket = "${google_storage_bucket.revoke_member_bucket.name}"
-  source_archive_object = "${google_storage_bucket_object.revoke_storage_bucket_object.name}"
+  source_archive_bucket = "${google_storage_bucket.gcf_bucket.name}"
+  source_archive_object = "${google_storage_bucket_object.gcf_object.name}"
   timeout               = 60
   project               = "${var.automation-project}"
   region                = "${local.region}"
@@ -29,25 +29,6 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${local.findings-topic}"
   }
-}
-
-resource "google_storage_bucket" "revoke_member_bucket" {
-  name       = "${var.automation-project}-revoke-member-folders"
-  depends_on = ["local_file.cloudfunction-key-file"]
-}
-
-resource "google_storage_bucket_object" "revoke_storage_bucket_object" {
-  name   = "revoke_member_folders.zip"
-  bucket = "${google_storage_bucket.revoke_member_bucket.name}"
-  source = "${path.root}/deploy/revoke_member_folders.zip"
-}
-
-data "archive_file" "revoke_member_zip" {
-  type        = "zip"
-  source_dir  = "${path.root}"
-  output_path = "${path.root}/deploy/revoke_member_folders.zip"
-  depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy", ".git", ".terraform"]
 }
 
 # Required by RevokeExternalGrantsFolders to revoke IAM grants on projects within this folder.

@@ -18,8 +18,8 @@ resource "google_cloudfunctions_function" "snapshot_disk_function" {
   description           = "Takes a snapshot of a GCE disk."
   runtime               = "${local.golang-runtime}"
   available_memory_mb   = 128
-  source_archive_bucket = "${google_storage_bucket.snapshot_disk_bucket.name}"
-  source_archive_object = "${google_storage_bucket_object.snapshot_storage_bucket_object.name}"
+  source_archive_bucket = "${google_storage_bucket.gcf_bucket.name}"
+  source_archive_object = "${google_storage_bucket_object.gcf_object.name}"
   timeout               = 60
   project               = "${var.automation-project}"
   region                = "${local.region}"
@@ -29,25 +29,6 @@ resource "google_cloudfunctions_function" "snapshot_disk_function" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${local.findings-topic}"
   }
-}
-
-resource "google_storage_bucket" "snapshot_disk_bucket" {
-  name       = "${var.automation-project}-snapshot-disk"
-  depends_on = ["local_file.cloudfunction-key-file"]
-}
-
-resource "google_storage_bucket_object" "snapshot_storage_bucket_object" {
-  name   = "create_snapshot.zip"
-  bucket = "${google_storage_bucket.snapshot_disk_bucket.name}"
-  source = "${path.root}/deploy/create_snapshot.zip"
-}
-
-data "archive_file" "snapshot_cloud_function_zip" {
-  type        = "zip"
-  source_dir  = "${path.root}"
-  output_path = "${path.root}/deploy/create_snapshot.zip"
-  depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy", ".git", ".terraform"]
 }
 
 # Role "compute.instanceAdmin" required to get disk lists and create snapshots for GCE instances.

@@ -27,6 +27,37 @@ import (
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
+const publicBucketFinding = `{
+  "notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+  "finding": {
+    "name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
+    "parent": "organizations/154584661726/sources/2673592633662526977",
+    "resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
+    "state": "ACTIVE",
+    "category": "PUBLIC_BUCKET_ACL",
+    "externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
+    "sourceProperties": {
+      "ReactivationCount": 0.0,
+      "ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "SeverityLevel": "High",
+      "Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
+      "ProjectId": "aerial-jigsaw-235219",
+      "AssetCreationTime": "2019-09-19T20:08:29.102Z",
+      "ScannerName": "STORAGE_SCANNER",
+      "ScanRunId": "2019-09-23T10:20:27.204-07:00",
+      "Explanation": "This bucket is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
+    },
+    "securityMarks": {
+      "name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
+      "marks": {
+        "babab": "3"
+      }
+    },
+    "eventTime": "2019-09-23T17:20:27.204Z",
+    "createTime": "2019-09-23T17:20:27.934Z"
+  }
+}`
+
 func TestCloseBucket(t *testing.T) {
 	ctx := context.Background()
 
@@ -41,7 +72,7 @@ func TestCloseBucket(t *testing.T) {
 	}{
 		{
 			name:           "remove allUsers",
-			incomingLog:    pubsub.Message{},
+			incomingLog:    pubsub.Message{Data: []byte(publicBucketFinding)},
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
@@ -63,9 +94,10 @@ func TestCloseBucket(t *testing.T) {
 
 			if err := CloseBucket(ctx, tt.incomingLog, r, tt.folderIDs); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
+				return
 			}
 
-			s := storageStub.BucketPolicyResponse.Members("project/viewer")
+			s := storageStub.RemoveBucketPolicy.Members("project/viewer")
 			if diff := cmp.Diff(s, tt.expected); diff != "" {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expected, s)
 			}

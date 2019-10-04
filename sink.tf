@@ -33,3 +33,26 @@ resource "google_project_iam_binding" "log-writer-pubsub" {
 resource "google_pubsub_topic" "topic" {
   name = "${local.findings-topic}"
 }
+
+// CSCC notifications.
+resource "google_pubsub_topic" "cscc-notifications-topic" {
+  name = "${local.cscc-findings}-topic"
+}
+
+resource "google_pubsub_subscription" "cscc-notifications-subscription" {
+  name                 = "${local.cscc-findings}-subscription"
+  topic                = "${google_pubsub_topic.cscc-notifications-topic.name}"
+  ack_deadline_seconds = 20
+}
+
+# Has to be done manually for now. See README.md.
+# resource "google_project_iam_binding" "notification-config-editor" {
+#   role    = "roles/securitycenter.notificationConfigEditor"
+#   project = "${var.automation-project}"
+#
+#
+#   members = [
+#     "${google_logging_project_sink.sink.writer_identity}",
+#   ]
+# }
+
