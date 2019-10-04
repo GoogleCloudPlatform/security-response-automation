@@ -27,7 +27,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 	tests := []struct {
 		name             string
 		instance         string
-		project          string
+		projectID        string
 		region           string
 		expectedError    error
 		expectedResponse *sqladmin.Operation
@@ -37,7 +37,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 		{
 			name:             "enforce ssl connection in a existing database",
 			instance:         "instance1",
-			project:          "project1",
+			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: nil,
@@ -55,7 +55,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 		{
 			name:             "enforce ssl connection in a nonexisting database",
 			instance:         "unexisting",
-			project:          "project1",
+			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: nil,
@@ -77,7 +77,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 			sqlAdminStub := &stubs.SQLAdminStub{}
 			ctx := context.Background()
 			c := NewCloudSQL(sqlAdminStub)
-			r, err := c.EnforceSSLConnection(ctx, tt.project, tt.instance, tt.region)
+			r, err := c.EnforceSSLConnection(ctx, tt.projectID, tt.instance, tt.region)
 
 			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)

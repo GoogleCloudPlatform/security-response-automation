@@ -29,10 +29,15 @@ type SQLAdminStub struct {
 	SavedInstanceUpdated *sqladmin.DatabaseInstance
 }
 
+// WaitSQL waits globally.
+func (s *SQLAdminStub) WaitSQL(project string, op *sqladmin.Operation) []error {
+	return []error{}
+}
+
 // PatchInstance updates partialy a cloud sql instance.
-func (s *SQLAdminStub) PatchInstance(ctx context.Context, project string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
+func (s *SQLAdminStub) PatchInstance(ctx context.Context, projectID string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 	s.SavedInstanceUpdated = databaseInstance
-	if project == "nonexisting" || instance == "nonexisting" || databaseInstance.Name == "nonexisting" {
+	if projectID == "nonexisting" || instance == "nonexisting" || databaseInstance.Name == "nonexisting" {
 		return nil, ErrResourceNonExistent
 	}
 

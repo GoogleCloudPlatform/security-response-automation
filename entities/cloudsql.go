@@ -23,6 +23,7 @@ import (
 // CloudSQLClient contains minimum interface required by the cloud sql entity.
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
+	WaitSQL(projectID string, op *sqladmin.Operation) []error
 }
 
 // CloudSQL entity.
@@ -35,12 +36,17 @@ func NewCloudSQL(cc CloudSQLClient) *CloudSQL {
 	return &CloudSQL{client: cc}
 }
 
+// WaitSQL will wait for the SQL operation to complete.
+func (s *CloudSQL) WaitSQL(project string, op *sqladmin.Operation) []error {
+	return s.client.WaitSQL(project, op)
+}
+
 // EnforceSSLConnection enforces SSL Connection to a database.
-func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, project string, instance string, region string) (*sqladmin.Operation, error) {
-	return s.client.PatchInstance(ctx, project, instance, &sqladmin.DatabaseInstance{
+func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, projectID string, instance string, region string) (*sqladmin.Operation, error) {
+	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
 		Name:           instance,
-		Project:        project,
-		ConnectionName: project + ":" + region + ":" + instance,
+		Project:        projectID,
+		ConnectionName: projectID + ":" + region + ":" + instance,
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
 				RequireSsl: true,
