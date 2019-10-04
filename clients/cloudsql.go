@@ -41,3 +41,8 @@ func (s *SQLAdmin) EnforceSSLConection(ctx context.Context, project string, inst
 	databaseInstance.Settings.IpConfiguration.RequireSsl = true
 	return s.service.Instances.Patch(project, instance, databaseInstance).Do()
 }
+
+// GetDataBaseInstance gets database information
+func (s *SQLAdmin) GetDataBaseInstance(ctx context.Context, project string, instance string, database string) (*sqladmin.Database, error) {
+	return s.service.Databases.Get(project, instance, database).Do()
+}

@@ -21,8 +21,8 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
-// ErrEntityNonExistent is an error throw if the entity was not found.
-var ErrEntityNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Requested entity was not found")
+// ErrResourceNonExistent is an error throw if the entity was not found.
+var ErrResourceNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Requested entity was not found")
 
 // SQLAdminStub provides a stub for the SQL Admin client.
 type SQLAdminStub struct {
@@ -33,8 +33,17 @@ type SQLAdminStub struct {
 func (s *SQLAdminStub) EnforceSSLConection(ctx context.Context, project string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 	s.SavedInstanceUpdated = &databaseInstance
 	if project == "nonexisting" || instance == "nonexisting" || databaseInstance.Name == "nonexisting" {
-		return nil, ErrEntityNonExistent
+		return nil, ErrResourceNonExistent
 	}
 
-	return nil, nil
+	return &sqladmin.Operation{}, nil
+}
+
+// GetDataBaseInstance gets database information
+func (s *SQLAdminStub) GetDataBaseInstance(ctx context.Context, project string, instance string, database string) (*sqladmin.Database, error) {
+	if project == "nonexisting" || instance == "nonexisting" || database == "nonexisting" {
+		return nil, ErrResourceNonExistent
+	}
+
+	return &sqladmin.Database{}, nil
 }
