@@ -22,7 +22,7 @@ import (
 )
 
 // ErrResourceNonExistent is an error throw if the entity was not found.
-var ErrResourceNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Requested entity was not found")
+var ErrResourceNonExistent = fmt.Errorf("googleapi: Error 400: Invalid request: Invalid instance name in request body")
 
 // SQLAdminStub provides a stub for the SQL Admin client.
 type SQLAdminStub struct {
