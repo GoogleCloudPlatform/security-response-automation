@@ -1,6 +1,16 @@
 package cloudfunctions
 
-import "cloud.google.com/go/pubsub"
+import (
+	"context"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/threat-automation/entities"
+
+	"cloud.google.com/go/pubsub"
+	compute "google.golang.org/api/compute/v1"
+)
 
 // Copyright 2019 Google LLC
 //
@@ -53,3 +63,31 @@ var (
 		}
 	}`)}
 )
+
+func TestDisableFirewall(t *testing.T) {
+	ctx := context.Background()
+	test := []struct {
+		name                 string
+		existingFirewallRule *compute.Firewall
+		expectedFirewallRule *compute.Firewall
+	}{
+		{
+			name:                 "disable open firewall",
+			existingFirewallRule: &compute.Firewall{Name: "default_allow_all", Disabled: false},
+			expectedFirewallRule: &compute.Firewall{Name: "default_allow_all", Disabled: true},
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			computeStub := &stubs.ComputeStub{}
+			computeStub.StubbedFireWall = tt.existingFirewallRule
+			f := entities.NewFirewall(computeStub)
+			if err := DisableFirewall(ctx, sampleShaFinding, f); err != nil {
+				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
+			}
+			if diff := cmp.Diff(computeStub.SavedFirewallRule, tt.expectedFirewallRule); diff != "" {
+				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedFirewallRule, computeStub.SavedFirewallRule)
+			}
+		})
+	}
+}
