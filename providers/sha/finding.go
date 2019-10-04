@@ -23,40 +23,24 @@ import (
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const (
-	firewallScanner = "FIREWALL_SCANNER"
-)
-
 var (
 	// ErrNoResourceName thrown when finding does not have a resource name
 	ErrNoResourceName = errors.New("does not have a resource name")
 	// ErrNoCategory thrown when finding does not have a category
 	ErrNoCategory = errors.New("does not have a category")
-	// ErrNoProjectID thrown when finding does not have a project id
-	ErrNoProjectID = errors.New("does not have a project id")
 )
 
-// Attributes common attributes to all Security Command Center findings
-type Attributes struct {
-	Finding struct {
-		Name          string
-		Parent        string
-		State         string
-		ExternalURI   string
-		EventTime     string
-		CreateTime    string
-		ResourceName  string
-		Category      string
-		SecurityMarks struct {
-			Name  string
-			Marks map[string]string
-		}
-	}
-}
-
-// CommonSourceProperties holds SCC source properties common to all SHA findings
-type CommonSourceProperties struct {
-	Finding struct {
+// CommonFinding common attributes, source properties and security marks
+// to all Security Health Analytics Security Command Center findings
+type CommonFinding struct {
+	NotificationConfigName string
+	Finding                struct {
+		Name             string
+		Parent           string
+		ResourceName     string
+		State            string
+		Category         string
+		ExternalURI      string
 		SourceProperties struct {
 			ReactivationCount     float32
 			ExceptionInstructions string
@@ -69,40 +53,32 @@ type CommonSourceProperties struct {
 			ScanRunID             string
 			Explanation           string
 		}
+		SecurityMarks struct {
+			Name  string
+			Marks map[string]string
+		}
+		EventTime  string
+		CreateTime string
 	}
 }
 
-// Finding a Security Health Analytics finding
-type Finding struct {
-	a  Attributes
-	sp CommonSourceProperties
-}
-
-// NewFinding returns a new ShaFinding.
-func NewFinding() *Finding {
-	return &Finding{}
+// NewCommonFinding returns a new ShaFinding.
+func NewCommonFinding() *CommonFinding {
+	return &CommonFinding{}
 }
 
 // ReadFinding unmarshals a Security Health Analytics finding from PubSub
-func (f *Finding) ReadFinding(m *pubsub.Message) error {
-	if err := json.Unmarshal(m.Data, &f.a); err != nil {
+func (f *CommonFinding) ReadFinding(m *pubsub.Message) error {
+	if err := json.Unmarshal(m.Data, &f); err != nil {
 		return errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
-	if err := json.Unmarshal(m.Data, &f.sp); err != nil {
-		return errors.Wrap(entities.ErrUnmarshal, err.Error())
-	}
-
-	if f.a.Finding.ResourceName == "" {
+	if f.Finding.ResourceName == "" {
 		return ErrNoResourceName
 	}
 
-	if f.a.Finding.Category == "" {
+	if f.Finding.Category == "" {
 		return ErrNoCategory
-	}
-
-	if f.sp.Finding.SourceProperties.ProjectID == "" {
-		return ErrNoProjectID
 	}
 
 	return nil

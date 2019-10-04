@@ -8,16 +8,22 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	firewallScanner = "FIREWALL_SCANNER"
+)
+
 var (
-	// ErrNotFirewall thrown when ShaFinding is not a FIREWALL_SCANNER
-	ErrNotFirewall = errors.New("not a FIREWALL_SCANNER Finding")
-	// ErrUnknownRule thrown when the rule is unknown
-	ErrUnknownRule         = errors.New("Unknown firewall category")
+	// ErrNotFirewallScanner thrown when ShaFinding is not a FIREWALL_SCANNER
+	ErrNotFirewallScanner = errors.New("not a FIREWALL_SCANNER Finding")
+	// ErrUnknownFirewallCategory thrown when the rule is unknown
+	ErrUnknownFirewallCategory = errors.New("Unknown firewall category")
+	// ErrNoProjectID thrown when finding does not have a project id
+	ErrNoProjectID         = errors.New("does not have a project id")
 	supportedFirewallRules = map[string]bool{"OPEN_SSH_PORT": true, "OPEN_RDP_PORT": true, "OPEN_FIREWALL": true}
 	extractFirewallID      = regexp.MustCompile(`/global/firewalls/(.*)$`)
 )
 
-type firewallSourceProperties struct {
+type firewallScannerSourceProperties struct {
 	Finding struct {
 		SourceProperties struct {
 			Allowed           string
@@ -30,14 +36,14 @@ type firewallSourceProperties struct {
 
 // FirewallScanner a Security Health Analytics finding
 type FirewallScanner struct {
-	sf *Finding
-	fs firewallSourceProperties
+	base *CommonFinding
+	fs   firewallScannerSourceProperties
 }
 
 // NewFirewallScanner creates a new FirewallScanner
 func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 	var f FirewallScanner
-	b := NewFinding()
+	b := NewCommonFinding()
 
 	if err := b.ReadFinding(ps); err != nil {
 		return nil, errors.New(err.Error())
@@ -47,14 +53,18 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 		return nil, errors.New(err.Error())
 	}
 
-	f.sf = b
+	f.base = b
 
-	if f.sf.sp.Finding.SourceProperties.ScannerName != firewallScanner {
-		return nil, errors.New(ErrNotFirewall.Error())
+	if f.base.Finding.SourceProperties.ScannerName != firewallScanner {
+		return nil, errors.New(ErrNotFirewallScanner.Error())
 	}
 
-	if !supportedFirewallRules[f.sf.a.Finding.Category] {
-		return nil, errors.New(ErrUnknownRule.Error())
+	if !supportedFirewallRules[f.base.Finding.Category] {
+		return nil, errors.New(ErrUnknownFirewallCategory.Error())
+	}
+
+	if f.base.Finding.SourceProperties.ProjectID == "" {
+		return nil, ErrNoProjectID
 	}
 
 	return &f, nil
@@ -62,27 +72,27 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 
 // ProjectID returns the Security Health Analytics finding ProjectID
 func (f *FirewallScanner) ProjectID() string {
-	return f.sf.sp.Finding.SourceProperties.ProjectID
+	return f.base.Finding.SourceProperties.ProjectID
 }
 
 // ResourceName returns the finding ResourceName
 func (f *FirewallScanner) ResourceName() string {
-	return f.sf.a.Finding.ResourceName
+	return f.base.Finding.ResourceName
 }
 
 // ScannerName returns the Security Health Analytics finding ScannerName
 func (f *FirewallScanner) ScannerName() string {
-	return f.sf.sp.Finding.SourceProperties.ScannerName
+	return f.base.Finding.SourceProperties.ScannerName
 }
 
 // Category returns the finding Category
 func (f *FirewallScanner) Category() string {
-	return f.sf.a.Finding.Category
+	return f.base.Finding.Category
 }
 
 // FirewallID return the numerical ID of the firewall. It is not the firewall name provided on creation
 func (f *FirewallScanner) FirewallID() string {
-	i := extractFirewallID.FindStringSubmatch(f.sf.a.Finding.ResourceName)
+	i := extractFirewallID.FindStringSubmatch(f.base.Finding.ResourceName)
 	if len(i) != 2 {
 		return ""
 	}

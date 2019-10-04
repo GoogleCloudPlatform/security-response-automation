@@ -57,7 +57,7 @@ func TestForShaFailures(t *testing.T) {
 						"ScannerName": "IAM_SCANNER",
 						"ProjectId": "teste-project" 
 					}}}`)},
-			ErrNotFirewall,
+			ErrNotFirewallScanner,
 		},
 		{
 			"Unknown firewall category",
@@ -69,7 +69,7 @@ func TestForShaFailures(t *testing.T) {
 						"ScannerName": "FIREWALL_SCANNER",
 						"ProjectId": "teste-project"
 					}}}`)},
-			ErrUnknownRule,
+			ErrUnknownFirewallCategory,
 		},
 		{
 			"does not have a project id",
