@@ -119,12 +119,14 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
+			loggerStub := &stubs.LoggerStub{}
+			l := entities.NewLogger(loggerStub)
 			crmStub := &stubs.ResourceManagerStub{}
 			storageStub := &stubs.StorageStub{}
 			r := entities.NewResource(crmStub, storageStub)
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
-			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, r, tt.folderID, tt.disallowed); err != nil {
+			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, r, tt.folderID, tt.disallowed, l); err != nil {
 				if err.Error() != tt.expectedError {
 					t.Errorf("%s test failed want:%q", tt.name, err)
 				}
