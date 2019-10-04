@@ -83,3 +83,23 @@ func (f *CommonFinding) ReadFinding(m *pubsub.Message) error {
 
 	return nil
 }
+
+// ResourceName returns the finding ResourceName
+func (f *CommonFinding) ResourceName() string {
+	return f.Finding.ResourceName
+}
+
+// Category returns the finding Category
+func (f *CommonFinding) Category() string {
+	return f.Finding.Category
+}
+
+// ScannerName returns the Security Health Analytics finding ScannerName
+func (f *CommonFinding) ScannerName() string {
+	return f.Finding.SourceProperties.ScannerName
+}
+
+// ProjectID returns the Security Health Analytics finding ProjectID
+func (f *CommonFinding) ProjectID() string {
+	return f.Finding.SourceProperties.ProjectID
+}

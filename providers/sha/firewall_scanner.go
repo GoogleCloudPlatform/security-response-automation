@@ -55,15 +55,15 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 
 	f.base = b
 
-	if f.base.Finding.SourceProperties.ScannerName != firewallScanner {
+	if f.ScannerName() != firewallScanner {
 		return nil, errors.New(ErrNotFirewallScanner.Error())
 	}
 
-	if !supportedFirewallRules[f.base.Finding.Category] {
+	if !supportedFirewallRules[f.Category()] {
 		return nil, errors.New(ErrUnknownFirewallCategory.Error())
 	}
 
-	if f.base.Finding.SourceProperties.ProjectID == "" {
+	if f.ProjectID() == "" {
 		return nil, ErrNoProjectID
 	}
 
@@ -72,27 +72,27 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 
 // ProjectID returns the Security Health Analytics finding ProjectID
 func (f *FirewallScanner) ProjectID() string {
-	return f.base.Finding.SourceProperties.ProjectID
+	return f.base.ProjectID()
 }
 
 // ResourceName returns the finding ResourceName
 func (f *FirewallScanner) ResourceName() string {
-	return f.base.Finding.ResourceName
+	return f.base.ResourceName()
 }
 
 // ScannerName returns the Security Health Analytics finding ScannerName
 func (f *FirewallScanner) ScannerName() string {
-	return f.base.Finding.SourceProperties.ScannerName
+	return f.base.ScannerName()
 }
 
 // Category returns the finding Category
 func (f *FirewallScanner) Category() string {
-	return f.base.Finding.Category
+	return f.base.Category()
 }
 
 // FirewallID return the numerical ID of the firewall. It is not the firewall name provided on creation
 func (f *FirewallScanner) FirewallID() string {
-	i := extractFirewallID.FindStringSubmatch(f.base.Finding.ResourceName)
+	i := extractFirewallID.FindStringSubmatch(f.ResourceName())
 	if len(i) != 2 {
 		return ""
 	}
