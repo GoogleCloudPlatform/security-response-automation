@@ -26,12 +26,12 @@ var ErrResourceNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Reque
 
 // SQLAdminStub provides a stub for the SQL Admin client.
 type SQLAdminStub struct {
-	SavedInstanceUpdated **sqladmin.DatabaseInstance
+	SavedInstanceUpdated *sqladmin.DatabaseInstance
 }
 
-// EnforceSSLConection updates SSL required connection to true in a cloud sql instance.
-func (s *SQLAdminStub) EnforceSSLConection(ctx context.Context, project string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
-	s.SavedInstanceUpdated = &databaseInstance
+// PatchInstance updates partialy a cloud sql instance.
+func (s *SQLAdminStub) PatchInstance(ctx context.Context, project string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
+	s.SavedInstanceUpdated = databaseInstance
 	if project == "nonexisting" || instance == "nonexisting" || databaseInstance.Name == "nonexisting" {
 		return nil, ErrResourceNonExistent
 	}

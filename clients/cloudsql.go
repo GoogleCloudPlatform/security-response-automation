@@ -36,8 +36,7 @@ func NewSQLAdmin(ctx context.Context, authFile string) (*SQLAdmin, error) {
 	return &SQLAdmin{service: sql}, nil
 }
 
-// EnforceSSLConection updates SSL required connection to true in a cloud sql instance.
-func (s *SQLAdmin) EnforceSSLConection(ctx context.Context, project string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
-	databaseInstance.Settings.IpConfiguration.RequireSsl = true
+// PatchInstance updates partialy a cloud sql instance.
+func (s *SQLAdmin) PatchInstance(ctx context.Context, project string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 	return s.service.Instances.Patch(project, instance, databaseInstance).Do()
 }

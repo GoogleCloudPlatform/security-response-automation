@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
@@ -30,6 +31,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 		region           string
 		expectedError    error
 		expectedResponse *sqladmin.Operation
+		expectedRequest  *sqladmin.DatabaseInstance
 	}{
 
 		{
@@ -39,14 +41,34 @@ func TestEnforceSSLConnection(t *testing.T) {
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: nil,
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:           "instance1",
+				Project:        "project1",
+				ConnectionName: "project1" + ":" + "us-central1" + ":" + "instance1",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						RequireSsl: true,
+					},
+				},
+			},
 		},
 		{
 			name:             "enforce ssl connection in a nonexisting database",
-			instance:         "instance1",
+			instance:         "unexisting",
 			project:          "project1",
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: nil,
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:           "unexisting",
+				Project:        "project1",
+				ConnectionName: "project1" + ":" + "us-central1" + ":" + "unexisting",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						RequireSsl: true,
+					},
+				},
+			},
 		},
 	}
 
@@ -56,6 +78,10 @@ func TestEnforceSSLConnection(t *testing.T) {
 			ctx := context.Background()
 			c := NewCloudSQL(sqlAdminStub)
 			r, err := c.EnforceSSLConnection(ctx, tt.project, tt.instance, tt.region)
+
+			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
+			}
 
 			if tt.expectedError != nil && err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
