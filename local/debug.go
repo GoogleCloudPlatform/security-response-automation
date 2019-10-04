@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/googlecloudplatform/threat-automation/clients"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions"
-	"github.com/googlecloudplatform/threat-automation/entities"
+	exec "github.com/googlecloudplatform/threat-automation"
 
 	"context"
 
@@ -102,56 +101,65 @@ const (
 		},
 		"severity": "CRITICAL",
 		"timestamp": "2019-09-09T18:25:49.236Z"
-	  }`
+		}`
+
+	badIPFinding = `{
+  "insertId": "-9fhc83a4",
+  "jsonPayload": {
+    "affectedResources": [
+      {
+        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/aerial-jigsaw-235219"
+      }
+    ],
+    "detectionCategory": {
+      "indicator": "ip",
+      "ruleName": "bad_ip",
+      "technique": "cryptomining"
+    },
+    "detectionPriority": "HIGH",
+    "eventTime": "2019-07-16T21:00:44.760Z",
+    "evidence": [
+      {
+        "sourceLogId": {
+          "insertId": "11qjm6ng183mguh",
+          "timestamp": "2019-07-16T21:00:44.179635017Z"
+        }
+      }
+    ],
+    "properties": {
+      "destinationInstance": "",
+      "ip": [
+        "52.8.47.33"
+      ],
+      "location": "us-central1-c",
+      "project_id": "aerial-jigsaw-235219",
+      "sourceInstance": "/projects/aerial-jigsaw-235219/zones/us-central1-c/instances/instance-2",
+      "subnetwork_id": "288355645352614400",
+      "subnetwork_name": "default"
+    },
+    "sourceId": {
+      "customerOrganizationNumber": "154584661726",
+      "projectNumber": "997507777601"
+    }
+  },
+  "logName": "projects/aerial-jigsaw-235219/logs/threatdetection.googleapis.com%2Fdetection",
+  "receiveTimestamp": "2019-07-16T21:00:45.913791943Z",
+  "resource": {
+    "labels": {
+      "detector_name": "bad_ip",
+      "project_id": "aerial-jigsaw-235219"
+    },
+    "type": "threat_detector"
+  },
+  "severity": "CRITICAL",
+  "timestamp": "2019-07-16T21:00:44.760Z"
+}`
 )
 
 func main() {
 	ctx := context.Background()
-	m := &pubsub.Message{}
-	m.Data = []byte(anomalousIAMGrant)
-	fmt.Println("init cc")
-	ids := []string{"670032686187"}
-	authFile := "./credentials/auth.json"
-	crm, err := clients.NewCloudResourceManager(ctx, authFile)
-	if err != nil {
-		fmt.Printf("%q", err)
-		return
+	if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIPFinding)}); err != nil {
+		fmt.Printf("snapshost disk failed: %q", err)
+		os.Exit(1)
 	}
-	stg, _ := clients.NewStorage(ctx, authFile)
-	r := entities.NewResource(crm, stg)
-	if err := cloudfunctions.RevokeExternalGrantsFolders(ctx, *m, r, ids, disallowed); err != nil {
-		fmt.Printf("fail %s", err)
-		return
-	}
-	fmt.Println("done")
 }
-
-func triggerIAM() {
-
-}
-
-// func sha(m *pubsub.Message) {
-// 	m.Data = []byte(shaFinding)
-
-// 	fmt.Printf("m.Data s: %s\n", m.Data)
-// 	fmt.Printf("m.Data v: %+v\n", m.Data)
-
-// 	// m.Data = []byte(`{"insertId":"ujacyda6","jsonPayload":{"affectedResources":[{"gcpResourceName":"//cloudresourcemanager.googleapis.com/projects/997507777601"}],"detectionCategory":{"indicator":"domain","ruleName":"bad_domain","technique":"cryptojacking"},"detectionPriority":"HIGH","eventTime":"2019-08-30T18:08:29.923Z","evidence":[{"sourceLogId":{"insertId":"1lfp54jg5g7m31j","timestamp":"2019-08-30T18:08:29.638689943Z"}}],"properties":{"sourceInstance":  "/projects/aerial-jigsaw-235219/zones/us-central1-c/instances/instance-2", "destIp":"136.243.102.167","destPort":80,"direction":"OUTGOING","domain":["aeon.pool.minergate.com","ltc.pool.minergate.com"],"ip":["88.99.142.163","94.130.143.162","136.243.102.167"],"location":"us-central1-c","project_id":"aerial-jigsaw-235219","protocol":6,"srcIp":"10.128.0.2","srcPort":51250,"subnetwork_id":"288355645352614400","subnetwork_name":"default"},"sourceId":{"customerOrganizationNumber":"154584661726","projectNumber":"997507777601"}},"logName":"projects/aerial-jigsaw-235219/logs/threatdetection.googleapis.com%2Fdetection","receiveTimestamp":"2019-08-30T18:08:30.949798075Z","resource":{"labels":{"detector_name":"bad_domain","project_id":"aerial-jigsaw-235219"},"type":"threat_detector"},"severity":"CRITICAL","timestamp":"2019-08-30T18:08:29.923Z"}`)
-// 	in := anomalousIAMGrant
-// 	m.Data = []byte(in)
-// 	fmt.Println("init cc")
-// 	ids := []string{"670032686187"}
-// 	authFile := "./credentials/auth.json"
-// 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
-// 	if err != nil {
-// 		fmt.Printf("%q", err)
-// 		return
-// 	}
-// 	stg, _ := clients.NewStorage(ctx, authFile)
-// 	r := entities.NewResource(crm, stg)
-// 	if err := cloudfunctions.CloseBucket(ctx, *m, r, ids); err != nil {
-// 		fmt.Printf("fail %s", err)
-// 		return
-// 	}
-// 	fmt.Println("done")
-// }
