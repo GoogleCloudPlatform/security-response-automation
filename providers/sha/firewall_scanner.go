@@ -9,16 +9,13 @@ import (
 )
 
 const (
-	firewallScanner = "FIREWALL_SCANNER"
+	firewallScanner                = "FIREWALL_SCANNER"
+	erroMsgNoProjectID             = "does not have a project id"
+	erroMsgUnknownFirewallCategory = "Unknown firewall category"
+	errorMsgNotFirewallScanner     = "not a FIREWALL_SCANNER Finding"
 )
 
 var (
-	// ErrNotFirewallScanner thrown when ShaFinding is not a FIREWALL_SCANNER
-	ErrNotFirewallScanner = errors.New("not a FIREWALL_SCANNER Finding")
-	// ErrUnknownFirewallCategory thrown when the rule is unknown
-	ErrUnknownFirewallCategory = errors.New("Unknown firewall category")
-	// ErrNoProjectID thrown when finding does not have a project id
-	ErrNoProjectID         = errors.New("does not have a project id")
 	supportedFirewallRules = map[string]bool{"OPEN_SSH_PORT": true, "OPEN_RDP_PORT": true, "OPEN_FIREWALL": true}
 	extractFirewallID      = regexp.MustCompile(`/global/firewalls/(.*)$`)
 )
@@ -56,15 +53,15 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 	f.base = b
 
 	if f.ScannerName() != firewallScanner {
-		return nil, errors.New(ErrNotFirewallScanner.Error())
+		return nil, errors.New(errorMsgNotFirewallScanner)
 	}
 
 	if !supportedFirewallRules[f.Category()] {
-		return nil, errors.New(ErrUnknownFirewallCategory.Error())
+		return nil, errors.New(erroMsgUnknownFirewallCategory)
 	}
 
 	if f.ProjectID() == "" {
-		return nil, ErrNoProjectID
+		return nil, errors.New(erroMsgNoProjectID)
 	}
 
 	return &f, nil

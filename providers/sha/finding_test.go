@@ -30,25 +30,25 @@ func TestForShaFailures(t *testing.T) {
 		{
 			"empty message",
 			&pubsub.Message{},
-			errors.New("unexpected end of JSON input: failed to unmarshal"),
+			errors.New("failed to unmarshal: unexpected end of JSON input"),
 		},
 		{
 			"missing Source properties body",
 			&pubsub.Message{Data: []byte(`{
 				"finding": { "sourceProperties":}}`)},
-			errors.New("invalid character '}' looking for beginning of value: failed to unmarshal"),
+			errors.New("failed to unmarshal: invalid character '}' looking for beginning of value"),
 		},
 		{
-			"does not have a resource name",
+			"it does not have a resource name",
 			&pubsub.Message{Data: []byte(`{
 				"finding": {
 					"sourceProperties": {
 						"ScannerName": "IAM_SCANNER"
 					}}}`)},
-			ErrNoResourceName,
+			errors.New(errorMsgMissingResouceName),
 		},
 		{
-			"not a FIREWALL_SCANNER Finding",
+			"not a FIREWALL_SCANNER rule Finding",
 			&pubsub.Message{Data: []byte(`{
 				"finding": { 
 					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
@@ -57,7 +57,7 @@ func TestForShaFailures(t *testing.T) {
 						"ScannerName": "IAM_SCANNER",
 						"ProjectId": "teste-project" 
 					}}}`)},
-			ErrNotFirewallScanner,
+			errors.New(errorMsgNotFirewallScanner),
 		},
 		{
 			"Unknown firewall category",
@@ -69,10 +69,10 @@ func TestForShaFailures(t *testing.T) {
 						"ScannerName": "FIREWALL_SCANNER",
 						"ProjectId": "teste-project"
 					}}}`)},
-			ErrUnknownFirewallCategory,
+			errors.New(erroMsgUnknownFirewallCategory),
 		},
 		{
-			"does not have a project id",
+			"missing a project id",
 			&pubsub.Message{Data: []byte(`{
 				"finding": {
 					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
@@ -80,7 +80,7 @@ func TestForShaFailures(t *testing.T) {
 					"sourceProperties": {
 						"ScannerName": "FIREWALL_SCANNER"
 					}}}`)},
-			ErrNoProjectID,
+			errors.New(erroMsgNoProjectID),
 		},
 	}
 	for _, tt := range test {

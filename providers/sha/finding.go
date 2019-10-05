@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 )
 
@@ -23,11 +22,10 @@ import (
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-var (
-	// ErrNoResourceName thrown when finding does not have a resource name
-	ErrNoResourceName = errors.New("does not have a resource name")
-	// ErrNoCategory thrown when finding does not have a category
-	ErrNoCategory = errors.New("does not have a category")
+const (
+	errorMsgFailedToUnmarshal  = "failed to unmarshal"
+	errorMsgMissingResouceName = "does not have a resource name"
+	errorMsgMissingCategory    = "does not have a category"
 )
 
 // CommonFinding common attributes, source properties and security marks
@@ -70,15 +68,15 @@ func NewCommonFinding() *CommonFinding {
 // ReadFinding unmarshals a Security Health Analytics finding from PubSub
 func (f *CommonFinding) ReadFinding(m *pubsub.Message) error {
 	if err := json.Unmarshal(m.Data, &f); err != nil {
-		return errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return errors.Wrap(err, errorMsgFailedToUnmarshal)
 	}
 
 	if f.Finding.ResourceName == "" {
-		return ErrNoResourceName
+		return errors.New(errorMsgMissingResouceName)
 	}
 
 	if f.Finding.Category == "" {
-		return ErrNoCategory
+		return errors.New(errorMsgMissingCategory)
 	}
 
 	return nil
