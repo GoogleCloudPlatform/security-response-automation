@@ -17,19 +17,33 @@ package cloudfunctions
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/providers/sha"
 
 	"cloud.google.com/go/pubsub"
 )
 
+// resourcePrefix is the prefix before the bucket name in a SHA storage scanner finding.
+const resourcePrefix = "//storage.googleapis.com/"
+
+// publicUsers contains a slice of public users we want to remove.
 var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string) error {
-	// TODO(tomfitzgerald): Read this from a SHA finding. Faking for now.
-	bucketProject := "gke-test-inside"
-	bucketName := "this-bucket-is-public-on-purpose"
+	f, err := sha.NewPublicBucket(&m)
+	if err != nil {
+		return fmt.Errorf("failed to read finding: %q", err)
+	}
+	if f.Category() != "PUBLIC_BUCKET_ACL" {
+		return fmt.Errorf("not a supported finding: %q", f.Category())
+	}
+
+	bucketProject := f.ProjectID()
+	bucketName := bucketName(f.Resource())
 
 	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
 	if err != nil {
@@ -41,10 +55,16 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 			if resource != "folders/"+folderID {
 				continue
 			}
+			log.Printf("removing public members from bucket %s in project %s.", bucketName, bucketProject)
 			if err = r.RemoveMembersFromBucket(ctx, bucketName, publicUsers); err != nil {
 				return fmt.Errorf("failed to remove member from bucket: %q", err)
 			}
 		}
 	}
 	return nil
+}
+
+// bucketName returns name of the bucket. Resource assumed valid due to prior validate call.
+func bucketName(resource string) string {
+	return strings.Split(resource, resourcePrefix)[1]
 }

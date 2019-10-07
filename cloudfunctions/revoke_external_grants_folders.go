@@ -41,6 +41,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 		return fmt.Errorf("failed to read finding: %q", err)
 	}
 
+	fmt.Printf("getting ancestry for: %s\n", f.ProjectID())
 	ancestors, err := r.GetProjectAncestry(ctx, f.ProjectID())
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)

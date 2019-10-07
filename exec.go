@@ -18,6 +18,8 @@ package exec
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/clients"
@@ -54,6 +56,9 @@ const (
 // By default the service account used can only revoke projects that are found within the
 // folder ID specified within `action-revoke-member-folders.tf`.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
+	if os.Getenv("folder_ids") == "" {
+		return fmt.Errorf("folder_ids environment variable not found")
+	}
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
 		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
@@ -65,7 +70,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	}
 	r := entities.NewResource(crm, stg)
 
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, folderIDs, disallowed)
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","), disallowed)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -103,6 +108,9 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
+	if os.Getenv("folder_ids") == "" {
+		return fmt.Errorf("folder_ids environment variable not found")
+	}
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
 		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
@@ -113,7 +121,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
-	return cloudfunctions.CloseBucket(ctx, m, r, folderIDs)
+	return cloudfunctions.CloseBucket(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","))
 }
 
 // DisableFirewallRule will disable firewall rule found by SHA

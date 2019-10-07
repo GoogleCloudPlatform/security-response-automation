@@ -39,7 +39,7 @@ func (s *ResourceManagerStub) SetPolicyProject(ctx context.Context, projectID st
 	return s.SavedSetPolicy, nil
 }
 
-// GetProjectAncestry is a stub of Cloud Resource Manager's GetAncestry.
+// GetAncestry is a stub of Cloud Resource Manager's GetAncestry.
 func (s *ResourceManagerStub) GetAncestry(context.Context, string) (*crm.GetAncestryResponse, error) {
 	return s.GetAncestryResponse, nil
 }

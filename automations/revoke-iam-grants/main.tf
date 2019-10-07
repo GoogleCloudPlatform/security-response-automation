@@ -16,45 +16,32 @@
 resource "google_cloudfunctions_function" "revoke_member_function" {
   name                  = "RevokeExternalGrantsFolders"
   description           = "Revokes IAM Event Threat Detection anomalous IAM grants."
-  runtime               = "${local.golang-runtime}"
+  runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${google_storage_bucket.revoke_member_bucket.name}"
-  source_archive_object = "${google_storage_bucket_object.revoke_storage_bucket_object.name}"
+  source_archive_bucket = "${var.gcf-bucket-name}"
+  source_archive_object = "${var.gcf-object-name}"
   timeout               = 60
   project               = "${var.automation-project}"
-  region                = "${local.region}"
+  region                = "${var.region}"
   entry_point           = "RevokeExternalGrantsFolders"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${local.findings-topic}"
+    resource   = "${var.findings-topic}"
   }
-}
 
-resource "google_storage_bucket" "revoke_member_bucket" {
-  name       = "${var.automation-project}-revoke-member-folders"
-  depends_on = ["local_file.cloudfunction-key-file"]
-}
-
-resource "google_storage_bucket_object" "revoke_storage_bucket_object" {
-  name   = "revoke_member_folders.zip"
-  bucket = "${google_storage_bucket.revoke_member_bucket.name}"
-  source = "${path.root}/deploy/revoke_member_folders.zip"
-}
-
-data "archive_file" "revoke_member_zip" {
-  type        = "zip"
-  source_dir  = "${path.root}"
-  output_path = "${path.root}/deploy/revoke_member_folders.zip"
-  depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy", ".git", ".terraform"]
+  environment_variables = {
+    folder_ids = "${join(",", var.folder-ids)}"
+  }
 }
 
 # Required by RevokeExternalGrantsFolders to revoke IAM grants on projects within this folder.
 resource "google_folder_iam_binding" "revoke_member_cloudfunction-folder-bind" {
-  folder  = "folders/${var.revoke-within-folder}"
+  count = length(var.folder-ids)
+
+  folder  = "folders/${var.folder-ids[count.index]}"
   role    = "roles/resourcemanager.folderAdmin"
-  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
+  members = ["serviceAccount:${var.automation-service-account}"]
 }
 
 # In order for this GCF to be able to enumerate and check to see if the affected project is within
@@ -66,7 +53,9 @@ resource "google_folder_iam_binding" "revoke_member_cloudfunction-folder-bind" {
 #
 # In this example we'll grant `roles/viewer` which has this permission to the folder.
 resource "google_folder_iam_binding" "revoke_member_viewer_cloudfunction-folder-bind" {
-  folder  = "folders/${var.revoke-within-folder}"
+  count = length(var.folder-ids)
+
+  folder  = "folders/${var.folder-ids[count.index]}"
   role    = "roles/viewer"
-  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
+  members = ["serviceAccount:${var.automation-service-account}"]
 }
