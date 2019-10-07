@@ -9,37 +9,37 @@ type LoggerClient interface {
 	Close()
 }
 
-//Logger exposed
+// Logger client.
 type Logger struct {
-	l LoggerClient
+	client LoggerClient
 }
 
-// NewLogger initializes and return a Logger struct
+// NewLogger initializes and returns a Logger struct.
 func NewLogger(l LoggerClient) *Logger {
-	return &Logger{l: l}
+	return &Logger{client: l}
 }
 
-//Info push info log to buffer
+// Info sends a message to the logger using info as the severity.
 func (l *Logger) Info(message string, a ...interface{}) {
-	l.l.Info(message, a)
+	l.client.Info(message, a)
 }
 
-//Warning push warning log to buffer
+// Warning sends a message to the logger using warning as the severity.
 func (l *Logger) Warning(message string, a ...interface{}) {
-	l.l.Warning(message, a)
+	l.client.Warning(message, a)
 }
 
-//Error push error log to buffer
+// Error sends a message to the logger using error as the severity.
 func (l *Logger) Error(message string, a ...interface{}) {
-	l.l.Error(message, a)
+	l.client.Error(message, a)
 }
 
-//Debug push debug log to buffer
+// Debug sends a message to the logger using debug as the severity.
 func (l *Logger) Debug(message string, a ...interface{}) {
-	l.l.Debug(message, a)
+	l.client.Debug(message, a)
 }
 
-//Close buffer and send messages to stackdriver
+// Close buffer and send messages to stackdriver.
 func (l *Logger) Close() {
-	l.l.Close()
+	l.client.Close()
 }
