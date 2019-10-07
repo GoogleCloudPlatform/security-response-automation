@@ -58,7 +58,6 @@ $ go test ./...
   role.
 
 ```shell
-$ export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/credentials/auth.json
 $ SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
   ORGANIZATION_ID=154584661726 \
   PROJECT_ID=aerial-jigsaw-235219 \
@@ -75,11 +74,6 @@ $ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
   --role='roles/pubsub.admin'
 
-// Remove Pub/Sub admin.
-$ gcloud projects remove-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-  --role='roles/pubsub.admin'
-
 // Create notification config.
 $ go run ./local/create/main.go
 
@@ -87,4 +81,9 @@ $ go run ./local/create/main.go
 $ gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
   --member="serviceAccount:service-997507777601@gcp-sa-scc-notification.iam.gserviceaccount.com" \
   --role="roles/pubsub.publisher"
+
+// Remove Pub/Sub admin.
+$ gcloud projects remove-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+  --role='roles/pubsub.admin'
 ```

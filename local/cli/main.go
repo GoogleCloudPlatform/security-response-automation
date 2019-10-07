@@ -52,7 +52,10 @@ import (
 	securitycenter "github.com/googlecloudplatform/threat-automation/clients/cscc/apiv1p1alpha1"
 	securitycenterpb "github.com/googlecloudplatform/threat-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
+
+const authFile = "./credentials/auth.json"
 
 var (
 	cmd   = flag.String("command", "list", "command to run {list,create}")
@@ -63,7 +66,7 @@ var (
 func main() {
 	flag.Parse()
 	ctx := context.Background()
-	client, err := securitycenter.NewClient(ctx)
+	client, err := securitycenter.NewClient(ctx, option.WithCredentialsFile(authFile))
 	if err != nil {
 		log.Fatalf("failed to init client: %q", err)
 		os.Exit(1)
@@ -71,7 +74,7 @@ func main() {
 	switch *cmd {
 	case "list":
 		if *orgID == "" || *topic == "" {
-			log.Fatalf("orgID and topic flags required")
+			log.Fatalf("org-id and topic flags required")
 			os.Exit(1)
 		}
 		if err := list(ctx, client, *orgID, *topic); err != nil {
