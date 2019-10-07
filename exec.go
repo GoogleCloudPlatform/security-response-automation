@@ -28,9 +28,6 @@ import (
 )
 
 var (
-	// TODO(tomfitzgerald): Handle these configuration options elsewhere & better.
-	// folderID specifies which folder RevokeExternalGrantsFolders should remove members from.
-	folderIDs = []string{"111185550749"}
 	// disallowed contains a list of external domains RevokeExternalGrantsFolders should remove.
 	disallowed = []string{"test.com", "gmail.com"}
 )
