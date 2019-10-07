@@ -116,7 +116,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	return cloudfunctions.CloseBucket(ctx, m, r, folderIDs)
 }
 
-// DisableFirewallRule
+// DisableFirewallRule will disable firewall rule found by SHA
 func DisableFirewallRule(ctx context.Context, m pubsub.Message) error {
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
