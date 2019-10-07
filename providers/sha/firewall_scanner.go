@@ -33,24 +33,21 @@ type firewallScanner struct {
 
 // FirewallScanner a Security Health Analytics finding
 type FirewallScanner struct {
-	base   *CommonFinding
+	*CommonFinding
 	fields firewallScanner
 }
 
 // NewFirewallScanner creates a new FirewallScanner
 func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
-	var f FirewallScanner
-	b := NewCommonFinding()
+	f := FirewallScanner{CommonFinding: &CommonFinding{}}
 
-	if err := b.ReadFinding(ps); err != nil {
+	if err := f.ReadFinding(ps); err != nil {
 		return nil, errors.New(err.Error())
 	}
 
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
 		return nil, errors.New(err.Error())
 	}
-
-	f.base = b
 
 	if err := f.validate(); err != nil {
 		return nil, err
@@ -75,26 +72,6 @@ func (f *FirewallScanner) validate() error {
 
 	return nil
 
-}
-
-// ProjectID returns the Security Health Analytics finding ProjectID
-func (f *FirewallScanner) ProjectID() string {
-	return f.base.ProjectID()
-}
-
-// ResourceName returns the finding ResourceName
-func (f *FirewallScanner) ResourceName() string {
-	return f.base.ResourceName()
-}
-
-// ScannerName returns the Security Health Analytics finding ScannerName
-func (f *FirewallScanner) ScannerName() string {
-	return f.base.ScannerName()
-}
-
-// Category returns the finding Category
-func (f *FirewallScanner) Category() string {
-	return f.base.Category()
 }
 
 // FirewallID return the numerical ID of the firewall. It is not the firewall name provided on creation
