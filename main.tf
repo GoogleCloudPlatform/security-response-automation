@@ -62,6 +62,10 @@ module "revoke_iam_grants" {
   folder-ids = [
     "670032686187",
   ]
+  disallowed-domains = [
+    "gmail.com",
+    "test.com",
+  ]
 }
 
 module "create_disk_snapshot" {

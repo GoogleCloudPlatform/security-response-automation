@@ -2,6 +2,11 @@ variable "findings-topic" {
   type = "string"
 }
 
+variable "disallowed-domains" {
+  type        = list(string)
+  description = "Domain names you want to revoke if found in a finding."
+}
+
 variable "folder-ids" {
   type        = list(string)
   description = "Remove public users from buckets if they are within the given folder IDs."

@@ -28,9 +28,6 @@ import (
 )
 
 var (
-	// TODO(tomfitzgerald): Handle these configuration options elsewhere & better.
-	// folderID specifies which folder RevokeExternalGrantsFolders should remove members from.
-	folderIDs = []string{"111185550749"}
 	// disallowed contains a list of external domains RevokeExternalGrantsFolders should remove.
 	disallowed = []string{"test.com", "gmail.com"}
 )
@@ -68,7 +65,9 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	if os.Getenv("folder_ids") == "" {
 		return fmt.Errorf("folder_ids environment variable not found")
 	}
-
+	if os.Getenv("disallowed") == "" {
+		return fmt.Errorf("disallowed environment variable not found")
+	}
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
 		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
@@ -80,7 +79,9 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	}
 	r := entities.NewResource(crm, stg)
 
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","), disallowed, l)
+	ids := strings.Split(os.Getenv("folder_ids"), ",")
+	d := strings.Split(os.Getenv("disallowed"), ",")
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, ids, d, l)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
