@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"cloud.google.com/go/logging"
 	"google.golang.org/api/option"
@@ -14,12 +15,14 @@ type Logger struct {
 	logger *logging.Logger
 }
 
+var projectID = os.Getenv("GCP_PROJECT")
+
 // NewLogger initializes and return a Logger struct
 func NewLogger(ctx context.Context, authFile string) (*Logger, error) {
-	projectName, loggerName := "pedro-audit", "my-default-logger"
+	loggerName := "my-default-logger"
 
 	logging.EntryCountThreshold(0)
-	c, err := logging.NewClient(ctx, projectName, option.WithCredentialsFile(authFile))
+	c, err := logging.NewClient(ctx, projectID, option.WithCredentialsFile(authFile))
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %q", err)
 	}
