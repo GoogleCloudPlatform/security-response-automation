@@ -32,11 +32,22 @@ type ComputeStub struct {
 	StubbedListDisks            *compute.DiskList
 	StubbedStopInstance         *compute.Operation
 	StubbedStartInstance        *compute.Operation
+	StubbedInstance				*compute.Instance
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
 func (c *ComputeStub) PatchFirewallRule(_, _ string, rb *compute.Firewall) (*compute.Operation, error) {
 	c.SavedFirewallRule = rb
+	return nil, nil
+}
+
+// GetInstance returns the specified compute instance resource.
+func (c *ComputeStub) GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error) {
+	return c.StubbedInstance, nil
+}
+
+// DeleteAccessConfig deletes an access config from an instance's network interface.
+func (c *ComputeStub) DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error) {
 	return nil, nil
 }
 

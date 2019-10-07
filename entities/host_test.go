@@ -18,8 +18,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	compute "google.golang.org/api/compute/v1"
+
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 )
 
 func TestCreateDiskSnapshot(t *testing.T) {
@@ -48,6 +49,81 @@ func TestCreateDiskSnapshot(t *testing.T) {
 			h := NewHost(computeStub)
 			if _, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk, snapshot); err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+		})
+	}
+}
+
+func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
+	nic0 := compute.NetworkInterface{
+		Name: "nic0",
+		AccessConfigs: []*compute.AccessConfig{
+			&compute.AccessConfig{
+				Name:  "External NAT",
+				NatIP: "35.192.206.126",
+				Type:  "ONE_TO_ONE_NAT",
+			},
+		},
+	}
+
+	nic1 := compute.NetworkInterface{
+		Name: "nic1",
+		AccessConfigs: []*compute.AccessConfig{
+			&compute.AccessConfig{
+				Name:  "External NAT",
+				NatIP: "34.70.92.164",
+				Type:  "ONE_TO_ONE_NAT",
+			},
+		},
+	}
+
+	nic2 := compute.NetworkInterface{
+		Name: "nic2",
+		AccessConfigs: []*compute.AccessConfig{
+			&compute.AccessConfig{
+				Name:  "External NAT",
+				NatIP: "34.70.92.170",
+				Type:  "ONE_TO_ONE_NAT",
+			},
+			&compute.AccessConfig{
+				Name:  "External NAT",
+				NatIP: "34.192.92.171",
+				Type:  "ONE_TO_ONE_NAT",
+			},
+		},
+	}
+
+	tests := []struct {
+		name         string
+		project      string
+		zone         string
+		instance     string
+		stubInstance *compute.Instance
+	}{
+		{
+			name:     "remove instance's external ips",
+			project:  "test-project",
+			zone:     "test-zone",
+			instance: "test-instance",
+			stubInstance: &compute.Instance{
+				NetworkInterfaces: []*compute.NetworkInterface{
+					&nic0,
+					&nic1,
+					&nic2,
+				},
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+			computeStub := &stubs.ComputeStub{
+				StubbedInstance: test.stubInstance,
+			}
+			host := NewHost(computeStub)
+			err := host.RemoveExternalIPFromInstanceNetworkInterfaces(ctx, test.project, test.zone, test.instance)
+			if err != nil {
+				t.Errorf("%v failed, err: %+v", test.name, err)
 			}
 		})
 	}
