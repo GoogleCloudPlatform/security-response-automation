@@ -63,11 +63,18 @@ resource "google_pubsub_topic" "topic" {
 
 // CSCC notifications.
 resource "google_pubsub_topic" "cscc-notifications-topic" {
-  name = "${var.cscc-notifications-topic}-topic"
+  name = "${var.cscc-notifications-topic-prefix}-topic"
 }
 
 resource "google_pubsub_subscription" "cscc-notifications-subscription" {
-  name                 = "${var.cscc-notifications-topic}-subscription"
+  name                 = "${var.cscc-notifications-topic-prefix}-subscription"
   topic                = "${google_pubsub_topic.cscc-notifications-topic.name}"
   ack_deadline_seconds = 20
+}
+
+resource "google_organization_iam_binding" "cscc-notifications-sa" {
+  org_id = "${var.organization-id}"
+  role   = "roles/securitycenter.notificationConfigEditor"
+
+  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
 }

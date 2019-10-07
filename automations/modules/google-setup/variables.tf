@@ -13,6 +13,6 @@ variable "organization-id" {
   description = "Organization ID."
 }
 
-variable "cscc-notifications-topic" {
+variable "cscc-notifications-topic-prefix" {
   type = "string"
 }
