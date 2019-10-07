@@ -10,27 +10,18 @@ import (
 )
 
 type iamScanner struct {
-	NotificationConfigName string
-	Finding                struct {
+	Finding struct {
 		Name             string
 		SourceProperties struct {
-			ReactivationCount int32
 			OffendingIamRoles string
-			SeverityLevel     string
-			Recommendation    string
-			ProjectID         string
-			AssetCreationTime string
-			ScannerName       string
-			ScanRunID         string
-			Explanation       string
-		} `json:"sourceProperties"`
+		}
 	}
 }
 
 // IamScanner is an abstraction around SHA's IAM Scanner finding.
 type IamScanner struct {
 	// Fields found in every ETD finding not specific to this finding.
-	*Finding
+	base *CommonFinding
 	// Fields specific to this finding.
 	fields iamScanner
 }
@@ -42,8 +33,13 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 		return nil, entities.ErrUnmarshal
 	}
 
-	b, _ := NewFinding(ps)
-	f.Finding = b
+	b := NewCommonFinding()
+
+	if err := b.ReadFinding(ps); err != nil {
+		return nil, errors.New(err.Error())
+	}
+
+	f.base = b
 	if v := f.validate(); !v {
 		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
 	}
@@ -58,10 +54,10 @@ func (f *IamScanner) validate() bool {
 
 // ScannerName returns the finding's scanner name.
 func (f *IamScanner) ScannerName() string {
-	return f.fields.Finding.SourceProperties.ScannerName
+	return f.base.ScannerName()
 }
 
 // ProjectID returns the finding's project ID.
 func (f *IamScanner) ProjectID() string {
-	return f.fields.Finding.SourceProperties.ProjectID
+	return f.base.ProjectID()
 }
