@@ -35,17 +35,20 @@ import (
 // Additionally check to see if the affected project is in the specified folder. If the grant
 // was to a domain explicitly disallowed and within the folder then remove the member from the
 // entire IAM policy for the resource.
-func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, disallowed []string) error {
+func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, disallowed []string, l *entities.Logger) error {
 	f, err := etd.NewExternalMembersFinding(&m)
 	if err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
 	}
 
-	fmt.Printf("getting ancestry for: %s\n", f.ProjectID())
+	l.Info("listing project %q ancestors", f.ProjectID())
+
 	ancestors, err := r.GetProjectAncestry(ctx, f.ProjectID())
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
+
+	l.Debug("ancestors returned from project %q: %+q", f.ProjectID(), ancestors)
 
 	remove := toRemove(f.ExternalMembers(), disallowed)
 	for _, resource := range ancestors {
@@ -53,6 +56,9 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 			if resource != "folders/"+folderID {
 				continue
 			}
+
+			l.Info("removing users %+q from folder %q project %q", remove, folderID, f.ProjectID())
+
 			if _, err = r.RemoveMembersProject(ctx, f.ProjectID(), remove); err != nil {
 				return fmt.Errorf("failed to remove disallowed domains: %q", err)
 			}

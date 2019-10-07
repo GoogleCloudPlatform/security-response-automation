@@ -5,6 +5,7 @@ go 1.11
 require (
 	4d63.com/gochecknoglobals v0.0.0-20190306162314-7c3491d2b6ec // indirect
 	cloud.google.com/go v0.45.1
+	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/pubsub v1.0.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.0

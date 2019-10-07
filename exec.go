@@ -53,6 +53,15 @@ const (
 // By default the service account used can only revoke projects that are found within the
 // folder ID specified within `action-revoke-member-folders.tf`.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
+	lg, err := clients.NewLogger(ctx, authFile)
+	if err != nil {
+		return fmt.Errorf("failed to initialize logger client: %q", err)
+	}
+	l := entities.NewLogger(lg)
+	defer l.Close()
+
+	l.Info("Initializing external members IAM removal")
+
 	if os.Getenv("folder_ids") == "" {
 		return fmt.Errorf("folder_ids environment variable not found")
 	}
@@ -72,7 +81,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 
 	ids := strings.Split(os.Getenv("folder_ids"), ",")
 	d := strings.Split(os.Getenv("disallowed"), ",")
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, ids, d)
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, ids, d, l)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -89,6 +98,15 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 //
 // TODO: Support assigning roles at the folder and organization level.
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
+	lg, err := clients.NewLogger(ctx, authFile)
+	if err != nil {
+		return fmt.Errorf("failed to initialize logger client: %q", err)
+	}
+	l := entities.NewLogger(lg)
+	defer l.Close()
+
+	l.Info("Initializing snapshot generation")
+
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
 		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
@@ -105,11 +123,22 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		return fmt.Errorf("failed to initialize compute client: %q", err)
 	}
 	h := entities.NewHost(cs)
-	return cloudfunctions.CreateSnapshot(ctx, m, r, h)
+
+	return cloudfunctions.CreateSnapshot(ctx, m, r, h, l)
+
 }
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
+	lg, err := clients.NewLogger(ctx, authFile)
+	if err != nil {
+		return fmt.Errorf("failed to initialize logger client: %q", err)
+	}
+	l := entities.NewLogger(lg)
+	defer l.Close()
+
+	l.Info("Initializing bucket public users removal")
+
 	if os.Getenv("folder_ids") == "" {
 		return fmt.Errorf("folder_ids environment variable not found")
 	}
@@ -123,5 +152,5 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
-	return cloudfunctions.CloseBucket(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","))
+	return cloudfunctions.CloseBucket(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","), l)
 }
