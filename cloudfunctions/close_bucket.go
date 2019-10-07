@@ -44,15 +44,15 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	bucketProject := f.ProjectID()
 	bucketName := bucketName(f.Resource())
 
-	l.Info("Removing public users from bucket %q in project %q", bucketName, bucketProject)
+	l.Info("removing public users from bucket %q in project %q", bucketName, bucketProject)
 
-	l.Info("Listing project %q ancestors", bucketProject)
+	l.Info("listing project %q ancestors", bucketProject)
 	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
 
-	l.Debug("Ancestors returned from project %q: %+q", bucketProject, ancestors)
+	l.Debug("ancestors returned from project %q: %+q", bucketProject, ancestors)
 
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {

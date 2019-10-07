@@ -57,31 +57,31 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 		return nil
 	}
 
-	l.Info("Listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
+	l.Info("listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
 
 	rule := strings.Replace(f.RuleName(), "_", "-", -1)
 	disks, err := h.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
 
-	l.Debug("Obtained the following list of disks names from instance %q: %+q", f.Instance(), disks)
+	l.Debug("obtained the following list of disks names from instance %q: %+q", f.Instance(), disks)
 
 	if err != nil {
 		return fmt.Errorf("failed to list disks: %q", err)
 	}
 
-	l.Info("Listing snapshots in project %q", f.ProjectID())
+	l.Info("listing snapshots in project %q", f.ProjectID())
 
 	snapshots, err := h.ListProjectSnapshots(ctx, f.ProjectID())
 	if err != nil {
 		return fmt.Errorf("failed to list snapshots: %q", err)
 	}
 
-	l.Debug("Obtained the following list of snapshots in project %q:  %+q", f.Instance(), snapshots.Items)
+	l.Debug("obtained the following list of snapshots in project %q:  %+q", f.Instance(), snapshots.Items)
 
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 
-		l.Debug("Disk %q can be deleted %q and have the following existing snapshots: %+q", f.Instance(), snapshots.Items)
+		l.Debug("disk %q can be deleted %q and have the following existing snapshots: %+q", f.Instance(), snapshots.Items)
 
 		if err != nil {
 			return err
@@ -91,12 +91,12 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 			continue
 		}
 
-		l.Info("Removing previous snapshot of disk %q", disk)
+		l.Info("removing previous snapshot of disk %q", disk)
 		if err := removeExistingSnapshots(h, f.ProjectID(), removeExisting); err != nil {
 			return err
 		}
 
-		l.Info("Creating snapshot for disk %q", disk)
+		l.Info("creating snapshot for disk %q", disk)
 		if err := createSnapshot(ctx, h, disk, f.ProjectID(), f.Zone(), sn); err != nil {
 			return err
 		}
