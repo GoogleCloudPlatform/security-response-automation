@@ -179,7 +179,7 @@ func TestForShaOpenFirewall(t *testing.T) {
 		{name: "valid finding", message: &pubsub.Message{Data: []byte(firewallFinding)}, expScannerName: "FIREWALL_SCANNER", expProjectID: "potent-minutia-246715"}}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, _ := NewOpenFirewall(tt.message)
+			f, _ := NewFirewallScanner(tt.message)
 			if f.ScannerName() != tt.expScannerName {
 				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)
 			}

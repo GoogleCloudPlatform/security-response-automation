@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	firewallScanner                = "FIREWALL_SCANNER"
+	firewallScannerName            = "FIREWALL_SCANNER"
 	erroMsgNoProjectID             = "does not have a project id"
 	erroMsgUnknownFirewallCategory = "Unknown firewall category"
 	errorMsgNotFirewallScanner     = "not a FIREWALL_SCANNER Finding"
@@ -20,7 +20,7 @@ var (
 	extractFirewallID      = regexp.MustCompile(`/global/firewalls/(.*)$`)
 )
 
-type firewallScannerSourceProperties struct {
+type firewallScanner struct {
 	Finding struct {
 		SourceProperties struct {
 			Allowed           string
@@ -33,8 +33,8 @@ type firewallScannerSourceProperties struct {
 
 // FirewallScanner a Security Health Analytics finding
 type FirewallScanner struct {
-	base *CommonFinding
-	fs   firewallScannerSourceProperties
+	base   *CommonFinding
+	fields firewallScanner
 }
 
 // NewFirewallScanner creates a new FirewallScanner
@@ -46,25 +46,35 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 		return nil, errors.New(err.Error())
 	}
 
-	if err := json.Unmarshal(ps.Data, &f.fs); err != nil {
+	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
 		return nil, errors.New(err.Error())
 	}
 
 	f.base = b
 
-	if f.ScannerName() != firewallScanner {
-		return nil, errors.New(errorMsgNotFirewallScanner)
-	}
-
-	if !supportedFirewallRules[f.Category()] {
-		return nil, errors.New(erroMsgUnknownFirewallCategory)
-	}
-
-	if f.ProjectID() == "" {
-		return nil, errors.New(erroMsgNoProjectID)
+	if err := f.validate(); err != nil {
+		return nil, err
 	}
 
 	return &f, nil
+}
+
+func (f *FirewallScanner) validate() error {
+
+	if f.ScannerName() != firewallScannerName {
+		return errors.New(errorMsgNotFirewallScanner)
+	}
+
+	if !supportedFirewallRules[f.Category()] {
+		return errors.New(erroMsgUnknownFirewallCategory)
+	}
+
+	if f.ProjectID() == "" {
+		return errors.New(erroMsgNoProjectID)
+	}
+
+	return nil
+
 }
 
 // ProjectID returns the Security Health Analytics finding ProjectID
