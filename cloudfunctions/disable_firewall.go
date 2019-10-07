@@ -49,7 +49,7 @@ func DisableFirewall(ctx context.Context, m pubsub.Message, f *entities.Firewall
 	}
 
 	if errs := f.WaitGlobal(projectID, op); len(errs) > 0 {
-		return fmt.Errorf("failed waiting")
+		return fmt.Errorf("failed waiting firewall rule operation")
 	}
 	return nil
 }
