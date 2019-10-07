@@ -56,6 +56,9 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	if os.Getenv("folder_ids") == "" {
 		return fmt.Errorf("folder_ids environment variable not found")
 	}
+	if os.Getenv("disallowed") == "" {
+		return fmt.Errorf("disallowed environment variable not found")
+	}
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
 		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
@@ -67,7 +70,9 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	}
 	r := entities.NewResource(crm, stg)
 
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","), disallowed)
+	ids := strings.Split(os.Getenv("folder_ids"), ",")
+	d := strings.Split(os.Getenv("disallowed"), ",")
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, ids, d)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
