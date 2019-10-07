@@ -202,7 +202,7 @@ func TestForShaPublicBucket(t *testing.T) {
 		{name: "valid finding", message: &pubsub.Message{Data: []byte(publicBucketFinding)}, expScannerName: "STORAGE_SCANNER", expProjectID: "aerial-jigsaw-235219", expCategory: "PUBLIC_BUCKET_ACL"}}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewPublicBucket(tt.message)
+			f, err := NewStorageScanner(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}

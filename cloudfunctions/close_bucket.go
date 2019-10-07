@@ -34,7 +34,7 @@ var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string) error {
-	f, err := sha.NewPublicBucket(&m)
+	f, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
 	}
@@ -43,7 +43,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	}
 
 	bucketProject := f.ProjectID()
-	bucketName := bucketName(f.Resource())
+	bucketName := bucketName(f.ResourceName())
 
 	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
 	if err != nil {
