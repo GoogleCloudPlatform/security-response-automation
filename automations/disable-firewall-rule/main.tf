@@ -29,6 +29,10 @@ resource "google_cloudfunctions_function" "disable_firewall_function" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.cscc-notifications-topic}"
   }
+
+    environment_variables = {
+    folder_ids = "${join(",", var.folder-ids)}"
+  }
 }
 
 
@@ -39,9 +43,10 @@ resource "google_cloudfunctions_function" "disable_firewall_function" {
 # being used.
 #
 # TODO: Support folder level grants.
-resource "google_organization_iam_member" "disable-firewall-bind-findings-organization" {
-  org_id = "${var.organization-id}"
-  role   = "roles/compute.securityAdmin"
+resource "google_folder_iam_member" "roles-security-admin" {
+  count = length(var.folder-ids)
 
+  folder  = "folders/${var.folder-ids[count.index]}"
+  role    = "roles/compute.securityAdmin"
   member = "serviceAccount:${var.automation-service-account}"
 }

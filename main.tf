@@ -91,5 +91,7 @@ module "disable_firewall_rule" {
   gcf-object-name            = "${module.google-setup.gcf-object-name}"
   region                     = "${local.region}"
 
-  organization-id = "${var.organization-id}"
+    folder-ids = [
+    "670032686187",
+  ]
 }
