@@ -72,9 +72,9 @@ resource "google_pubsub_subscription" "cscc-notifications-subscription" {
   ack_deadline_seconds = 20
 }
 
-resource "google_organization_iam_binding" "cscc-notifications-sa" {
+resource "google_organization_iam_member" "cscc-notifications-sa" {
   org_id = "${var.organization-id}"
   role   = "roles/securitycenter.notificationConfigEditor"
 
-  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
+  member = "serviceAccount:${google_service_account.automation-service-account.email}"
 }
