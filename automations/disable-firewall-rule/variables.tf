@@ -23,6 +23,6 @@ variable "region" {
   type = "string"
 }
 
-variable "findings-topic" {
+variable "cscc-notifications-topic" {
   type = "string"
 }
