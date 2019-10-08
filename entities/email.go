@@ -41,11 +41,6 @@ func NewEmailClient(apiKey string) *EmailClient {
 // Send main action function
 func (m *EmailClient) Send(subject, from, body string, tos []string) (*rest.Response, error) {
 	email := m.CreateEmail(subject, from, body, tos)
-	return m.SendEmail(email)
-}
-
-// SendEmail main action function
-func (m *EmailClient) SendEmail(email *mail.SGMailV3) (*rest.Response, error) {
 	res, err := m.service.Send(email)
 
 	if err != nil || res.StatusCode < 200 || res.StatusCode > 202 {
