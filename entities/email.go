@@ -23,32 +23,30 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-// NewSendGridClient creatre new send grid client
-func NewSendGridClient(apiKey string) *sendgrid.Client {
-	return sendgrid.NewSendClient(apiKey)
-}
-
-// SendGridSendClient struct to use sendgrid client
-type SendGridSendClient interface {
+// EmailClientServices struct to use sendgrid client
+type EmailClientServices interface {
 	Send(email *mail.SGMailV3) (*rest.Response, error)
 }
 
 // EmailClient struct to use sendgrid client
 type EmailClient struct {
-	services SendGridSendClient
+	service EmailClientServices
 }
 
-// NewEmailClient create new email client
-func NewEmailClient(service SendGridSendClient) *EmailClient {
-	return &EmailClient{
-		services: service,
-	}
+//NewEmailClient creates new client
+func NewEmailClient(apiKey string) *EmailClient {
+	return &EmailClient{service: sendgrid.NewSendClient(apiKey)}
 }
 
 // Send main action function
 func (m *EmailClient) Send(subject, from, body string, tos []string) (*rest.Response, error) {
-	email := m.Create(subject, from, body, tos)
-	res, err := m.services.Send(email)
+	email := m.CreateEmail(subject, from, body, tos)
+	return m.SendEmail(email)
+}
+
+// SendEmail main action function
+func (m *EmailClient) SendEmail(email *mail.SGMailV3) (*rest.Response, error) {
+	res, err := m.service.Send(email)
 
 	if err != nil || res.StatusCode < 200 || res.StatusCode > 202 {
 		return nil, fmt.Errorf("Error to send email. StatusCode:(%d)", res.StatusCode)
@@ -58,19 +56,15 @@ func (m *EmailClient) Send(subject, from, body string, tos []string) (*rest.Resp
 	return res, nil
 }
 
-// Create an sendgrid email
-func (m *EmailClient) Create(subject, from, body string, tos []string) *mail.SGMailV3 {
+// CreateEmail an sendgrid email
+func (m *EmailClient) CreateEmail(subject, from, body string, tos []string) *mail.SGMailV3 {
 	email := mail.NewV3Mail()
-
-	// TODO fill email name
-	email.SetFrom(mail.NewEmail("", from))
+	email.SetFrom(mail.NewEmail(from, from))
 	email.Subject = subject
 
 	p := mail.NewPersonalization()
 	for _, e := range tos {
-
-		// TODO fill email name
-		p.AddTos(mail.NewEmail("", e))
+		p.AddTos(mail.NewEmail(e, e))
 	}
 	email.AddContent(mail.NewContent("text/plain", body))
 	email.AddPersonalizations(p)
