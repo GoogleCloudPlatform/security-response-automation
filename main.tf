@@ -80,3 +80,16 @@ module "create_disk_snapshot" {
 
   organization-id = "${var.organization-id}"
 }
+
+module "disable_firewall_rule" {
+  source = "./automations/disable-firewall-rule"
+
+  automation-project         = "${var.automation-project}"
+  automation-service-account = "${module.google-setup.automation-service-account}"
+  findings-topic             = "${local.findings-topic}"
+  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
+  gcf-object-name            = "${module.google-setup.gcf-object-name}"
+  region                     = "${local.region}"
+
+  organization-id = "${var.organization-id}"
+}
