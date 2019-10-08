@@ -51,14 +51,14 @@ func (m *EmailClient) Send(subject, from, body string, tos []string) (*rest.Resp
 	res, err := m.services.Send(email)
 
 	if err != nil || res.StatusCode < 200 || res.StatusCode > 202 {
-		return nil, fmt.Errorf("Error to send email. StatusCode: %d", res.StatusCode)
+		return nil, fmt.Errorf("Error to send email. StatusCode:(%d)", res.StatusCode)
 	}
 
 	log.Printf("Email(s) sent successfully. StatusCode:(%d)", res.StatusCode)
 	return res, nil
 }
 
-// Create email
+// Create an sendgrid email
 func (m *EmailClient) Create(subject, from, body string, tos []string) *mail.SGMailV3 {
 	email := mail.NewV3Mail()
 

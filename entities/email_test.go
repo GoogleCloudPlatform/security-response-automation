@@ -53,7 +53,7 @@ func TestSendEmail(t *testing.T) {
 			body:             "Local test of send mail from golang!",
 			subject:          "Teste mail golang",
 			client:           NewEmailClient(&stubs.EmailStub{StubbedSend: &rest.Response{StatusCode: 205}}),
-			expectedError:    errors.New("Error to send email. StatusCode: 205"),
+			expectedError:    errors.New("Error to send email. StatusCode:(205)"),
 			expectedResponse: &rest.Response{},
 		},
 	}
@@ -79,7 +79,7 @@ func TestCreateEmail(t *testing.T) {
 		expectedError    error
 	}{
 		{
-			name:          "test send email",
+			name:          "test create email",
 			from:          "google-project@ciandt.com",
 			to:            []string{"dgralmeida@gmail.com"},
 			body:          "Local test of send mail from golang!",
@@ -115,7 +115,7 @@ func TestCreateEmail(t *testing.T) {
 			email := client.Create(tt.subject, tt.from, tt.body, tt.to)
 
 			if diff := cmp.Diff(tt.expectedResponse, email, cmpopts.EquateEmpty()); diff != "" {
-				t.Errorf("%v failed exp:%v got:%v \n\r%v", tt.name, tt.expectedResponse, email, diff)
+				t.Errorf("%v failed exp(+) got:(-). Diff: \n\r%v", tt.name, diff)
 			}
 		})
 	}
