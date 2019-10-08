@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 locals {
-  region         = "us-central1"
-  findings-topic = "threat-findings"
-  cscc-findings  = "cscc-notifications"
-  golang-runtime = "go111"
-
-  // GCS bucket to store GCF code.
-  bucket-name = "${var.automation-project}-cloud-functions-code"
+  region              = "us-central1"
+  cscc-findings-topic = "cscc-notifications"
+  findings-topic      = "threat-findings"
 }
 
 provider "google" {
@@ -26,21 +22,61 @@ provider "google" {
   region  = "${local.region}"
 }
 
-resource "google_storage_bucket" "gcf_bucket" {
-  name       = "${local.bucket-name}"
-  depends_on = ["local_file.cloudfunction-key-file"]
+module "google-setup" {
+  source = "./automations/modules/google-setup"
+
+  organization-id                 = "${var.organization-id}"
+  automation-project              = "${var.automation-project}"
+  findings-project                = "${var.findings-project}"
+  cscc-notifications-topic-prefix = "${local.cscc-findings-topic}"
 }
 
-resource "google_storage_bucket_object" "gcf_object" {
-  name   = "functions.zip"
-  bucket = "${google_storage_bucket.gcf_bucket.name}"
-  source = "${path.root}/deploy/functions.zip"
+module "close_public_bucket" {
+  source = "./automations/close-public-bucket"
+
+  automation-project         = "${var.automation-project}"
+  automation-service-account = "${module.google-setup.automation-service-account}"
+  cscc-notifications-topic   = "${local.cscc-findings-topic}-topic"
+  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
+  gcf-object-name            = "${module.google-setup.gcf-object-name}"
+  organization-id            = "${var.automation-project}"
+  region                     = "${local.region}"
+
+  # Remove public users from any projects found by Security Health Analytics that are within the
+  # following folder IDs.
+  folder-ids = [
+    "670032686187",
+  ]
 }
 
-data "archive_file" "cloud_functions_zip" {
-  type        = "zip"
-  source_dir  = "${path.root}"
-  output_path = "${path.root}/deploy/functions.zip"
-  depends_on  = ["local_file.cloudfunction-key-file"]
-  excludes    = ["deploy", ".git", ".terraform"]
+module "revoke_iam_grants" {
+  source = "./automations/revoke-iam-grants"
+
+  automation-project         = "${var.automation-project}"
+  automation-service-account = "${module.google-setup.automation-service-account}"
+  findings-topic             = "${local.findings-topic}"
+  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
+  gcf-object-name            = "${module.google-setup.gcf-object-name}"
+  region                     = "${local.region}"
+
+  folder-ids = [
+    "670032686187",
+  ]
+  disallowed-domains = [
+    "gmail.com",
+    "test.com",
+  ]
+}
+
+module "create_disk_snapshot" {
+  source = "./automations/create-disk-snapshot"
+
+  automation-project         = "${var.automation-project}"
+  automation-service-account = "${module.google-setup.automation-service-account}"
+  findings-topic             = "${local.findings-topic}"
+  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
+  gcf-object-name            = "${module.google-setup.gcf-object-name}"
+  region                     = "${local.region}"
+
+  organization-id = "${var.organization-id}"
 }

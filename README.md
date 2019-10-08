@@ -39,21 +39,11 @@ destroy .`
 Terraform will create or destroy everything by default. To redeploy a single GCF you can do:
 
 ```shell
-$ terraform destroy \
-  -target google_cloudfunctions_function.close_bucket_function \
-  -target google_storage_bucket.close_bucket_bucket \
-  -target google_storage_bucket_object.close_bucket_storage_bucket_object \
-  -target archive_file.close_bucket_zip \
-  -target google_storage_bucket_object.gcf_object
 $ zip -r ./deploy/functions.zip . -x *deploy* -x *.git* -x *.terraform*
-$ terraform apply \
-  -auto-approve \
-  -target google_storage_bucket.close_bucket_bucket \
-  -target google_cloudfunctions_function.close_bucket_function \
-  -target google_storage_bucket_object.close_bucket_storage_bucket_object \
-  -target archive_file.close_bucket_zip \
-  -target google_storage_bucket_object.gcf_object
+$ terraform apply .
 ```
+
+Then visit Cloud Console, Cloud Functions, click the Function name then edit. Finally hit deploy.
 
 ### Test
 
@@ -66,34 +56,9 @@ $ go test ./...
 - Need to grant automation account the proper permissions. Below example shown if adding via the
   config service account. Note the granting account must have organization admin to grant this
   role.
+- Make sure to edit `enable-cscc-notifications.sh` and fill in your variables to match your
+  environment.
 
 ```shell
-$ SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
-  ORGANIZATION_ID=154584661726 \
-  PROJECT_ID=aerial-jigsaw-235219 \
-  TOPIC_ID=cscc-notifications-topic
-
-// Automation service account needs notification config editor.
-$ gcloud beta organizations add-iam-policy-binding \
-        $ORGANIZATION_ID \
-       --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-       --role='roles/securitycenter.notificationConfigEditor'
-
-// SA also needs Pub/Sub admin to create a new notification config.
-$ gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-  --role='roles/pubsub.admin'
-
-// Grant SA ability to publish to the target topic.
-$ gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-  --role="roles/pubsub.publisher"
-
-// Remove Pub/Sub admin.
-$ gcloud projects remove-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-  --role='roles/pubsub.admin'
-
-// Create notification config.
-$ go run ./local/create/main.go
+./enable-cscc-notifications.sh
 ```

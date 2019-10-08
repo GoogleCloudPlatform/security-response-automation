@@ -151,7 +151,8 @@ func TestCreateSnapshot(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-
+			loggerStub := &stubs.LoggerStub{}
+			l := entities.NewLogger(loggerStub)
 			computeStub := &stubs.ComputeStub{}
 			computeStub.SavedCreateSnapshots = make(map[string]compute.Snapshot)
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
@@ -160,7 +161,7 @@ func TestCreateSnapshot(t *testing.T) {
 			storageStub := &stubs.StorageStub{}
 			h := entities.NewHost(computeStub)
 			r := entities.NewResource(resourceManagerStub, storageStub)
-			if err := CreateSnapshot(ctx, sampleFinding, r, h); err != nil {
+			if err := CreateSnapshot(ctx, sampleFinding, r, h, l); err != nil {
 				t.Errorf("%s failed to create snapshot :%q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {
