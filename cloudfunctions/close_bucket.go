@@ -17,16 +17,12 @@ package cloudfunctions
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
 
 	"cloud.google.com/go/pubsub"
 )
-
-// resourcePrefix is the prefix before the bucket name in a SHA storage scanner finding.
-const resourcePrefix = "//storage.googleapis.com/"
 
 // publicUsers contains a slice of public users we want to remove.
 var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
@@ -42,7 +38,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	}
 
 	bucketProject := f.ProjectID()
-	bucketName := bucketName(f.ResourceName())
+	bucketName := f.BucketName()
 
 	l.Info("removing public users from bucket %q in project %q", bucketName, bucketProject)
 
@@ -66,9 +62,4 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 		}
 	}
 	return nil
-}
-
-// bucketName returns name of the bucket. Resource assumed valid due to prior validate call.
-func bucketName(resource string) string {
-	return strings.Split(resource, resourcePrefix)[1]
 }
