@@ -52,7 +52,10 @@ import (
 	securitycenter "github.com/googlecloudplatform/threat-automation/clients/cscc/apiv1p1alpha1"
 	securitycenterpb "github.com/googlecloudplatform/threat-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
 )
+
+const authFile = "./credentials/auth.json"
 
 var (
 	cmd   = flag.String("command", "list", "command to run {list,create}")
@@ -63,24 +66,26 @@ var (
 func main() {
 	flag.Parse()
 	ctx := context.Background()
-	client, err := securitycenter.NewClient(ctx)
+	client, err := securitycenter.NewClient(ctx, option.WithCredentialsFile(authFile))
 	if err != nil {
 		log.Fatalf("failed to init client: %q", err)
 		os.Exit(1)
 	}
+	if *orgID == "" || *topic == "" {
+		log.Fatalf("org-id and topic flags required")
+		os.Exit(1)
+	}
 	switch *cmd {
 	case "list":
-		if *orgID == "" || *topic == "" {
-			log.Fatalf("orgID and topic flags required")
-			os.Exit(1)
-		}
 		if err := list(ctx, client, *orgID, *topic); err != nil {
-			log.Fatalf("failed to init client: %q", err)
+			log.Fatalf("failed to list: %q", err)
 			os.Exit(1)
 		}
 	case "create":
-		// TODO(tomfitzgerald): Finish this.
-		fmt.Println("NYI")
+		if err := create(ctx, client, *orgID, *topic); err != nil {
+			log.Fatalf("failed to create: %q", err)
+			os.Exit(1)
+		}
 	default:
 		fmt.Printf("%s command not supported", *cmd)
 	}
@@ -102,5 +107,29 @@ func list(ctx context.Context, client *securitycenter.Client, orgID string, pubs
 		}
 		fmt.Printf("id: %s\n", result)
 	}
+	return nil
+}
+
+func create(ctx context.Context, client *securitycenter.Client, orgID string, pubsubTopic string) error {
+	defer client.Close()
+	notificationConfig, err := client.CreateNotificationConfig(ctx, &securitycenterpb.CreateNotificationConfigRequest{
+		Parent:   "organizations/" + orgID,
+		ConfigId: "sampleConfigId",
+		NotificationConfig: &securitycenterpb.NotificationConfig{
+			Description: "Notifies active findings",
+			PubsubTopic: pubsubTopic,
+			EventType:   securitycenterpb.NotificationConfig_FINDING,
+			NotifyConfig: &securitycenterpb.NotificationConfig_StreamingConfig_{
+				StreamingConfig: &securitycenterpb.NotificationConfig_StreamingConfig{
+					Filter: "state = \"ACTIVE\"",
+				},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatalf("Failed to create notification config: %v", err)
+		return err
+	}
+	log.Printf("New NotificationConfig created: %s\n", notificationConfig)
 	return nil
 }

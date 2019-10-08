@@ -31,6 +31,7 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   }
 
   environment_variables = {
+    disallowed = "${join(",", var.disallowed-domains)}"
     folder_ids = "${join(",", var.folder-ids)}"
   }
 }

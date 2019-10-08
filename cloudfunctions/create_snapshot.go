@@ -47,7 +47,7 @@ var supportedRules = map[string]bool{"bad_ip": true, "bad_domain": true}
 // In order for the snapshot to be create the service account must be granted the correct
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
-func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource, h *entities.Host) error {
+func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource, h *entities.Host, l *entities.Logger) error {
 	f, err := etd.NewBadIP(&m)
 	if err != nil {
 		return fmt.Errorf("failed to create bad ip: %q", err)
@@ -57,20 +57,32 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 		return nil
 	}
 
+	l.Info("listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
+
 	rule := strings.Replace(f.RuleName(), "_", "-", -1)
 	disks, err := h.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
+
+	l.Debug("obtained the following list of disks names from instance %q: %+q", f.Instance(), disks)
+
 	if err != nil {
 		return fmt.Errorf("failed to list disks: %q", err)
 	}
+
+	l.Info("listing snapshots in project %q", f.ProjectID())
+
 	snapshots, err := h.ListProjectSnapshots(ctx, f.ProjectID())
 	if err != nil {
 		return fmt.Errorf("failed to list snapshots: %q", err)
 	}
 
+	l.Debug("obtained the following list of snapshots in project %q:  %+q", f.Instance(), snapshots.Items)
+
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
-
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
+
+		l.Debug("disk %q can be deleted %q and have the following existing snapshots: %+q", f.Instance(), snapshots.Items)
+
 		if err != nil {
 			return err
 		}
@@ -79,10 +91,12 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 			continue
 		}
 
+		l.Info("removing previous snapshot of disk %q", disk)
 		if err := removeExistingSnapshots(h, f.ProjectID(), removeExisting); err != nil {
 			return err
 		}
 
+		l.Info("creating snapshot for disk %q", disk)
 		if err := createSnapshot(ctx, h, disk, f.ProjectID(), f.Zone(), sn); err != nil {
 			return err
 		}

@@ -17,7 +17,6 @@ package cloudfunctions
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -33,7 +32,7 @@ const resourcePrefix = "//storage.googleapis.com/"
 var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
-func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string) error {
+func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, l *entities.Logger) error {
 	f, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
@@ -45,17 +44,22 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	bucketProject := f.ProjectID()
 	bucketName := bucketName(f.ResourceName())
 
+	l.Info("removing public users from bucket %q in project %q", bucketName, bucketProject)
+
+	l.Info("listing project %q ancestors", bucketProject)
 	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
+
+	l.Debug("ancestors returned from project %q: %+q", bucketProject, ancestors)
 
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {
 			if resource != "folders/"+folderID {
 				continue
 			}
-			log.Printf("removing public members from bucket %s in project %s.", bucketName, bucketProject)
+			l.Info("removing public members from bucket %q in project %q.", bucketName, bucketProject)
 			if err = r.RemoveMembersFromBucket(ctx, bucketName, publicUsers); err != nil {
 				return fmt.Errorf("failed to remove member from bucket: %q", err)
 			}

@@ -25,10 +25,10 @@ provider "google" {
 module "google-setup" {
   source = "./automations/modules/google-setup"
 
-  organization-id          = "${var.organization-id}"
-  automation-project       = "${var.automation-project}"
-  findings-project         = "${var.findings-project}"
-  cscc-notifications-topic = "${local.cscc-findings-topic}"
+  organization-id                 = "${var.organization-id}"
+  automation-project              = "${var.automation-project}"
+  findings-project                = "${var.findings-project}"
+  cscc-notifications-topic-prefix = "${local.cscc-findings-topic}"
 }
 
 module "close_public_bucket" {
@@ -36,7 +36,7 @@ module "close_public_bucket" {
 
   automation-project         = "${var.automation-project}"
   automation-service-account = "${module.google-setup.automation-service-account}"
-  cscc-notifications-topic   = "${local.cscc-findings-topic}"
+  cscc-notifications-topic   = "${local.cscc-findings-topic}-topic"
   gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
   gcf-object-name            = "${module.google-setup.gcf-object-name}"
   organization-id            = "${var.automation-project}"
@@ -61,6 +61,10 @@ module "revoke_iam_grants" {
 
   folder-ids = [
     "670032686187",
+  ]
+  disallowed-domains = [
+    "gmail.com",
+    "test.com",
   ]
 }
 

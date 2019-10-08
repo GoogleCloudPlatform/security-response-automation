@@ -82,6 +82,8 @@ func TestCloseBucket(t *testing.T) {
 	for _, tt := range test {
 
 		t.Run(tt.name, func(t *testing.T) {
+			loggerStub := &stubs.LoggerStub{}
+			l := entities.NewLogger(loggerStub)
 			crmStub := &stubs.ResourceManagerStub{}
 			storageStub := &stubs.StorageStub{}
 			r := entities.NewResource(crmStub, storageStub)
@@ -92,7 +94,7 @@ func TestCloseBucket(t *testing.T) {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
 
-			if err := CloseBucket(ctx, tt.incomingLog, r, tt.folderIDs); err != nil {
+			if err := CloseBucket(ctx, tt.incomingLog, r, tt.folderIDs, l); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 				return
 			}
