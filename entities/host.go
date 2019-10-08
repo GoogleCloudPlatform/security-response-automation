@@ -65,7 +65,7 @@ func (h *Host) RemoveExternalIPFromInstanceNetworkInterfaces(ctx context.Context
 		for _, accessConfig := range networkInterface.AccessConfigs {
 			op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, accessConfig.Name, networkInterface.Name)
 			if err != nil {
-				return fmt.Errorf("failed to remove e: %q", err)
+				return fmt.Errorf("failed to remove external ip: %q", err)
 			}
 			if errs := h.WaitZone(project, zone, op); len(errs) > 0 {
 				return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
