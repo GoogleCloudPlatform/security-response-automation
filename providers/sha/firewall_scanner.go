@@ -33,13 +33,13 @@ type firewallScanner struct {
 
 // FirewallScanner a Security Health Analytics finding
 type FirewallScanner struct {
-	*CommonFinding
+	*Finding
 	fields firewallScanner
 }
 
 // NewFirewallScanner creates a new FirewallScanner
 func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
-	f := FirewallScanner{CommonFinding: &CommonFinding{}}
+	f := FirewallScanner{Finding: NewFinding()}
 
 	if err := f.ReadFinding(ps); err != nil {
 		return nil, errors.New(err.Error())

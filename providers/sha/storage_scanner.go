@@ -1,34 +1,40 @@
 package sha
 
 import (
-	"github.com/googlecloudplatform/threat-automation/entities"
-
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 )
 
+const (
+	storageScannerName        = "STORAGE_SCANNER"
+	errorMsgNotStorageScanner = "not a STORAGE_SCANNER Finding"
+)
+
 // StorageScanner is an abstraction around SHA's IAM Scanner finding.
 type StorageScanner struct {
-	// Fields found in every ETD finding not specific to this finding.
-	*CommonFinding
+	// Fields found in every SHA finding not specific to this finding.
+	*Finding
 }
 
 // NewStorageScanner reads a pubsub message and creates a new finding.
 func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
-	f := StorageScanner{CommonFinding: &CommonFinding{}}
+	f := StorageScanner{Finding: NewFinding()}
 
 	if err := f.ReadFinding(ps); err != nil {
 		return nil, errors.New(err.Error())
 	}
 
-	if v := f.validate(); !v {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
+	if err := f.validate(); err != nil {
+		return nil, err
 	}
 	return &f, nil
 }
 
-// validate ensures the fields to be accessed by getter methods are valid.
-func (f *StorageScanner) validate() bool {
-	// TODO: Implement this.
-	return true
+func (f *StorageScanner) validate() error {
+
+	if f.ScannerName() != storageScannerName {
+		return errors.New(errorMsgNotStorageScanner)
+	}
+
+	return nil
 }

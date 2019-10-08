@@ -9,6 +9,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	iamScannerName        = "IAM_SCANNER"
+	errorMsgNotIamScanner = "not a IAM_SCANNER Finding"
+)
+
 type iamScanner struct {
 	Finding struct {
 		Name             string
@@ -20,15 +25,15 @@ type iamScanner struct {
 
 // IamScanner is an abstraction around SHA's IAM Scanner finding.
 type IamScanner struct {
-	// Fields found in every ETD finding not specific to this finding.
-	*CommonFinding
+	// Fields found in every SHA finding not specific to this finding.
+	*Finding
 	// Fields specific to this finding.
 	fields iamScanner
 }
 
 // NewIamScanner reads a pubsub message and creates a new finding.
 func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
-	f := IamScanner{CommonFinding: &CommonFinding{}}
+	f := IamScanner{Finding: NewFinding()}
 
 	if err := f.ReadFinding(ps); err != nil {
 		return nil, errors.New(err.Error())
@@ -38,14 +43,17 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 		return nil, entities.ErrUnmarshal
 	}
 
-	if v := f.validate(); !v {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
+	if err := f.validate(); err != nil {
+		return nil, err
 	}
 	return &f, nil
 }
 
-// validate ensures the fields to be accessed by getter methods are valid.
-func (f *IamScanner) validate() bool {
-	// TODO: Implement this.
-	return true
+func (f *IamScanner) validate() error {
+
+	if f.ScannerName() != iamScannerName {
+		return errors.New(errorMsgNotIamScanner)
+	}
+
+	return nil
 }

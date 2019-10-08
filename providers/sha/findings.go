@@ -28,9 +28,9 @@ const (
 	errorMsgMissingCategory    = "does not have a category"
 )
 
-// CommonFinding common attributes, source properties and security marks
+// Finding common attributes, source properties and security marks
 // to all Security Health Analytics Security Command Center findings
-type CommonFinding struct {
+type Finding struct {
 	NotificationConfigName string
 	Finding                struct {
 		Name             string
@@ -60,13 +60,13 @@ type CommonFinding struct {
 	}
 }
 
-// NewCommonFinding returns a new ShaFinding.
-func NewCommonFinding() *CommonFinding {
-	return &CommonFinding{}
+// NewFinding returns a new ShaFinding.
+func NewFinding() *Finding {
+	return &Finding{}
 }
 
 // ReadFinding unmarshals a Security Health Analytics finding from PubSub
-func (f *CommonFinding) ReadFinding(m *pubsub.Message) error {
+func (f *Finding) ReadFinding(m *pubsub.Message) error {
 	if err := json.Unmarshal(m.Data, &f); err != nil {
 		return errors.Wrap(err, errorMsgFailedToUnmarshal)
 	}
@@ -83,21 +83,21 @@ func (f *CommonFinding) ReadFinding(m *pubsub.Message) error {
 }
 
 // ResourceName returns the finding ResourceName
-func (f *CommonFinding) ResourceName() string {
+func (f *Finding) ResourceName() string {
 	return f.Finding.ResourceName
 }
 
 // Category returns the finding Category
-func (f *CommonFinding) Category() string {
+func (f *Finding) Category() string {
 	return f.Finding.Category
 }
 
 // ScannerName returns the Security Health Analytics finding ScannerName
-func (f *CommonFinding) ScannerName() string {
+func (f *Finding) ScannerName() string {
 	return f.Finding.SourceProperties.ScannerName
 }
 
 // ProjectID returns the Security Health Analytics finding ProjectID
-func (f *CommonFinding) ProjectID() string {
+func (f *Finding) ProjectID() string {
 	return f.Finding.SourceProperties.ProjectID
 }
