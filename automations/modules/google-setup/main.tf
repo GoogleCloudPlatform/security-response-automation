@@ -78,3 +78,10 @@ resource "google_organization_iam_member" "cscc-notifications-sa" {
 
   member = "serviceAccount:${google_service_account.automation-service-account.email}"
 }
+
+resource "google_project_iam_member" "stackdriver-writer" {
+  project = "${var.automation-project}"
+  role   = "roles/logging.logWriter"
+
+  member = "serviceAccount:${google_service_account.automation-service-account.email}"
+}
