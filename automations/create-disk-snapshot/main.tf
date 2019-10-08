@@ -37,9 +37,9 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
 # being used.
 #
 # TODO: Support folder level grants.
-resource "google_organization_iam_binding" "gce-snapshot-bind-findings-organization" {
+resource "google_organization_iam_member" "gce-snapshot-bind-findings-organization" {
   org_id = "${var.organization-id}"
   role   = "roles/compute.instanceAdmin.v1"
 
-  members = ["serviceAccount:${var.automation-service-account}"]
+  member = "serviceAccount:${var.automation-service-account}"
 }

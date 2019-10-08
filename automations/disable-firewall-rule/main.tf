@@ -39,9 +39,9 @@ resource "google_cloudfunctions_function" "disable_firewall_function" {
 # being used.
 #
 # TODO: Support folder level grants.
-resource "google_organization_iam_binding" "disable-firewall-bind-findings-organization" {
+resource "google_organization_iam_member" "disable-firewall-bind-findings-organization" {
   org_id = "${var.organization-id}"
   role   = "roles/compute.securityAdmin"
 
-  members = ["serviceAccount:${var.automation-service-account}"]
+  member = "serviceAccount:${var.automation-service-account}"
 }
