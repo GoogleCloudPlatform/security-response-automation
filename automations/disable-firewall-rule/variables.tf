@@ -3,6 +3,11 @@ variable "organization-id" {
   description = "Organization ID."
 }
 
+variable "folder-ids" {
+  type        = list(string)
+  description = "Folder IDs to apply the disable firewall action"
+}
+
 variable "automation-project" {
   type = "string"
 }

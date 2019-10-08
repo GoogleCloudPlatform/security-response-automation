@@ -86,12 +86,13 @@ module "disable_firewall_rule" {
 
   automation-project         = "${var.automation-project}"
   automation-service-account = "${module.google-setup.automation-service-account}"
-  findings-topic             = "${local.findings-topic}"
+  cscc-notifications-topic   = "${local.cscc-findings-topic}-topic"
   gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
   gcf-object-name            = "${module.google-setup.gcf-object-name}"
   region                     = "${local.region}"
+  organization-id            = "${var.organization-id}"
 
-    folder-ids = [
+  folder-ids = [
     "670032686187",
   ]
 }
