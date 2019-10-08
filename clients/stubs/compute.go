@@ -32,7 +32,7 @@ type ComputeStub struct {
 	StubbedListDisks            *compute.DiskList
 	StubbedStopInstance         *compute.Operation
 	StubbedStartInstance        *compute.Operation
-	StubbedInstance				*compute.Instance
+	StubbedInstance             *compute.Instance
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
