@@ -41,35 +41,12 @@ func NewContainer(ctx context.Context, authFile string) (*Container, error) {
 
 // DisableKubernetesDashboard disables the kubernetes dashboard for a given cluster.
 func (c *Container) DisableKubernetesDashboard(ctx context.Context, projectID, zone, clusterID string) (*container.Operation, error) {
-	disableKubernetesDashboard := true
-	configRequest := initSetAddonsConfigRequest(disableKubernetesDashboard)
+	configRequest := &container.SetAddonsConfigRequest{
+		AddonsConfig: &container.AddonsConfig{
+			KubernetesDashboard: &container.KubernetesDashboard{
+				Disabled: true,
+			},
+		},
+	}
 	return c.container.Projects.Zones.Clusters.Addons(projectID, zone, clusterID, configRequest).Context(ctx).Do()
-}
-
-// newSetAddonsConfigRequest returns a new SetAddonsConfigRequest with a given AddonsConfig.
-func newSetAddonsConfigRequest(addonsConfig *container.AddonsConfig) *container.SetAddonsConfigRequest {
-	var setAddonsConfigRequest container.SetAddonsConfigRequest
-	setAddonsConfigRequest.AddonsConfig = addonsConfig
-	return &setAddonsConfigRequest
-}
-
-// newAddonsConfig returns a new AddonsConfig with a given KubernetesDashboard.
-func newAddonsConfig(kubernetesDashboard *container.KubernetesDashboard) *container.AddonsConfig {
-	var addonsConfig container.AddonsConfig
-	addonsConfig.KubernetesDashboard = kubernetesDashboard
-	return &addonsConfig
-}
-
-// newKubernetesDashboard returns a new KubernetesDashboard.
-func newKubernetesDashboard(disabled bool) *container.KubernetesDashboard {
-	var kubernetesDashboard container.KubernetesDashboard
-	kubernetesDashboard.Disabled = disabled
-	return &kubernetesDashboard
-}
-
-// initSetAddonsConfigRequest initializes SetAddonsConfigRequest used to disable the Kubernetes Dashboard.
-func initSetAddonsConfigRequest(disabled bool) *container.SetAddonsConfigRequest {
-	kubernetesDashboard := newKubernetesDashboard(disabled)
-	addonsConfig := newAddonsConfig(kubernetesDashboard)
-	return newSetAddonsConfigRequest(addonsConfig)
 }
