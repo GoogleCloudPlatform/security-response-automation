@@ -54,21 +54,23 @@ func (h *Host) DeleteDiskSnapshot(project, snapshot string) (*compute.Operation,
 	return h.c.DeleteDiskSnapshot(project, snapshot)
 }
 
-// RemoveExternalIPFromInstanceNetworkInterfaces iterates on all network interfaces of an instance and deletes it's accessConfig, actually removing the external IP address of the instance.
-func (h *Host) RemoveExternalIPFromInstanceNetworkInterfaces(ctx context.Context, project, zone, instance string) error {
+// RemoveExternalIPs iterates on all network interfaces of an instance and deletes its accessConfig's, actually removing the external IP addresses of the instance.
+func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance string) error {
 	instanceObj, err := h.c.GetInstance(ctx, project, zone, instance)
 	if err != nil {
 		return fmt.Errorf("failed to get instance: %q", err)
 	}
 
-	for _, networkInterface := range instanceObj.NetworkInterfaces {
-		for _, accessConfig := range networkInterface.AccessConfigs {
-			op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, accessConfig.Name, networkInterface.Name)
-			if err != nil {
-				return fmt.Errorf("failed to remove external ip: %q", err)
-			}
-			if errs := h.WaitZone(project, zone, op); len(errs) > 0 {
-				return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
+	for _, ni := range instanceObj.NetworkInterfaces {
+		for _, ac := range ni.AccessConfigs {
+			if ac.Type == "ONE_TO_ONE_NAT" {
+				op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, ac.Name, ni.Name)
+				if err != nil {
+					return fmt.Errorf("failed to remove external ip: %q", err)
+				}
+				if errs := h.WaitZone(project, zone, op); len(errs) > 0 {
+					return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
+				}
 			}
 		}
 	}

@@ -18,9 +18,9 @@ import (
 	"context"
 	"testing"
 
-	"google.golang.org/api/compute/v1"
-
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+
+	compute "google.golang.org/api/compute/v1"
 )
 
 func TestCreateDiskSnapshot(t *testing.T) {
@@ -121,7 +121,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 				StubbedInstance: test.stubInstance,
 			}
 			host := NewHost(computeStub)
-			err := host.RemoveExternalIPFromInstanceNetworkInterfaces(ctx, test.project, test.zone, test.instance)
+			err := host.RemoveExternalIPs(ctx, test.project, test.zone, test.instance)
 			if err != nil {
 				t.Errorf("%v failed, err: %+v", test.name, err)
 			}
