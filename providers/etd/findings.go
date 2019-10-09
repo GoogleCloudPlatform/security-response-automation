@@ -50,7 +50,7 @@ type baseFinding struct {
 			RuleName    string
 		}
 		Properties struct {
-			ProjectID string
+			ProjectID string `json:"project_id"`
 		}
 	}
 }
