@@ -20,7 +20,6 @@ type badIP struct {
 		}
 		Properties struct {
 			Location       string
-			ProjectID      string `json:"project_id"`
 			SourceInstance string
 		}
 	}
