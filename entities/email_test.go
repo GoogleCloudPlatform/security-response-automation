@@ -127,7 +127,7 @@ func TestCreateEmail(t *testing.T) {
 			email := c.CreateEmail(tt.subject, tt.from, tt.body, tt.to)
 
 			if diff := cmp.Diff(tt.expectedResponse, email, cmpopts.EquateEmpty()); diff != "" {
-				t.Errorf("%v failed exp(+) got:(-). Diff: \n\r%v", tt.name, diff)
+				t.Errorf("%v failed exp(-) got:(+). Diff: \n\r%v", tt.name, diff)
 			}
 		})
 	}
