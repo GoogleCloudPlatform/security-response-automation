@@ -24,7 +24,7 @@ import (
 type ContainerStub struct {
 }
 
-// DisableKubernetesDashboard disables the kubernetes dashboard for a given cluster.
-func (c *ContainerStub) DisableKubernetesDashboard(ctx context.Context, _, _, _ string) (*container.Operation, error) {
+// DisableDashboard disables the Kubernetes Dashboard for a given cluster.
+func (c *ContainerStub) DisableDashboard(context.Context, string, string, string) (*container.Operation, error) {
 	return nil, nil
 }
