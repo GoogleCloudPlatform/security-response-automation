@@ -6,3 +6,4 @@ terraform.tfvars
 credentials
 deploy
 .history
+.vscode
