@@ -93,3 +93,82 @@ func TestEnforceSSLConnection(t *testing.T) {
 		})
 	}
 }
+
+func TestClosePublicAccess(t *testing.T) {
+	tests := []struct {
+		name             string
+		instance         string
+		projectID        string
+		region           string
+		expectedError    error
+		expectedResponse *sqladmin.Operation
+		expectedRequest  *sqladmin.DatabaseInstance
+	}{
+
+		{
+			name:             "close public access in a existing database",
+			instance:         "instance1",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    nil,
+			expectedResponse: nil,
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:           "instance1",
+				Project:        "project1",
+				ConnectionName: "project1:us-central1:instance1",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						AuthorizedNetworks: []*sqladmin.AclEntry{
+							&sqladmin.AclEntry{
+								Value: "1.0.0.0/0",
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:             "close public access in a nonexisting database",
+			instance:         "unexisting",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    nil,
+			expectedResponse: nil,
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:           "unexisting",
+				Project:        "project1",
+				ConnectionName: "project1:us-central1:unexisting",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						AuthorizedNetworks: []*sqladmin.AclEntry{
+							&sqladmin.AclEntry{
+								Value: "1.0.0.0/0",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sqlAdminStub := &stubs.SQLAdminStub{}
+			ctx := context.Background()
+			c := NewCloudSQL(sqlAdminStub)
+			r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, tt.region)
+
+			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
+			}
+
+			if tt.expectedError != nil && err != tt.expectedError {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+			}
+
+			if tt.expectedError == nil && r == nil {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+			}
+		})
+	}
+}

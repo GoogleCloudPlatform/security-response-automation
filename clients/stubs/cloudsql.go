@@ -43,3 +43,26 @@ func (s *SQLAdminStub) PatchInstance(ctx context.Context, projectID string, inst
 
 	return &sqladmin.Operation{}, nil
 }
+
+// GetInstanceDetails gets detail from a instance in a project
+func (s *SQLAdminStub) GetInstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+	if projectID == "nonexisting" || instance == "nonexisting" {
+		return nil, ErrResourceNonExistent
+	}
+	return &sqladmin.DatabaseInstance{
+		Name:    instance,
+		Project: projectID,
+		Settings: &sqladmin.Settings{
+			IpConfiguration: &sqladmin.IpConfiguration{
+				AuthorizedNetworks: []*sqladmin.AclEntry{
+					&sqladmin.AclEntry{
+						Value: "0.0.0.0/0",
+					},
+					&sqladmin.AclEntry{
+						Value: "1.0.0.0/0",
+					},
+				},
+			},
+		},
+	}, nil
+}

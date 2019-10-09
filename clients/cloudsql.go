@@ -47,6 +47,11 @@ func (s *SQLAdmin) PatchInstance(ctx context.Context, projectID string, instance
 	return s.service.Instances.Patch(projectID, instance, databaseInstance).Do()
 }
 
+// GetInstanceDetails gets detail from a instance in a project
+func (s *SQLAdmin) GetInstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+	return s.service.Instances.Get(projectID, instance).Do()
+}
+
 // WaitSQL will wait for the global operation to complete.
 func (s *SQLAdmin) WaitSQL(projectID string, op *sqladmin.Operation) []error {
 	return waitSQL(op, func() (*sqladmin.Operation, error) {

@@ -23,7 +23,8 @@ import (
 // CloudSQLClient contains minimum interface required by the cloud sql entity.
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
-	WaitSQL(projectID string, op *sqladmin.Operation) []error
+	WaitSQL(string, *sqladmin.Operation) []error
+	GetInstanceDetails(context.Context, string, string) (*sqladmin.DatabaseInstance, error)
 }
 
 // CloudSQL entity.
@@ -50,6 +51,35 @@ func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, projectID string, i
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
 				RequireSsl: true,
+			},
+		},
+	})
+}
+
+// ClosePublicAccess removes "0.0.0.0/0" from authorized IPs at an instance
+func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, region string) (*sqladmin.Operation, error) {
+
+	var instanceDetails, err = s.client.GetInstanceDetails(ctx, projectID, instance)
+
+	if err != nil {
+		return &sqladmin.Operation{}, err
+	}
+
+	var authorizedIps []*sqladmin.AclEntry
+
+	for _, ip := range instanceDetails.Settings.IpConfiguration.AuthorizedNetworks {
+		if ip.Value != "0.0.0.0/0" {
+			authorizedIps = append(authorizedIps, ip)
+		}
+	}
+
+	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
+		Name:           instance,
+		Project:        projectID,
+		ConnectionName: projectID + ":" + region + ":" + instance,
+		Settings: &sqladmin.Settings{
+			IpConfiguration: &sqladmin.IpConfiguration{
+				AuthorizedNetworks: authorizedIps,
 			},
 		},
 	})
