@@ -15,34 +15,23 @@ package sha
 // limitations under the License.
 
 import (
-	"encoding/json"
-
-	"github.com/googlecloudplatform/threat-automation/entities"
+	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 )
 
-type iamScanner struct {
-	Finding struct {
-		Name             string
-		SourceProperties struct {
-			OffendingIamRoles string
-		}
-	}
-}
+const resourcePrefix = "//storage.googleapis.com/"
 
-// IamScanner is an abstraction around SHA's IAM Scanner finding.
-type IamScanner struct {
+// StorageScanner is an abstraction around SHA's IAM Scanner finding.
+type StorageScanner struct {
 	// Fields found in every SHA finding not specific to this finding.
 	*Finding
-	// Fields specific to this finding.
-	fields iamScanner
 }
 
-// NewIamScanner reads a pubsub message and creates a new finding.
-func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
-	f := IamScanner{}
+// NewStorageScanner reads a pubsub message and creates a new finding.
+func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
+	f := StorageScanner{}
 
 	nf, err := NewFinding(ps)
 	if err != nil {
@@ -51,21 +40,22 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 
 	f.Finding = nf
 
-	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, entities.ErrUnmarshal
-	}
-
 	if err := f.validate(); err != nil {
 		return nil, err
 	}
 	return &f, nil
 }
 
-func (f *IamScanner) validate() error {
+func (f *StorageScanner) validate() error {
 
-	if f.ScannerName() != "IAM_SCANNER" {
-		return errors.New("not a IAM_SCANNER Finding")
+	if f.ScannerName() != "STORAGE_SCANNER" {
+		return errors.New("not a STORAGE_SCANNER Finding")
 	}
 
 	return nil
+}
+
+// BucketName returns name of the bucket. Resource assumed valid due to prior validate call.
+func (f *StorageScanner) BucketName() string {
+	return strings.Split(f.ResourceName(), resourcePrefix)[1]
 }
