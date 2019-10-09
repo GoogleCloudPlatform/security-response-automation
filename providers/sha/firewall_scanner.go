@@ -22,10 +22,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	supportedFirewallRules = map[string]bool{"OPEN_SSH_PORT": true, "OPEN_RDP_PORT": true, "OPEN_FIREWALL": true}
-	extractFirewallID      = regexp.MustCompile(`/global/firewalls/(.*)$`)
-)
+// extractFirewallID is a regex to extract the firewall ID that is on the resource name
+var extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
 
 type firewallScanner struct {
 	Finding struct {
@@ -72,10 +70,6 @@ func (f *FirewallScanner) validate() error {
 		return errors.New("not a FIREWALL_SCANNER Finding")
 	}
 
-	if !supportedFirewallRules[f.Category()] {
-		return errors.New("Unknown firewall category")
-	}
-
 	if f.ProjectID() == "" {
 		return errors.New("does not have a project id")
 	}
@@ -84,11 +78,7 @@ func (f *FirewallScanner) validate() error {
 
 }
 
-// FirewallID return the numerical ID of the firewall. It is not the firewall name provided on creation
+// FirewallID returns the numerical ID of the firewall.
 func (f *FirewallScanner) FirewallID() string {
-	i := extractFirewallID.FindStringSubmatch(f.ResourceName())
-	if len(i) != 2 {
-		return ""
-	}
-	return i[1]
+	return extractFirewallID.FindStringSubmatch(f.ResourceName())[1]
 }

@@ -118,6 +118,7 @@ const (
 }`
 )
 
+// TestForFailures attempts to unmarshal logs that are not valid.
 func TestForShaFailures(t *testing.T) {
 	test := []struct {
 		name    string
@@ -155,18 +156,6 @@ func TestForShaFailures(t *testing.T) {
 						"ProjectId": "teste-project" 
 					}}}`)},
 			errors.New("not a FIREWALL_SCANNER Finding"),
-		},
-		{
-			"Unknown firewall category",
-			&pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-					"category": "CLOSE_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "teste-project"
-					}}}`)},
-			errors.New("Unknown firewall category"),
 		},
 		{
 			"missing a project id",
@@ -453,7 +442,7 @@ func TestForShaOpenFirewall(t *testing.T) {
 	}
 }
 
-// TestForShaPublicBucket attempts to read public buclet findings.
+// TestForShaPublicBucket attempts to read public bucket findings.
 func TestForShaPublicBucket(t *testing.T) {
 	test := []struct {
 		name           string

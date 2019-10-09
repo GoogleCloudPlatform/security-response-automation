@@ -21,6 +21,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// resourcePrefix the prefix of the full name of a bucket
+// on the resource name filed of an SCC SHA Finding
 const resourcePrefix = "//storage.googleapis.com/"
 
 // StorageScanner is an abstraction around SHA's IAM Scanner finding.
@@ -40,19 +42,14 @@ func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
 
 	f.Finding = nf
 
-	if err := f.validate(); err != nil {
-		return nil, err
+	if !f.validate() {
+		return nil, errors.New("not a STORAGE_SCANNER Finding")
 	}
 	return &f, nil
 }
 
-func (f *StorageScanner) validate() error {
-
-	if f.ScannerName() != "STORAGE_SCANNER" {
-		return errors.New("not a STORAGE_SCANNER Finding")
-	}
-
-	return nil
+func (f *StorageScanner) validate() bool {
+	return f.ScannerName() == "STORAGE_SCANNER"
 }
 
 // BucketName returns name of the bucket. Resource assumed valid due to prior validate call.

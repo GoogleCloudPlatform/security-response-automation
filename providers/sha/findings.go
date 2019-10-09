@@ -73,23 +73,6 @@ func NewFinding(m *pubsub.Message) (*Finding, error) {
 	return &f, nil
 }
 
-// ReadFinding unmarshals a Security Health Analytics finding from PubSub
-func (f *Finding) ReadFinding(m *pubsub.Message) error {
-	if err := json.Unmarshal(m.Data, &f); err != nil {
-		return errors.Wrap(err, "failed to unmarshal")
-	}
-
-	if f.Finding.ResourceName == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a resource name")
-	}
-
-	if f.Finding.Category == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a category")
-	}
-
-	return nil
-}
-
 // ResourceName returns the finding ResourceName
 func (f *Finding) ResourceName() string {
 	return f.Finding.ResourceName

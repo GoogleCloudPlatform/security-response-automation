@@ -55,17 +55,12 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 		return nil, entities.ErrUnmarshal
 	}
 
-	if err := f.validate(); err != nil {
-		return nil, err
+	if !f.validate() {
+		return nil, errors.New("not a IAM_SCANNER Finding")
 	}
 	return &f, nil
 }
 
-func (f *IamScanner) validate() error {
-
-	if f.ScannerName() != "IAM_SCANNER" {
-		return errors.New("not a IAM_SCANNER Finding")
-	}
-
-	return nil
+func (f *IamScanner) validate() bool {
+	return f.ScannerName() == "IAM_SCANNER" 
 }
