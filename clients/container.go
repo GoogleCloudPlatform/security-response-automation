@@ -33,20 +33,17 @@ func NewContainer(ctx context.Context, authFile string) (*Container, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to init container service: %q", err)
 	}
-
-	return &Container{
-		container: cc,
-	}, nil
+	return &Container{container: cc}, nil
 }
 
-// DisableKubernetesDashboard disables the Kubernetes Dashboard for a given cluster.
-func (c *Container) DisableKubernetesDashboard(ctx context.Context, projectID, zone, clusterID string) (*container.Operation, error) {
-	configRequest := &container.SetAddonsConfigRequest{
+// DisableDashboard disables the Kubernetes Dashboard for a given cluster.
+func (c *Container) DisableDashboard(ctx context.Context, projectID, zone, clusterID string) (*container.Operation, error) {
+	req := &container.SetAddonsConfigRequest{
 		AddonsConfig: &container.AddonsConfig{
 			KubernetesDashboard: &container.KubernetesDashboard{
 				Disabled: true,
 			},
 		},
 	}
-	return c.container.Projects.Zones.Clusters.Addons(projectID, zone, clusterID, configRequest).Context(ctx).Do()
+	return c.container.Projects.Zones.Clusters.Addons(projectID, zone, clusterID, req).Context(ctx).Do()
 }
