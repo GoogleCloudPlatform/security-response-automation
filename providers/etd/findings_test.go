@@ -133,12 +133,13 @@ func TestReadResource(t *testing.T) {
 // TestReadZone reads zone from BadIP.
 func TestReadZone(t *testing.T) {
 	test := []struct {
-		name     string
-		message  *pubsub.Message
-		zone     string
-		expected error
+		name      string
+		message   *pubsub.Message
+		zone      string
+		expected  error
+		projectID string
 	}{
-		{name: "bad ip parse zone", message: genBadNetworkMessage("us-central1-c", "bad_ip"), zone: "us-central1-c", expected: nil},
+		{name: "bad ip parse zone", message: genBadNetworkMessage("us-central1-c", "bad_ip"), zone: "us-central1-c", expected: nil, projectID: "test-project"},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
@@ -152,6 +153,9 @@ func TestReadZone(t *testing.T) {
 			if f.Zone() != tt.zone {
 				t.Errorf("%s failed got:%q want:%q", tt.name, f.Zone(), tt.zone)
 			}
+			if f.ProjectID() != tt.projectID {
+				t.Errorf("%s failed reading project ID: got:%q want:%q", tt.name, f.ProjectID(), tt.projectID)
+			}
 		})
 	}
 }
@@ -160,7 +164,8 @@ func genBadNetworkMessage(zone string, ruleName string) *pubsub.Message {
 	return &pubsub.Message{Data: []byte(fmt.Sprintf(`{
 		"jsonPayload": {
 			"properties": {
-				"location":"` + zone + `"
+				"location":"` + zone + `",
+				"project_id": "test-project"
 			},
 			"detectionCategory": {
 				"ruleName": "` + ruleName + `"
