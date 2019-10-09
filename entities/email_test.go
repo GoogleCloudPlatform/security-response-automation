@@ -81,6 +81,7 @@ func TestCreateEmail(t *testing.T) {
 	const (
 		apiKey = "fakeApiKey"
 	)
+	c := NewEmailClient(apiKey)
 	tests := []struct {
 		name             string
 		from             string
@@ -105,8 +106,8 @@ func TestCreateEmail(t *testing.T) {
 				Subject: "Teste mail golang",
 				Content: []*mail.Content{
 					&mail.Content{
-						Value: "Local test of send mail from golang!",
-						Type:  "text/plain",
+						Value: c.ParseTemplate("Local test of send mail from golang!"),
+						Type:  "text/html",
 					},
 				},
 				Personalizations: []*mail.Personalization{
@@ -123,11 +124,10 @@ func TestCreateEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewEmailClient(apiKey)
 			email := c.CreateEmail(tt.subject, tt.from, tt.body, tt.to)
 
 			if diff := cmp.Diff(tt.expectedResponse, email, cmpopts.EquateEmpty()); diff != "" {
-				t.Errorf("%v failed exp(+) got:(-). Diff: \n\r%v", tt.name, diff)
+				t.Errorf("%v failed exp(+) got:(-). Diff: \n%v", tt.name, diff)
 			}
 		})
 	}

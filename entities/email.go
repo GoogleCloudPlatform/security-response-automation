@@ -15,8 +15,11 @@ package entities
 // limitations under the License.
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"log"
+	"path/filepath"
 
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
@@ -61,7 +64,22 @@ func (m *EmailClient) CreateEmail(subject, from, body string, tos []string) *mai
 	for _, e := range tos {
 		p.AddTos(mail.NewEmail(e, e))
 	}
-	email.AddContent(mail.NewContent("text/plain", body))
+	email.AddContent(mail.NewContent("text/html", m.ParseTemplate(body)))
 	email.AddPersonalizations(p)
 	return email
+}
+
+// ParseTemplate parse template
+func (m *EmailClient) ParseTemplate(body string) string {
+	pattern := filepath.Join("../templates/", "temp*.tmpl")
+	tmpl := template.Must(template.ParseGlob(pattern))
+	b := struct{ Body string }{Body: body}
+	out := &bytes.Buffer{}
+
+	err := tmpl.Execute(out, b)
+	if err != nil {
+		log.Fatalf("template execution: %s", err)
+	}
+
+	return out.String()
 }
