@@ -73,6 +73,11 @@ func (c *Compute) DeleteAccessConfig(ctx context.Context, project, zone, instanc
 	return c.compute.Instances.DeleteAccessConfig(project, zone, instance, accessConfig, networkInterface).Context(ctx).Do()
 }
 
+// FirewallRule get the details of a firewall rule
+func (c *Compute) FirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Firewall, error) {
+	return c.compute.Firewalls.Get(projectID, ruleID).Context(ctx).Do()
+}
+
 // CreateSnapshot creates a snapshot of a specified persistent disk.
 func (c *Compute) CreateSnapshot(ctx context.Context, projectID, zone, disk string, rb *compute.Snapshot) (*compute.Operation, error) {
 	return c.compute.Disks.CreateSnapshot(projectID, zone, disk, rb).Context(ctx).Do()
