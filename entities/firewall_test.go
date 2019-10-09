@@ -15,6 +15,7 @@ package entities
 // limitations under the License.
 
 import (
+	"context"
 	"testing"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
@@ -24,6 +25,7 @@ import (
 const (
 	projectID = "test-project-id"
 	ruleName  = "generic-rule-name"
+	ruleID    = "1111111111111111"
 )
 
 func TestEnableFirewallRule(t *testing.T) {
@@ -42,7 +44,8 @@ func TestEnableFirewallRule(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			computeStub := &stubs.ComputeStub{}
 			f := NewFirewall(computeStub)
-			_, err := f.EnableFirewallRule(projectID, ruleName)
+			ctx := context.Background()
+			_, err := f.EnableFirewallRule(ctx, projectID, ruleID, ruleName)
 			if err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
 			}
@@ -70,7 +73,8 @@ func TestDisableFirewallRule(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			computeStub := &stubs.ComputeStub{}
 			f := NewFirewall(computeStub)
-			_, err := f.DisableFirewallRule(projectID, ruleName)
+			ctx := context.Background()
+			_, err := f.DisableFirewallRule(ctx, projectID, ruleID, ruleName)
 			if err != tt.expectedError {
 				t.Errorf("%v failed exp:%q got: %q", tt.name, tt.expectedError, err)
 			}
