@@ -48,6 +48,19 @@ func (c *ComputeStub) GetInstance(ctx context.Context, project, zone, instance s
 
 // DeleteAccessConfig deletes an access config from an instance's network interface.
 func (c *ComputeStub) DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error) {
+	for _, ni := range c.StubbedInstance.NetworkInterfaces {
+		if ni.Name == networkInterface {
+			for i, ac := range ni.AccessConfigs {
+				if ac.Name == accessConfig {
+					acs := ni.AccessConfigs
+					acs = append(acs[:i], acs[i+1:]...)
+					ni.AccessConfigs = acs
+					return nil, nil
+				}
+			}
+			return nil, nil
+		}
+	}
 	return nil, nil
 }
 

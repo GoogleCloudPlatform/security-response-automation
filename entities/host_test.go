@@ -88,7 +88,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 			&compute.AccessConfig{
 				Name:  "External NAT",
 				NatIP: "34.192.92.171",
-				Type:  "ONE_TO_ONE_NAT",
+				Type:  "OTHER",
 			},
 		},
 	}
@@ -124,6 +124,18 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 			err := host.RemoveExternalIPs(ctx, test.project, test.zone, test.instance)
 			if err != nil {
 				t.Errorf("%v failed, err: %+v", test.name, err)
+			}
+
+			if len(test.stubInstance.NetworkInterfaces[0].AccessConfigs) > 0 {
+				t.Errorf("%v failed, 0 accessConfigs expected in NetworkInterface[0].", test.name)
+			}
+
+			if len(test.stubInstance.NetworkInterfaces[1].AccessConfigs) > 0 {
+				t.Errorf("%v failed, 0 accessConfigs expected in NetworkInterface[0].", test.name)
+			}
+
+			if len(test.stubInstance.NetworkInterfaces[2].AccessConfigs) > 1 {
+				t.Errorf("%v failed, 1 accessConfigs expected in NetworkInterface[0].", test.name)
 			}
 		})
 	}
