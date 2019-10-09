@@ -20,7 +20,7 @@ import (
 	container "google.golang.org/api/container/v1"
 )
 
-// ContainerStub provides a stub for the container client.
+// ContainerStub provides a stub for the Container client.
 type ContainerStub struct {
 }
 

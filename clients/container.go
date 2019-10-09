@@ -39,7 +39,7 @@ func NewContainer(ctx context.Context, authFile string) (*Container, error) {
 	}, nil
 }
 
-// DisableKubernetesDashboard disables the kubernetes dashboard for a given cluster.
+// DisableKubernetesDashboard disables the Kubernetes Dashboard for a given cluster.
 func (c *Container) DisableKubernetesDashboard(ctx context.Context, projectID, zone, clusterID string) (*container.Operation, error) {
 	configRequest := &container.SetAddonsConfigRequest{
 		AddonsConfig: &container.AddonsConfig{
