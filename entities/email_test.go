@@ -62,13 +62,12 @@ func TestSendEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := NewEmailClient(apiKey)
-			client.service = &stubs.EmailClientStub{
+			email := NewEmail(&stubs.EmailStub{
 				StubbedSend: &rest.Response{
 					StatusCode: tt.expectedStatus},
-			}
+			})
 
-			_, err := client.Send(tt.subject, tt.from, tt.body, tt.to)
+			_, err := email.Send(tt.subject, tt.from, tt.body, tt.to)
 
 			if err != nil && err.Error() != tt.expectedError.Error() {
 				t.Error("error to send email!")
@@ -123,7 +122,7 @@ func TestCreateEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewEmailClient(apiKey)
+			c := NewEmail(&stubs.EmailStub{})
 			email := c.CreateEmail(tt.subject, tt.from, tt.body, tt.to)
 
 			if diff := cmp.Diff(tt.expectedResponse, email, cmpopts.EquateEmpty()); diff != "" {

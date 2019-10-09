@@ -19,14 +19,12 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-// EmailClientStub provides a stub for the Email client.
-type EmailClientStub struct {
-	StubbedSend    *rest.Response
-	StubbedSendErr error
-	StubbedCreate  *mail.SGMailV3
+// EmailStub provides a stub for the Email client.
+type EmailStub struct {
+	StubbedSend *rest.Response
 }
 
 // Send to send email
-func (e *EmailClientStub) Send(email *mail.SGMailV3) (*rest.Response, error) {
-	return e.StubbedSend, e.StubbedSendErr
+func (e *EmailStub) Send(email *mail.SGMailV3) (*rest.Response, error) {
+	return e.StubbedSend, nil
 }

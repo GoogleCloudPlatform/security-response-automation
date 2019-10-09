@@ -16,49 +16,55 @@ package entities
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-// EmailClientServices struct to use sendgrid client
-type EmailClientServices interface {
+const (
+	sender = "Security Response Automation"
+)
+
+// EmailClient struct to use sendgrid client.
+type EmailClient interface {
 	Send(email *mail.SGMailV3) (*rest.Response, error)
 }
 
-// EmailClient struct to use sendgrid client
-type EmailClient struct {
-	service EmailClientServices
+// Email struct to use sendgrid client.
+type Email struct {
+	service EmailClient
 }
 
-//NewEmailClient creates new client
-func NewEmailClient(apiKey string) *EmailClient {
-	return &EmailClient{service: sendgrid.NewSendClient(apiKey)}
+// NewEmail creates new client.
+func NewEmail(service EmailClient) *Email {
+	return &Email{service: service}
 }
 
-// Send main action function
-func (m *EmailClient) Send(subject, from, body string, tos []string) (*rest.Response, error) {
-	email := m.CreateEmail(subject, from, body, tos)
+//NewSendGridClient creates new sendgrid client.
+func NewSendGridClient(apiKey string) *sendgrid.Client {
+	return sendgrid.NewSendClient(apiKey)
+}
+
+// Send main action function.
+func (m *Email) Send(subject, from, body string, to []string) (*rest.Response, error) {
+	email := m.CreateEmail(subject, from, body, to)
 	res, err := m.service.Send(email)
 
 	if err != nil || res.StatusCode < 200 || res.StatusCode > 202 {
 		return nil, fmt.Errorf("Error to send email. StatusCode:(%d)", res.StatusCode)
 	}
-
-	log.Printf("Email(s) sent successfully. StatusCode:(%d)", res.StatusCode)
 	return res, nil
 }
 
-// CreateEmail an sendgrid email
-func (m *EmailClient) CreateEmail(subject, from, body string, tos []string) *mail.SGMailV3 {
+// CreateEmail an sendgrid email.
+func (m *Email) CreateEmail(subject, from, body string, to []string) *mail.SGMailV3 {
 	email := mail.NewV3Mail()
 	email.SetFrom(mail.NewEmail(from, from))
 	email.Subject = subject
 
 	p := mail.NewPersonalization()
-	for _, e := range tos {
+	for _, e := range to {
 		p.AddTos(mail.NewEmail(e, e))
 	}
 	email.AddContent(mail.NewContent("text/plain", body))
