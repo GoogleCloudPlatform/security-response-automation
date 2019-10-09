@@ -68,8 +68,3 @@ func (f *BadIP) Instance() string {
 	}
 	return i[1]
 }
-
-// ProjectID returns the project ID of affected project.
-func (f *BadIP) ProjectID() string {
-	return f.fields.JSONPayload.Properties.ProjectID
-}
