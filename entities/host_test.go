@@ -20,7 +20,8 @@ import (
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 
-	compute "google.golang.org/api/compute/v1"
+	"github.com/google/go-cmp/cmp"
+	"google.golang.org/api/compute/v1"
 )
 
 func TestCreateDiskSnapshot(t *testing.T) {
@@ -55,7 +56,13 @@ func TestCreateDiskSnapshot(t *testing.T) {
 }
 
 func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
-	nic0 := compute.NetworkInterface{
+	const (
+		project  = "test-project"
+		zone     = "test-zone"
+		instance = "test-instance"
+	)
+
+	externalNic0 := compute.NetworkInterface{
 		Name: "nic0",
 		AccessConfigs: []*compute.AccessConfig{
 			&compute.AccessConfig{
@@ -66,76 +73,158 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 		},
 	}
 
-	nic1 := compute.NetworkInterface{
+	externalNic1 := compute.NetworkInterface{
 		Name: "nic1",
-		AccessConfigs: []*compute.AccessConfig{
-			&compute.AccessConfig{
-				Name:  "External NAT",
-				NatIP: "34.70.92.164",
-				Type:  "ONE_TO_ONE_NAT",
-			},
-		},
-	}
-
-	nic2 := compute.NetworkInterface{
-		Name: "nic2",
 		AccessConfigs: []*compute.AccessConfig{
 			&compute.AccessConfig{
 				Name:  "External NAT",
 				NatIP: "34.70.92.170",
 				Type:  "ONE_TO_ONE_NAT",
 			},
+		},
+	}
+
+	externalNic2UnknownType := compute.NetworkInterface{
+		Name: "nic2",
+		AccessConfigs: []*compute.AccessConfig{
 			&compute.AccessConfig{
 				Name:  "External NAT",
 				NatIP: "34.192.92.171",
-				Type:  "OTHER",
+				Type:  "UNKNOWN",
 			},
 		},
 	}
 
 	tests := []struct {
-		name         string
-		project      string
-		zone         string
-		instance     string
-		stubInstance *compute.Instance
+		name                         string
+		project                      string
+		zone                         string
+		instance                     string
+		stubInstance                 *compute.Instance
+		expectedDeletedAccessConfigs []stubs.NetworkAccessConfigStub
 	}{
 		{
-			name:     "remove instance's external ips",
-			project:  "test-project",
-			zone:     "test-zone",
-			instance: "test-instance",
+			name:     "remove instance's external ip with two network interfaces",
+			project:  project,
+			zone:     zone,
+			instance: instance,
 			stubInstance: &compute.Instance{
 				NetworkInterfaces: []*compute.NetworkInterface{
-					&nic0,
-					&nic1,
-					&nic2,
+					&externalNic0,
+					&externalNic1,
+				},
+			},
+			expectedDeletedAccessConfigs: []stubs.NetworkAccessConfigStub{
+				stubs.NetworkAccessConfigStub{
+					NetworkInterfaceName: "nic0",
+					AccessConfigName:     "External NAT",
+				},
+				stubs.NetworkAccessConfigStub{
+					NetworkInterfaceName: "nic1",
+					AccessConfigName:     "External NAT",
 				},
 			},
 		},
+		{
+			name:     "remove instance's external ip with unknown access config type",
+			project:  project,
+			zone:     zone,
+			instance: instance,
+			stubInstance: &compute.Instance{
+				NetworkInterfaces: []*compute.NetworkInterface{
+					&externalNic2UnknownType,
+				},
+			},
+			expectedDeletedAccessConfigs: nil,
+		},
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			computeStub := &stubs.ComputeStub{
-				StubbedInstance: test.stubInstance,
+				StubbedInstance: tt.stubInstance,
 			}
 			host := NewHost(computeStub)
-			err := host.RemoveExternalIPs(ctx, test.project, test.zone, test.instance)
+			err := host.RemoveExternalIPs(ctx, tt.project, tt.zone, tt.instance)
 			if err != nil {
-				t.Errorf("%v failed, err: %+v", test.name, err)
+				t.Errorf("%v failed, err: %+v", tt.name, err)
 			}
 
-			if len(test.stubInstance.NetworkInterfaces[0].AccessConfigs) > 0 {
-				t.Errorf("%v failed, 0 accessConfigs expected in NetworkInterface[0].", test.name)
+			if diff := cmp.Diff(tt.expectedDeletedAccessConfigs, computeStub.DeletedAccessConfigs); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
+		})
+	}
+}
 
-			if len(test.stubInstance.NetworkInterfaces[1].AccessConfigs) > 0 {
-				t.Errorf("%v failed, 0 accessConfigs expected in NetworkInterface[0].", test.name)
+func TestRemoveExternalIPFromInstanceNetworkInterfacesFailing(t *testing.T) {
+	const (
+		project  = "test-project"
+		zone     = "test-zone"
+		instance = "test-instance"
+	)
+
+	externalNic0 := compute.NetworkInterface{
+		Name: "nic0",
+		AccessConfigs: []*compute.AccessConfig{
+			&compute.AccessConfig{
+				Name:  "External NAT",
+				NatIP: "35.192.206.126",
+				Type:  "ONE_TO_ONE_NAT",
+			},
+		},
+	}
+
+	tests := []struct {
+		name                             string
+		project                          string
+		zone                             string
+		instance                         string
+		stubInstance                     *compute.Instance
+		expectedDeletedAccessConfigs     []stubs.NetworkAccessConfigStub
+		getInstanceCallShouldFail        bool
+		deleteAccessConfigCallShouldFail bool
+	}{
+		{
+			name:     "remove instance's external ip failing to get instance",
+			project:  project,
+			zone:     zone,
+			instance: instance,
+			stubInstance: &compute.Instance{
+				NetworkInterfaces: []*compute.NetworkInterface{
+					&externalNic0,
+				},
+			},
+			expectedDeletedAccessConfigs:     nil,
+			getInstanceCallShouldFail:        true,
+			deleteAccessConfigCallShouldFail: false,
+		},
+		{
+			name:     "don't remove instance's external ip failing to delete access config",
+			project:  project,
+			zone:     zone,
+			instance: instance,
+			stubInstance: &compute.Instance{
+				NetworkInterfaces: []*compute.NetworkInterface{
+					&externalNic0,
+				},
+			},
+			getInstanceCallShouldFail:        false,
+			deleteAccessConfigCallShouldFail: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			computeStub := &stubs.ComputeStub{
+				StubbedInstance:              tt.stubInstance,
+				GetInstanceShouldFail:        tt.getInstanceCallShouldFail,
+				DeleteAccessConfigShouldFail: tt.deleteAccessConfigCallShouldFail,
 			}
-
-			if len(test.stubInstance.NetworkInterfaces[2].AccessConfigs) > 1 {
-				t.Errorf("%v failed, 1 accessConfigs expected in NetworkInterface[0].", test.name)
+			host := NewHost(computeStub)
+			err := host.RemoveExternalIPs(ctx, tt.project, tt.zone, tt.instance)
+			if err == nil {
+				t.Errorf("%v failed, error expected but it was: %+v", tt.name, err)
 			}
 		})
 	}

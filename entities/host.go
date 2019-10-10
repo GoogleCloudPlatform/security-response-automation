@@ -63,14 +63,16 @@ func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance st
 
 	for _, ni := range instanceObj.NetworkInterfaces {
 		for _, ac := range ni.AccessConfigs {
-			if ac.Type == "ONE_TO_ONE_NAT" {
-				op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, ac.Name, ni.Name)
-				if err != nil {
-					return fmt.Errorf("failed to remove external ip: %q", err)
-				}
-				if errs := h.WaitZone(project, zone, op); len(errs) > 0 {
-					return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
-				}
+			if ac.Type != "ONE_TO_ONE_NAT" {
+				continue
+			}
+
+			op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, ac.Name, ni.Name)
+			if err != nil {
+				return fmt.Errorf("failed to remove external ip: %q", err)
+			}
+			if errs := h.WaitZone(project, zone, op); len(errs) > 0 {
+				return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
 			}
 		}
 	}
