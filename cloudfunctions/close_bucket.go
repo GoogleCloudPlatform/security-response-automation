@@ -17,6 +17,7 @@ package cloudfunctions
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
@@ -40,15 +41,15 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	bucketProject := f.ProjectID()
 	bucketName := f.BucketName()
 
-	l.Info("removing public users from bucket %q in project %q", bucketName, bucketProject)
+	log.Printf("removing public users from bucket %q in project %q", bucketName, bucketProject)
 
-	l.Info("listing project %q ancestors", bucketProject)
+	log.Printf("listing project %q ancestors", bucketProject)
 	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
 
-	l.Debug("ancestors returned from project %q: %+q", bucketProject, ancestors)
+	log.Printf("ancestors returned from project %q: %v", bucketProject, ancestors)
 
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {

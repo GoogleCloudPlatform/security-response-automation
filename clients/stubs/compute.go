@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 )
 
@@ -26,17 +27,53 @@ var ErrNonexistentVM = fmt.Errorf("googleapi: Error 404: The resource 'projects/
 
 // ComputeStub provides a stub for the compute client.
 type ComputeStub struct {
-	SavedFirewallRule           *compute.Firewall
-	SavedCreateSnapshots        map[string]compute.Snapshot
-	StubbedListProjectSnapshots *compute.SnapshotList
-	StubbedListDisks            *compute.DiskList
-	StubbedStopInstance         *compute.Operation
-	StubbedStartInstance        *compute.Operation
+	SavedFirewallRule            *compute.Firewall
+	SavedCreateSnapshots         map[string]compute.Snapshot
+	DeletedAccessConfigs         []NetworkAccessConfigStub
+	DeleteAccessConfigShouldFail bool
+	GetInstanceShouldFail        bool
+	StubbedListProjectSnapshots  *compute.SnapshotList
+	StubbedListDisks             *compute.DiskList
+	StubbedFirewall              *compute.Firewall
+	StubbedStopInstance          *compute.Operation
+	StubbedStartInstance         *compute.Operation
+	StubbedInstance              *compute.Instance
+}
+
+// NetworkAccessConfigStub tracks deleted AccessConfig's per NetworkInterface.
+type NetworkAccessConfigStub struct {
+	NetworkInterfaceName string
+	AccessConfigName     string
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
-func (c *ComputeStub) PatchFirewallRule(_, _ string, rb *compute.Firewall) (*compute.Operation, error) {
+func (c *ComputeStub) PatchFirewallRule(ctx context.Context, projectID string, rule string, rb *compute.Firewall) (*compute.Operation, error) {
 	c.SavedFirewallRule = rb
+	return nil, nil
+}
+
+// FirewallRule get the details of a firewall rule
+func (c *ComputeStub) FirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Firewall, error) {
+	return c.StubbedFirewall, nil
+}
+
+// GetInstance returns the specified compute instance resource.
+func (c *ComputeStub) GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error) {
+	if c.GetInstanceShouldFail {
+		return nil, errors.New("api call failed")
+	}
+	return c.StubbedInstance, nil
+}
+
+// DeleteAccessConfig deletes an access config from an instance's network interface.
+func (c *ComputeStub) DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error) {
+	if c.DeleteAccessConfigShouldFail {
+		return nil, errors.New("api call failed")
+	}
+	c.DeletedAccessConfigs = append(c.DeletedAccessConfigs, NetworkAccessConfigStub{
+		NetworkInterfaceName: networkInterface,
+		AccessConfigName:     accessConfig,
+	})
 	return nil, nil
 }
 
