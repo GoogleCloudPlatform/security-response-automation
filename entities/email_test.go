@@ -15,6 +15,7 @@ package entities
 // limitations under the License.
 
 import (
+	"github.com/googlecloudplatform/threat-automation/clients"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -119,7 +120,7 @@ func TestCreateEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			emailService := NewSendGridClient(apiKey)
+			emailService := clients.NewSendGridClient(apiKey)
 			c := NewEmail(emailService)
 			email := c.CreateEmail(tt.subject, tt.from, tt.body, tt.to)
 

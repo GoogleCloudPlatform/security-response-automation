@@ -18,7 +18,6 @@ import (
 	"fmt"
 
 	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
@@ -36,14 +35,9 @@ type Email struct {
 	service EmailClient
 }
 
-// NewEmail creates new email entity.
+// NewEmail creates a new email entity.
 func NewEmail(service EmailClient) *Email {
 	return &Email{service: service}
-}
-
-// NewSendGridClient creates new sendgrid client.
-func NewSendGridClient(apiKey string) *sendgrid.Client {
-	return sendgrid.NewSendClient(apiKey)
 }
 
 // Send will send an email.
