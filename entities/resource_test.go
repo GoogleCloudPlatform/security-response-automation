@@ -194,3 +194,59 @@ func TestRemoveMembersFromBucket(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveNonOrganizationMembers(t *testing.T) {
+	ctx := context.Background()
+	storageStub := &stubs.StorageStub{}
+	crmStub := &stubs.ResourceManagerStub{}
+	r := NewResource(crmStub, storageStub)
+
+	tests := []struct {
+		name           string
+		organizationID string
+		removeMembers  []string
+		input          []*crm.Binding
+		expected       []*crm.Binding
+	}{
+		{
+			name:           "remove one member",
+			organizationID: "organizations/10000111100",
+			removeMembers:  []string{"user:tim@thegmail.com"},
+			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:		createBindings([]string{"user:bob@gmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+		},
+		{
+			name:           "remove more than one member",
+			organizationID: "organizations/10000111100",
+			removeMembers:  []string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"},
+			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:		createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com"}),
+		},
+		{
+			name:           "remove all",
+			organizationID: "organizations/10000111100",
+			removeMembers:  []string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"},
+			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected: 		createBindings([]string{}),
+		},
+		{
+			name:           "none passed",
+			organizationID: "organizations/10000111100",
+			removeMembers:  []string{},
+			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:diegogr@clseclab.com", "user:manasses@ciandt.com"}),
+			expected:		createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:diegogr@clseclab.com", "user:manasses@ciandt.com"}),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &crm.Policy{Bindings: tt.input}
+			newPolicy, err := r.RemoveMembersOrganization(ctx, tt.organizationID, tt.removeMembers, p)
+			if err != nil {
+				t.Errorf("%v failed, err: %+v", tt.name, err)
+			}
+			if diff := cmp.Diff(newPolicy.Bindings, tt.expected); diff != "" {
+				t.Errorf("%v failed, difference: %v", tt.name, diff)
+			}
+		})
+	}
+}
