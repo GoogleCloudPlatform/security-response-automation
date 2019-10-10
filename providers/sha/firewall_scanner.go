@@ -48,13 +48,13 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 
 	nf, err := NewFinding(ps)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		return nil, errors.Wrap(err, "on NewFirewallScanner")
 	}
 
 	f.Finding = nf
 
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, errors.New(err.Error())
+		return nil, errors.Wrap(err, "on NewFirewallScanner")
 	}
 
 	if err := f.validate(); err != nil {

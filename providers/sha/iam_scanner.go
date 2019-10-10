@@ -17,8 +17,6 @@ package sha
 import (
 	"encoding/json"
 
-	"github.com/googlecloudplatform/threat-automation/entities"
-
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
 )
@@ -46,13 +44,13 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 
 	nf, err := NewFinding(ps)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		return nil, errors.Wrap(err, "on NewIamScanner")
 	}
 
 	f.Finding = nf
 
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, entities.ErrUnmarshal
+		return nil, errors.Wrap(err, "on NewIamScanner")
 	}
 
 	if !f.validate() {
@@ -62,5 +60,5 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 }
 
 func (f *IamScanner) validate() bool {
-	return f.ScannerName() == "IAM_SCANNER" 
+	return f.ScannerName() == "IAM_SCANNER"
 }
