@@ -132,7 +132,7 @@ func TestClosePublicAccess(t *testing.T) {
 			expectedRequest:  nil,
 		},
 		{
-			name:             "close public access in a existing database with only more than one auth ip",
+			name:             "close public access in a existing database with more than one auth ip",
 			instance:         "instance1",
 			projectID:        "project1",
 			region:           "us-central1",
