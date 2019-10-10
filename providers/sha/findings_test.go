@@ -232,154 +232,31 @@ func TestShaSuccess(t *testing.T) {
 	}
 }
 
-func TestShaReadProjectID(t *testing.T) {
-	test := []struct {
-		name      string
-		message   *pubsub.Message
-		projectID string
-	}{
-		{
-			"Read ProjectID successfully",
-			&pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-					"category": "OPEN_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "teste-project"
-					}}}`)},
-			"teste-project",
-		},
-	}
-	for _, tt := range test {
-		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewFirewallScanner(tt.message)
-			if err != nil {
-				t.Errorf("failed reading SHA finding: %q", err)
-			}
-			z := f.ProjectID()
-			if z != tt.projectID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, z, tt.projectID)
-			}
-		})
-	}
-}
-
-func TestShaReadResourceName(t *testing.T) {
+// TestReadFirewallScanner attempts to read firewall scanner findings.
+func TestForShaFirewallScanner(t *testing.T) {
 	test := []struct {
 		name         string
 		message      *pubsub.Message
+		projectID    string
 		resourceName string
+		category     string
+		scannerName  string
+		firewallID   string
 	}{
 		{
-			"Read ResourceName successfully",
+			"Read firewall scanner properties successfully",
 			&pubsub.Message{Data: []byte(`{
 				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
+					"resourceName": "//compute.googleapis.com/projects/test-project/global/firewalls/6190685430815455733",
 					"category": "OPEN_FIREWALL",
 					"sourceProperties": {
 						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "teste-project"
+						"ProjectId": "test-project"
 					}}}`)},
-			"//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-		},
-	}
-	for _, tt := range test {
-		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewFirewallScanner(tt.message)
-			if err != nil {
-				t.Errorf("failed reading SHA finding: %q", err)
-			}
-			z := f.ResourceName()
-			if z != tt.resourceName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, z, tt.resourceName)
-			}
-		})
-	}
-}
-
-func TestShaReadCategory(t *testing.T) {
-	test := []struct {
-		name     string
-		message  *pubsub.Message
-		category string
-	}{
-		{
-			"Read Category successfully",
-			&pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-					"category": "OPEN_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "teste-project"
-					}}}`)},
+			"test-project",
+			"//compute.googleapis.com/projects/test-project/global/firewalls/6190685430815455733",
 			"OPEN_FIREWALL",
-		},
-	}
-	for _, tt := range test {
-		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewFirewallScanner(tt.message)
-			if err != nil {
-				t.Errorf("failed reading SHA finding: %q", err)
-			}
-			z := f.Category()
-			if z != tt.category {
-				t.Errorf("%s failed got:%q want:%q", tt.name, z, tt.category)
-			}
-		})
-	}
-}
-
-func TestShaReadScannerName(t *testing.T) {
-	test := []struct {
-		name        string
-		message     *pubsub.Message
-		scannerName string
-	}{
-		{
-			"Read Category successfully",
-			&pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-					"category": "OPEN_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "teste-project"
-					}}}`)},
 			"FIREWALL_SCANNER",
-		},
-	}
-	for _, tt := range test {
-		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewFirewallScanner(tt.message)
-			if err != nil {
-				t.Errorf("failed reading SHA finding: %q", err)
-			}
-			z := f.ScannerName()
-			if z != tt.scannerName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, z, tt.scannerName)
-			}
-		})
-	}
-}
-
-func TestShaReadFirewallID(t *testing.T) {
-	test := []struct {
-		name       string
-		message    *pubsub.Message
-		firewallID string
-	}{
-		{
-			"Read ResourceName successfully",
-			&pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-					"category": "OPEN_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "teste-project"
-					}}}`)},
 			"6190685430815455733",
 		},
 	}
@@ -389,9 +266,20 @@ func TestShaReadFirewallID(t *testing.T) {
 			if err != nil {
 				t.Errorf("failed reading SHA finding: %q", err)
 			}
-			z := f.FirewallID()
-			if z != tt.firewallID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, z, tt.firewallID)
+			if f.ProjectID() != tt.projectID {
+				t.Errorf("%s failed got:%q want:%q", tt.name, f.ProjectID(), tt.projectID)
+			}
+			if f.ResourceName() != tt.resourceName {
+				t.Errorf("%s failed got:%q want:%q", tt.name, f.ResourceName(), tt.resourceName)
+			}
+			if f.Category() != tt.category {
+				t.Errorf("%s failed got:%q want:%q", tt.name, f.Category(), tt.category)
+			}
+			if f.ScannerName() != tt.scannerName {
+				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.scannerName)
+			}
+			if f.FirewallID() != tt.firewallID {
+				t.Errorf("%s failed got:%q want:%q", tt.name, f.FirewallID(), tt.firewallID)
 			}
 		})
 	}
@@ -410,28 +298,6 @@ func TestForShaIamScanner(t *testing.T) {
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			f, _ := NewIamScanner(tt.message)
-			if f.ScannerName() != tt.expScannerName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)
-			}
-			if f.ProjectID() != tt.expProjectID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ProjectID(), tt.expProjectID)
-			}
-		})
-	}
-}
-
-// TestForShaOpenFirewall attempts to read OpenFirewall findings.
-func TestForShaOpenFirewall(t *testing.T) {
-	test := []struct {
-		name           string
-		message        *pubsub.Message
-		expScannerName string
-		expProjectID   string
-	}{
-		{name: "valid finding", message: &pubsub.Message{Data: []byte(firewallFinding)}, expScannerName: "FIREWALL_SCANNER", expProjectID: "potent-minutia-246715"}}
-	for _, tt := range test {
-		t.Run(tt.name, func(t *testing.T) {
-			f, _ := NewFirewallScanner(tt.message)
 			if f.ScannerName() != tt.expScannerName {
 				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)
 			}
