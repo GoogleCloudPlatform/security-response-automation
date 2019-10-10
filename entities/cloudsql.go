@@ -80,6 +80,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, inst
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
 				AuthorizedNetworks: authorizedIps,
+				NullFields:         []string{"AuthorizedNetworks"},
 			},
 		},
 	})
