@@ -34,19 +34,19 @@ resource "google_cloudfunctions_function" "close-bucket" {
 }
 
 # Required to retrieve ancestry for projects within this folder.
-resource "google_folder_iam_binding" "roles-viewer" {
+resource "google_folder_iam_member" "roles-viewer" {
   count = length(var.folder-ids)
 
-  folder  = "folders/${var.folder-ids[count.index]}"
-  role    = "roles/viewer"
-  members = ["serviceAccount:${var.automation-service-account}"]
+  folder = "folders/${var.folder-ids[count.index]}"
+  role   = "roles/viewer"
+  member = "serviceAccount:${var.automation-service-account}"
 }
 
 # Required to modify buckets within this folder.
-resource "google_folder_iam_binding" "roles-storage-admin" {
+resource "google_folder_iam_member" "roles-storage-admin" {
   count = length(var.folder-ids)
 
-  folder  = "folders/${var.folder-ids[count.index]}"
-  role    = "roles/storage.admin"
-  members = ["serviceAccount:${var.automation-service-account}"]
+  folder = "folders/${var.folder-ids[count.index]}"
+  role   = "roles/storage.admin"
+  member = "serviceAccount:${var.automation-service-account}"
 }
