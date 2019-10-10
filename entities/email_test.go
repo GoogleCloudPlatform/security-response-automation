@@ -20,15 +20,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/pkg/errors"
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 func TestSendEmail(t *testing.T) {
-	const (
-		apiKey = "fakeApiKey"
-	)
 	tests := []struct {
 		name             string
 		from             string
@@ -36,7 +32,7 @@ func TestSendEmail(t *testing.T) {
 		body             string
 		subject          string
 		expectedStatus   int
-		expectedError    error
+		expectedError    string
 		expectedResponse *rest.Response
 	}{
 		{
@@ -44,9 +40,9 @@ func TestSendEmail(t *testing.T) {
 			from:             "google-project@ciandt.com",
 			to:               []string{"dgralmeida@gmail.com"},
 			body:             "Local test of send mail from golang!",
-			subject:          "Teste mail golang",
+			subject:          "Test mail golang",
 			expectedStatus:   200,
-			expectedError:    nil,
+			expectedError:    "",
 			expectedResponse: &rest.Response{},
 		},
 		{
@@ -54,9 +50,9 @@ func TestSendEmail(t *testing.T) {
 			from:             "google-project@ciandt.com",
 			to:               []string{"dgralmeida@gmail.com"},
 			body:             "Local test of send mail from golang!",
-			subject:          "Teste mail golang",
+			subject:          "Test mail golang",
 			expectedStatus:   205,
-			expectedError:    errors.New("Error to send email. StatusCode:(205)"),
+			expectedError:    "Error to send email. StatusCode:(205)",
 			expectedResponse: &rest.Response{},
 		},
 	}
@@ -69,8 +65,8 @@ func TestSendEmail(t *testing.T) {
 
 			_, err := email.Send(tt.subject, tt.from, tt.body, tt.to)
 
-			if err != nil && err.Error() != tt.expectedError.Error() {
-				t.Error("error to send email!")
+			if err != nil && err.Error() != tt.expectedError {
+				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
 		})
 	}
@@ -94,24 +90,24 @@ func TestCreateEmail(t *testing.T) {
 			from:          "google-project@ciandt.com",
 			to:            []string{"unkwon@test.com"},
 			body:          "Local test of send mail from golang!",
-			subject:       "Teste mail golang",
+			subject:       "Test mail golang",
 			expectedError: nil,
 			expectedResponse: &mail.SGMailV3{
 				From: &mail.Email{
 					Address: "google-project@ciandt.com",
-					Name:    "google-project@ciandt.com",
+					Name:    "Security Response Automation",
 				},
-				Subject: "Teste mail golang",
+				Subject: "Test mail golang",
 				Content: []*mail.Content{
-					&mail.Content{
+					{
 						Value: "Local test of send mail from golang!",
 						Type:  "text/plain",
 					},
 				},
 				Personalizations: []*mail.Personalization{
-					&mail.Personalization{
+					{
 						To: []*mail.Email{
-							&mail.Email{
+							{
 								Address: "unkwon@test.com",
 								Name:    "unkwon@test.com"},
 						},
@@ -122,7 +118,8 @@ func TestCreateEmail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewEmail(&stubs.EmailStub{})
+			emailService := NewSendGridClient(apiKey)
+			c := NewEmail(emailService)
 			email := c.CreateEmail(tt.subject, tt.from, tt.body, tt.to)
 
 			if diff := cmp.Diff(tt.expectedResponse, email, cmpopts.EquateEmpty()); diff != "" {

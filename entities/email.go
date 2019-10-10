@@ -26,32 +26,36 @@ const (
 	sender = "Security Response Automation"
 )
 
-// EmailClient struct to use sendgrid client.
+// EmailClient is the interface used for sending emails.
 type EmailClient interface {
 	Send(email *mail.SGMailV3) (*rest.Response, error)
 }
 
-// Email struct to use sendgrid client.
+// Email is the entity used to send emails.
 type Email struct {
 	service EmailClient
 }
 
-// NewEmail creates new client.
+// NewEmail creates new email entity.
 func NewEmail(service EmailClient) *Email {
 	return &Email{service: service}
 }
 
-//NewSendGridClient creates new sendgrid client.
+// NewSendGridClient creates new sendgrid client.
 func NewSendGridClient(apiKey string) *sendgrid.Client {
 	return sendgrid.NewSendClient(apiKey)
 }
 
-// Send main action function.
+// Send will send an email.
 func (m *Email) Send(subject, from, body string, to []string) (*rest.Response, error) {
 	email := m.CreateEmail(subject, from, body, to)
 	res, err := m.service.Send(email)
 
-	if err != nil || res.StatusCode < 200 || res.StatusCode > 202 {
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode < 200 || res.StatusCode > 202 {
 		return nil, fmt.Errorf("Error to send email. StatusCode:(%d)", res.StatusCode)
 	}
 	return res, nil
@@ -60,7 +64,7 @@ func (m *Email) Send(subject, from, body string, to []string) (*rest.Response, e
 // CreateEmail an sendgrid email.
 func (m *Email) CreateEmail(subject, from, body string, to []string) *mail.SGMailV3 {
 	email := mail.NewV3Mail()
-	email.SetFrom(mail.NewEmail(from, from))
+	email.SetFrom(mail.NewEmail(sender, from))
 	email.Subject = subject
 
 	p := mail.NewPersonalization()
