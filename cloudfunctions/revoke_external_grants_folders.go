@@ -18,6 +18,7 @@ package cloudfunctions
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -41,14 +42,14 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 		return fmt.Errorf("failed to read finding: %q", err)
 	}
 
-	l.Info("listing project %q ancestors", f.ProjectID())
+	log.Printf("listing project %q ancestors", f.ProjectID())
 
 	ancestors, err := r.GetProjectAncestry(ctx, f.ProjectID())
 	if err != nil {
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
 
-	l.Debug("ancestors returned from project %q: %v", f.ProjectID(), ancestors)
+	log.Printf("ancestors returned from project %q: %v", f.ProjectID(), ancestors)
 
 	remove := toRemove(f.ExternalMembers(), disallowed)
 	for _, resource := range ancestors {

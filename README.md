@@ -67,3 +67,12 @@ $ go test ./...
 ```shell
 ./enable-cscc-notifications.sh
 ```
+
+### Logging
+
+Each Cloud Function logs its actions to the below log location. This can be accessed by visiting
+StackDriver and clicking on the arrow on the right hand side then 'Convert to advanced filter'.
+Then paste in the below filter making sure to change the project ID to the project where your
+Cloud Functions are installed.
+
+`logName="projects/{{ project_id }}/logs/security-response-automation"`

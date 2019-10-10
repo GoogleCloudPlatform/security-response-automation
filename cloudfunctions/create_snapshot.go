@@ -17,6 +17,7 @@ package cloudfunctions
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -57,31 +58,31 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 		return nil
 	}
 
-	l.Info("listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
+	log.Printf("listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
 
 	rule := strings.Replace(f.RuleName(), "_", "-", -1)
 	disks, err := h.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
 
-	l.Debug("obtained the following list of disks names from instance %q: %q", f.Instance(), disks)
+	log.Printf("obtained the following list of disks names from instance %q: %+v", f.Instance(), disks)
 
 	if err != nil {
 		return fmt.Errorf("failed to list disks: %q", err)
 	}
 
-	l.Info("listing snapshots in project %q", f.ProjectID())
+	log.Printf("listing snapshots in project %q", f.ProjectID())
 
 	snapshots, err := h.ListProjectSnapshots(ctx, f.ProjectID())
 	if err != nil {
 		return fmt.Errorf("failed to list snapshots: %q", err)
 	}
 
-	l.Debug("obtained the following list of snapshots in project %q:  %q", f.Instance(), snapshots.Items)
+	log.Printf("obtained the following list of snapshots in project %q: %+v", f.Instance(), snapshots.Items)
 
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 
-		l.Debug("disk %q returned %v as can be deleted", f.Instance(), create)
+		log.Printf("disk %q returned %v as can be deleted", f.Instance(), create)
 
 		if err != nil {
 			return err

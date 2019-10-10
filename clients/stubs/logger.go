@@ -1,7 +1,5 @@
 package stubs
 
-import "fmt"
-
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,27 +18,17 @@ import "fmt"
 type LoggerStub struct {
 }
 
-//Info push info log to buffer
-func (l *LoggerStub) Info(message string, a ...interface{}) {
-	fmt.Println(fmt.Sprintf(message, a...))
-}
+// Info push info log to buffer.
+func (l *LoggerStub) Info(message string, a ...interface{}) {}
 
-//Warning push warning log to buffer
-func (l *LoggerStub) Warning(message string, a ...interface{}) {
-	fmt.Println(fmt.Sprintf(message, a...))
-}
+// Warning push warning log to buffer.
+func (l *LoggerStub) Warning(message string, a ...interface{}) {}
 
-//Error push error log to buffer
-func (l *LoggerStub) Error(message string, a ...interface{}) {
-	fmt.Println(fmt.Sprintf(message, a...))
-}
+// Error push error log to buffer.
+func (l *LoggerStub) Error(message string, a ...interface{}) {}
 
-//Debug push debug log to buffer
-func (l *LoggerStub) Debug(message string, a ...interface{}) {
-	fmt.Println(fmt.Sprintf(message, a...))
-}
+// Debug push debug log to buffer.
+func (l *LoggerStub) Debug(message string, a ...interface{}) {}
 
-//Close buffer and send messages to stackdriver
-func (l *LoggerStub) Close() {
-
-}
+// Close buffer and send messages to stackdriver.
+func (l *LoggerStub) Close() {}
