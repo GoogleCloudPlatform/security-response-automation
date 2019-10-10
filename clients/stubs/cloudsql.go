@@ -49,6 +49,23 @@ func (s *SQLAdminStub) GetInstanceDetails(ctx context.Context, projectID string,
 	if projectID == "nonexisting" || instance == "nonexisting" {
 		return nil, ErrResourceNonExistent
 	}
+
+	if projectID == "onepublicip" || instance == "onepublicip" {
+		return &sqladmin.DatabaseInstance{
+			Name:    instance,
+			Project: projectID,
+			Settings: &sqladmin.Settings{
+				IpConfiguration: &sqladmin.IpConfiguration{
+					AuthorizedNetworks: []*sqladmin.AclEntry{
+						&sqladmin.AclEntry{
+							Value: "0.0.0.0/0",
+						},
+					},
+				},
+			},
+		}, nil
+	}
+
 	return &sqladmin.DatabaseInstance{
 		Name:    instance,
 		Project: projectID,
@@ -59,7 +76,7 @@ func (s *SQLAdminStub) GetInstanceDetails(ctx context.Context, projectID string,
 						Value: "0.0.0.0/0",
 					},
 					&sqladmin.AclEntry{
-						Value: "1.0.0.0/0",
+						Value: "199.27.199.0/24",
 					},
 				},
 			},

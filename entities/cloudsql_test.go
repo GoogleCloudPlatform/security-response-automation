@@ -104,45 +104,48 @@ func TestClosePublicAccess(t *testing.T) {
 		expectedResponse *sqladmin.Operation
 		expectedRequest  *sqladmin.DatabaseInstance
 	}{
-
 		{
-			name:             "close public access in a existing database",
+			name:             "close public access in a existing database with only one auth ip",
+			instance:         "onepublicip",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    nil,
+			expectedResponse: nil,
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:    "onepublicip",
+				Project: "project1",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						AuthorizedNetworks: nil,
+						NullFields:         []string{"AuthorizedNetworks"},
+					},
+				},
+			},
+		},
+		{
+			name:             "close public access in a nonexisting database with more then one auth ip",
+			instance:         "unexisting",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    nil,
+			expectedResponse: nil,
+			expectedRequest:  nil,
+		},
+		{
+			name:             "close public access in a existing database with only more than one auth ip",
 			instance:         "instance1",
 			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: nil,
 			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:           "instance1",
-				Project:        "project1",
-				ConnectionName: "project1:us-central1:instance1",
+				Name:    "instance1",
+				Project: "project1",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						AuthorizedNetworks: []*sqladmin.AclEntry{
 							&sqladmin.AclEntry{
-								Value: "1.0.0.0/0",
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			name:             "close public access in a nonexisting database",
-			instance:         "unexisting",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    nil,
-			expectedResponse: nil,
-			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:           "unexisting",
-				Project:        "project1",
-				ConnectionName: "project1:us-central1:unexisting",
-				Settings: &sqladmin.Settings{
-					IpConfiguration: &sqladmin.IpConfiguration{
-						AuthorizedNetworks: []*sqladmin.AclEntry{
-							&sqladmin.AclEntry{
-								Value: "1.0.0.0/0",
+								Value: "199.27.199.0/24",
 							},
 						},
 					},
@@ -156,18 +159,26 @@ func TestClosePublicAccess(t *testing.T) {
 			sqlAdminStub := &stubs.SQLAdminStub{}
 			ctx := context.Background()
 			c := NewCloudSQL(sqlAdminStub)
-			r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, tt.region)
+			var databaseInstance, err = c.GetInstanceDetails(ctx, tt.projectID, tt.instance)
 
-			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
-				t.Errorf("%v failed, difference: %+v", tt.name, diff)
-			}
-
-			if tt.expectedError != nil && err != tt.expectedError {
+			if tt.expectedError != err {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
 
-			if tt.expectedError == nil && r == nil {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+			if err != nil {
+				r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, databaseInstance)
+
+				if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
+					t.Errorf("%v failed, difference: %+v", tt.name, diff)
+				}
+
+				if tt.expectedError != nil && err != tt.expectedError {
+					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+				}
+
+				if tt.expectedError == nil && r == nil {
+					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+				}
 			}
 		})
 	}

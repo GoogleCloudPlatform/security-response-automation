@@ -56,14 +56,13 @@ func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, projectID string, i
 	})
 }
 
+// GetInstanceDetails get details for an instance
+func (s *CloudSQL) GetInstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+	return s.client.GetInstanceDetails(ctx, projectID, instance)
+}
+
 // ClosePublicAccess removes "0.0.0.0/0" from authorized IPs at an instance
-func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, region string) (*sqladmin.Operation, error) {
-
-	var instanceDetails, err = s.client.GetInstanceDetails(ctx, projectID, instance)
-
-	if err != nil {
-		return &sqladmin.Operation{}, err
-	}
+func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, instanceDetails *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 
 	var authorizedIps []*sqladmin.AclEntry
 
@@ -78,9 +77,8 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, inst
 	}
 
 	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
-		Name:           instance,
-		Project:        projectID,
-		ConnectionName: projectID + ":" + region + ":" + instance,
+		Name:    instance,
+		Project: projectID,
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
 				AuthorizedNetworks: authorizedIps,
