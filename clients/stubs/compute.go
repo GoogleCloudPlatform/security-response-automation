@@ -60,7 +60,7 @@ func (c *ComputeStub) FirewallRule(ctx context.Context, projectID string, ruleID
 // GetInstance returns the specified compute instance resource.
 func (c *ComputeStub) GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error) {
 	if c.GetInstanceShouldFail {
-		return nil, errors.New("API call failed.")
+		return nil, errors.New("api call failed")
 	}
 	return c.StubbedInstance, nil
 }
@@ -68,7 +68,7 @@ func (c *ComputeStub) GetInstance(ctx context.Context, project, zone, instance s
 // DeleteAccessConfig deletes an access config from an instance's network interface.
 func (c *ComputeStub) DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error) {
 	if c.DeleteAccessConfigShouldFail {
-		return nil, errors.New("API call failed.")
+		return nil, errors.New("api call failed")
 	}
 	c.DeletedAccessConfigs = append(c.DeletedAccessConfigs, NetworkAccessConfigStub{
 		NetworkInterfaceName: networkInterface,

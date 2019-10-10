@@ -65,7 +65,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 	externalNic0 := compute.NetworkInterface{
 		Name: "nic0",
 		AccessConfigs: []*compute.AccessConfig{
-			&compute.AccessConfig{
+			{
 				Name:  "External NAT",
 				NatIP: "35.192.206.126",
 				Type:  "ONE_TO_ONE_NAT",
@@ -76,7 +76,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 	externalNic1 := compute.NetworkInterface{
 		Name: "nic1",
 		AccessConfigs: []*compute.AccessConfig{
-			&compute.AccessConfig{
+			{
 				Name:  "External NAT",
 				NatIP: "34.70.92.170",
 				Type:  "ONE_TO_ONE_NAT",
@@ -87,7 +87,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 	externalNic2UnknownType := compute.NetworkInterface{
 		Name: "nic2",
 		AccessConfigs: []*compute.AccessConfig{
-			&compute.AccessConfig{
+			{
 				Name:  "External NAT",
 				NatIP: "34.192.92.171",
 				Type:  "UNKNOWN",
@@ -115,11 +115,11 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 				},
 			},
 			expectedDeletedAccessConfigs: []stubs.NetworkAccessConfigStub{
-				stubs.NetworkAccessConfigStub{
+				{
 					NetworkInterfaceName: "nic0",
 					AccessConfigName:     "External NAT",
 				},
-				stubs.NetworkAccessConfigStub{
+				{
 					NetworkInterfaceName: "nic1",
 					AccessConfigName:     "External NAT",
 				},
@@ -167,7 +167,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfacesFailing(t *testing.T) {
 	externalNic0 := compute.NetworkInterface{
 		Name: "nic0",
 		AccessConfigs: []*compute.AccessConfig{
-			&compute.AccessConfig{
+			{
 				Name:  "External NAT",
 				NatIP: "35.192.206.126",
 				Type:  "ONE_TO_ONE_NAT",
