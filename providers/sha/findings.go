@@ -62,15 +62,26 @@ func NewFinding(m *pubsub.Message) (*Finding, error) {
 	if err := json.Unmarshal(m.Data, &f); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal")
 	}
-	if f.Finding.ResourceName == "" {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "does not have a resource name")
-	}
 
-	if f.Finding.Category == "" {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "does not have a category")
+	if err := f.validate(); err != nil {
+		return nil, err
 	}
 
 	return &f, nil
+}
+
+func (f *Finding) validate() error {
+
+	if f.Finding.ResourceName == "" {
+		return errors.Wrap(entities.ErrValueNotFound, "does not have a resource name")
+	}
+
+	if f.Finding.Category == "" {
+		return errors.Wrap(entities.ErrValueNotFound, "does not have a category")
+	}
+
+	return nil
+
 }
 
 // ResourceName returns the finding ResourceName
