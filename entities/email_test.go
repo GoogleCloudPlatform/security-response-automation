@@ -31,42 +31,43 @@ func TestSendEmail(t *testing.T) {
 		to               []string
 		body             string
 		subject          string
-		expectedStatus   int
 		expectedError    string
 		expectedResponse *rest.Response
 	}{
 		{
-			name:             "test send email",
+			name:             "send email",
 			from:             "google-project@ciandt.com",
 			to:               []string{"dgralmeida@gmail.com"},
 			body:             "Local test of send mail from golang!",
 			subject:          "Test mail golang",
-			expectedStatus:   200,
 			expectedError:    "",
-			expectedResponse: &rest.Response{},
+			expectedResponse: &rest.Response{StatusCode: 200},
 		},
 		{
-			name:             "test send email fails",
+			name:             "send email fails",
 			from:             "google-project@ciandt.com",
 			to:               []string{"dgralmeida@gmail.com"},
 			body:             "Local test of send mail from golang!",
 			subject:          "Test mail golang",
-			expectedStatus:   205,
 			expectedError:    "Error to send email. StatusCode:(205)",
-			expectedResponse: &rest.Response{},
+			expectedResponse: &rest.Response{StatusCode: 205},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			email := NewEmail(&stubs.EmailStub{
 				StubbedSend: &rest.Response{
-					StatusCode: tt.expectedStatus},
+					StatusCode: tt.expectedResponse.StatusCode},
 			})
 
-			_, err := email.Send(tt.subject, tt.from, tt.body, tt.to)
+			res, err := email.Send(tt.subject, tt.from, tt.body, tt.to)
 
 			if err != nil && err.Error() != tt.expectedError {
 				t.Errorf("%s test failed want:%q", tt.name, err)
+			}
+
+			if want, got := tt.expectedResponse, res; got != nil && want.StatusCode != got.StatusCode {
+				t.Errorf("wrong response %v, want %v)", got, want)
 			}
 		})
 	}
