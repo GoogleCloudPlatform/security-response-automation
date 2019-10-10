@@ -48,7 +48,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
 
-	l.Debug("ancestors returned from project %q: %+q", f.ProjectID(), ancestors)
+	l.Debug("ancestors returned from project %q: %v", f.ProjectID(), ancestors)
 
 	remove := toRemove(f.ExternalMembers(), disallowed)
 	for _, resource := range ancestors {
@@ -57,7 +57,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 				continue
 			}
 
-			l.Info("removing users %+q from folder %q project %q", remove, folderID, f.ProjectID())
+			l.Info("removing users %v from folder %q project %q", remove, folderID, f.ProjectID())
 
 			if _, err = r.RemoveMembersProject(ctx, f.ProjectID(), remove); err != nil {
 				return fmt.Errorf("failed to remove disallowed domains: %q", err)
