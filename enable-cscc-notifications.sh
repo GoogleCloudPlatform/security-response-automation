@@ -1,10 +1,6 @@
 #!/bin/bash
 # - Script does not stop on failures so final step (removal of pubsub.admin) completes if a prior
 #   failure happens.
-SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
-  ORGANIZATION_ID=154584661726 \
-  PROJECT_ID=aerial-jigsaw-235219 \
-  TOPIC_ID=cscc-notifications-topic
 
 echo "Temporarily granting pubsub.admin to service account."
 gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
