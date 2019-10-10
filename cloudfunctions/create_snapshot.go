@@ -62,7 +62,7 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 	rule := strings.Replace(f.RuleName(), "_", "-", -1)
 	disks, err := h.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
 
-	l.Debug("obtained the following list of disks names from instance %q: %+q", f.Instance(), disks)
+	l.Debug("obtained the following list of disks names from instance %q: %q", f.Instance(), disks)
 
 	if err != nil {
 		return fmt.Errorf("failed to list disks: %q", err)
@@ -75,13 +75,13 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 		return fmt.Errorf("failed to list snapshots: %q", err)
 	}
 
-	l.Debug("obtained the following list of snapshots in project %q:  %+q", f.Instance(), snapshots.Items)
+	l.Debug("obtained the following list of snapshots in project %q:  %q", f.Instance(), snapshots.Items)
 
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 
-		l.Debug("disk %q can be deleted %q and have the following existing snapshots: %+q", f.Instance(), snapshots.Items)
+		l.Debug("disk %q returned %v as can be deleted", f.Instance(), create)
 
 		if err != nil {
 			return err
@@ -91,12 +91,12 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 			continue
 		}
 
-		l.Info("removing previous snapshot of disk %q", disk)
+		l.Info("removing previous snapshot of disk %q", disk.Name)
 		if err := removeExistingSnapshots(h, f.ProjectID(), removeExisting); err != nil {
 			return err
 		}
 
-		l.Info("creating snapshot for disk %q", disk)
+		l.Info("creating snapshot for disk %q", disk.Name)
 		if err := createSnapshot(ctx, h, disk, f.ProjectID(), f.Zone(), sn); err != nil {
 			return err
 		}

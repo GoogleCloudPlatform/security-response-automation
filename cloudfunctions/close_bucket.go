@@ -52,7 +52,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 		return fmt.Errorf("failed to get project ancestry: %q", err)
 	}
 
-	l.Debug("ancestors returned from project %q: %+q", bucketProject, ancestors)
+	l.Debug("ancestors returned from project %q: %v", bucketProject, ancestors)
 
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {
