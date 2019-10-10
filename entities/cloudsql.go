@@ -72,6 +72,10 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, inst
 			authorizedIps = append(authorizedIps, ip)
 		}
 	}
+	var nullFields []string
+	if len(authorizedIps) == 0 {
+		nullFields = append(nullFields, "AuthorizedNetworks")
+	}
 
 	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
 		Name:           instance,
@@ -80,7 +84,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, inst
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
 				AuthorizedNetworks: authorizedIps,
-				NullFields:         []string{"AuthorizedNetworks"},
+				NullFields:         nullFields,
 			},
 		},
 	})
