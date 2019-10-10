@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 )
 
@@ -54,7 +55,7 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 	}
 
 	if !f.validate() {
-		return nil, errors.New("not a IAM_SCANNER Finding")
+		return nil, errors.Wrap(entities.ErrValueNotFound, "not a IAM_SCANNER Finding")
 	}
 	return &f, nil
 }

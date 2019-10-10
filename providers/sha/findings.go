@@ -23,9 +23,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Finding common attributes, source properties and security marks
-// to all Security Health Analytics Security Command Center findings
-type Finding struct {
+// baseFinding contains fields all SCC SHA findings should provide.
+type baseFinding struct {
 	NotificationConfigName string
 	Finding                struct {
 		Name             string
@@ -55,11 +54,16 @@ type Finding struct {
 	}
 }
 
+// Finding is a 'base' struct representing SCC SHA fields that all findings should satisfy.
+type Finding struct {
+	base *baseFinding
+}
+
 // NewFinding returns a new ShaFinding.
 func NewFinding(m *pubsub.Message) (*Finding, error) {
 	f := Finding{}
 
-	if err := json.Unmarshal(m.Data, &f); err != nil {
+	if err := json.Unmarshal(m.Data, &f.base); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal")
 	}
 
@@ -72,11 +76,11 @@ func NewFinding(m *pubsub.Message) (*Finding, error) {
 
 func (f *Finding) validate() error {
 
-	if f.Finding.ResourceName == "" {
+	if f.ResourceName() == "" {
 		return errors.Wrap(entities.ErrValueNotFound, "does not have a resource name")
 	}
 
-	if f.Finding.Category == "" {
+	if f.Category() == "" {
 		return errors.Wrap(entities.ErrValueNotFound, "does not have a category")
 	}
 
@@ -86,20 +90,20 @@ func (f *Finding) validate() error {
 
 // ResourceName returns the finding ResourceName
 func (f *Finding) ResourceName() string {
-	return f.Finding.ResourceName
+	return f.base.Finding.ResourceName
 }
 
 // Category returns the finding Category
 func (f *Finding) Category() string {
-	return f.Finding.Category
+	return f.base.Finding.Category
 }
 
 // ScannerName returns the Security Health Analytics finding ScannerName
 func (f *Finding) ScannerName() string {
-	return f.Finding.SourceProperties.ScannerName
+	return f.base.Finding.SourceProperties.ScannerName
 }
 
 // ProjectID returns the Security Health Analytics finding ProjectID
 func (f *Finding) ProjectID() string {
-	return f.Finding.SourceProperties.ProjectID
+	return f.base.Finding.SourceProperties.ProjectID
 }

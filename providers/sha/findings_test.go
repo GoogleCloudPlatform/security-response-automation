@@ -155,7 +155,7 @@ func TestForShaFailures(t *testing.T) {
 						"ScannerName": "IAM_SCANNER",
 						"ProjectId": "teste-project" 
 					}}}`)},
-			errors.New("not a FIREWALL_SCANNER Finding"),
+			errors.New("not a FIREWALL_SCANNER Finding: value not found"),
 		},
 		{
 			"missing a project id",
@@ -166,7 +166,7 @@ func TestForShaFailures(t *testing.T) {
 					"sourceProperties": {
 						"ScannerName": "FIREWALL_SCANNER"
 					}}}`)},
-			errors.New("does not have a project id"),
+			errors.New("does not have a project id: value not found"),
 		},
 	}
 	for _, tt := range test {

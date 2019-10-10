@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 )
 
@@ -43,7 +44,7 @@ func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
 	f.Finding = nf
 
 	if !f.validate() {
-		return nil, errors.New("not a STORAGE_SCANNER Finding")
+		return nil, errors.Wrap(entities.ErrValueNotFound, "not a STORAGE_SCANNER Finding")
 	}
 	return &f, nil
 }

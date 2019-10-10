@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 )
 
@@ -67,11 +68,11 @@ func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
 func (f *FirewallScanner) validate() error {
 
 	if f.ScannerName() != "FIREWALL_SCANNER" {
-		return errors.New("not a FIREWALL_SCANNER Finding")
+		return errors.Wrap(entities.ErrValueNotFound, "not a FIREWALL_SCANNER Finding")
 	}
 
 	if f.ProjectID() == "" {
-		return errors.New("does not have a project id")
+		return errors.Wrap(entities.ErrValueNotFound, "does not have a project id")
 	}
 
 	return nil
