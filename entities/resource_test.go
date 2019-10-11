@@ -195,6 +195,7 @@ func TestRemoveMembersFromBucket(t *testing.T) {
 	}
 }
 
+// TestRemoveNonOrganizationMembers tests the removal of members from a policy at organization level.
 func TestRemoveNonOrganizationMembers(t *testing.T) {
 	ctx := context.Background()
 	storageStub := &stubs.StorageStub{}
@@ -218,9 +219,9 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 		{
 			name:           "remove more than one member",
 			organizationID: "organizations/10000111100",
-			removeMembers:  []string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"},
+			removeMembers:  []string{"user:bob@gmail.com", "user:tim@thegmail.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-			expected:		createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com"}),
+			expected:		createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 		{
 			name:           "remove all",
