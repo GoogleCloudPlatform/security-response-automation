@@ -233,8 +233,8 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 			name:           "none passed",
 			organizationID: "organizations/10000111100",
 			removeMembers:  []string{},
-			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:diegogr@clseclab.com", "user:manasses@ciandt.com"}),
-			expected:		createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:diegogr@clseclab.com", "user:manasses@ciandt.com"}),
+			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:		createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 	}
 	for _, tt := range tests {
