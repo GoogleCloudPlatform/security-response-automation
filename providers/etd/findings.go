@@ -49,6 +49,9 @@ type baseFinding struct {
 			SubRuleName string
 			RuleName    string
 		}
+		Properties struct {
+			ProjectID string `json:"project_id"`
+		}
 	}
 }
 
@@ -105,4 +108,9 @@ func (f *Finding) AffectedResource() string {
 		return ""
 	}
 	return m[1]
+}
+
+// ProjectID returns the project ID of affected project.
+func (f *Finding) ProjectID() string {
+	return f.base.JSONPayload.Properties.ProjectID
 }

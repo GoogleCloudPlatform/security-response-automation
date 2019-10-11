@@ -14,21 +14,16 @@ package stubs
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// LoggerStub provides a stub for the Logger client.
-type LoggerStub struct {
+import (
+	"context"
+
+	container "google.golang.org/api/container/v1"
+)
+
+// ContainerStub provides a stub for the Container client.
+type ContainerStub struct{}
+
+// DisableDashboard disables the Kubernetes Dashboard for a given cluster.
+func (c *ContainerStub) DisableDashboard(context.Context, string, string, string) (*container.Operation, error) {
+	return nil, nil
 }
-
-// Info push info log to buffer.
-func (l *LoggerStub) Info(message string, a ...interface{}) {}
-
-// Warning push warning log to buffer.
-func (l *LoggerStub) Warning(message string, a ...interface{}) {}
-
-// Error push error log to buffer.
-func (l *LoggerStub) Error(message string, a ...interface{}) {}
-
-// Debug push debug log to buffer.
-func (l *LoggerStub) Debug(message string, a ...interface{}) {}
-
-// Close buffer and send messages to stackdriver.
-func (l *LoggerStub) Close() {}

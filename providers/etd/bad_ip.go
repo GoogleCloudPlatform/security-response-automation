@@ -20,7 +20,6 @@ type badIP struct {
 		}
 		Properties struct {
 			Location       string
-			ProjectID      string `json:"project_id"`
 			SourceInstance string
 		}
 	}
@@ -67,9 +66,4 @@ func (f *BadIP) Instance() string {
 		return ""
 	}
 	return i[1]
-}
-
-// ProjectID returns the project ID of affected project.
-func (f *BadIP) ProjectID() string {
-	return f.fields.JSONPayload.Properties.ProjectID
 }

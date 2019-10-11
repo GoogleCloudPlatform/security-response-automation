@@ -27,11 +27,6 @@ import (
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
-var (
-	// disallowed contains a list of external domains RevokeExternalGrantsFolders should remove.
-	disallowed = []string{"test.com", "gmail.com"}
-)
-
 const (
 	authFile = "credentials/auth.json"
 )

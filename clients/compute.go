@@ -63,6 +63,16 @@ func (c *Compute) PatchFirewallRule(ctx context.Context, projectID string, rule 
 	return c.compute.Firewalls.Patch(projectID, rule, rb).Context(ctx).Do()
 }
 
+// GetInstance returns the specified compute instance resource.
+func (c *Compute) GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error) {
+	return c.compute.Instances.Get(project, zone, instance).Context(ctx).Do()
+}
+
+// DeleteAccessConfig deletes an access config from an instance's network interface.
+func (c *Compute) DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error) {
+	return c.compute.Instances.DeleteAccessConfig(project, zone, instance, accessConfig, networkInterface).Context(ctx).Do()
+}
+
 // FirewallRule get the details of a firewall rule
 func (c *Compute) FirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Firewall, error) {
 	return c.compute.Firewalls.Get(projectID, ruleID).Context(ctx).Do()
