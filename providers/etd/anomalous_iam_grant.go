@@ -37,14 +37,15 @@ type ExternalMembersFinding struct {
 // NewExternalMembersFinding reads a pubsub message and creates a new finding.
 func NewExternalMembersFinding(ps *pubsub.Message) (*ExternalMembersFinding, error) {
 	var f ExternalMembersFinding
-	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, entities.ErrUnmarshal
-	}
 	b, err := NewFinding(ps)
 	if err != nil {
 		return nil, err
 	}
 	f.Finding = b
+	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
+		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+	}
+
 	if v := f.validate(); !v {
 		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
 	}

@@ -36,14 +36,14 @@ type BadIP struct {
 // NewBadIP reads a pubsub message and creates a new finding.
 func NewBadIP(ps *pubsub.Message) (*BadIP, error) {
 	var f BadIP
-	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
-	}
 	b, err := NewFinding(ps)
 	if err != nil {
 		return nil, err
 	}
 	f.Finding = b
+	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
+		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+	}
 	if v := f.validate(); !v {
 		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
 	}
