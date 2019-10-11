@@ -63,3 +63,7 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 func (f *IamScanner) validate() bool {
 	return f.ScannerName() == "IAM_SCANNER"
 }
+
+func (f *IamScanner) OffendingIamRoles() string {
+	return f.fields.Finding.SourceProperties.OffendingIamRoles
+}

@@ -18,7 +18,9 @@ import (
 	"testing"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 )
 
 const (
@@ -118,7 +120,6 @@ const (
 }`
 )
 
-// TestForFailures attempts to unmarshal logs that are not valid.
 func TestForShaFailures(t *testing.T) {
 	test := []struct {
 		name    string
@@ -126,28 +127,28 @@ func TestForShaFailures(t *testing.T) {
 		exp     error
 	}{
 		{
-			"empty message",
-			&pubsub.Message{},
-			errors.New("unexpected end of JSON input: failed to unmarshal"),
+			name:    "empty message",
+			message: &pubsub.Message{},
+			exp:     entities.ErrUnmarshal,
 		},
 		{
-			"missing Source properties body",
-			&pubsub.Message{Data: []byte(`{
+			name: "missing Source properties body",
+			message: &pubsub.Message{Data: []byte(`{
 				"finding": { "sourceProperties":}}`)},
-			errors.New("invalid character '}' looking for beginning of value: failed to unmarshal"),
+			exp: entities.ErrUnmarshal,
 		},
 		{
-			"it does not have a resource name",
-			&pubsub.Message{Data: []byte(`{
+			name: "it does not have a resource name",
+			message: &pubsub.Message{Data: []byte(`{
 				"finding": {
 					"sourceProperties": {
 						"ScannerName": "IAM_SCANNER"
 					}}}`)},
-			errors.New("does not have a resource name: value not found"),
+			exp: entities.ErrValueNotFound,
 		},
 		{
-			"not a FIREWALL_SCANNER rule Finding",
-			&pubsub.Message{Data: []byte(`{
+			name: "not a FIREWALL_SCANNER rule Finding",
+			message: &pubsub.Message{Data: []byte(`{
 				"finding": { 
 					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
 					"category": "CLOSE_FIREWALL",
@@ -155,25 +156,24 @@ func TestForShaFailures(t *testing.T) {
 						"ScannerName": "IAM_SCANNER",
 						"ProjectId": "teste-project" 
 					}}}`)},
-			errors.New("not a FIREWALL_SCANNER Finding: value not found"),
+			exp: entities.ErrValueNotFound,
 		},
 		{
-			"missing a project id",
-			&pubsub.Message{Data: []byte(`{
+			name: "missing a project id",
+			message: &pubsub.Message{Data: []byte(`{
 				"finding": {
 					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
 					"category": "OPEN_FIREWALL",
 					"sourceProperties": {
 						"ScannerName": "FIREWALL_SCANNER"
 					}}}`)},
-			errors.New("does not have a project id: value not found"),
+			exp: entities.ErrValueNotFound,
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewFirewallScanner(tt.message)
-			if err.Error() != tt.exp.Error() {
-				t.Errorf("exp:%q got: %q", tt.exp, err)
+			if _, err := NewFirewallScanner(tt.message); !xerrors.Is(errors.Cause(err), tt.exp) {
+				t.Errorf("%q failed want:%q got:%q", tt.name, tt.exp, errors.Cause(err))
 			}
 		})
 	}
@@ -181,157 +181,114 @@ func TestForShaFailures(t *testing.T) {
 
 func TestShaSuccess(t *testing.T) {
 	test := []struct {
-		name    string
-		message *pubsub.Message
+		name            string
+		message         *pubsub.Message
+		expProjectID    string
+		expResourceName string
+		expCategory     string
+		expScannerName  string
 	}{
 		{
-			"valid finding",
-			&pubsub.Message{Data: []byte(`{ 
-				"notificationConfigName": "organizations/1055058813388/notificationConfigs/noticonf-active-001-id",
-				"finding": {
-				  "name": "organizations/1055058813388/sources/1986930501971458034/findings/cea981dd340112213827902b408b497e", 
-				  "parent": "organizations/1055058813388/sources/1986930501971458034",  
-				  "resourceName": "//compute.googleapis.com/projects/onboarding-pedro/global/firewalls/6190685430815455733",
-				  "state": "ACTIVE", 
-				  "category": "OPEN_FIREWALL",
-				  "externalUri": "https://console.cloud.google.com/networking/firewalls/details/default-allow-http?project\u003donboarding-pedro",  
-				  "sourceProperties": { 
-					"ReactivationCount": 0.0,
-					"Allowed": "[{\"IPProtocol\":\"tcp\",\"ipProtocol\":\"tcp\",\"port\":[\"80\"],\"ports\":[\"80\"]}]", 
-					"ExceptionInstructions": "Add the security mark \"allow_open_firewall\" to the asset with a value of \"true\" to prevent this finding from being activated again.", 
-					"SeverityLevel": "High",
-					"Recommendation": "Restrict the firewall rules at: https://console.cloud.google.com/networking/firewalls/details/default-allow-http?project\u003donboarding-pedro", 
-					"AllowedIpRange": "All",
-					"ActivationTrigger": "Allows all IP addresses",
-					"ProjectId": "onboarding-pedro",
-					"DeactivationReason": "The asset was deleted.",
-					"SourceRange": "[\"0.0.0.0/0\"]",  
-					"AssetCreationTime": "2019-08-21t06:28:58.140-07:00",
-					"ScannerName": "FIREWALL_SCANNER", 
-					"ScanRunId": "2019-09-17T07:10:21.961-07:00",  
-					"Explanation": "Firewall rules that allow connections from all IP addresses or on all ports may expose resources to attackers." 
-				  },  
-				  "securityMarks": { 
-					"name": "organizations/1055058813388/sources/1986930501971458034/findings/cea981dd340112213827902b408b497e/securityMarks",
-					"marks": {
-						"sccquery94c23b35ea0b4f8388268415a0dc6c1b": "true"
-					}
-				  },  
-				  "eventTime": "2019-09-19T16:58:39.276Z",
-				  "createTime": "2019-09-16T22:11:59.977Z"
-				}  
-			  }`)},
+			name:            "valid basic SHA finding",
+			message:         &pubsub.Message{Data: []byte(shaFinding)},
+			expProjectID:    "aerial-jigsaw-235219",
+			expResourceName: "//cloudresourcemanager.googleapis.com/projects/997507777601",
+			expCategory:     "ADMIN_SERVICE_ACCOUNT",
+			expScannerName:  "IAM_SCANNER",
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := NewFirewallScanner(tt.message); err != nil {
+			f, err := NewFinding(tt.message)
+			if err != nil {
 				t.Errorf("exp: nil got:%q", err)
+			}
+			if f != nil && f.ProjectID() != tt.expProjectID {
+				t.Errorf("%s failed for ProjectID got:%q want:%q", tt.name, f.ProjectID(), tt.expProjectID)
+			}
+			if f != nil && f.ResourceName() != tt.expResourceName {
+				t.Errorf("%s failed for ResourceName got:%q want:%q", tt.name, f.ResourceName(), tt.expResourceName)
+			}
+			if f != nil && f.Category() != tt.expCategory {
+				t.Errorf("%s failed for Category got:%q want:%q", tt.name, f.Category(), tt.expCategory)
+			}
+			if f != nil && f.ScannerName() != tt.expScannerName {
+				t.Errorf("%s failed for ScannerName got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)
 			}
 		})
 	}
 }
 
-// TestReadFirewallScanner attempts to read firewall scanner findings.
 func TestForShaFirewallScanner(t *testing.T) {
 	test := []struct {
-		name         string
-		message      *pubsub.Message
-		projectID    string
-		resourceName string
-		category     string
-		scannerName  string
-		firewallID   string
+		name          string
+		message       *pubsub.Message
+		expFirewallID string
 	}{
 		{
-			"Read firewall scanner properties successfully",
-			&pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/test-project/global/firewalls/6190685430815455733",
-					"category": "OPEN_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER",
-						"ProjectId": "test-project"
-					}}}`)},
-			"test-project",
-			"//compute.googleapis.com/projects/test-project/global/firewalls/6190685430815455733",
-			"OPEN_FIREWALL",
-			"FIREWALL_SCANNER",
-			"6190685430815455733",
+			name:          "valid SHA Firewall Scanner finding",
+			message:       &pubsub.Message{Data: []byte(firewallFinding)},
+			expFirewallID: "8415669281173672995",
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := NewFirewallScanner(tt.message)
 			if err != nil {
-				t.Errorf("failed reading SHA finding: %q", err)
+				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f.ProjectID() != tt.projectID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ProjectID(), tt.projectID)
-			}
-			if f.ResourceName() != tt.resourceName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ResourceName(), tt.resourceName)
-			}
-			if f.Category() != tt.category {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.Category(), tt.category)
-			}
-			if f.ScannerName() != tt.scannerName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.scannerName)
-			}
-			if f.FirewallID() != tt.firewallID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.FirewallID(), tt.firewallID)
+			if f != nil && f.FirewallID() != tt.expFirewallID {
+				t.Errorf("%s failed for FirewallID got:%q want:%q", tt.name, f.FirewallID(), tt.expFirewallID)
 			}
 		})
 	}
 }
 
-// TestForShaIamScanner attempts to read IAM scanner findings.
 func TestForShaIamScanner(t *testing.T) {
 	test := []struct {
-		name           string
-		message        *pubsub.Message
-		expScannerName string
-		expProjectID   string
+		name                 string
+		message              *pubsub.Message
+		expOffendingIamRoles string
 	}{
-		{name: "valid finding", message: &pubsub.Message{Data: []byte(shaFinding)}, expScannerName: "IAM_SCANNER", expProjectID: "aerial-jigsaw-235219"},
+		{
+			name:                 "valid SHA IAM Scanner finding",
+			message:              &pubsub.Message{Data: []byte(shaFinding)},
+			expOffendingIamRoles: "{\"invalidRoles\":[{\"user\":\"serviceAccount:automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com\",\"roles\":[\"roles/pubsub.admin\"]},{\"user\":\"serviceAccount:service-997507777601@containerregistry.iam.gserviceaccount.com\",\"roles\":[\"roles/owner\"]}]}",
+		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, _ := NewIamScanner(tt.message)
-			if f.ScannerName() != tt.expScannerName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)
+			f, err := NewIamScanner(tt.message)
+			if err != nil {
+				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f.ProjectID() != tt.expProjectID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ProjectID(), tt.expProjectID)
+			if f != nil && f.OffendingIamRoles() != tt.expOffendingIamRoles {
+				t.Errorf("%s failed for OffendingIamRoles got:%q want:%q", tt.name, f.OffendingIamRoles(), tt.expOffendingIamRoles)
 			}
 		})
 	}
 }
 
-// TestForShaPublicBucket attempts to read public bucket findings.
-func TestForShaPublicBucket(t *testing.T) {
+func TestForShaStorageScanner(t *testing.T) {
 	test := []struct {
-		name           string
-		message        *pubsub.Message
-		expScannerName string
-		expProjectID   string
-		expCategory    string
+		name          string
+		message       *pubsub.Message
+		expBucketName string
 	}{
-		{name: "valid finding", message: &pubsub.Message{Data: []byte(publicBucketFinding)}, expScannerName: "STORAGE_SCANNER", expProjectID: "aerial-jigsaw-235219", expCategory: "PUBLIC_BUCKET_ACL"}}
+		{
+			name:          "valid SHA Storage Scanner finding",
+			message:       &pubsub.Message{Data: []byte(publicBucketFinding)},
+			expBucketName: "this-is-public-on-purpose",
+		},
+	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := NewStorageScanner(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f.Category() != tt.expCategory {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.Category(), tt.expCategory)
-			}
-			if f.ScannerName() != tt.expScannerName {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ScannerName(), tt.expScannerName)
-			}
-			if f.ProjectID() != tt.expProjectID {
-				t.Errorf("%s failed got:%q want:%q", tt.name, f.ProjectID(), tt.expProjectID)
+			if f != nil && f.BucketName() != tt.expBucketName {
+				t.Errorf("%s failed for BucketName got:%q want:%q", tt.name, f.BucketName(), tt.expBucketName)
 			}
 		})
 	}
