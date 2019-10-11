@@ -16,6 +16,7 @@ package entities
 
 import (
 	"context"
+	"fmt"
 
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
@@ -63,6 +64,11 @@ func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instan
 
 // ClosePublicAccess removes "0.0.0.0/0" from authorized IPs of an instance
 func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, instanceDetails *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
+
+	if instanceDetails == nil {
+		return nil, fmt.Errorf("the Cloud SQL instance does not exist")
+	}
+
 	var authorizedIps []*sqladmin.AclEntry
 	found := false
 	for _, ip := range instanceDetails.Settings.IpConfiguration.AuthorizedNetworks {

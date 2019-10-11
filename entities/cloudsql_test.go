@@ -16,6 +16,7 @@ package entities
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -54,15 +55,15 @@ func TestEnforceSSLConnection(t *testing.T) {
 		},
 		{
 			name:             "enforce ssl connection in a nonexisting database",
-			instance:         "unexisting",
+			instance:         "nonexisting",
 			projectID:        "project1",
 			region:           "us-central1",
-			expectedError:    nil,
+			expectedError:    fmt.Errorf("the Cloud SQL instance does not exist"),
 			expectedResponse: nil,
 			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:           "unexisting",
+				Name:           "nonexisting",
 				Project:        "project1",
-				ConnectionName: "project1" + ":" + "us-central1" + ":" + "unexisting",
+				ConnectionName: "project1" + ":" + "us-central1" + ":" + "nonexisting",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						RequireSsl: true,
@@ -83,7 +84,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 
-			if tt.expectedError != nil && err != tt.expectedError {
+			if tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
 
@@ -105,12 +106,21 @@ func TestClosePublicAccess(t *testing.T) {
 		expectedRequest  *sqladmin.DatabaseInstance
 	}{
 		{
+			name:             "close public access in a nonexisting database",
+			instance:         "nonexisting",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    fmt.Errorf("the Cloud SQL instance does not exist"),
+			expectedResponse: nil,
+			expectedRequest:  nil,
+		},
+		{
 			name:             "close public access in a existing database with only one auth ip",
 			instance:         "onepublicip",
 			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
-			expectedResponse: nil,
+			expectedResponse: &sqladmin.Operation{},
 			expectedRequest: &sqladmin.DatabaseInstance{
 				Name:    "onepublicip",
 				Project: "project1",
@@ -123,21 +133,12 @@ func TestClosePublicAccess(t *testing.T) {
 			},
 		},
 		{
-			name:             "close public access in a nonexisting database",
-			instance:         "unexisting",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    nil,
-			expectedResponse: nil,
-			expectedRequest:  nil,
-		},
-		{
 			name:             "close public access in a existing database with more than one auth ip",
 			instance:         "instance1",
 			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
-			expectedResponse: nil,
+			expectedResponse: &sqladmin.Operation{},
 			expectedRequest: &sqladmin.DatabaseInstance{
 				Name:    "instance1",
 				Project: "project1",
@@ -161,25 +162,23 @@ func TestClosePublicAccess(t *testing.T) {
 			c := NewCloudSQL(sqlAdminStub)
 			var databaseInstance, err = c.InstanceDetails(ctx, tt.projectID, tt.instance)
 
-			if tt.expectedError != err {
+			if tt.expectedError != nil && tt.expectedError.Error() != err.Error() {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
 
-			if err != nil {
-				r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, databaseInstance)
+			r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, databaseInstance)
 
-				if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
-					t.Errorf("%v failed, difference: %+v", tt.name, diff)
-				}
-
-				if tt.expectedError != nil && err != tt.expectedError {
-					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
-				}
-
-				if diff := cmp.Diff(r, tt.expectedResponse); diff != "" {
-					t.Errorf("%v failed, difference: %+v", tt.name, diff)
-				}
+			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
+			if tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+			}
+
+			if diff := cmp.Diff(r, tt.expectedResponse); diff != "" {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+			}
+
 		})
 	}
 }
