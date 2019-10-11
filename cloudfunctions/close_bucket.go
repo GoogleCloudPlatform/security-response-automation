@@ -16,12 +16,12 @@ package cloudfunctions
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/pkg/errors"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -36,10 +36,10 @@ var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
 func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, l *entities.Logger) error {
 	f, err := sha.NewPublicBucket(&m)
 	if err != nil {
-		return fmt.Errorf("failed to read finding: %q", err)
+		return errors.Wrap(err, "failed to read finding")
 	}
 	if f.Category() != "PUBLIC_BUCKET_ACL" {
-		return fmt.Errorf("not a supported finding: %q", f.Category())
+		return errors.Errorf("not a supported finding: %q", f.Category())
 	}
 
 	bucketProject := f.ProjectID()
@@ -50,7 +50,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	log.Printf("listing project %q ancestors", bucketProject)
 	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
 	if err != nil {
-		return fmt.Errorf("failed to get project ancestry: %q", err)
+		return errors.Wrap(err, "failed to get project ancestry")
 	}
 
 	log.Printf("ancestors returned from project %q: %v", bucketProject, ancestors)
@@ -62,7 +62,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 			}
 			l.Info("removing public members from bucket %q in project %q.", bucketName, bucketProject)
 			if err = r.RemoveMembersFromBucket(ctx, bucketName, publicUsers); err != nil {
-				return fmt.Errorf("failed to remove member from bucket: %q", err)
+				return errors.Wrap(err, "failed to remove member from bucket")
 			}
 		}
 	}

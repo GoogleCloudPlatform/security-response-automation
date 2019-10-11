@@ -16,12 +16,12 @@ package cloudfunctions
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -51,7 +51,7 @@ var supportedRules = map[string]bool{"bad_ip": true, "bad_domain": true}
 func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource, h *entities.Host, l *entities.Logger) error {
 	f, err := etd.NewBadIP(&m)
 	if err != nil {
-		return fmt.Errorf("failed to create bad ip: %q", err)
+		return errors.Wrap(err, "failed to create bad ip")
 	}
 
 	if !supportedRules[f.RuleName()] {
@@ -66,14 +66,14 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 	log.Printf("obtained the following list of disks names from instance %q: %+v", f.Instance(), disks)
 
 	if err != nil {
-		return fmt.Errorf("failed to list disks: %q", err)
+		return errors.Wrap(err, "failed to list disks")
 	}
 
 	log.Printf("listing snapshots in project %q", f.ProjectID())
 
 	snapshots, err := h.ListProjectSnapshots(ctx, f.ProjectID())
 	if err != nil {
-		return fmt.Errorf("failed to list snapshots: %q", err)
+		return errors.Wrap(err, "failed to list snapshots")
 	}
 
 	log.Printf("obtained the following list of snapshots in project %q: %+v", f.Instance(), snapshots.Items)
@@ -132,10 +132,10 @@ func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule
 func createSnapshot(ctx context.Context, h *entities.Host, disk *compute.Disk, projectID, zone, name string) error {
 	op, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk.Name, name)
 	if err != nil {
-		return fmt.Errorf("failed to create disk snapshot: %q", err)
+		return errors.Wrap(err, "failed to create disk snapshot")
 	}
 	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
-		return fmt.Errorf("failed waiting: first error: %s", errs[0])
+		return errors.Wrap(errs[0], "failed waiting: first error")
 	}
 	return nil
 }
@@ -147,7 +147,7 @@ func removeExistingSnapshots(h *entities.Host, projectID string, remove map[stri
 			return err
 		}
 		if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
-			return fmt.Errorf("failed waiting")
+			return errors.Wrap(errs[0], "failed waiting: first error")
 		}
 	}
 	return nil
