@@ -1,5 +1,7 @@
 package entities
 
+import "github.com/googlecloudplatform/threat-automation/clients"
+
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +16,9 @@ package entities
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import (
-	"fmt"
-
-	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
-)
-
-const (
-	sender = "Security Response Automation"
-)
-
 // EmailClient is the interface used for sending emails.
 type EmailClient interface {
-	Send(email *mail.SGMailV3) (*rest.Response, error)
+	Send(subject, from, body string, to []string) (*clients.EmailResponse, error)
 }
 
 // Email is the entity used to send emails.
@@ -41,31 +32,6 @@ func NewEmail(service EmailClient) *Email {
 }
 
 // Send will send an email.
-func (m *Email) Send(subject, from, body string, to []string) (*rest.Response, error) {
-	email := m.CreateEmail(subject, from, body, to)
-	res, err := m.service.Send(email)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if res.StatusCode < 200 || res.StatusCode > 202 {
-		return nil, fmt.Errorf("Error to send email. StatusCode:(%d)", res.StatusCode)
-	}
-	return res, nil
-}
-
-// CreateEmail an sendgrid email.
-func (m *Email) CreateEmail(subject, from, body string, to []string) *mail.SGMailV3 {
-	email := mail.NewV3Mail()
-	email.SetFrom(mail.NewEmail(sender, from))
-	email.Subject = subject
-
-	p := mail.NewPersonalization()
-	for _, e := range to {
-		p.AddTos(mail.NewEmail(e, e))
-	}
-	email.AddContent(mail.NewContent("text/plain", body))
-	email.AddPersonalizations(p)
-	return email
+func (m *Email) Send(subject, from, body string, to []string) (*clients.EmailResponse, error) {
+	return m.service.Send(subject, from, body, to)
 }

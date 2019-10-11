@@ -1,5 +1,9 @@
 package stubs
 
+import (
+	"github.com/googlecloudplatform/threat-automation/clients"
+)
+
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,17 +18,13 @@ package stubs
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import (
-	"github.com/sendgrid/rest"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
-)
-
 // EmailStub provides a stub for the Email client.
 type EmailStub struct {
-	StubbedSend *rest.Response
+	StubbedSend    *clients.EmailResponse
+	StubbedSendErr error
 }
 
 // Send to send email
-func (e *EmailStub) Send(email *mail.SGMailV3) (*rest.Response, error) {
-	return e.StubbedSend, nil
+func (e *EmailStub) Send(subject, from, body string, to []string) (*clients.EmailResponse, error) {
+	return e.StubbedSend, e.StubbedSendErr
 }
