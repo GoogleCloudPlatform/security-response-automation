@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
@@ -26,15 +25,12 @@ import (
 	"cloud.google.com/go/pubsub"
 )
 
-// resourcePrefix is the prefix before the bucket name in a SHA storage scanner finding.
-const resourcePrefix = "//storage.googleapis.com/"
-
 // publicUsers contains a slice of public users we want to remove.
 var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, l *entities.Logger) error {
-	f, err := sha.NewPublicBucket(&m)
+	f, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return fmt.Errorf("failed to read finding: %q", err)
 	}
@@ -43,7 +39,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 	}
 
 	bucketProject := f.ProjectID()
-	bucketName := bucketName(f.Resource())
+	bucketName := f.BucketName()
 
 	log.Printf("removing public users from bucket %q in project %q", bucketName, bucketProject)
 
@@ -67,9 +63,4 @@ func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, fo
 		}
 	}
 	return nil
-}
-
-// bucketName returns name of the bucket. Resource assumed valid due to prior validate call.
-func bucketName(resource string) string {
-	return strings.Split(resource, resourcePrefix)[1]
 }
