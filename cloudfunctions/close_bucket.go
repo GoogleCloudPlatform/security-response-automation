@@ -26,19 +26,28 @@ import (
 // TODO(tomfitzgerald): Temporarily solution.
 const conf = "folders"
 
-// publicUsers contains a slice of public users we want to remove.
-var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
+var (
+	// publicUsers contains a slice of public users we want to remove.
+	publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
+	// supportedCategory contains the SHA categories supported.
+	supportedCategory = map[string]bool{
+		"PUBLIC_BUCKET_ACL": true,
+	}
+)
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
-func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, folderIDs []string, log *entities.Logger) error {
+func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, IDs []string, log *entities.Logger) error {
 	finding, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
 	}
+	if !supportedCategory[finding.Category()] {
+		return nil
+	}
 
 	switch conf {
 	case "folders":
-		return folders(ctx, log, finding, res, folderIDs)
+		return folders(ctx, log, finding, res, IDs)
 	case "projects":
 		// TODO(tomfitzgerald): Support.
 	case "organization":
@@ -53,8 +62,8 @@ func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, 
 	return nil
 }
 
-func folders(ctx context.Context, log *entities.Logger, finding *sha.StorageScanner, res *entities.Resource, folderIDs []string) error {
-	return ProjectWithinFolders(ctx, finding.ProjectID(), folderIDs, res, func() error {
+func folders(ctx context.Context, log *entities.Logger, finding *sha.StorageScanner, res *entities.Resource, IDs []string) error {
+	return ProjectWithinFolders(ctx, finding.ProjectID(), IDs, res, func() error {
 		log.Info("removing public members from bucket %q in project %q.", finding.BucketName(), finding.ProjectID())
 		return closeBucket(ctx, res, finding.BucketName())
 	})
