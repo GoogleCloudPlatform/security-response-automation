@@ -20,7 +20,7 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
-// CloudSQLClient contains minimum interface required by the cloud sql entity.
+// CloudSQLClient contains minimum interface required by the Cloud SQL entity.
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
 	WaitSQL(projectID string, op *sqladmin.Operation) []error
@@ -31,18 +31,18 @@ type CloudSQL struct {
 	client CloudSQLClient
 }
 
-// NewCloudSQL returns a commmand center entity.
+// NewCloudSQL returns a Cloud SQL entity.
 func NewCloudSQL(cc CloudSQLClient) *CloudSQL {
 	return &CloudSQL{client: cc}
 }
 
-// WaitSQL will wait for the SQL operation to complete.
-func (s *CloudSQL) WaitSQL(project string, op *sqladmin.Operation) []error {
+// Wait will wait for the SQL operation to complete.
+func (s *CloudSQL) Wait(project string, op *sqladmin.Operation) []error {
 	return s.client.WaitSQL(project, op)
 }
 
-// EnforceSSLConnection enforces SSL Connection to a database.
-func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, projectID string, instance string, region string) (*sqladmin.Operation, error) {
+// RequireSSL modifies the configuration to require only SSL connections.
+func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance string, region string) (*sqladmin.Operation, error) {
 	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
 		Name:           instance,
 		Project:        projectID,

@@ -18,28 +18,24 @@ import (
 	"context"
 	"fmt"
 
-	sqladmin "google.golang.org/api/sqladmin/v1beta4"
+	sql "google.golang.org/api/sqladmin/v1beta4"
 )
 
-// ErrResourceNonExistent is an error throw if the entity was not found.
-var ErrResourceNonExistent = fmt.Errorf("googleapi: Error 400: Invalid request: Invalid instance name in request body")
-
-// SQLAdminStub provides a stub for the SQL Admin client.
-type SQLAdminStub struct {
-	SavedInstanceUpdated *sqladmin.DatabaseInstance
+// CloudSQL provides a stub for the Cloud SQL client.
+type CloudSQL struct {
+	SavedInstanceUpdated *sql.DatabaseInstance
 }
 
 // WaitSQL waits globally.
-func (s *SQLAdminStub) WaitSQL(project string, op *sqladmin.Operation) []error {
+func (s *CloudSQL) WaitSQL(project string, op *sql.Operation) []error {
 	return []error{}
 }
 
 // PatchInstance updates partialy a cloud sql instance.
-func (s *SQLAdminStub) PatchInstance(ctx context.Context, projectID string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
-	s.SavedInstanceUpdated = databaseInstance
-	if projectID == "nonexisting" || instance == "nonexisting" || databaseInstance.Name == "nonexisting" {
-		return nil, ErrResourceNonExistent
+func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string, databaseInstance *sql.DatabaseInstance) (*sql.Operation, error) {
+	if projectID == "not-found" {
+		return nil, fmt.Errorf("not found")
 	}
-
-	return &sqladmin.Operation{}, nil
+	s.SavedInstanceUpdated = databaseInstance
+	return &sql.Operation{}, nil
 }
