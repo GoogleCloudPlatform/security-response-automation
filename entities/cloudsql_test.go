@@ -25,27 +25,26 @@ import (
 )
 
 func TestEnforceSSLConnection(t *testing.T) {
+	const (
+		instance  = "instance1"
+		projectID = "project1"
+		region    = "us-central1"
+	)
 	tests := []struct {
-		name             string
-		instance         string
-		projectID        string
-		region           string
-		expectedError    error
-		expectedResponse *sqladmin.Operation
-		expectedRequest  *sqladmin.DatabaseInstance
+		name         string
+		projectID    string
+		expectedFail bool
+		expectedSave *sqladmin.DatabaseInstance
 	}{
 
 		{
-			name:             "enforce ssl connection in a existing database",
-			instance:         "instance1",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    nil,
-			expectedResponse: nil,
-			expectedRequest: &sqladmin.DatabaseInstance{
+			name:         "require ssl",
+			projectID:    "project-exists",
+			expectedFail: false,
+			expectedSave: &sqladmin.DatabaseInstance{
 				Name:           "instance1",
-				Project:        "project1",
-				ConnectionName: "project1" + ":" + "us-central1" + ":" + "instance1",
+				Project:        "project-exists",
+				ConnectionName: "project-exists" + ":" + "us-central1" + ":" + "instance1",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						RequireSsl: true,
@@ -54,42 +53,25 @@ func TestEnforceSSLConnection(t *testing.T) {
 			},
 		},
 		{
-			name:             "enforce ssl connection in a nonexisting database",
-			instance:         "nonexisting",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    fmt.Errorf("the Cloud SQL instance does not exist"),
-			expectedResponse: nil,
-			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:           "nonexisting",
-				Project:        "project1",
-				ConnectionName: "project1" + ":" + "us-central1" + ":" + "nonexisting",
-				Settings: &sqladmin.Settings{
-					IpConfiguration: &sqladmin.IpConfiguration{
-						RequireSsl: true,
-					},
-				},
-			},
+			name:         "instance not found",
+			projectID:    "not-found",
+			expectedFail: true,
+			expectedSave: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sqlAdminStub := &stubs.SQLAdminStub{}
+			s := &stubs.CloudSQL{}
 			ctx := context.Background()
-			c := NewCloudSQL(sqlAdminStub)
-			r, err := c.EnforceSSLConnection(ctx, tt.projectID, tt.instance, tt.region)
-
-			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
-				t.Errorf("%v failed, difference: %+v", tt.name, diff)
+			c := NewCloudSQL(s)
+			_, err := c.RequireSSL(ctx, tt.projectID, instance, region)
+			if err != nil && !tt.expectedFail {
+				t.Errorf("%q failed: %q", tt.name, err)
 			}
 
-			if tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
-			}
-
-			if tt.expectedError == nil && r == nil {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+			if diff := cmp.Diff(s.SavedInstanceUpdated, tt.expectedSave); !tt.expectedFail && diff != "" {
+				t.Errorf("%v failed diff: %+v", tt.name, diff)
 			}
 		})
 	}
@@ -157,7 +139,7 @@ func TestClosePublicAccess(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sqlAdminStub := &stubs.SQLAdminStub{}
+			sqlAdminStub := &stubs.CloudSQL{}
 			ctx := context.Background()
 			c := NewCloudSQL(sqlAdminStub)
 			var databaseInstance, err = c.InstanceDetails(ctx, tt.projectID, tt.instance)

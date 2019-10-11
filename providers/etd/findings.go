@@ -49,6 +49,9 @@ type baseFinding struct {
 			SubRuleName string
 			RuleName    string
 		}
+		Properties struct {
+			ProjectID string `json:"project_id"`
+		}
 	}
 }
 
@@ -62,7 +65,7 @@ func NewFinding(m *pubsub.Message) (*Finding, error) {
 	var sd entities.StackDriverLog
 	f := &Finding{}
 	if err := json.Unmarshal(m.Data, &sd); err != nil {
-		return f, entities.ErrUnmarshal
+		return f, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
 	if sd.LogName == "" {
@@ -105,4 +108,9 @@ func (f *Finding) AffectedResource() string {
 		return ""
 	}
 	return m[1]
+}
+
+// ProjectID returns the project ID of affected project.
+func (f *Finding) ProjectID() string {
+	return f.base.JSONPayload.Properties.ProjectID
 }

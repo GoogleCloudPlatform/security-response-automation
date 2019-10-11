@@ -17,11 +17,12 @@ package cloudfunctions
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/etd"
+	"github.com/pkg/errors"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -38,17 +39,17 @@ import (
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, disallowed []string, l *entities.Logger) error {
 	f, err := etd.NewExternalMembersFinding(&m)
 	if err != nil {
-		return fmt.Errorf("failed to read finding: %q", err)
+		return errors.Wrap(err, "failed to read finding")
 	}
 
-	l.Info("listing project %q ancestors", f.ProjectID())
+	log.Printf("listing project %q ancestors", f.ProjectID())
 
 	ancestors, err := r.GetProjectAncestry(ctx, f.ProjectID())
 	if err != nil {
-		return fmt.Errorf("failed to get project ancestry: %q", err)
+		return errors.Wrap(err, "failed to get project ancestry")
 	}
 
-	l.Debug("ancestors returned from project %q: %+q", f.ProjectID(), ancestors)
+	log.Printf("ancestors returned from project %q: %v", f.ProjectID(), ancestors)
 
 	remove := toRemove(f.ExternalMembers(), disallowed)
 	for _, resource := range ancestors {
@@ -57,10 +58,10 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entit
 				continue
 			}
 
-			l.Info("removing users %+q from folder %q project %q", remove, folderID, f.ProjectID())
+			l.Info("removing users %v from folder %q project %q", remove, folderID, f.ProjectID())
 
 			if _, err = r.RemoveMembersProject(ctx, f.ProjectID(), remove); err != nil {
-				return fmt.Errorf("failed to remove disallowed domains: %q", err)
+				return errors.Wrap(err, "failed to remove disallowed domains")
 			}
 		}
 	}

@@ -1,5 +1,9 @@
 package stubs
 
+import (
+	"github.com/googlecloudplatform/threat-automation/clients"
+)
+
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +18,13 @@ package stubs
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// LoggerStub provides a stub for the Logger client.
-type LoggerStub struct {
+// EmailStub provides a stub for the Email client.
+type EmailStub struct {
+	StubbedSend    *clients.EmailResponse
+	StubbedSendErr error
 }
 
-// Info push info log to buffer.
-func (l *LoggerStub) Info(message string, a ...interface{}) {}
-
-// Warning push warning log to buffer.
-func (l *LoggerStub) Warning(message string, a ...interface{}) {}
-
-// Error push error log to buffer.
-func (l *LoggerStub) Error(message string, a ...interface{}) {}
-
-// Debug push debug log to buffer.
-func (l *LoggerStub) Debug(message string, a ...interface{}) {}
-
-// Close buffer and send messages to stackdriver.
-func (l *LoggerStub) Close() {}
+// Send to send email
+func (e *EmailStub) Send(subject, from, body string, to []string) (*clients.EmailResponse, error) {
+	return e.StubbedSend, e.StubbedSendErr
+}

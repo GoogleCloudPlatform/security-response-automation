@@ -18,46 +18,45 @@ import (
 	"context"
 	"fmt"
 
-	sqladmin "google.golang.org/api/sqladmin/v1beta4"
+	sql "google.golang.org/api/sqladmin/v1beta4"
 )
 
 // ErrResourceNonExistent is an error throw if the entity was not found.
 var ErrResourceNonExistent = fmt.Errorf("the Cloud SQL instance does not exist")
 
 // SQLAdminStub provides a stub for the SQL Admin client.
-type SQLAdminStub struct {
-	SavedInstanceUpdated *sqladmin.DatabaseInstance
+type CloudSQL struct {
+	SavedInstanceUpdated *sql.DatabaseInstance
 }
 
 // WaitSQL waits globally.
-func (s *SQLAdminStub) WaitSQL(project string, op *sqladmin.Operation) []error {
+func (s *CloudSQL) WaitSQL(project string, op *sql.Operation) []error {
 	return []error{}
 }
 
 // PatchInstance updates partialy a cloud sql instance.
-func (s *SQLAdminStub) PatchInstance(ctx context.Context, projectID string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
-	s.SavedInstanceUpdated = databaseInstance
-	if projectID == "nonexisting" || instance == "nonexisting" || databaseInstance.Name == "nonexisting" {
-		return nil, ErrResourceNonExistent
+func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string, databaseInstance *sql.DatabaseInstance) (*sql.Operation, error) {
+	if projectID == "not-found" {
+		return nil, fmt.Errorf("not found")
 	}
-
-	return &sqladmin.Operation{}, nil
+	s.SavedInstanceUpdated = databaseInstance
+	return &sql.Operation{}, nil
 }
 
 // InstanceDetails gets detail from a instance in a project.
-func (s *SQLAdminStub) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sql.DatabaseInstance, error) {
 	if projectID == "nonexisting" || instance == "nonexisting" {
 		return nil, ErrResourceNonExistent
 	}
 
 	if projectID == "onepublicip" || instance == "onepublicip" {
-		return &sqladmin.DatabaseInstance{
+		return &sql.DatabaseInstance{
 			Name:    instance,
 			Project: projectID,
-			Settings: &sqladmin.Settings{
-				IpConfiguration: &sqladmin.IpConfiguration{
-					AuthorizedNetworks: []*sqladmin.AclEntry{
-						&sqladmin.AclEntry{
+			Settings: &sql.Settings{
+				IpConfiguration: &sql.IpConfiguration{
+					AuthorizedNetworks: []*sql.AclEntry{
+						&sql.AclEntry{
 							Value: "0.0.0.0/0",
 						},
 					},
@@ -66,16 +65,16 @@ func (s *SQLAdminStub) InstanceDetails(ctx context.Context, projectID string, in
 		}, nil
 	}
 
-	return &sqladmin.DatabaseInstance{
+	return &sql.DatabaseInstance{
 		Name:    instance,
 		Project: projectID,
-		Settings: &sqladmin.Settings{
-			IpConfiguration: &sqladmin.IpConfiguration{
-				AuthorizedNetworks: []*sqladmin.AclEntry{
-					&sqladmin.AclEntry{
+		Settings: &sql.Settings{
+			IpConfiguration: &sql.IpConfiguration{
+				AuthorizedNetworks: []*sql.AclEntry{
+					&sql.AclEntry{
 						Value: "0.0.0.0/0",
 					},
-					&sqladmin.AclEntry{
+					&sql.AclEntry{
 						Value: "199.27.199.0/24",
 					},
 				},

@@ -48,13 +48,10 @@ resource "google_logging_project_sink" "sink" {
   project                = "${var.findings-project}"
 }
 
-resource "google_project_iam_binding" "log-writer-pubsub" {
+resource "google_project_iam_member" "log-writer-pubsub" {
   role    = "roles/pubsub.publisher"
   project = "${var.automation-project}"
-
-  members = [
-    "${google_logging_project_sink.sink.writer_identity}",
-  ]
+  member  = "${google_logging_project_sink.sink.writer_identity}"
 }
 
 resource "google_pubsub_topic" "topic" {
@@ -72,9 +69,14 @@ resource "google_pubsub_subscription" "cscc-notifications-subscription" {
   ack_deadline_seconds = 20
 }
 
-resource "google_organization_iam_binding" "cscc-notifications-sa" {
+resource "google_organization_iam_member" "cscc-notifications-sa" {
   org_id = "${var.organization-id}"
   role   = "roles/securitycenter.notificationConfigEditor"
+  member = "serviceAccount:${google_service_account.automation-service-account.email}"
+}
 
-  members = ["serviceAccount:${google_service_account.automation-service-account.email}"]
+resource "google_project_iam_member" "stackdriver-writer" {
+  project = "${var.automation-project}"
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.automation-service-account.email}"
 }

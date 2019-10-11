@@ -24,36 +24,36 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
-// SQLAdmin client.
-type SQLAdmin struct {
+// CloudSQL client.
+type CloudSQL struct {
 	service    *sqladmin.Service
 	opsService *sqladmin.OperationsService
 }
 
-// NewSQLAdmin returns and initializes a SQL Admin client.
-func NewSQLAdmin(ctx context.Context, authFile string) (*SQLAdmin, error) {
+// NewCloudSQL returns and initializes a Cloud SQL client.
+func NewCloudSQL(ctx context.Context, authFile string) (*CloudSQL, error) {
 	sql, err := sqladmin.NewService(ctx, option.WithCredentialsFile(authFile))
 	if err != nil {
 		return nil, fmt.Errorf("failed to init scc: %q", err)
 	}
-	return &SQLAdmin{
+	return &CloudSQL{
 		service:    sql,
 		opsService: sqladmin.NewOperationsService(sql),
 	}, nil
 }
 
-// PatchInstance updates partialy a cloud sql instance.
-func (s *SQLAdmin) PatchInstance(ctx context.Context, projectID string, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
+// PatchInstance updates partialy a Cloud SQL instance.
+func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 	return s.service.Instances.Patch(projectID, instance, databaseInstance).Do()
 }
 
 // InstanceDetails gets detail from a instance in a project
-func (s *SQLAdmin) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
 	return s.service.Instances.Get(projectID, instance).Do()
 }
 
 // WaitSQL will wait for the global operation to complete.
-func (s *SQLAdmin) WaitSQL(projectID string, op *sqladmin.Operation) []error {
+func (s *CloudSQL) WaitSQL(projectID string, op *sqladmin.Operation) []error {
 	return waitSQL(op, func() (*sqladmin.Operation, error) {
 		return s.opsService.Get(projectID, op.Name).Do()
 	})

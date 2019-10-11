@@ -20,7 +20,6 @@ type badIP struct {
 		}
 		Properties struct {
 			Location       string
-			ProjectID      string `json:"project_id"`
 			SourceInstance string
 		}
 	}
@@ -37,11 +36,14 @@ type BadIP struct {
 // NewBadIP reads a pubsub message and creates a new finding.
 func NewBadIP(ps *pubsub.Message) (*BadIP, error) {
 	var f BadIP
+	b, err := NewFinding(ps)
+	if err != nil {
+		return nil, err
+	}
+	f.Finding = b
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
-	b, _ := NewFinding(ps)
-	f.Finding = b
 	if v := f.validate(); !v {
 		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
 	}
@@ -67,9 +69,4 @@ func (f *BadIP) Instance() string {
 		return ""
 	}
 	return i[1]
-}
-
-// ProjectID returns the project ID of affected project.
-func (f *BadIP) ProjectID() string {
-	return f.fields.JSONPayload.Properties.ProjectID
 }

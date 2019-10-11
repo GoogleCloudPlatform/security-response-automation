@@ -28,6 +28,8 @@ type crmClient interface {
 	GetAncestry(context.Context, string) (*crm.GetAncestryResponse, error)
 	SetPolicyProject(context.Context, string, *crm.Policy) (*crm.Policy, error)
 	GetPolicyProject(context.Context, string) (*crm.Policy, error)
+	GetPolicyOrganization(context.Context, string) (*crm.Policy, error)
+	SetPolicyOrganization(context.Context, string, *crm.Policy) (*crm.Policy, error)
 }
 
 type storageClient interface {
@@ -148,4 +150,19 @@ func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Pol
 		b.Members = members
 	}
 	return policy
+}
+
+// RemoveMembersOrganization removes the given members from the organization.
+func (r *Resource) RemoveMembersOrganization(ctx context.Context, organizationID string, remove []string, p *crm.Policy) (*crm.Policy, error) {
+	j := strings.Replace(strings.Join(remove, "|"), ".", `\.`, -1)
+	e, err := regexp.Compile("^" + j + "$")
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile regex: %q", err)
+	}
+	newPolicy := r.removeMembersFromPolicy(e, p)
+	s, err := r.crm.SetPolicyOrganization(ctx, organizationID, newPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set project policy: %q", err)
+	}
+	return s, nil
 }

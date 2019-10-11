@@ -25,6 +25,8 @@ import (
 
 // ComputeClient contains minimum interface required by the host entity.
 type ComputeClient interface {
+	GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error)
+	DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error)
 	CreateSnapshot(context.Context, string, string, string, *compute.Snapshot) (*compute.Operation, error)
 	ListProjectSnapshots(context.Context, string) (*compute.SnapshotList, error)
 	ListDisks(context.Context, string, string) (*compute.DiskList, error)
@@ -50,6 +52,32 @@ func NewHost(cs ComputeClient) *Host {
 // DeleteDiskSnapshot deletes the given snapshot from the project.
 func (h *Host) DeleteDiskSnapshot(project, snapshot string) (*compute.Operation, error) {
 	return h.c.DeleteDiskSnapshot(project, snapshot)
+}
+
+// RemoveExternalIPs iterates on all network interfaces of an instance and deletes its accessConfigs, actually removing the external IP addresses of the instance.
+func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance string) error {
+	i, err := h.c.GetInstance(ctx, project, zone, instance)
+	if err != nil {
+		return fmt.Errorf("failed to get instance: %q", err)
+	}
+
+	for _, ni := range i.NetworkInterfaces {
+		for _, ac := range ni.AccessConfigs {
+			if ac.Type != "ONE_TO_ONE_NAT" {
+				continue
+			}
+
+			op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, ac.Name, ni.Name)
+			if err != nil {
+				return fmt.Errorf("failed to remove external ip: %q", err)
+			}
+			if errs := h.WaitZone(project, zone, op); len(errs) > 0 {
+				return fmt.Errorf("failed to waiting instance. Errors[0]: %s", errs[0])
+			}
+		}
+	}
+
+	return nil
 }
 
 // CreateDiskSnapshot creates a snapshot.

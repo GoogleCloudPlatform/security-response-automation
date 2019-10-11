@@ -35,22 +35,22 @@ func NewLogger(l LoggerClient) *Logger {
 
 // Info sends a message to the logger using info as the severity.
 func (l *Logger) Info(message string, a ...interface{}) {
-	l.client.Info(message, a)
+	l.client.Info(message, a...)
 }
 
 // Warning sends a message to the logger using warning as the severity.
 func (l *Logger) Warning(message string, a ...interface{}) {
-	l.client.Warning(message, a)
+	l.client.Warning(message, a...)
 }
 
 // Error sends a message to the logger using error as the severity.
 func (l *Logger) Error(message string, a ...interface{}) {
-	l.client.Error(message, a)
+	l.client.Error(message, a...)
 }
 
 // Debug sends a message to the logger using debug as the severity.
 func (l *Logger) Debug(message string, a ...interface{}) {
-	l.client.Debug(message, a)
+	l.client.Debug(message, a...)
 }
 
 // Close buffer and send messages to stackdriver.
