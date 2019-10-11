@@ -159,7 +159,7 @@ func TestClosePublicAccess(t *testing.T) {
 			sqlAdminStub := &stubs.SQLAdminStub{}
 			ctx := context.Background()
 			c := NewCloudSQL(sqlAdminStub)
-			var databaseInstance, err = c.GetInstanceDetails(ctx, tt.projectID, tt.instance)
+			var databaseInstance, err = c.InstanceDetails(ctx, tt.projectID, tt.instance)
 
 			if tt.expectedError != err {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)

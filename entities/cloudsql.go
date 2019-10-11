@@ -24,7 +24,7 @@ import (
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
 	WaitSQL(string, *sqladmin.Operation) []error
-	GetInstanceDetails(context.Context, string, string) (*sqladmin.DatabaseInstance, error)
+	InstanceDetails(context.Context, string, string) (*sqladmin.DatabaseInstance, error)
 }
 
 // CloudSQL entity.
@@ -56,12 +56,12 @@ func (s *CloudSQL) EnforceSSLConnection(ctx context.Context, projectID string, i
 	})
 }
 
-// GetInstanceDetails get details for an instance
-func (s *CloudSQL) GetInstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
-	return s.client.GetInstanceDetails(ctx, projectID, instance)
+// InstanceDetails get details for an instance
+func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+	return s.client.InstanceDetails(ctx, projectID, instance)
 }
 
-// ClosePublicAccess removes "0.0.0.0/0" from authorized IPs at an instance
+// ClosePublicAccess removes "0.0.0.0/0" from authorized IPs of an instance
 func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, instanceDetails *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 	var authorizedIps []*sqladmin.AclEntry
 	for _, ip := range instanceDetails.Settings.IpConfiguration.AuthorizedNetworks {

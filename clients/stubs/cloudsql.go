@@ -44,8 +44,8 @@ func (s *SQLAdminStub) PatchInstance(ctx context.Context, projectID string, inst
 	return &sqladmin.Operation{}, nil
 }
 
-// GetInstanceDetails gets detail from a instance in a project
-func (s *SQLAdminStub) GetInstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+// InstanceDetails gets detail from a instance in a project.
+func (s *SQLAdminStub) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
 	if projectID == "nonexisting" || instance == "nonexisting" {
 		return nil, ErrResourceNonExistent
 	}

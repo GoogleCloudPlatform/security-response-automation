@@ -47,8 +47,8 @@ func (s *SQLAdmin) PatchInstance(ctx context.Context, projectID string, instance
 	return s.service.Instances.Patch(projectID, instance, databaseInstance).Do()
 }
 
-// GetInstanceDetails gets detail from a instance in a project
-func (s *SQLAdmin) GetInstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+// InstanceDetails gets detail from a instance in a project
+func (s *SQLAdmin) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
 	return s.service.Instances.Get(projectID, instance).Do()
 }
 
