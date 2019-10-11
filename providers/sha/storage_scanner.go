@@ -15,33 +15,26 @@ package sha
 // limitations under the License.
 
 import (
-	"encoding/json"
+	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 )
 
-type iamScanner struct {
-	Finding struct {
-		Name             string
-		SourceProperties struct {
-			OffendingIamRoles string
-		}
-	}
-}
+// resourcePrefix the prefix of the full name of a bucket
+// on the resource name filed of an SCC SHA Finding
+const resourcePrefix = "//storage.googleapis.com/"
 
-// IamScanner is an abstraction around SHA's IAM Scanner finding.
-type IamScanner struct {
+// StorageScanner is an abstraction around SHA's IAM Scanner finding.
+type StorageScanner struct {
 	// Fields found in every SHA finding not specific to this finding.
 	*Finding
-	// Fields specific to this finding.
-	fields iamScanner
 }
 
-// NewIamScanner reads a pubsub message and creates a new finding.
-func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
-	f := IamScanner{}
+// NewStorageScanner reads a pubsub message and creates a new finding.
+func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
+	f := StorageScanner{}
 
 	nf, err := NewFinding(ps)
 	if err != nil {
@@ -50,20 +43,17 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 
 	f.Finding = nf
 
-	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, err
-	}
-
 	if !f.validate() {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "not a IAM_SCANNER Finding")
+		return nil, errors.Wrap(entities.ErrValueNotFound, "not a STORAGE_SCANNER Finding")
 	}
 	return &f, nil
 }
 
-func (f *IamScanner) validate() bool {
-	return f.ScannerName() == "IAM_SCANNER"
+func (f *StorageScanner) validate() bool {
+	return f.ScannerName() == "STORAGE_SCANNER"
 }
 
-func (f *IamScanner) OffendingIamRoles() string {
-	return f.fields.Finding.SourceProperties.OffendingIamRoles
+// BucketName returns name of the bucket. Resource assumed valid due to prior validate call.
+func (f *StorageScanner) BucketName() string {
+	return strings.Split(f.ResourceName(), resourcePrefix)[1]
 }

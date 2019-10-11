@@ -16,60 +16,59 @@ package cloudfunctions
 
 import (
 	"context"
-	"log"
-	"strings"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
 	"github.com/pkg/errors"
-
-	"cloud.google.com/go/pubsub"
 )
 
-// resourcePrefix is the prefix before the bucket name in a SHA storage scanner finding.
-const resourcePrefix = "//storage.googleapis.com/"
+// TODO(tomfitzgerald): Temporarily solution.
+const conf = "folders"
 
-// publicUsers contains a slice of public users we want to remove.
-var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
+var (
+	// publicUsers contains a slice of public users we want to remove.
+	publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
+	// supportedCategory contains the SHA categories supported.
+	supportedCategory = map[string]bool{
+		"PUBLIC_BUCKET_ACL": true,
+	}
+)
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
-func CloseBucket(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, l *entities.Logger) error {
-	f, err := sha.NewPublicBucket(&m)
+func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, IDs []string, log *entities.Logger) error {
+	finding, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
 	}
-	if f.Category() != "PUBLIC_BUCKET_ACL" {
-		return errors.Errorf("not a supported finding: %q", f.Category())
+	if !supportedCategory[finding.Category()] {
+		return nil
 	}
 
-	bucketProject := f.ProjectID()
-	bucketName := bucketName(f.Resource())
-
-	log.Printf("removing public users from bucket %q in project %q", bucketName, bucketProject)
-
-	log.Printf("listing project %q ancestors", bucketProject)
-	ancestors, err := r.GetProjectAncestry(ctx, bucketProject)
-	if err != nil {
-		return errors.Wrap(err, "failed to get project ancestry")
-	}
-
-	log.Printf("ancestors returned from project %q: %v", bucketProject, ancestors)
-
-	for _, resource := range ancestors {
-		for _, folderID := range folderIDs {
-			if resource != "folders/"+folderID {
-				continue
-			}
-			l.Info("removing public members from bucket %q in project %q.", bucketName, bucketProject)
-			if err = r.RemoveMembersFromBucket(ctx, bucketName, publicUsers); err != nil {
-				return errors.Wrap(err, "failed to remove member from bucket")
-			}
-		}
+	switch conf {
+	case "folders":
+		return folders(ctx, log, finding, res, IDs)
+	case "projects":
+		// TODO(tomfitzgerald): Support.
+	case "organization":
+		// TODO(tomfitzgerald): Support.
+	case "labels":
+		// TODO(tomfitzgerald): Support.
+	case "securitymarks":
+		// TODO(tomfitzgerald): Support.
+	default:
+		return errors.New("unsupported configuration")
 	}
 	return nil
 }
 
-// bucketName returns name of the bucket. Resource assumed valid due to prior validate call.
-func bucketName(resource string) string {
-	return strings.Split(resource, resourcePrefix)[1]
+func folders(ctx context.Context, log *entities.Logger, finding *sha.StorageScanner, res *entities.Resource, IDs []string) error {
+	return ProjectWithinFolders(ctx, finding.ProjectID(), IDs, res, func() error {
+		log.Info("removing public members from bucket %q in project %q.", finding.BucketName(), finding.ProjectID())
+		return closeBucket(ctx, res, finding.BucketName())
+	})
+}
+
+func closeBucket(ctx context.Context, r *entities.Resource, bucket string) error {
+	return r.RemoveMembersFromBucket(ctx, bucket, publicUsers)
 }
