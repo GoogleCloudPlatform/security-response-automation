@@ -38,7 +38,7 @@ func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
 
 	nf, err := NewFinding(ps)
 	if err != nil {
-		return nil, errors.Wrap(err, "on NewStorageScanner")
+		return nil, err
 	}
 
 	f.Finding = nf

@@ -45,13 +45,13 @@ func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
 
 	nf, err := NewFinding(ps)
 	if err != nil {
-		return nil, errors.Wrap(err, "on NewIamScanner")
+		return nil, err
 	}
 
 	f.Finding = nf
 
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, errors.Wrap(err, "on NewIamScanner")
+		return nil, err
 	}
 
 	if !f.validate() {

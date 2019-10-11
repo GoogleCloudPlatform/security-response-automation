@@ -64,7 +64,7 @@ func NewFinding(m *pubsub.Message) (*Finding, error) {
 	f := Finding{}
 
 	if err := json.Unmarshal(m.Data, &f.base); err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal")
+		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
 	if err := f.validate(); err != nil {

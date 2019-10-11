@@ -128,13 +128,13 @@ func TestForShaFailures(t *testing.T) {
 		{
 			"empty message",
 			&pubsub.Message{},
-			errors.New("on NewFirewallScanner: failed to unmarshal: unexpected end of JSON input"),
+			errors.New("unexpected end of JSON input: failed to unmarshal"),
 		},
 		{
 			"missing Source properties body",
 			&pubsub.Message{Data: []byte(`{
 				"finding": { "sourceProperties":}}`)},
-			errors.New("on NewFirewallScanner: failed to unmarshal: invalid character '}' looking for beginning of value"),
+			errors.New("invalid character '}' looking for beginning of value: failed to unmarshal"),
 		},
 		{
 			"it does not have a resource name",
@@ -143,7 +143,7 @@ func TestForShaFailures(t *testing.T) {
 					"sourceProperties": {
 						"ScannerName": "IAM_SCANNER"
 					}}}`)},
-			errors.New("on NewFirewallScanner: does not have a resource name: value not found"),
+			errors.New("does not have a resource name: value not found"),
 		},
 		{
 			"not a FIREWALL_SCANNER rule Finding",
