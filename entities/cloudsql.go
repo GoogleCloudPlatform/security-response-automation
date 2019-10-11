@@ -70,6 +70,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, inst
 		}
 	}
 
+	// null fields are removed by default, must explicitly declare as intend to be null so they are preserved.
 	var nullFields []string
 	if len(authorizedIps) == 0 {
 		nullFields = append(nullFields, "AuthorizedNetworks")
