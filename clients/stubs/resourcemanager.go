@@ -43,3 +43,14 @@ func (s *ResourceManagerStub) SetPolicyProject(ctx context.Context, projectID st
 func (s *ResourceManagerStub) GetAncestry(context.Context, string) (*crm.GetAncestryResponse, error) {
 	return s.GetAncestryResponse, nil
 }
+
+// GetPolicyOrganization is a stub of Cloud Resource Manager's GetIamPolicy.
+func (s *ResourceManagerStub) GetPolicyOrganization(ctx context.Context, organizationID string) (*crm.Policy, error) {
+	return s.GetPolicyResponse, nil
+}
+
+// SetPolicyOrganization is a stup of Cloud Resource Manager's SetIamPolicy.
+func (s *ResourceManagerStub) SetPolicyOrganization(ctx context.Context, organizationID string, p *crm.Policy) (*crm.Policy, error) {
+	s.SavedSetPolicy = p
+	return s.SavedSetPolicy, nil
+}

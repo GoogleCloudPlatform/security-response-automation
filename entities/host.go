@@ -54,14 +54,14 @@ func (h *Host) DeleteDiskSnapshot(project, snapshot string) (*compute.Operation,
 	return h.c.DeleteDiskSnapshot(project, snapshot)
 }
 
-// RemoveExternalIPs iterates on all network interfaces of an instance and deletes its accessConfig's, actually removing the external IP addresses of the instance.
+// RemoveExternalIPs iterates on all network interfaces of an instance and deletes its accessConfigs, actually removing the external IP addresses of the instance.
 func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance string) error {
-	instanceObj, err := h.c.GetInstance(ctx, project, zone, instance)
+	i, err := h.c.GetInstance(ctx, project, zone, instance)
 	if err != nil {
 		return fmt.Errorf("failed to get instance: %q", err)
 	}
 
-	for _, ni := range instanceObj.NetworkInterfaces {
+	for _, ni := range i.NetworkInterfaces {
 		for _, ac := range ni.AccessConfigs {
 			if ac.Type != "ONE_TO_ONE_NAT" {
 				continue
