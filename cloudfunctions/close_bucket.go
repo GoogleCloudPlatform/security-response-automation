@@ -16,7 +16,6 @@ package cloudfunctions
 
 import (
 	"context"
-	"fmt"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -39,9 +38,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, 
 
 	switch conf {
 	case "folders":
-		if err := folders(ctx, log, finding, res, folderIDs); err != nil {
-			return errors.Wrap(err, "folders failed")
-		}
+		return folders(ctx, log, finding, res, folderIDs)
 	case "projects":
 		// TODO(tomfitzgerald): Support.
 	case "organization":
@@ -51,7 +48,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, 
 	case "securitymarks":
 		// TODO(tomfitzgerald): Support.
 	default:
-		return fmt.Errorf("unsupported configuration")
+		return errors.New("unsupported configuration")
 	}
 	return nil
 }

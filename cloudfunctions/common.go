@@ -2,16 +2,16 @@ package cloudfunctions
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/pkg/errors"
 )
 
 // ProjectWithinFolders checks to see if the project is within the given set of folders.
 func ProjectWithinFolders(ctx context.Context, projectID string, folderIDs []string, r *entities.Resource, fn func() error) error {
 	ancestors, err := r.GetProjectAncestry(ctx, projectID)
 	if err != nil {
-		return fmt.Errorf("failed to get project ancestry: %q", err)
+		return errors.Wrap(err, "failed to get project ancestry")
 	}
 	for _, resource := range ancestors {
 		for _, folderID := range folderIDs {
