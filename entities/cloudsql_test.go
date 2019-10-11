@@ -123,7 +123,7 @@ func TestClosePublicAccess(t *testing.T) {
 			},
 		},
 		{
-			name:             "close public access in a nonexisting database with more then one auth ip",
+			name:             "close public access in a nonexisting database",
 			instance:         "unexisting",
 			projectID:        "project1",
 			region:           "us-central1",
@@ -176,8 +176,8 @@ func TestClosePublicAccess(t *testing.T) {
 					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 				}
 
-				if tt.expectedError == nil && r == nil {
-					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+				if diff := cmp.Diff(r, tt.expectedResponse); diff != "" {
+					t.Errorf("%v failed, difference: %+v", tt.name, diff)
 				}
 			}
 		})

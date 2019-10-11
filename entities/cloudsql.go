@@ -64,10 +64,18 @@ func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instan
 // ClosePublicAccess removes "0.0.0.0/0" from authorized IPs of an instance
 func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, instanceDetails *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
 	var authorizedIps []*sqladmin.AclEntry
+	found := false
 	for _, ip := range instanceDetails.Settings.IpConfiguration.AuthorizedNetworks {
-		if ip.Value != "0.0.0.0/0" {
-			authorizedIps = append(authorizedIps, ip)
+		if ip.Value == "0.0.0.0/0" {
+			found = true
+			continue
 		}
+		authorizedIps = append(authorizedIps, ip)
+
+	}
+
+	if !found {
+		return nil, nil
 	}
 
 	// null fields are removed by default, must explicitly declare as intend to be null so they are preserved.
