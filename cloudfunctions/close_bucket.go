@@ -23,9 +23,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO(tomfitzgerald): Temporarily solution.
-const conf = "folders"
-
 var (
 	// publicUsers contains a slice of public users we want to remove.
 	publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
@@ -36,7 +33,7 @@ var (
 )
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
-func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, IDs []string, log *entities.Logger) error {
+func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, log *entities.Logger, conf *Configuration) error {
 	finding, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
@@ -45,30 +42,20 @@ func CloseBucket(ctx context.Context, m pubsub.Message, res *entities.Resource, 
 		return nil
 	}
 
-	switch conf {
-	case "folders":
-		return folders(ctx, log, finding, res, IDs)
-	case "projects":
-		// TODO(tomfitzgerald): Support.
-	case "organization":
-		// TODO(tomfitzgerald): Support.
-	case "labels":
-		// TODO(tomfitzgerald): Support.
-	case "securitymarks":
-		// TODO(tomfitzgerald): Support.
-	default:
-		return errors.New("unsupported configuration")
+	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), remove(ctx, finding, log, res)); err != nil {
+		return errors.Wrap(err, "folders failed")
 	}
+
+	if err := conf.IfProjectInProjects(ctx, finding.ProjectID(), remove(ctx, finding, log, res)); err != nil {
+		return errors.Wrap(err, "projects failed")
+	}
+
 	return nil
 }
 
-func folders(ctx context.Context, log *entities.Logger, finding *sha.StorageScanner, res *entities.Resource, IDs []string) error {
-	return ProjectWithinFolders(ctx, finding.ProjectID(), IDs, res, func() error {
+func remove(ctx context.Context, finding *sha.StorageScanner, log *entities.Logger, res *entities.Resource) func() error {
+	return func() error {
 		log.Info("removing public members from bucket %q in project %q.", finding.BucketName(), finding.ProjectID())
-		return closeBucket(ctx, res, finding.BucketName())
-	})
-}
-
-func closeBucket(ctx context.Context, r *entities.Resource, bucket string) error {
-	return r.RemoveMembersFromBucket(ctx, bucket, publicUsers)
+		return res.RemoveMembersFromBucket(ctx, finding.BucketName(), publicUsers)
+	}
 }

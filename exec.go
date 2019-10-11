@@ -147,5 +147,6 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
-	return cloudfunctions.CloseBucket(ctx, m, r, strings.Split(os.Getenv("folder_ids"), ","), l)
+	conf := &cloudfunctions.Configuration{FoldersIDs: strings.Split(os.Getenv("folder_ids"), ",")}
+	return cloudfunctions.CloseBucket(ctx, m, r, l, conf)
 }
