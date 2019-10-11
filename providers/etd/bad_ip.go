@@ -39,7 +39,10 @@ func NewBadIP(ps *pubsub.Message) (*BadIP, error) {
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
-	b, _ := NewFinding(ps)
+	b, err := NewFinding(ps)
+	if err != nil {
+		return nil, err
+	}
 	f.Finding = b
 	if v := f.validate(); !v {
 		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")

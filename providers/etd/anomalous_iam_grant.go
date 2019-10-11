@@ -40,7 +40,10 @@ func NewExternalMembersFinding(ps *pubsub.Message) (*ExternalMembersFinding, err
 	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
 		return nil, entities.ErrUnmarshal
 	}
-	b, _ := NewFinding(ps)
+	b, err := NewFinding(ps)
+	if err != nil {
+		return nil, err
+	}
 	f.Finding = b
 	if v := f.validate(); !v {
 		return nil, errors.Wrap(entities.ErrValueNotFound, "fields did not validate")
