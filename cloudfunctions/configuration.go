@@ -48,7 +48,7 @@ func (c *Configuration) IfProjectInFolders(ctx context.Context, projectID string
 	return nil
 }
 
-// IfProjectInFolders will apply the function if the project ID is within the project IDs.
+// IfProjectInProjects will apply the function if the project ID is within the project IDs.
 func (c *Configuration) IfProjectInProjects(_ context.Context, _ string, _ func() error) error {
 	return nil
 }

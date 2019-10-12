@@ -64,6 +64,7 @@ func (f *IamScanner) validate() bool {
 	return f.ScannerName() == "IAM_SCANNER"
 }
 
+// OffendingIamRoles returns the offending IAM roles.
 func (f *IamScanner) OffendingIamRoles() string {
 	return f.fields.Finding.SourceProperties.OffendingIamRoles
 }
