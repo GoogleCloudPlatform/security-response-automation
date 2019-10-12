@@ -110,6 +110,14 @@ func TestCloseBucket(t *testing.T) {
 			expected:       nil,
 			ancestry:       createAncestors([]string{"folder/123"}),
 		},
+		{
+			name:           "no folders",
+			incomingLog:    pubsub.Message{Data: []byte(otherFinding)},
+			initialMembers: []string{"allUsers", "member:tom@tom.com"},
+			folderIDs:      nil,
+			expected:       nil,
+			ancestry:       createAncestors([]string{"folder/123"}),
+		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
@@ -125,7 +133,9 @@ func TestCloseBucket(t *testing.T) {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
 
-			if err := CloseBucket(ctx, tt.incomingLog, r, tt.folderIDs, l); err != nil {
+			conf := NewConfiguration(r)
+			conf.FoldersIDs = tt.folderIDs
+			if err := CloseBucket(ctx, tt.incomingLog, r, l, conf); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
 

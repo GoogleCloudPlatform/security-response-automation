@@ -17,7 +17,6 @@ package cloudfunctions
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -36,36 +35,27 @@ import (
 // Additionally check to see if the affected project is in the specified folder. If the grant
 // was to a domain explicitly disallowed and within the folder then remove the member from the
 // entire IAM policy for the resource.
-func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, r *entities.Resource, folderIDs []string, disallowed []string, l *entities.Logger) error {
-	f, err := etd.NewExternalMembersFinding(&m)
+func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, res *entities.Resource, disallowed []string, log *entities.Logger, conf *Configuration) error {
+	finding, err := etd.NewExternalMembersFinding(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
 	}
 
-	log.Printf("listing project %q ancestors", f.ProjectID())
-
-	ancestors, err := r.GetProjectAncestry(ctx, f.ProjectID())
-	if err != nil {
-		return errors.Wrap(err, "failed to get project ancestry")
+	members := toRemove(finding.ExternalMembers(), disallowed)
+	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), revokeMembers(ctx, finding, log, res, members)); err != nil {
+		return errors.Wrap(err, "folders failed")
 	}
 
-	log.Printf("ancestors returned from project %q: %v", f.ProjectID(), ancestors)
-
-	remove := toRemove(f.ExternalMembers(), disallowed)
-	for _, resource := range ancestors {
-		for _, folderID := range folderIDs {
-			if resource != "folders/"+folderID {
-				continue
-			}
-
-			l.Info("removing users %v from folder %q project %q", remove, folderID, f.ProjectID())
-
-			if _, err = r.RemoveMembersProject(ctx, f.ProjectID(), remove); err != nil {
-				return errors.Wrap(err, "failed to remove disallowed domains")
-			}
-		}
-	}
 	return nil
+}
+
+func revokeMembers(ctx context.Context, finding *etd.ExternalMembersFinding, log *entities.Logger, res *entities.Resource, members []string) func() error {
+	return func() error {
+		if _, err := res.RemoveMembersProject(ctx, finding.ProjectID(), members); err != nil {
+			return err
+		}
+		return nil
+	}
 }
 
 // toRemove returns a slice containing only external members that are disallowed.
