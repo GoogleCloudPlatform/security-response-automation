@@ -21,6 +21,11 @@ func NewConfiguration(res *entities.Resource) *Configuration {
 	return &Configuration{resource: res}
 }
 
+// Valid returns if the configuration has at least something filled out.
+func (c *Configuration) Valid() bool {
+	return len(c.FoldersIDs) > 0 || len(c.ProjectIDs) > 0 || c.OrganizationID != ""
+}
+
 // IfProjectInFolders will apply the function if the project ID is within the folder IDs.
 func (c *Configuration) IfProjectInFolders(ctx context.Context, projectID string, fn func() error) error {
 	if len(c.FoldersIDs) == 0 {

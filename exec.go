@@ -17,6 +17,7 @@ package exec
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -57,9 +58,6 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 
 	l.Info("Initializing external members IAM removal")
 
-	if os.Getenv("folder_ids") == "" {
-		return fmt.Errorf("folder_ids environment variable not found")
-	}
 	if os.Getenv("disallowed") == "" {
 		return fmt.Errorf("disallowed environment variable not found")
 	}
@@ -74,9 +72,17 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	}
 	r := entities.NewResource(crm, stg)
 
-	ids := strings.Split(os.Getenv("folder_ids"), ",")
 	d := strings.Split(os.Getenv("disallowed"), ",")
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, ids, d, l)
+
+	conf := cloudfunctions.NewConfiguration(r)
+	conf.FoldersIDs = readEnv("folder_ids")
+	conf.ProjectIDs = readEnv("project_ids")
+	conf.OrganizationID = os.Getenv("organization_id")
+
+	if ok := conf.Valid(); !ok {
+		return errors.New("configuration invalid")
+	}
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, d, l, conf)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -132,7 +138,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	l := entities.NewLogger(lg)
 	defer l.Close()
 
-	l.Info("Initializing bucket public users removal")
+	l.Info("initializing bucket public users removal")
 
 	if os.Getenv("folder_ids") == "" {
 		return fmt.Errorf("folder_ids environment variable not found")
@@ -147,6 +153,22 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 		return fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	r := entities.NewResource(crm, stg)
-	conf := &cloudfunctions.Configuration{FoldersIDs: strings.Split(os.Getenv("folder_ids"), ",")}
+
+	conf := cloudfunctions.NewConfiguration(r)
+	conf.FoldersIDs = readEnv("folder_ids")
+	conf.ProjectIDs = readEnv("project_ids")
+	conf.OrganizationID = os.Getenv("organization_id")
+
+	if ok := conf.Valid(); !ok {
+		return errors.New("configuration invalid")
+	}
 	return cloudfunctions.CloseBucket(ctx, m, r, l, conf)
+}
+
+// readEnv reads an environment variable and returns it as a slice of strings (whether it exists or not.)
+func readEnv(env string) []string {
+	if os.Getenv(env) == "" {
+		return []string{}
+	}
+	return strings.Split(os.Getenv(env), ",")
 }
