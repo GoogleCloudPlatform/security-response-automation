@@ -121,21 +121,15 @@ func TestCloseBucket(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			loggerStub := &stubs.LoggerStub{}
-			l := entities.NewLogger(loggerStub)
-			crmStub := &stubs.ResourceManagerStub{}
-			storageStub := &stubs.StorageStub{}
-			r := entities.NewResource(crmStub, storageStub)
+			ent, crmStub, storageStub := closeBucketSetup()
 			crmStub.GetAncestryResponse = tt.ancestry
-			storageStub.BucketPolicyResponse = &iam.Policy{}
-
 			for _, v := range tt.initialMembers {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
 
-			conf := NewConfiguration(r)
+			conf := NewConfiguration(ent.Resource)
 			conf.FoldersIDs = tt.folderIDs
-			if err := CloseBucket(ctx, tt.incomingLog, r, l, conf); err != nil {
+			if err := CloseBucket(ctx, tt.incomingLog, ent, conf); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
 
@@ -147,4 +141,15 @@ func TestCloseBucket(t *testing.T) {
 			}
 		})
 	}
+}
+
+func closeBucketSetup() (*entities.Entity, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+	loggerStub := &stubs.LoggerStub{}
+	log := entities.NewLogger(loggerStub)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	res := entities.NewResource(crmStub, storageStub)
+
+	storageStub.BucketPolicyResponse = &iam.Policy{}
+	return &entities.Entity{Log: log, Resource: res}, crmStub, storageStub
 }

@@ -18,19 +18,25 @@ package exec
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/clients"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
-const (
-	authFile = "credentials/auth.json"
-)
+var ent *entities.Entity
+
+func init() {
+	ctx := context.Background()
+	var err error
+	ent, err = entities.New(ctx)
+	if err != nil {
+		log.Fatalf("failed to initialize entities: %q", err)
+	}
+}
 
 // RevokeExternalGrantsFolders is the entry point for IAM revoker Cloud Function.
 //
@@ -49,32 +55,7 @@ const (
 // By default the service account used can only revoke projects that are found within the
 // folder ID specified within `action-revoke-member-folders.tf`.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
-	lg, err := clients.NewLogger(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize logger client: %q", err)
-	}
-	l := entities.NewLogger(lg)
-	defer l.Close()
-
-	l.Info("Initializing external members IAM removal")
-
-	if os.Getenv("disallowed") == "" {
-		return fmt.Errorf("disallowed environment variable not found")
-	}
-	crm, err := clients.NewCloudResourceManager(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
-	}
-
-	stg, err := clients.NewStorage(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize storage client: %q", err)
-	}
-	r := entities.NewResource(crm, stg)
-
-	d := strings.Split(os.Getenv("disallowed"), ",")
-
-	conf := cloudfunctions.NewConfiguration(r)
+	conf := cloudfunctions.NewConfiguration(ent.Resource)
 	conf.FoldersIDs = readEnv("folder_ids")
 	conf.ProjectIDs = readEnv("project_ids")
 	conf.OrganizationID = os.Getenv("organization_id")
@@ -82,7 +63,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	if ok := conf.Valid(); !ok {
 		return errors.New("configuration invalid")
 	}
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, r, d, l, conf)
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, ent, conf)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -99,62 +80,12 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 //
 // TODO: Support assigning roles at the folder and organization level.
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	lg, err := clients.NewLogger(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize logger client: %q", err)
-	}
-	l := entities.NewLogger(lg)
-	defer l.Close()
-
-	l.Info("Initializing snapshot generation")
-
-	crm, err := clients.NewCloudResourceManager(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
-	}
-
-	stg, err := clients.NewStorage(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize storage client: %q", err)
-	}
-	r := entities.NewResource(crm, stg)
-
-	cs, err := clients.NewCompute(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize compute client: %q", err)
-	}
-	h := entities.NewHost(cs)
-
-	return cloudfunctions.CreateSnapshot(ctx, m, r, h, l)
-
+	return cloudfunctions.CreateSnapshot(ctx, m, ent)
 }
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	lg, err := clients.NewLogger(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize logger client: %q", err)
-	}
-	l := entities.NewLogger(lg)
-	defer l.Close()
-
-	l.Info("initializing bucket public users removal")
-
-	if os.Getenv("folder_ids") == "" {
-		return fmt.Errorf("folder_ids environment variable not found")
-	}
-	crm, err := clients.NewCloudResourceManager(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
-	}
-
-	stg, err := clients.NewStorage(ctx, authFile)
-	if err != nil {
-		return fmt.Errorf("failed to initialize storage client: %q", err)
-	}
-	r := entities.NewResource(crm, stg)
-
-	conf := cloudfunctions.NewConfiguration(r)
+	conf := cloudfunctions.NewConfiguration(ent.Resource)
 	conf.FoldersIDs = readEnv("folder_ids")
 	conf.ProjectIDs = readEnv("project_ids")
 	conf.OrganizationID = os.Getenv("organization_id")
@@ -162,7 +93,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	if ok := conf.Valid(); !ok {
 		return errors.New("configuration invalid")
 	}
-	return cloudfunctions.CloseBucket(ctx, m, r, l, conf)
+	return cloudfunctions.CloseBucket(ctx, m, ent, conf)
 }
 
 // readEnv reads an environment variable and returns it as a slice of strings (whether it exists or not.)

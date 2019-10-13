@@ -12,6 +12,7 @@ type Configuration struct {
 	FoldersIDs     []string
 	ProjectIDs     []string
 	OrganizationID string
+	Removelist     []string
 
 	resource *entities.Resource
 }

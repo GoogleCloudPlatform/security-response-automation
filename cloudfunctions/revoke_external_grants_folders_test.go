@@ -121,18 +121,15 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			loggerStub := &stubs.LoggerStub{}
-			l := entities.NewLogger(loggerStub)
-			crmStub := &stubs.ResourceManagerStub{}
-			storageStub := &stubs.StorageStub{}
-			r := entities.NewResource(crmStub, storageStub)
+			ent, crmStub := revokeGrantsSetup()
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
 
-			conf := NewConfiguration(r)
+			conf := NewConfiguration(ent.Resource)
 			conf.FoldersIDs = tt.folderID
+			conf.Removelist = tt.disallowed
 
-			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, r, tt.disallowed, l, conf); err != nil {
+			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, ent, conf); err != nil {
 				if !xerrors.Is(errors.Cause(err), tt.expectedError) {
 					t.Errorf("%q failed want:%q got:%q", tt.name, tt.expectedError, errors.Cause(err))
 				}
@@ -194,4 +191,13 @@ func createMessage(member string) pubsub.Message {
 		},
 		"logName": "projects/carise-etdeng-joonix/logs/threatdetection.googleapis.com%2Fdetection"
 	}`)}
+}
+
+func revokeGrantsSetup() (*entities.Entity, *stubs.ResourceManagerStub) {
+	loggerStub := &stubs.LoggerStub{}
+	l := entities.NewLogger(loggerStub)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := entities.NewResource(crmStub, storageStub)
+	return &entities.Entity{Log: l, Resource: r}, crmStub
 }
