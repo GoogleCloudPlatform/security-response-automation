@@ -89,7 +89,7 @@ func TestClosePublicAccess(t *testing.T) {
 	}{
 		{
 			name:             "close public access in a nonexisting database",
-			instance:         "nonexisting",
+			instance:         "not-found",
 			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    fmt.Errorf("the Cloud SQL instance does not exist"),
@@ -98,13 +98,13 @@ func TestClosePublicAccess(t *testing.T) {
 		},
 		{
 			name:             "close public access in a existing database with only one auth ip",
-			instance:         "onepublicip",
+			instance:         "one-public-ip",
 			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: &sqladmin.Operation{},
 			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:    "onepublicip",
+				Name:    "one-public-ip",
 				Project: "project1",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
@@ -116,13 +116,13 @@ func TestClosePublicAccess(t *testing.T) {
 		},
 		{
 			name:             "close public access in a existing database with more than one auth ip",
-			instance:         "instance1",
+			instance:         "two-public-ip",
 			projectID:        "project1",
 			region:           "us-central1",
 			expectedError:    nil,
 			expectedResponse: &sqladmin.Operation{},
 			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:    "instance1",
+				Name:    "two-public-ip",
 				Project: "project1",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
@@ -142,6 +142,46 @@ func TestClosePublicAccess(t *testing.T) {
 			sqlAdminStub := &stubs.CloudSQL{}
 			ctx := context.Background()
 			c := NewCloudSQL(sqlAdminStub)
+
+			if tt.instance == "not-found" {
+				sqlAdminStub.InstanceDetailsResponse = nil
+			}
+
+			if tt.instance == "one-public-ip" {
+				sqlAdminStub.InstanceDetailsResponse = &sqladmin.DatabaseInstance{
+					Name:    tt.instance,
+					Project: tt.projectID,
+					Settings: &sqladmin.Settings{
+						IpConfiguration: &sqladmin.IpConfiguration{
+							AuthorizedNetworks: []*sqladmin.AclEntry{
+								&sqladmin.AclEntry{
+									Value: "0.0.0.0/0",
+								},
+							},
+						},
+					},
+				}
+			}
+
+			if tt.instance == "two-public-ip" {
+				sqlAdminStub.InstanceDetailsResponse = &sqladmin.DatabaseInstance{
+					Name:    tt.instance,
+					Project: tt.projectID,
+					Settings: &sqladmin.Settings{
+						IpConfiguration: &sqladmin.IpConfiguration{
+							AuthorizedNetworks: []*sqladmin.AclEntry{
+								&sqladmin.AclEntry{
+									Value: "0.0.0.0/0",
+								},
+								&sqladmin.AclEntry{
+									Value: "199.27.199.0/24",
+								},
+							},
+						},
+					},
+				}
+			}
+
 			var databaseInstance, err = c.InstanceDetails(ctx, tt.projectID, tt.instance)
 
 			if tt.expectedError != nil && tt.expectedError.Error() != err.Error() {

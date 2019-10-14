@@ -24,9 +24,10 @@ import (
 // ErrResourceNonExistent is an error throw if the entity was not found.
 var ErrResourceNonExistent = fmt.Errorf("the Cloud SQL instance does not exist")
 
-// SQLAdminStub provides a stub for the SQL Admin client.
+// CloudSQL provides a stub for the SQL Admin client.
 type CloudSQL struct {
-	SavedInstanceUpdated *sql.DatabaseInstance
+	SavedInstanceUpdated    *sql.DatabaseInstance
+	InstanceDetailsResponse *sql.DatabaseInstance
 }
 
 // WaitSQL waits globally.
@@ -45,40 +46,9 @@ func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string
 
 // InstanceDetails gets detail from a instance in a project.
 func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sql.DatabaseInstance, error) {
-	if projectID == "nonexisting" || instance == "nonexisting" {
-		return nil, ErrResourceNonExistent
+	if s.InstanceDetailsResponse == nil {
+		return s.InstanceDetailsResponse, ErrResourceNonExistent
 	}
 
-	if projectID == "onepublicip" || instance == "onepublicip" {
-		return &sql.DatabaseInstance{
-			Name:    instance,
-			Project: projectID,
-			Settings: &sql.Settings{
-				IpConfiguration: &sql.IpConfiguration{
-					AuthorizedNetworks: []*sql.AclEntry{
-						&sql.AclEntry{
-							Value: "0.0.0.0/0",
-						},
-					},
-				},
-			},
-		}, nil
-	}
-
-	return &sql.DatabaseInstance{
-		Name:    instance,
-		Project: projectID,
-		Settings: &sql.Settings{
-			IpConfiguration: &sql.IpConfiguration{
-				AuthorizedNetworks: []*sql.AclEntry{
-					&sql.AclEntry{
-						Value: "0.0.0.0/0",
-					},
-					&sql.AclEntry{
-						Value: "199.27.199.0/24",
-					},
-				},
-			},
-		},
-	}, nil
+	return s.InstanceDetailsResponse, nil
 }
