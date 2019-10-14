@@ -24,6 +24,7 @@ import (
 type FirewallClient interface {
 	PatchFirewallRule(context.Context, string, string, *compute.Firewall) (*compute.Operation, error)
 	FirewallRule(context.Context, string, string) (*compute.Firewall, error)
+	DeleteFirewallRule(context.Context, string, string) (*compute.Operation, error)
 	WaitGlobal(string, *compute.Operation) []error
 }
 
@@ -45,6 +46,11 @@ func (f *Firewall) EnableFirewallRule(ctx context.Context, projectID string, rul
 // DisableFirewallRule sets the firewall rule to disabled.
 func (f *Firewall) DisableFirewallRule(ctx context.Context, projectID string, ruleID string, name string) (*compute.Operation, error) {
 	return f.c.PatchFirewallRule(ctx, projectID, ruleID, &compute.Firewall{Name: name, Disabled: true})
+}
+
+// DeleteFirewallRule delete the firewall rule.
+func (f *Firewall) DeleteFirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Operation, error) {
+	return f.c.DeleteFirewallRule(ctx, projectID, ruleID)
 }
 
 // FirewallRule get a firewall rule

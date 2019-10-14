@@ -63,6 +63,11 @@ func (c *Compute) PatchFirewallRule(ctx context.Context, projectID string, rule 
 	return c.compute.Firewalls.Patch(projectID, rule, rb).Context(ctx).Do()
 }
 
+// DeleteFirewallRule deletes the firewall rule for the given project.
+func (c *Compute) DeleteFirewallRule(ctx context.Context, projectID string, rule string) (*compute.Operation, error) {
+	return c.compute.Firewalls.Delete(projectID, rule).Context(ctx).Do()
+}
+
 // GetInstance returns the specified compute instance resource.
 func (c *Compute) GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error) {
 	return c.compute.Instances.Get(project, zone, instance).Context(ctx).Do()
