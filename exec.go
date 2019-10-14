@@ -59,6 +59,7 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 	conf.FoldersIDs = readEnv("folder_ids")
 	conf.ProjectIDs = readEnv("project_ids")
 	conf.OrganizationID = os.Getenv("organization_id")
+	conf.Removelist = readEnv("disallowed")
 
 	if ok := conf.Valid(); !ok {
 		return errors.New("configuration invalid")
