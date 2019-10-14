@@ -24,6 +24,7 @@ import (
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
 	WaitSQL(projectID string, op *sqladmin.Operation) []error
+	UpdateUser(context.Context, string, string, string, string, *sqladmin.User) (*sqladmin.Operation, error)
 }
 
 // CloudSQL entity.
@@ -53,4 +54,12 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 			},
 		},
 	})
+}
+
+// UpdateUserPassword updates a given user its password.
+func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, host, name, password string) (*sqladmin.Operation, error) {
+	user := &sqladmin.User{
+		Password: password,
+	}
+	return s.client.UpdateUser(ctx, projectID, instance, host, name, user)
 }
