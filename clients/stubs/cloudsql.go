@@ -39,3 +39,14 @@ func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string
 	s.SavedInstanceUpdated = databaseInstance
 	return &sql.Operation{}, nil
 }
+
+// UpdateUser updates a given user.
+func (s *CloudSQL) UpdateUser(ctx context.Context, projectID, instance, host, name string, user *sql.User) (*sql.Operation, error) {
+	if projectID == "not-found" {
+		return nil, fmt.Errorf("not found")
+	}
+	if user.Password == "" {
+		return nil, fmt.Errorf("No password provided")
+	}
+	return &sql.Operation{}, nil
+}
