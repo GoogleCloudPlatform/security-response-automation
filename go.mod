@@ -7,8 +7,10 @@ require (
 	cloud.google.com/go v0.45.1
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/pubsub v1.0.1
+	github.com/PagerDuty/go-pagerduty v0.0.0-20191002190746-f60f4fc45222
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.0
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5
 	github.com/mibk/dupl v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1
