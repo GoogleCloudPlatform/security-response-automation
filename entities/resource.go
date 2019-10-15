@@ -170,18 +170,10 @@ func (r *Resource) RemoveMembersOrganization(ctx context.Context, organizationID
 
 // PolicyOrganization returns the IAM policy for the given organization resource.
 func (r *Resource) PolicyOrganization(ctx context.Context, organizationID string) (*crm.Policy, error) {
-	policy, err := r.crm.GetPolicyOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get organization policy: %q", err)
-	}
-	return policy, nil
+	return r.crm.GetPolicyOrganization(ctx, organizationID)
 }
 
-// OrganizationName returns the organization name for the given organization resource.
-func (r *Resource) OrganizationName(ctx context.Context, organizationID string) (string, error) {
-	organization, err := r.crm.GetOrganization(ctx, organizationID)
-	if err != nil {
-		return "", fmt.Errorf("failed to get organization: %q", err)
-	}
-	return organization.DisplayName, nil
+// Organization returns the organization name for the given organization resource.
+func (r *Resource) Organization(ctx context.Context, organizationID string) (*crm.Organization, error) {
+	return r.crm.GetOrganization(ctx, organizationID)
 }
