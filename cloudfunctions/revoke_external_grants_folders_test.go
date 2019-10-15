@@ -121,15 +121,11 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, crmStub := revokeGrantsSetup()
+			ent, crmStub := revokeGrantsSetup(tt.folderID, tt.disallowed)
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
 
-			conf, _ := NewConfiguration()
-			conf.FoldersIDs = tt.folderID
-			conf.Removelist = tt.disallowed
-
-			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, ent, conf); err != nil {
+			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, ent); err != nil {
 				if !xerrors.Is(errors.Cause(err), tt.expectedError) {
 					t.Errorf("%q failed want:%q got:%q", tt.name, tt.expectedError, errors.Cause(err))
 				}
@@ -193,11 +189,19 @@ func createMessage(member string) pubsub.Message {
 	}`)}
 }
 
-func revokeGrantsSetup() (*entities.Entity, *stubs.ResourceManagerStub) {
+func revokeGrantsSetup(folderIDs, disallowed []string) (*entities.Entity, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	l := entities.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	r := entities.NewResource(crmStub, storageStub)
-	return &entities.Entity{Logger: l, Resource: r}, crmStub
+	conf := &entities.Configuration{
+		RevokeGrants: &entities.RevokeGrants{
+			Resources: &entities.Resources{
+				FolderIDs: folderIDs,
+			},
+			Removelist: disallowed,
+		},
+	}
+	return &entities.Entity{Logger: l, Resource: r, Configuration: conf}, crmStub
 }

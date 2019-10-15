@@ -3,12 +3,14 @@ package entities
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/googlecloudplatform/threat-automation/clients"
 )
 
 const (
-	authFile = "credentials/auth.json"
+	authFile     = "credentials/auth.json"
 	settingsFile = "settings.json"
 )
 
@@ -37,10 +39,15 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
+	config, err := initConfiguration()
+	if err != nil {
+		return nil, err
+	}
 	return &Entity{
-		Host:     host,
-		Logger:   log,
-		Resource: res,
+		Configuration: config,
+		Host:          host,
+		Logger:        log,
+		Resource:      res,
 	}, nil
 }
 
@@ -49,11 +56,15 @@ func initConfiguration() (*Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-	conf, err := NewConfiguration(g)
+	b, err := ioutil.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
-	retur conf, nil
+	conf, err := NewConfiguration(b)
+	if err != nil {
+		return nil, err
+	}
+	return conf, nil
 }
 
 func initHost(ctx context.Context) (*Host, error) {
