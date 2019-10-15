@@ -20,3 +20,7 @@ variable "cscc-notifications-topic-prefix" {
 variable "region" {
   type = "string"
 }
+
+variable "findings-topic" {
+  type = "string"
+}

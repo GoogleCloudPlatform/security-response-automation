@@ -21,3 +21,11 @@ output "cscc-notifications-topic-prefix" {
 output "region" {
   value = var.region
 }
+
+output "findings-topic" {
+  value = var.findings-topic
+}
+
+output "organization-id" {
+  value = var.organization-id
+}

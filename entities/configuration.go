@@ -25,7 +25,7 @@ type RevokeGrants struct {
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	CloseBucket  *CloseBucket  `json:"close_bucket"`
-	RevokeGrants *RevokeGrants `json:"remove_grants"`
+	RevokeGrants *RevokeGrants `json:"revoke_grants"`
 }
 
 // NewConfiguration returns a new configuration.
