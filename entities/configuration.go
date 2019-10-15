@@ -2,6 +2,8 @@ package entities
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
 )
 
 // Resources represents common resource IDs used for configuration.
@@ -29,7 +31,15 @@ type Configuration struct {
 }
 
 // NewConfiguration returns a new configuration.
-func NewConfiguration(b []byte) (*Configuration, error) {
+func NewConfiguration(file string) (*Configuration, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
 	c := &Configuration{}
 	if err := json.Unmarshal(b, c); err != nil {
 		return nil, err

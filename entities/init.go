@@ -3,8 +3,6 @@ package entities
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
 
 	"github.com/googlecloudplatform/threat-automation/clients"
 )
@@ -52,15 +50,7 @@ func New(ctx context.Context) (*Entity, error) {
 }
 
 func initConfiguration() (*Configuration, error) {
-	f, err := os.Open(settingsFile)
-	if err != nil {
-		return nil, err
-	}
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	conf, err := NewConfiguration(b)
+	conf, err := NewConfiguration(settingsFile)
 	if err != nil {
 		return nil, err
 	}
