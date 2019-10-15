@@ -1,4 +1,4 @@
-package entities
+package stubs
 
 // Copyright 2019 Google LLC
 //
@@ -14,19 +14,18 @@ package entities
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "github.com/googlecloudplatform/threat-automation/clients"
+import (
+	"github.com/sendgrid/rest"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
+)
 
-// Email is the entity used to send emails.
-type Email struct {
-	service clients.EmailClient
+// SendGridStub provides a stub for the Email client.
+type SendGridStub struct {
+	StubbedSend    *rest.Response
+	StubbedSendErr error
 }
 
-// NewEmail creates a new email entity.
-func NewEmail(service clients.EmailClient) *Email {
-	return &Email{service: service}
-}
-
-// Send will send an email.
-func (m *Email) Send(subject, from, body string, to []string) (*clients.EmailResponse, error) {
-	return m.service.Send(subject, from, body, to)
+// Send to send email
+func (e *SendGridStub) Send(mail *mail.SGMailV3) (*rest.Response, error) {
+	return e.StubbedSend, e.StubbedSendErr
 }

@@ -1,40 +1,63 @@
 package clients
 
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import (
 	"fmt"
+
+	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
+// General email interface and response -----------------------------------/
 const (
-	// Sender name email
-	Sender = "Security Response Automation"
+	// emailSender name used as sender
+	emailSender = "Security Response Automation"
 )
 
-// SendGrid client.
-type SendGrid struct {
-	senderName string
-	service    *sendgrid.Client
+// EmailClient is the interface used for sending emails.
+type EmailClient interface {
+	Send(subject, from, body string, to []string) (*EmailResponse, error)
 }
 
-// EmailResponse email response data
+// EmailResponse email response data.
 type EmailResponse struct {
 	StatusCode int
 	Body       string
 }
 
+// SendGridClient client provider -------------------------------------------------/
+type SendGridClient interface {
+	Send(mail *mail.SGMailV3) (*rest.Response, error)
+}
+
+// SendGrid client.
+type SendGrid struct {
+	Service SendGridClient
+}
+
 // NewSendGridClient returns and initializes the SendGrid client.
 func NewSendGridClient(apiKey string) *SendGrid {
-	return &SendGrid{
-		service:    sendgrid.NewSendClient(apiKey),
-		senderName: Sender,
-	}
+	return &SendGrid{Service: sendgrid.NewSendClient(apiKey)}
 }
 
 // Send email SendGrid.
 func (s *SendGrid) Send(subject, from, body string, to []string) (*EmailResponse, error) {
-	e := createEmail(subject, from, body, s.senderName, to)
-	r, err := s.service.Send(e)
+	e := createEmail(subject, from, body, emailSender, to)
+	r, err := s.Service.Send(e)
 
 	if err != nil {
 		return nil, err
