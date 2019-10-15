@@ -118,6 +118,38 @@ const (
     "createTime": "2019-09-23T17:20:27.934Z"
   }
 }`
+
+	publicIpAddressFinding = `{
+  "notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+  "finding": {
+	"name": "organizations/1055058813388/sources/1986930501971458034/findings/d7ef72093c8c1e4c135d4c43fa847b83",
+	"parent": "organizations/1055058813388/sources/1986930501971458034",
+	"resourceName": "//compute.googleapis.com/projects/sec-automation-dev/zones/us-central1-a/instances/4312755253150365851",
+	"state": "ACTIVE",
+	"category": "PUBLIC_IP_ADDRESS",
+	"externalUri": "https://console.cloud.google.com/compute/instancesDetail/zones/us-central1-a/instances/remove-public-ip-test-vm",
+	"sourceProperties": {
+	  "ReactivationCount": 0,
+	  "ExceptionInstructions": "Add the security mark \"allow_public_ip_address\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+	  "SeverityLevel": "High",
+	  "Recommendation": "If this is unintended, please go to https://console.cloud.google.com/compute/instancesDetail/zones/us-central1-a/instances/remove-public-ip-test-vm and click \"Edit\". For each interface under the \"Network interfaces\" heading, set \"External IP\" to \"None\" or \"Ephemeral\", then click \"Done\" and \"Save\".  If you would like to learn more about securing access to your infrastructure, see https://cloud.google.com/solutions/connecting-securely.",
+	  "ProjectId": "sec-automation-dev",
+	  "AssetCreationTime": "2019-10-04T10:50:45.017-07:00",
+	  "ScannerName": "COMPUTE_INSTANCE_SCANNER",
+	  "ScanRunId": "2019-10-10T00:01:51.204-07:00",
+	  "Explanation": "To reduce the attack surface, avoid assigning public IP addresses to your VMs."
+	},
+	"securityMarks": {
+	  "name": "organizations/1055058813388/sources/1986930501971458034/findings/d7ef72093c8c1e4c135d4c43fa847b83/securityMarks",
+	  "marks": {
+		"kieras-test": "true",
+		"kieras-test2": "true"
+	  }
+	},
+	"eventTime": "2019-10-10T07:01:51.204Z",
+	"createTime": "2019-10-04T19:02:25.582Z"
+  }
+}`
 )
 
 func TestForShaFailures(t *testing.T) {
@@ -289,6 +321,36 @@ func TestForShaStorageScanner(t *testing.T) {
 			}
 			if f != nil && f.BucketName() != tt.expBucketName {
 				t.Errorf("%s failed for BucketName got:%q want:%q", tt.name, f.BucketName(), tt.expBucketName)
+			}
+		})
+	}
+}
+
+func TestForShaComputeInstanceScanner(t *testing.T) {
+	test := []struct {
+		name        string
+		message     *pubsub.Message
+		expZone     string
+		expInstance string
+	}{
+		{
+			name:        "valid SHA Compute Instance Scanner finding",
+			message:     &pubsub.Message{Data: []byte(publicIpAddressFinding)},
+			expZone:     "us-central1-a",
+			expInstance: "remove-public-ip-test-vm",
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			f, err := NewComputeInstanceScanner(tt.message)
+			if err != nil {
+				t.Errorf("%s failed to read finding:%q", tt.name, err)
+			}
+			if f != nil && f.Zone() != tt.expZone {
+				t.Errorf("%s failed for Zone got:%q want:%q", tt.name, f.Zone(), tt.expZone)
+			}
+			if f != nil && f.Instance() != tt.expInstance {
+				t.Errorf("%s failed for Instance got:%q want:%q", tt.name, f.Instance(), tt.expInstance)
 			}
 		})
 	}
