@@ -42,11 +42,11 @@ func CloseBucket(ctx context.Context, m pubsub.Message, ent *entities.Entity, co
 		return nil
 	}
 
-	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), remove(ctx, finding, ent.Log, ent.Resource)); err != nil {
+	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), remove(ctx, finding, ent.Logger, ent.Resource)); err != nil {
 		return errors.Wrap(err, "folders failed")
 	}
 
-	if err := conf.IfProjectInProjects(ctx, finding.ProjectID(), remove(ctx, finding, ent.Log, ent.Resource)); err != nil {
+	if err := conf.IfProjectInProjects(ctx, finding.ProjectID(), remove(ctx, finding, ent.Logger, ent.Resource)); err != nil {
 		return errors.Wrap(err, "projects failed")
 	}
 

@@ -199,5 +199,5 @@ func revokeGrantsSetup() (*entities.Entity, *stubs.ResourceManagerStub) {
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	r := entities.NewResource(crmStub, storageStub)
-	return &entities.Entity{Log: l, Resource: r}, crmStub
+	return &entities.Entity{Logger: l, Resource: r}, crmStub
 }

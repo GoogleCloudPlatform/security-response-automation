@@ -151,5 +151,5 @@ func closeBucketSetup() (*entities.Entity, *stubs.ResourceManagerStub, *stubs.St
 	res := entities.NewResource(crmStub, storageStub)
 
 	storageStub.BucketPolicyResponse = &iam.Policy{}
-	return &entities.Entity{Log: log, Resource: res}, crmStub, storageStub
+	return &entities.Entity{Logger: log, Resource: res}, crmStub, storageStub
 }

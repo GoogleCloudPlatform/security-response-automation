@@ -13,7 +13,7 @@ const (
 
 // Entity holds all initialized entities.
 type Entity struct {
-	Log      *Logger
+	Logger   *Logger
 	Resource *Resource
 	Host     *Host
 }
@@ -37,7 +37,7 @@ func New(ctx context.Context) (*Entity, error) {
 
 	return &Entity{
 		Host:     host,
-		Log:      log,
+		Logger:   log,
 		Resource: res,
 	}, nil
 }

@@ -42,18 +42,19 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, ent *ent
 	}
 
 	members := toRemove(finding.ExternalMembers(), conf.Removelist)
-	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), revokeMembers(ctx, finding, ent.Resource, members)); err != nil {
-		return errors.Wrap(err, "folders failed")
+	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), revokeMembers(ctx, finding.ProjectID(), ent.Logger, ent.Resource, members)); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func revokeMembers(ctx context.Context, finding *etd.ExternalMembersFinding, res *entities.Resource, members []string) func() error {
+func revokeMembers(ctx context.Context, projectID string, log *entities.Logger, res *entities.Resource, members []string) func() error {
 	return func() error {
-		if _, err := res.RemoveMembersProject(ctx, finding.ProjectID(), members); err != nil {
+		if _, err := res.RemoveMembersProject(ctx, projectID, members); err != nil {
 			return err
 		}
+		log.Info("successfully removed %q from %s", members, projectID)
 		return nil
 	}
 }
