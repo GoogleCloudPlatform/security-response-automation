@@ -47,6 +47,11 @@ func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string
 	return s.service.Instances.Patch(projectID, instance, databaseInstance).Do()
 }
 
+// InstanceDetails gets detail from a instance in a project
+func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
+	return s.service.Instances.Get(projectID, instance).Do()
+}
+
 // WaitSQL will wait for the global operation to complete.
 func (s *CloudSQL) WaitSQL(projectID string, op *sqladmin.Operation) []error {
 	return waitSQL(op, func() (*sqladmin.Operation, error) {
