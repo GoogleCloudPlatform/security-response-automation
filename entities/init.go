@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	authFile = "credentials/auth.json"
+	authFile     = "credentials/auth.json"
 	settingsFile = "settings.json"
 )
 
@@ -37,23 +37,24 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
+	config, err := initConfiguration()
+	if err != nil {
+		return nil, err
+	}
 	return &Entity{
-		Host:     host,
-		Logger:   log,
-		Resource: res,
+		Configuration: config,
+		Host:          host,
+		Logger:        log,
+		Resource:      res,
 	}, nil
 }
 
 func initConfiguration() (*Configuration, error) {
-	f, err := os.Open(settingsFile)
+	conf, err := NewConfiguration(settingsFile)
 	if err != nil {
 		return nil, err
 	}
-	conf, err := NewConfiguration(g)
-	if err != nil {
-		return nil, err
-	}
-	retur conf, nil
+	return conf, nil
 }
 
 func initHost(ctx context.Context) (*Host, error) {
