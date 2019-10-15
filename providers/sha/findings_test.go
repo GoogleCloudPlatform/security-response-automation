@@ -337,7 +337,7 @@ func TestForShaComputeInstanceScanner(t *testing.T) {
 			name:        "valid SHA Compute Instance Scanner finding",
 			message:     &pubsub.Message{Data: []byte(publicIpAddressFinding)},
 			expZone:     "us-central1-a",
-			expInstance: "remove-public-ip-test-vm",
+			expInstance: "4312755253150365851",
 		},
 	}
 	for _, tt := range test {

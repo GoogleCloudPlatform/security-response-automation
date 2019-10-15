@@ -58,10 +58,10 @@ func (f *ComputeInstanceScanner) validate() bool {
 
 // Zone returns the zone of the instance.
 func (f *ComputeInstanceScanner) Zone() string {
-	return extractZone.FindStringSubmatch(f.ExternalURI())[1]
+	return extractZone.FindStringSubmatch(f.ResourceName())[1]
 }
 
 // Instance returns the name of the instance.
 func (f *ComputeInstanceScanner) Instance() string {
-	return extractInstance.FindStringSubmatch(f.ExternalURI())[1]
+	return extractInstance.FindStringSubmatch(f.ResourceName())[1]
 }

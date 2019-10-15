@@ -107,8 +107,3 @@ func (f *Finding) ScannerName() string {
 func (f *Finding) ProjectID() string {
 	return f.base.Finding.SourceProperties.ProjectID
 }
-
-// ExternalURI returns the Security Health Analytics finding ExternalURI
-func (f *Finding) ExternalURI() string {
-	return f.base.Finding.ExternalURI
-}
