@@ -21,9 +21,13 @@ import (
 	sql "google.golang.org/api/sqladmin/v1beta4"
 )
 
-// CloudSQL provides a stub for the Cloud SQL client.
+// ErrResourceNonExistent is an error throw if the entity was not found.
+var ErrResourceNonExistent = fmt.Errorf("the Cloud SQL instance does not exist")
+
+// CloudSQL provides a stub for the SQL Admin client.
 type CloudSQL struct {
-	SavedInstanceUpdated *sql.DatabaseInstance
+	SavedInstanceUpdated    *sql.DatabaseInstance
+	InstanceDetailsResponse *sql.DatabaseInstance
 }
 
 // WaitSQL waits globally.
@@ -38,4 +42,13 @@ func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string
 	}
 	s.SavedInstanceUpdated = databaseInstance
 	return &sql.Operation{}, nil
+}
+
+// InstanceDetails gets detail from a instance in a project.
+func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sql.DatabaseInstance, error) {
+	if s.InstanceDetailsResponse == nil {
+		return s.InstanceDetailsResponse, ErrResourceNonExistent
+	}
+
+	return s.InstanceDetailsResponse, nil
 }
