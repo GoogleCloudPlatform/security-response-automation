@@ -9,13 +9,15 @@ import (
 
 const (
 	authFile = "credentials/auth.json"
+	settingsFile = "settings.json"
 )
 
 // Entity holds all initialized entities.
 type Entity struct {
-	Logger   *Logger
-	Resource *Resource
-	Host     *Host
+	Configuration *Configuration
+	Logger        *Logger
+	Resource      *Resource
+	Host          *Host
 }
 
 // New returns an initialized Entity struct.
@@ -40,6 +42,18 @@ func New(ctx context.Context) (*Entity, error) {
 		Logger:   log,
 		Resource: res,
 	}, nil
+}
+
+func initConfiguration() (*Configuration, error) {
+	f, err := os.Open(settingsFile)
+	if err != nil {
+		return nil, err
+	}
+	conf, err := NewConfiguration(g)
+	if err != nil {
+		return nil, err
+	}
+	retur conf, nil
 }
 
 func initHost(ctx context.Context) (*Host, error) {

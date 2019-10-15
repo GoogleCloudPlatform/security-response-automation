@@ -55,7 +55,7 @@ func init() {
 // By default the service account used can only revoke projects that are found within the
 // folder ID specified within `action-revoke-member-folders.tf`.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
-	conf := cloudfunctions.NewConfiguration(ent.Resource)
+	conf := entities.NewLocalConfiguration()
 	conf.FoldersIDs = readEnv("folder_ids")
 	conf.ProjectIDs = readEnv("project_ids")
 	conf.OrganizationID = os.Getenv("organization_id")
@@ -86,7 +86,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	conf := cloudfunctions.NewConfiguration(ent.Resource)
+	conf := entities.NewLocalConfiguration()
 	conf.FoldersIDs = readEnv("folder_ids")
 	conf.ProjectIDs = readEnv("project_ids")
 	conf.OrganizationID = os.Getenv("organization_id")

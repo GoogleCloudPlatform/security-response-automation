@@ -127,7 +127,7 @@ func TestCloseBucket(t *testing.T) {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
 
-			conf := NewConfiguration(ent.Resource)
+			conf, _ := NewConfiguration()
 			conf.FoldersIDs = tt.folderIDs
 			if err := CloseBucket(ctx, tt.incomingLog, ent, conf); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)

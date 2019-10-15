@@ -125,7 +125,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
 
-			conf := NewConfiguration(ent.Resource)
+			conf, _ := NewConfiguration()
 			conf.FoldersIDs = tt.folderID
 			conf.Removelist = tt.disallowed
 

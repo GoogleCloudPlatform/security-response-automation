@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/iam"
+	"github.com/pkg/errors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
@@ -165,4 +166,31 @@ func (r *Resource) RemoveMembersOrganization(ctx context.Context, organizationID
 		return nil, fmt.Errorf("failed to set project policy: %q", err)
 	}
 	return s, nil
+}
+
+// IfProjectInFolders will apply the function if the project ID is within the folder IDs.
+func (r *Resource) IfProjectInFolders(ctx context.Context, ids []string, projectID string, fn func() error) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	ancestors, err := r.GetProjectAncestry(ctx, projectID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get project ancestry")
+	}
+	for _, resource := range ancestors {
+		for _, folderID := range ids {
+			if resource != "folders/"+folderID {
+				continue
+			}
+			if err := fn(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// IfProjectInProjects will apply the function if the project ID is within the project IDs.
+func (r *Resource) IfProjectInProjects(_ context.Context, _ []string, _ string, _ func() error) error {
+	return nil
 }
