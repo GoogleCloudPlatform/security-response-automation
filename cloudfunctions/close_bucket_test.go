@@ -27,7 +27,8 @@ import (
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
-const publicBucketFinding = `{
+const (
+	publicBucketFinding = `{
   "notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
   "finding": {
     "name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
@@ -57,6 +58,29 @@ const publicBucketFinding = `{
     "createTime": "2019-09-23T17:20:27.934Z"
   }
 }`
+	otherFinding = `{
+	"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+	"finding": {
+	  "name": "organizations/154584661726/sources/2673592633662526977/findings/b16185f412d8a9b89d5615827f095df7",
+	  "parent": "organizations/154584661726/sources/2673592633662526977",
+	  "resourceName": "//compute.googleapis.com/projects/potent-minutia-246715/global/firewalls/8415669281173672995",
+	  "state": "ACTIVE",
+	  "category": "SOMETHING_ELSE",
+	  "externalUri": "https://console.cloud.google.com/networking/firewalls/details/allow-mysql-3306?project=potent-minutia-246715",
+	  "sourceProperties": {
+		"ScannerName": "STORAGE_SCANNER"
+	  },
+	  "securityMarks": {
+		"name": "organizations/154584661726/sources/2673592633662526977/findings/b16185f412d8a9b89d5615827f095df7/securityMarks",
+		"marks": {
+		  "f": "f"
+		}
+	  },
+	  "eventTime": "2019-09-23T22:10:56.633Z",
+	  "createTime": "2019-09-23T17:20:28.054Z"
+	}
+  }`
+)
 
 func TestCloseBucket(t *testing.T) {
 	ctx := context.Background()
@@ -78,31 +102,54 @@ func TestCloseBucket(t *testing.T) {
 			expected:       []string{"member:tom@tom.com"},
 			ancestry:       createAncestors([]string{"folder/123"}),
 		},
+		{
+			name:           "wrong finding category",
+			incomingLog:    pubsub.Message{Data: []byte(otherFinding)},
+			initialMembers: []string{"allUsers", "member:tom@tom.com"},
+			folderIDs:      []string{"123"},
+			expected:       nil,
+			ancestry:       createAncestors([]string{"folder/123"}),
+		},
+		{
+			name:           "no folders",
+			incomingLog:    pubsub.Message{Data: []byte(otherFinding)},
+			initialMembers: []string{"allUsers", "member:tom@tom.com"},
+			folderIDs:      nil,
+			expected:       nil,
+			ancestry:       createAncestors([]string{"folder/123"}),
+		},
 	}
 	for _, tt := range test {
-
 		t.Run(tt.name, func(t *testing.T) {
-			loggerStub := &stubs.LoggerStub{}
-			l := entities.NewLogger(loggerStub)
-			crmStub := &stubs.ResourceManagerStub{}
-			storageStub := &stubs.StorageStub{}
-			r := entities.NewResource(crmStub, storageStub)
+			ent, crmStub, storageStub := closeBucketSetup()
 			crmStub.GetAncestryResponse = tt.ancestry
-			storageStub.BucketPolicyResponse = &iam.Policy{}
-
 			for _, v := range tt.initialMembers {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
 
-			if err := CloseBucket(ctx, tt.incomingLog, r, tt.folderIDs, l); err != nil {
+			conf := NewConfiguration(ent.Resource)
+			conf.FoldersIDs = tt.folderIDs
+			if err := CloseBucket(ctx, tt.incomingLog, ent, conf); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
-				return
 			}
 
-			s := storageStub.RemoveBucketPolicy.Members("project/viewer")
-			if diff := cmp.Diff(s, tt.expected); diff != "" {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expected, s)
+			if tt.expected != nil {
+				s := storageStub.RemoveBucketPolicy.Members("project/viewer")
+				if diff := cmp.Diff(s, tt.expected); diff != "" {
+					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expected, s)
+				}
 			}
 		})
 	}
+}
+
+func closeBucketSetup() (*entities.Entity, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+	loggerStub := &stubs.LoggerStub{}
+	log := entities.NewLogger(loggerStub)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	res := entities.NewResource(crmStub, storageStub)
+
+	storageStub.BucketPolicyResponse = &iam.Policy{}
+	return &entities.Entity{Logger: log, Resource: res}, crmStub, storageStub
 }

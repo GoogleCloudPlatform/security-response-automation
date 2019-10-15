@@ -214,28 +214,28 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 			organizationID: "organizations/10000111100",
 			removeMembers:  []string{"user:tim@thegmail.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-			expected:		createBindings([]string{"user:bob@gmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:       createBindings([]string{"user:bob@gmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 		{
 			name:           "remove more than one member",
 			organizationID: "organizations/10000111100",
 			removeMembers:  []string{"user:bob@gmail.com", "user:tim@thegmail.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-			expected:		createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:       createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 		{
 			name:           "remove all",
 			organizationID: "organizations/10000111100",
 			removeMembers:  []string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-			expected: 		createBindings([]string{}),
+			expected:       createBindings([]string{}),
 		},
 		{
 			name:           "none passed",
 			organizationID: "organizations/10000111100",
 			removeMembers:  []string{},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-			expected:		createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:       createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 	}
 	for _, tt := range tests {
