@@ -30,6 +30,7 @@ type crmClient interface {
 	GetPolicyProject(context.Context, string) (*crm.Policy, error)
 	GetPolicyOrganization(context.Context, string) (*crm.Policy, error)
 	SetPolicyOrganization(context.Context, string, *crm.Policy) (*crm.Policy, error)
+	GetOrganization(context.Context, string) (*crm.Organization, error)
 }
 
 type storageClient interface {
@@ -165,4 +166,22 @@ func (r *Resource) RemoveMembersOrganization(ctx context.Context, organizationID
 		return nil, fmt.Errorf("failed to set project policy: %q", err)
 	}
 	return s, nil
+}
+
+// PolicyOrganization returns the IAM policy for the given organization resource.
+func (r *Resource) PolicyOrganization(ctx context.Context, organizationID string) (*crm.Policy, error) {
+	policy, err := r.crm.GetPolicyOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get organization policy: %q", err)
+	}
+	return policy, nil
+}
+
+// OrganizationName returns the organization name for the given organization resource.
+func (r *Resource) OrganizationName(ctx context.Context, organizationID string) (string, error) {
+	organization, err := r.crm.GetOrganization(ctx, organizationID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get organization: %q", err)
+	}
+	return organization.DisplayName, nil
 }

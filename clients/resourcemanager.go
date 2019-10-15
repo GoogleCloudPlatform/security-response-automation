@@ -61,3 +61,8 @@ func (c *CloudResourceManager) GetPolicyOrganization(ctx context.Context, organi
 func (c *CloudResourceManager) SetPolicyOrganization(ctx context.Context, organizationID string, p *crm.Policy) (*crm.Policy, error) {
 	return c.service.Organizations.SetIamPolicy(organizationID, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
 }
+
+// GetOrganization returns the organization info.
+func (c *CloudResourceManager) GetOrganization(ctx context.Context, organizationID string) (*crm.Organization, error) {
+	return c.service.Organizations.Get(organizationID).Context(ctx).Do()
+}
