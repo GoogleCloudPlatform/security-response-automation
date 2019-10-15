@@ -35,14 +35,15 @@ import (
 // Additionally check to see if the affected project is in the specified folder. If the grant
 // was to a domain explicitly disallowed and within the folder then remove the member from the
 // entire IAM policy for the resource.
-func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, ent *entities.Entity, conf *Configuration) error {
+func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
 	finding, err := etd.NewExternalMembersFinding(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
 	}
 
-	members := toRemove(finding.ExternalMembers(), conf.Removelist)
-	if err := ent.Resource.IfProjectInFolders(ctx, conf.FoldersIDs, finding.ProjectID(), revokeMembers(ctx, finding.ProjectID(), ent.Logger, ent.Resource, members)); err != nil {
+	conf := ent.Configuration
+	members := toRemove(finding.ExternalMembers(), conf.RevokeGrants.Removelist)
+	if err := ent.Resource.IfProjectInFolders(ctx, conf.RevokeGrants.Resources.FolderIDs, finding.ProjectID(), revokeMembers(ctx, finding.ProjectID(), ent.Logger, ent.Resource, members)); err != nil {
 		return err
 	}
 

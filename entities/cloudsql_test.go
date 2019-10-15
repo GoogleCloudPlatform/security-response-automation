@@ -127,7 +127,7 @@ func TestClosePublicAccess(t *testing.T) {
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						AuthorizedNetworks: []*sqladmin.AclEntry{
-							&sqladmin.AclEntry{
+							{
 								Value: "199.27.199.0/24",
 							},
 						},
@@ -154,7 +154,7 @@ func TestClosePublicAccess(t *testing.T) {
 					Settings: &sqladmin.Settings{
 						IpConfiguration: &sqladmin.IpConfiguration{
 							AuthorizedNetworks: []*sqladmin.AclEntry{
-								&sqladmin.AclEntry{
+								{
 									Value: "0.0.0.0/0",
 								},
 							},
@@ -170,10 +170,10 @@ func TestClosePublicAccess(t *testing.T) {
 					Settings: &sqladmin.Settings{
 						IpConfiguration: &sqladmin.IpConfiguration{
 							AuthorizedNetworks: []*sqladmin.AclEntry{
-								&sqladmin.AclEntry{
+								{
 									Value: "0.0.0.0/0",
 								},
-								&sqladmin.AclEntry{
+								{
 									Value: "199.27.199.0/24",
 								},
 							},

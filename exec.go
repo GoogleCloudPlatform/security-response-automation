@@ -17,10 +17,7 @@ package exec
 
 import (
 	"context"
-	"errors"
 	"log"
-	"os"
-	"strings"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions"
@@ -55,16 +52,7 @@ func init() {
 // By default the service account used can only revoke projects that are found within the
 // folder ID specified within `action-revoke-member-folders.tf`.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
-	conf := entities.NewLocalConfiguration()
-	conf.FoldersIDs = readEnv("folder_ids")
-	conf.ProjectIDs = readEnv("project_ids")
-	conf.OrganizationID = os.Getenv("organization_id")
-	conf.Removelist = readEnv("disallowed")
-
-	if ok := conf.Valid(); !ok {
-		return errors.New("configuration invalid")
-	}
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, ent, conf)
+	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, ent)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -86,21 +74,5 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	conf := entities.NewLocalConfiguration()
-	conf.FoldersIDs = readEnv("folder_ids")
-	conf.ProjectIDs = readEnv("project_ids")
-	conf.OrganizationID = os.Getenv("organization_id")
-
-	if ok := conf.Valid(); !ok {
-		return errors.New("configuration invalid")
-	}
-	return cloudfunctions.CloseBucket(ctx, m, ent, conf)
-}
-
-// readEnv reads an environment variable and returns it as a slice of strings (whether it exists or not.)
-func readEnv(env string) []string {
-	if os.Getenv(env) == "" {
-		return []string{}
-	}
-	return strings.Split(os.Getenv(env), ",")
+	return cloudfunctions.CloseBucket(ctx, m, ent)
 }
