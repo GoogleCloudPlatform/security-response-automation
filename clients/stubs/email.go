@@ -1,9 +1,5 @@
 package stubs
 
-import (
-	"github.com/googlecloudplatform/threat-automation/clients"
-)
-
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +13,10 @@ import (
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+import (
+	"github.com/googlecloudplatform/threat-automation/clients"
+)
 
 // EmailStub provides a stub for the Email client.
 type EmailStub struct {
