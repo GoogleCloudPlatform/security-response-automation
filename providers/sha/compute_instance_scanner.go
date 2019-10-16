@@ -34,7 +34,7 @@ type ComputeInstanceScanner struct {
 	*Finding
 }
 
-// NewFirewallScanner creates a new FirewallScanner
+// NewComputeInstanceScanner creates a new FirewallScanner.
 func NewComputeInstanceScanner(ps *pubsub.Message) (*ComputeInstanceScanner, error) {
 	f := ComputeInstanceScanner{}
 

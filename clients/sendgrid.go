@@ -16,28 +16,15 @@ package clients
 
 import (
 	"fmt"
-
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
-// General email interface and response -----------------------------------/
 const (
-	// emailSender name used as sender
+	// emailSender name used as sender.
 	emailSender = "Security Response Automation"
 )
-
-// EmailClient is the interface used for sending emails.
-type EmailClient interface {
-	Send(subject, from, body string, to []string) (*EmailResponse, error)
-}
-
-// EmailResponse email response data.
-type EmailResponse struct {
-	StatusCode int
-	Body       string
-}
 
 // SendGridClient client provider -------------------------------------------------/
 type SendGridClient interface {
@@ -55,7 +42,7 @@ func NewSendGridClient(apiKey string) *SendGrid {
 }
 
 // Send email SendGrid.
-func (s *SendGrid) Send(subject, from, body string, to []string) (*EmailResponse, error) {
+func (s *SendGrid) Send(subject, from, body string, to []string) (*rest.Response, error) {
 	e := createEmail(subject, from, body, emailSender, to)
 	r, err := s.Service.Send(e)
 
@@ -67,7 +54,7 @@ func (s *SendGrid) Send(subject, from, body string, to []string) (*EmailResponse
 		return nil, fmt.Errorf("Error to send email. StatusCode:(%d)", r.StatusCode)
 	}
 
-	return &EmailResponse{StatusCode: r.StatusCode, Body: r.Body}, err
+	return r, err
 }
 
 func createEmail(subject, from, body, sender string, to []string) *mail.SGMailV3 {
