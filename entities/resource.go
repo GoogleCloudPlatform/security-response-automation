@@ -31,6 +31,7 @@ type crmClient interface {
 	GetPolicyProject(context.Context, string) (*crm.Policy, error)
 	GetPolicyOrganization(context.Context, string) (*crm.Policy, error)
 	SetPolicyOrganization(context.Context, string, *crm.Policy) (*crm.Policy, error)
+	GetOrganization(context.Context, string) (*crm.Organization, error)
 }
 
 type storageClient interface {
@@ -166,6 +167,16 @@ func (r *Resource) RemoveMembersOrganization(ctx context.Context, organizationID
 		return nil, fmt.Errorf("failed to set project policy: %q", err)
 	}
 	return s, nil
+}
+
+// PolicyOrganization returns the IAM policy for the given organization resource.
+func (r *Resource) PolicyOrganization(ctx context.Context, organizationID string) (*crm.Policy, error) {
+	return r.crm.GetPolicyOrganization(ctx, organizationID)
+}
+
+// Organization returns the organization name for the given organization resource.
+func (r *Resource) Organization(ctx context.Context, organizationID string) (*crm.Organization, error) {
+	return r.crm.GetOrganization(ctx, organizationID)
 }
 
 // IfProjectInFolders will apply the function if the project ID is within the folder IDs.
