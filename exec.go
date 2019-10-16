@@ -76,3 +76,8 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	return cloudfunctions.CloseBucket(ctx, m, ent)
 }
+
+// DisableFirewall will disable an open firewall found by SHA
+func DisableFirewall(ctx context.Context, m pubsub.Message) error {
+	return cloudfunctions.DisableFirewall(ctx, m, ent)
+}

@@ -18,6 +18,10 @@ type CloseBucket struct {
 	Resources *Resources
 }
 
+type DisableFirewall struct {
+	Resources *Resources
+}
+
 // RevokeGrants contains configuration required for the Revoke Grants function.
 type RevokeGrants struct {
 	Resources  *Resources
@@ -26,8 +30,9 @@ type RevokeGrants struct {
 
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	CloseBucket  *CloseBucket  `json:"close_bucket"`
-	RevokeGrants *RevokeGrants `json:"revoke_grants"`
+	CloseBucket     *CloseBucket     `json:"close_bucket"`
+	RevokeGrants    *RevokeGrants    `json:"revoke_grants"`
+	DisableFirewall *DisableFirewall `json:"disable_firewall"`
 }
 
 // NewConfiguration returns a new configuration.

@@ -18,6 +18,7 @@ type Entity struct {
 	Logger        *Logger
 	Resource      *Resource
 	Host          *Host
+	Firewall      *Firewall
 }
 
 // New returns an initialized Entity struct.
@@ -37,6 +38,11 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
+	fw, err := initFirewall(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	config, err := initConfiguration()
 	if err != nil {
 		return nil, err
@@ -46,6 +52,7 @@ func New(ctx context.Context) (*Entity, error) {
 		Host:          host,
 		Logger:        log,
 		Resource:      res,
+		Firewall:      fw,
 	}, nil
 }
 
@@ -83,4 +90,13 @@ func initResource(ctx context.Context) (*Resource, error) {
 		return nil, fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	return NewResource(crm, stg), nil
+}
+
+func initFirewall(ctx context.Context) (*Firewall, error) {
+
+	cs, err := clients.NewCompute(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
+	}
+	return NewFirewall(cs), nil
 }
