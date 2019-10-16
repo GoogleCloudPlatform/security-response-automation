@@ -52,6 +52,11 @@ func (c *ComputeStub) PatchFirewallRule(ctx context.Context, projectID string, r
 	return nil, nil
 }
 
+// DeleteFirewallRule deletes the firewall rule for the given project.
+func (c *ComputeStub) DeleteFirewallRule(ctx context.Context, projectID string, rule string) (*compute.Operation, error) {
+	return nil, nil
+}
+
 // FirewallRule get the details of a firewall rule
 func (c *ComputeStub) FirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Firewall, error) {
 	return c.StubbedFirewall, nil
