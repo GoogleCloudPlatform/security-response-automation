@@ -33,7 +33,7 @@ var (
 )
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
-func CloseBucket(ctx context.Context, m pubsub.Message, ent *entities.Entity, conf *Configuration) error {
+func CloseBucket(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
 	finding, err := sha.NewStorageScanner(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
@@ -42,11 +42,11 @@ func CloseBucket(ctx context.Context, m pubsub.Message, ent *entities.Entity, co
 		return nil
 	}
 
-	if err := conf.IfProjectInFolders(ctx, finding.ProjectID(), remove(ctx, finding, ent.Logger, ent.Resource)); err != nil {
+	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseBucket.Resources.FolderIDs, finding.ProjectID(), remove(ctx, finding, ent.Logger, ent.Resource)); err != nil {
 		return errors.Wrap(err, "folders failed")
 	}
 
-	if err := conf.IfProjectInProjects(ctx, finding.ProjectID(), remove(ctx, finding, ent.Logger, ent.Resource)); err != nil {
+	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseBucket.Resources.ProjectIDs, finding.ProjectID(), remove(ctx, finding, ent.Logger, ent.Resource)); err != nil {
 		return errors.Wrap(err, "projects failed")
 	}
 

@@ -16,3 +16,11 @@ variable "organization-id" {
 variable "cscc-notifications-topic-prefix" {
   type = "string"
 }
+
+variable "region" {
+  type = "string"
+}
+
+variable "findings-topic" {
+  type = "string"
+}

@@ -18,20 +18,19 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   description           = "Revokes IAM Event Threat Detection anomalous IAM grants."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.gcf-bucket-name}"
-  source_archive_object = "${var.gcf-object-name}"
+  source_archive_bucket = "${var.setup.gcf-bucket-name}"
+  source_archive_object = "${var.setup.gcf-object-name}"
   timeout               = 60
-  project               = "${var.automation-project}"
-  region                = "${var.region}"
+  project               = "${var.setup.automation-project}"
+  region                = "${var.setup.region}"
   entry_point           = "RevokeExternalGrantsFolders"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.findings-topic}"
+    resource   = "${var.setup.findings-topic}"
   }
 
   environment_variables = {
-    disallowed = "${join(",", var.disallowed-domains)}"
     folder_ids = "${join(",", var.folder-ids)}"
   }
 }
@@ -42,7 +41,7 @@ resource "google_folder_iam_member" "revoke_member_cloudfunction-folder-bind" {
 
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/resourcemanager.folderAdmin"
-  member = "serviceAccount:${var.automation-service-account}"
+  member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
 # In order for this GCF to be able to enumerate and check to see if the affected project is within
@@ -58,5 +57,5 @@ resource "google_folder_iam_member" "revoke_member_viewer_cloudfunction-folder-b
 
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/viewer"
-  member = "serviceAccount:${var.automation-service-account}"
+  member = "serviceAccount:${var.setup.automation-service-account}"
 }

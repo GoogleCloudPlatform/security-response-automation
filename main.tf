@@ -25,25 +25,17 @@ provider "google" {
 module "google-setup" {
   source = "./automations/modules/google-setup"
 
+  region                          = "${local.region}"
   organization-id                 = "${var.organization-id}"
   automation-project              = "${var.automation-project}"
   findings-project                = "${var.findings-project}"
   cscc-notifications-topic-prefix = "${local.cscc-findings-topic}"
+  findings-topic                  = "${local.findings-topic}"
 }
 
 module "close_public_bucket" {
   source = "./automations/close-public-bucket"
-
-  automation-project         = "${var.automation-project}"
-  automation-service-account = "${module.google-setup.automation-service-account}"
-  cscc-notifications-topic   = "${local.cscc-findings-topic}-topic"
-  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
-  gcf-object-name            = "${module.google-setup.gcf-object-name}"
-  organization-id            = "${var.automation-project}"
-  region                     = "${local.region}"
-
-  # Remove public users from any projects found by Security Health Analytics that are within the
-  # following folder IDs.
+  setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",
   ]
@@ -51,32 +43,13 @@ module "close_public_bucket" {
 
 module "revoke_iam_grants" {
   source = "./automations/revoke-iam-grants"
-
-  automation-project         = "${var.automation-project}"
-  automation-service-account = "${module.google-setup.automation-service-account}"
-  findings-topic             = "${local.findings-topic}"
-  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
-  gcf-object-name            = "${module.google-setup.gcf-object-name}"
-  region                     = "${local.region}"
-
+  setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",
-  ]
-  disallowed-domains = [
-    "gmail.com",
-    "test.com",
   ]
 }
 
 module "create_disk_snapshot" {
   source = "./automations/create-disk-snapshot"
-
-  automation-project         = "${var.automation-project}"
-  automation-service-account = "${module.google-setup.automation-service-account}"
-  findings-topic             = "${local.findings-topic}"
-  gcf-bucket-name            = "${module.google-setup.gcf-bucket-name}"
-  gcf-object-name            = "${module.google-setup.gcf-object-name}"
-  region                     = "${local.region}"
-
-  organization-id = "${var.organization-id}"
+  setup  = "${module.google-setup}"
 }

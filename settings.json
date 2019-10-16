@@ -1,0 +1,20 @@
+{
+  "close_bucket": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  },
+  "revoke_grants": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    },
+    "remove_list": [
+      "gmail.com",
+      "test.com"
+    ]
+  }
+}
