@@ -47,6 +47,7 @@ func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string
 // UpdateUser updates a given user.
 func (s *CloudSQL) UpdateUser(ctx context.Context, projectID, instance, host, name string, user *sql.User) (*sql.Operation, error) {
 	return &sql.Operation{}, nil
+}
 
 // InstanceDetails gets detail from a instance in a project.
 func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sql.DatabaseInstance, error) {
