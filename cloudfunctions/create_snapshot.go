@@ -90,15 +90,15 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, ent *entities.Entity)
 			continue
 		}
 
-		// ent.Log.Info("removing previous snapshot of disk %q", disk)
 		if err := removeExistingSnapshots(ent.Host, f.ProjectID(), removeExisting); err != nil {
 			return err
 		}
+		ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
 
-		ent.Log.Info("creating snapshot for disk %q", disk.Name)
 		if err := createSnapshot(ctx, ent.Host, disk, f.ProjectID(), f.Zone(), sn); err != nil {
 			return err
 		}
+		ent.Logger.Info("created snapshot for disk %s", disk.Name)
 		// TODO(tomfitzgerald): Add metadata (indicators) to snapshot labels.
 	}
 	return nil

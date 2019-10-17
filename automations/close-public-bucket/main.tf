@@ -16,16 +16,16 @@ resource "google_cloudfunctions_function" "close-bucket" {
   description           = "Removes users that enable public viewing of GCS buckets."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.gcf-bucket-name}"
-  source_archive_object = "${var.gcf-object-name}"
+  source_archive_bucket = "${var.setup.gcf-bucket-name}"
+  source_archive_object = "${var.setup.gcf-object-name}"
   timeout               = 60
-  project               = "${var.automation-project}"
-  region                = "${var.region}"
+  project               = "${var.setup.automation-project}"
+  region                = "${var.setup.region}"
   entry_point           = "CloseBucket"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.cscc-notifications-topic}"
+    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
   }
 
   environment_variables = {
@@ -39,7 +39,7 @@ resource "google_folder_iam_member" "roles-viewer" {
 
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/viewer"
-  member = "serviceAccount:${var.automation-service-account}"
+  member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
 # Required to modify buckets within this folder.
@@ -48,5 +48,5 @@ resource "google_folder_iam_member" "roles-storage-admin" {
 
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/storage.admin"
-  member = "serviceAccount:${var.automation-service-account}"
+  member = "serviceAccount:${var.setup.automation-service-account}"
 }

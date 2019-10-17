@@ -16,6 +16,7 @@ package entities
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -76,37 +77,165 @@ func TestEnforceSSLConnection(t *testing.T) {
 	}
 }
 
-func TestUpdateUserPassword(t *testing.T) {
+func TestClosePublicAccess(t *testing.T) {
 	tests := []struct {
-		name          string
-		projectID     string
-		instance      string
-		host          string
-		userName      string
-		password      string
-		expectedError error
+		name             string
+		instance         string
+		projectID        string
+		region           string
+		expectedError    error
+		expectedResponse *sqladmin.Operation
+		expectedRequest  *sqladmin.DatabaseInstance
 	}{
-
 		{
-			name:          "Update Password",
-			projectID:     "project-test",
-			instance:      "test-db",
-			host:          "%",
-			userName:      "root",
-			password:      "root123",
-			expectedError: nil,
+			name:             "close public access in a nonexisting database",
+			instance:         "not-found",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    fmt.Errorf("the Cloud SQL instance does not exist"),
+			expectedResponse: nil,
+			expectedRequest:  nil,
+		},
+		{
+			name:             "close public access in a existing database with only one auth ip",
+			instance:         "one-public-ip",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    nil,
+			expectedResponse: &sqladmin.Operation{},
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:    "one-public-ip",
+				Project: "project1",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						AuthorizedNetworks: nil,
+						NullFields:         []string{"AuthorizedNetworks"},
+					},
+				},
+			},
+		},
+		{
+			name:             "close public access in a existing database with more than one auth ip",
+			instance:         "two-public-ip",
+			projectID:        "project1",
+			region:           "us-central1",
+			expectedError:    nil,
+			expectedResponse: &sqladmin.Operation{},
+			expectedRequest: &sqladmin.DatabaseInstance{
+				Name:    "two-public-ip",
+				Project: "project1",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						AuthorizedNetworks: []*sqladmin.AclEntry{
+							{
+								Value: "199.27.199.0/24",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &stubs.CloudSQL{}
-			c := NewCloudSQL(s)
+			sqlAdminStub := &stubs.CloudSQL{}
 			ctx := context.Background()
-			_, err := c.UpdateUserPassword(ctx, tt.projectID, tt.instance, tt.host, tt.userName, tt.password)
-			if err != nil {
-				t.Errorf("%q failed: %q", tt.userName, err)
+			c := NewCloudSQL(sqlAdminStub)
+
+			if tt.instance == "not-found" {
+				sqlAdminStub.InstanceDetailsResponse = nil
 			}
+
+			if tt.instance == "one-public-ip" {
+				sqlAdminStub.InstanceDetailsResponse = &sqladmin.DatabaseInstance{
+					Name:    tt.instance,
+					Project: tt.projectID,
+					Settings: &sqladmin.Settings{
+						IpConfiguration: &sqladmin.IpConfiguration{
+							AuthorizedNetworks: []*sqladmin.AclEntry{
+								{
+									Value: "0.0.0.0/0",
+								},
+							},
+						},
+					},
+				}
+			}
+
+			if tt.instance == "two-public-ip" {
+				sqlAdminStub.InstanceDetailsResponse = &sqladmin.DatabaseInstance{
+					Name:    tt.instance,
+					Project: tt.projectID,
+					Settings: &sqladmin.Settings{
+						IpConfiguration: &sqladmin.IpConfiguration{
+							AuthorizedNetworks: []*sqladmin.AclEntry{
+								{
+									Value: "0.0.0.0/0",
+								},
+								{
+									Value: "199.27.199.0/24",
+								},
+							},
+						},
+					},
+				}
+			}
+
+			var databaseInstance, err = c.InstanceDetails(ctx, tt.projectID, tt.instance)
+
+			if tt.expectedError != nil && tt.expectedError.Error() != err.Error() {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+			}
+
+			r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, databaseInstance)
+
+			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
+			}
+			if tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+			}
+
+			if diff := cmp.Diff(r, tt.expectedResponse); diff != "" {
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
+			}
+
 		})
+	}
+
+	func TestUpdateUserPassword(t *testing.T) {
+		tests := []struct {
+			name          string
+			projectID     string
+			instance      string
+			host          string
+			userName      string
+			password      string
+			expectedError error
+		}{
+	
+			{
+				name:          "Update Password",
+				projectID:     "project-test",
+				instance:      "test-db",
+				host:          "%",
+				userName:      "root",
+				password:      "root123",
+				expectedError: nil,
+			},
+		}
+	
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				s := &stubs.CloudSQL{}
+				c := NewCloudSQL(s)
+				ctx := context.Background()
+				_, err := c.UpdateUserPassword(ctx, tt.projectID, tt.instance, tt.host, tt.userName, tt.password)
+				if err != nil {
+					t.Errorf("%q failed: %q", tt.userName, err)
+				}
+			})
+		}
 	}
 }

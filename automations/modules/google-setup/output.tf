@@ -9,3 +9,23 @@ output "gcf-bucket-name" {
 output "gcf-object-name" {
   value = google_storage_bucket_object.gcf_object.name
 }
+
+output "automation-project" {
+  value = var.automation-project
+}
+
+output "cscc-notifications-topic-prefix" {
+  value = var.cscc-notifications-topic-prefix
+}
+
+output "region" {
+  value = var.region
+}
+
+output "findings-topic" {
+  value = var.findings-topic
+}
+
+output "organization-id" {
+  value = var.organization-id
+}

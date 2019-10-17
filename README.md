@@ -4,18 +4,62 @@ Cloud Functions to take automated actions on threat and vulnerability findings.
 
 ## Note
 
-This project is currently under development and is not yet ready for users. Stay tuned!
+This project is currently under development and is not yet ready for users. Stay tuned! If you do decide to use this library early and have any questions please reach out to tomfitzgerald@google.com for help.
 
 ## Getting Started
 
-This repository contains libraries to perform common actions and a set of Cloud
-Functions that use these libraries. For example
-`revoke_external_grants_folders.go` shows how you can revoke IAM grants that
-match a specific criteria.
+This repository contains Cloud Functions to take automated actions on findings from Event Threat Detection and Security Health Analytics (SHA). For example, if SHA alerts you that a Google Cloud Storage bucket is open you may want to close it, or perhaps leave it alone if its meant to be public. The logic and the framework to express such automation is the purpose of SRA!
 
-### Installing IAM revoker sample
+### Configuration
 
-We'll enable a few needed services first then use Terraform for the rest.
+Before we install we'll want to configure our Cloud Functions which is done within settings.json. In the current setup we'll need to provision the SRA service account to have the appropriate permissions required to take the below actions.
+
+** NOTE: At this time only folder IDs are supported. **
+
+**Close open buckets**
+
+This Cloud Function will automatically close public buckets found by Security Health Analytics that match the criteria you specify. Depending on which resources you specify will determine which projects are enforced.
+
+- `folder_ids` If the bucket is in a project under a folder within this set the bucket will be closed.
+- `project_ids` If the bucket is in a project that is within this set the bucket will be closed.
+- `organization_id` Any bucket found within this organization will be automatically closed.
+
+For example, if you wanted to only close buckets in the folder **development** you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager) and place into the `folder_ids` array.
+
+```json
+{
+  "close_bucket": {
+    "resources": {
+      "folder_ids": ["670032686187"]
+    }
+  }
+}
+```
+
+**Revoke IAM grants**
+
+This Cloud Function responds to Event Threat Detection's Anomalous IAM grant detector sub rule, external account added sub-rule. Within this configuration you can specify a list of domain names that you wish to disable. This way you can control which members are removed.
+
+- `remove_list` An array of strings containing domain names to be matched against the members added. If there is a match, the member will be removed from the resource if that are within the below resources.
+- `folder_ids` If the member is added to a project that matches the above domain list and within a folder within this array then remove.
+- `project_ids` Same logic as above but uses project IDs.
+- `organization_id` Any member granted to a project within this organization will be removed.
+
+```json
+{
+  "revoke_grants": {
+    "resources": {
+      "folder_ids": ["670032686187"]
+    },
+    "remove_list": ["gmail.com"]
+  }
+}
+```
+
+### Installation
+
+We'll enable a few needed services first then use Terraform for the rest. Following these
+instructions will enable all SRA Cloud Functions.
 
 ```shell
 $ gcloud auth application-default login
@@ -36,12 +80,19 @@ TIP: Instead of entering variables every time you can create `terraform.tfvars`
 file and input key value pairs there, i.e.
 `automation-project="aerial-jigsaw-235219"`.
 
-If at any point you want to revert the changes we've made just run `terraform
-destroy .`
+If at any point you want to revert the changes we've made just run `terraform destroy .`
+
+**CSCC Notifications**
+
+Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
+
+```shell
+$ ./enable-cscc-notfications.sh
+```
 
 ### Reinstalling a Cloud Function
 
-Terraform will create or destroy everything by default. To redeploy a single GCF you can do:
+Terraform will create or destroy everything by default. To redeploy a single Cloud Function you can do:
 
 ```shell
 $ zip -r ./deploy/functions.zip . -x *deploy* -x *.git* -x *.terraform*

@@ -16,16 +16,16 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
   description           = "Takes a snapshot of a GCE disk."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.gcf-bucket-name}"
-  source_archive_object = "${var.gcf-object-name}"
+  source_archive_bucket = "${var.setup.gcf-bucket-name}"
+  source_archive_object = "${var.setup.gcf-object-name}"
   timeout               = 60
-  project               = "${var.automation-project}"
-  region                = "${var.region}"
+  project               = "${var.setup.automation-project}"
+  region                = "${var.setup.region}"
   entry_point           = "SnapshotDisk"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.findings-topic}"
+    resource   = "${var.setup.findings-topic}"
   }
 }
 
@@ -38,7 +38,7 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
 #
 # TODO: Support folder level grants.
 resource "google_organization_iam_member" "gce-snapshot-bind-findings-organization" {
-  org_id = "${var.organization-id}"
+  org_id = "${var.setup.organization-id}"
   role   = "roles/compute.instanceAdmin.v1"
-  member = "serviceAccount:${var.automation-service-account}"
+  member = "serviceAccount:${var.setup.automation-service-account}"
 }

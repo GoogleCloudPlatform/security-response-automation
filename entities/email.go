@@ -1,7 +1,5 @@
 package entities
 
-import "github.com/googlecloudplatform/threat-automation/clients"
-
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,18 +14,15 @@ import "github.com/googlecloudplatform/threat-automation/clients"
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// EmailClient is the interface used for sending emails.
-type EmailClient interface {
-	Send(subject, from, body string, to []string) (*clients.EmailResponse, error)
-}
+import "github.com/googlecloudplatform/threat-automation/clients"
 
 // Email is the entity used to send emails.
 type Email struct {
-	service EmailClient
+	service clients.EmailClient
 }
 
 // NewEmail creates a new email entity.
-func NewEmail(service EmailClient) *Email {
+func NewEmail(service clients.EmailClient) *Email {
 	return &Email{service: service}
 }
 

@@ -189,5 +189,5 @@ func createSnapshotSetup() (*entities.Entity, *stubs.ComputeStub) {
 	storageStub := &stubs.StorageStub{}
 	h := entities.NewHost(computeStub)
 	r := entities.NewResource(resourceManagerStub, storageStub)
-	return &entities.Entity{Host: h, Resource: r, Log: log}, computeStub
+	return &entities.Entity{Host: h, Resource: r, Logger: log}, computeStub
 }
