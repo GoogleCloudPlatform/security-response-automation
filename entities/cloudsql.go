@@ -56,7 +56,7 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 	})
 }
 
-// UpdateUserPassword updates a given user its password.
+// UpdateUserPassword updates a user's password.
 func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, host, name, password string) (*sqladmin.Operation, error) {
 	user := &sqladmin.User{
 		Password: password,
