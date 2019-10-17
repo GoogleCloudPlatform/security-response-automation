@@ -15,6 +15,7 @@ package sha
 // limitations under the License.
 
 import (
+	"log"
 	"testing"
 
 	"cloud.google.com/go/pubsub"
@@ -164,13 +165,13 @@ func TestForShaFailures(t *testing.T) {
 			exp:     entities.ErrUnmarshal,
 		},
 		{
-			name: "missing Source properties body",
+			name: "missing properties",
 			message: &pubsub.Message{Data: []byte(`{
 				"finding": { "sourceProperties":}}`)},
 			exp: entities.ErrUnmarshal,
 		},
 		{
-			name: "it does not have a resource name",
+			name: "missing required field resource name",
 			message: &pubsub.Message{Data: []byte(`{
 				"finding": {
 					"sourceProperties": {
@@ -179,32 +180,21 @@ func TestForShaFailures(t *testing.T) {
 			exp: entities.ErrValueNotFound,
 		},
 		{
-			name: "not a FIREWALL_SCANNER rule Finding",
+			name: "unknown scanner",
 			message: &pubsub.Message{Data: []byte(`{
 				"finding": { 
 					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
 					"category": "CLOSE_FIREWALL",
 					"sourceProperties": {
-						"ScannerName": "IAM_SCANNER",
+						"ScannerName": "DOES_NOT_EXIST",
 						"ProjectId": "teste-project" 
-					}}}`)},
-			exp: entities.ErrValueNotFound,
-		},
-		{
-			name: "missing a project id",
-			message: &pubsub.Message{Data: []byte(`{
-				"finding": {
-					"resourceName": "//compute.googleapis.com/projects/teste-project/global/firewalls/6190685430815455733",
-					"category": "OPEN_FIREWALL",
-					"sourceProperties": {
-						"ScannerName": "FIREWALL_SCANNER"
 					}}}`)},
 			exp: entities.ErrValueNotFound,
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := NewFirewallScanner(tt.message); !xerrors.Is(errors.Cause(err), tt.exp) {
+			if _, err := NewFinding(tt.message); !xerrors.Is(errors.Cause(err), tt.exp) {
 				t.Errorf("%q failed want:%q got:%q", tt.name, tt.exp, errors.Cause(err))
 			}
 		})
@@ -265,12 +255,12 @@ func TestForShaFirewallScanner(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewFirewallScanner(tt.message)
+			f, err := NewFinding(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f != nil && f.FirewallID() != tt.expFirewallID {
-				t.Errorf("%s failed for FirewallID got:%q want:%q", tt.name, f.FirewallID(), tt.expFirewallID)
+			if f != nil && f.firewallScanner.FirewallID() != tt.expFirewallID {
+				t.Errorf("%s failed for FirewallID got:%q want:%q", tt.name, f.firewallScanner.FirewallID(), tt.expFirewallID)
 			}
 		})
 	}
@@ -283,19 +273,20 @@ func TestForShaIamScanner(t *testing.T) {
 		expOffendingIamRoles string
 	}{
 		{
-			name:                 "valid SHA IAM Scanner finding",
+			name:                 "valid finding",
 			message:              &pubsub.Message{Data: []byte(shaFinding)},
 			expOffendingIamRoles: "{\"invalidRoles\":[{\"user\":\"serviceAccount:automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com\",\"roles\":[\"roles/pubsub.admin\"]},{\"user\":\"serviceAccount:service-997507777601@containerregistry.iam.gserviceaccount.com\",\"roles\":[\"roles/owner\"]}]}",
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewIamScanner(tt.message)
+			f, err := NewFinding(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f != nil && f.OffendingIamRoles() != tt.expOffendingIamRoles {
-				t.Errorf("%s failed for OffendingIamRoles got:%q want:%q", tt.name, f.OffendingIamRoles(), tt.expOffendingIamRoles)
+			log.Printf("%+v\n", f)
+			if f != nil && f.IAMScanner.OffendingIamRoles() != tt.expOffendingIamRoles {
+				t.Errorf("%s failed for OffendingIamRoles got:%q want:%q", tt.name, f.IAMScanner.OffendingIamRoles(), tt.expOffendingIamRoles)
 			}
 		})
 	}
@@ -315,12 +306,12 @@ func TestForShaStorageScanner(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewStorageScanner(tt.message)
+			f, err := NewFinding(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f != nil && f.BucketName() != tt.expBucketName {
-				t.Errorf("%s failed for BucketName got:%q want:%q", tt.name, f.BucketName(), tt.expBucketName)
+			if f != nil && f.StorageScanner.BucketName() != tt.expBucketName {
+				t.Errorf("%s failed for BucketName got:%q want:%q", tt.name, f.StorageScanner.BucketName(), tt.expBucketName)
 			}
 		})
 	}
@@ -342,15 +333,15 @@ func TestForShaComputeInstanceScanner(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := NewComputeInstanceScanner(tt.message)
+			f, err := NewFinding(tt.message)
 			if err != nil {
 				t.Errorf("%s failed to read finding:%q", tt.name, err)
 			}
-			if f != nil && f.Zone() != tt.expZone {
-				t.Errorf("%s failed for Zone got:%q want:%q", tt.name, f.Zone(), tt.expZone)
+			if f != nil && f.ComputeInstanceScanner.Zone() != tt.expZone {
+				t.Errorf("%s failed for Zone got:%q want:%q", tt.name, f.ComputeInstanceScanner.Zone(), tt.expZone)
 			}
-			if f != nil && f.Instance() != tt.expInstance {
-				t.Errorf("%s failed for Instance got:%q want:%q", tt.name, f.Instance(), tt.expInstance)
+			if f != nil && f.ComputeInstanceScanner.Instance() != tt.expInstance {
+				t.Errorf("%s failed for Instance got:%q want:%q", tt.name, f.ComputeInstanceScanner.Instance(), tt.expInstance)
 			}
 		})
 	}

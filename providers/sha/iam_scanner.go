@@ -14,55 +14,25 @@ package sha
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import (
-	"encoding/json"
+// IamScanner represents a SHA IAM Scanner finding.
+type IamScanner struct {
+	*Finding
 
-	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/pkg/errors"
-)
-
-type iamScanner struct {
-	Finding struct {
-		Name             string
-		SourceProperties struct {
-			OffendingIamRoles string
+	fields struct {
+		Finding struct {
+			Name             string
+			SourceProperties struct {
+				OffendingIamRoles string
+			}
 		}
 	}
 }
 
-// IamScanner is an abstraction around SHA's IAM Scanner finding.
-type IamScanner struct {
-	// Fields found in every SHA finding not specific to this finding.
-	*Finding
-	// Fields specific to this finding.
-	fields iamScanner
-}
+// Fields returns this finding's fields.
+func (f *IamScanner) Fields() interface{} { return &f.fields }
 
-// NewIamScanner reads a pubsub message and creates a new finding.
-func NewIamScanner(ps *pubsub.Message) (*IamScanner, error) {
-	f := IamScanner{}
-
-	nf, err := NewFinding(ps)
-	if err != nil {
-		return nil, err
-	}
-
-	f.Finding = nf
-
-	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, err
-	}
-
-	if !f.validate() {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "not a IAM_SCANNER Finding")
-	}
-	return &f, nil
-}
-
-func (f *IamScanner) validate() bool {
-	return f.ScannerName() == "IAM_SCANNER"
-}
+// Validate confirms if this finding's fields are correct.
+func (f *IamScanner) Validate() bool { return true }
 
 // OffendingIamRoles returns the offending IAM roles.
 func (f *IamScanner) OffendingIamRoles() string {

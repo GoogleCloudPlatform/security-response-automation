@@ -43,19 +43,13 @@ var (
 // easily we wrap in a method without error checking. To prevent accesor failures each finding will
 // implement a `validate` method that ensure all 'getter' method calls will succeed.
 
+type Interface interface {
+	Fields() interface{}
+	Validate() bool
+}
+
 // StackDriverLog struct fits StackDriver logs.
 type StackDriverLog struct {
 	InsertID string `json:"insertId"`
 	LogName  string `json:"logName"`
-}
-
-// badNetworkFinding contains any finding based off VPC flow logs.
-type badNetworkFinding struct {
-	JSONPayload struct {
-		Properties struct {
-			Location       string
-			SourceInstance string
-			IP             []string
-		}
-	}
 }

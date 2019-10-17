@@ -34,7 +34,7 @@ var (
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
-	finding, err := sha.NewStorageScanner(&m)
+	finding, err := sha.NewFinding(&m)
 	if err != nil {
 		return errors.Wrap(err, "failed to read finding")
 	}
@@ -53,9 +53,9 @@ func CloseBucket(ctx context.Context, m pubsub.Message, ent *entities.Entity) er
 	return nil
 }
 
-func remove(ctx context.Context, finding *sha.StorageScanner, log *entities.Logger, res *entities.Resource) func() error {
+func remove(ctx context.Context, finding *sha.Finding, log *entities.Logger, res *entities.Resource) func() error {
 	return func() error {
-		log.Info("removing public members from bucket %q in project %q.", finding.BucketName(), finding.ProjectID())
-		return res.RemoveMembersFromBucket(ctx, finding.BucketName(), publicUsers)
+		log.Info("removing public members from bucket %q in project %q.", finding.StorageScanner.BucketName(), finding.ProjectID())
+		return res.RemoveMembersFromBucket(ctx, finding.StorageScanner.BucketName(), publicUsers)
 	}
 }

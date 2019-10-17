@@ -16,45 +16,28 @@ package sha
 
 import (
 	"regexp"
-
-	"github.com/googlecloudplatform/threat-automation/entities"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/pkg/errors"
 )
 
-// extractZone is a regex to extract the zone of the instance that is on the external uri.
-var extractZone = regexp.MustCompile(`/zones/(.+)/instances`)
+var (
+	// extractZone is a regex to extract the zone of the instance that is on the external uri.
+	extractZone = regexp.MustCompile(`/zones/(.+)/instances`)
 
-// extractInstance is a regex to extract the name of the instance that is on the external uri.
-var extractInstance = regexp.MustCompile(`/instances/(.+)`)
+	// extractInstance is a regex to extract the name of the instance that is on the external uri.
+	extractInstance = regexp.MustCompile(`/instances/(.+)`)
+)
 
-// ComputeInstanceScanner a Security Health Analytics finding from Compute Instance Scanner.
+// ComputeInstanceScanner represents a SHA Compute Istance Scanner finding.
 type ComputeInstanceScanner struct {
 	*Finding
+
+	fields *struct{}
 }
 
-// NewFirewallScanner creates a new FirewallScanner
-func NewComputeInstanceScanner(ps *pubsub.Message) (*ComputeInstanceScanner, error) {
-	f := ComputeInstanceScanner{}
+// Fields returns this finding's fields.
+func (f *ComputeInstanceScanner) Fields() interface{} { return &f.fields }
 
-	nf, err := NewFinding(ps)
-	if err != nil {
-		return nil, err
-	}
-
-	f.Finding = nf
-
-	if !f.validate() {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "not a COMPUTE_INSTANCE_SCANNER Finding")
-	}
-
-	return &f, nil
-}
-
-func (f *ComputeInstanceScanner) validate() bool {
-	return f.ScannerName() == "COMPUTE_INSTANCE_SCANNER"
-}
+// Validate confirms if this finding's fields are correct.
+func (f *ComputeInstanceScanner) Validate() bool { return true }
 
 // Zone returns the zone of the instance.
 func (f *ComputeInstanceScanner) Zone() string {

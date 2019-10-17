@@ -16,10 +16,6 @@ package sha
 
 import (
 	"strings"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/pkg/errors"
 )
 
 // resourcePrefix the prefix of the full name of a bucket
@@ -28,30 +24,16 @@ const resourcePrefix = "//storage.googleapis.com/"
 
 // StorageScanner is an abstraction around SHA's IAM Scanner finding.
 type StorageScanner struct {
-	// Fields found in every SHA finding not specific to this finding.
 	*Finding
+	
+	fields struct{}
 }
 
-// NewStorageScanner reads a pubsub message and creates a new finding.
-func NewStorageScanner(ps *pubsub.Message) (*StorageScanner, error) {
-	f := StorageScanner{}
+// Fields returns this finding's fields.
+func (f *StorageScanner) Fields() interface{} { return &f.fields }
 
-	nf, err := NewFinding(ps)
-	if err != nil {
-		return nil, err
-	}
-
-	f.Finding = nf
-
-	if !f.validate() {
-		return nil, errors.Wrap(entities.ErrValueNotFound, "not a STORAGE_SCANNER Finding")
-	}
-	return &f, nil
-}
-
-func (f *StorageScanner) validate() bool {
-	return f.ScannerName() == "STORAGE_SCANNER"
-}
+// Validate confirms if this finding's fields are correct.
+func (f *StorageScanner) Validate() bool { return f.ScannerName() == "STORAGE_SCANNER" }
 
 // BucketName returns name of the bucket. Resource assumed valid due to prior validate call.
 func (f *StorageScanner) BucketName() string {

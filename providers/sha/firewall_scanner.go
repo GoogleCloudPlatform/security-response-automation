@@ -15,69 +15,33 @@ package sha
 // limitations under the License.
 
 import (
-	"encoding/json"
 	"regexp"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/pkg/errors"
 )
 
 // extractFirewallID is a regex to extract the firewall ID that is on the resource name
 var extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
 
-type firewallScanner struct {
-	Finding struct {
-		SourceProperties struct {
-			Allowed           string
-			AllowedIPRange    string
-			ActivationTrigger string
-			SourceRange       string
+// FirewallScanner represents a SHA Firewall Scanner finding.
+type FirewallScanner struct {
+	*Finding
+
+	fields struct {
+		Finding struct {
+			SourceProperties struct {
+				Allowed           string
+				AllowedIPRange    string
+				ActivationTrigger string
+				SourceRange       string
+			}
 		}
 	}
 }
 
-// FirewallScanner a Security Health Analytics finding
-type FirewallScanner struct {
-	*Finding
-	fields firewallScanner
-}
+// Fields returns this finding's fields.
+func (f *FirewallScanner) Fields() interface{} { return &f.fields }
 
-// NewFirewallScanner creates a new FirewallScanner
-func NewFirewallScanner(ps *pubsub.Message) (*FirewallScanner, error) {
-	f := FirewallScanner{}
-
-	nf, err := NewFinding(ps)
-	if err != nil {
-		return nil, err
-	}
-
-	f.Finding = nf
-
-	if err := json.Unmarshal(ps.Data, &f.fields); err != nil {
-		return nil, err
-	}
-
-	if err := f.validate(); err != nil {
-		return nil, err
-	}
-
-	return &f, nil
-}
-
-func (f *FirewallScanner) validate() error {
-
-	if f.ScannerName() != "FIREWALL_SCANNER" {
-		return errors.Wrap(entities.ErrValueNotFound, "not a FIREWALL_SCANNER Finding")
-	}
-
-	if f.ProjectID() == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a project id")
-	}
-
-	return nil
-
-}
+// Validate confirms if this finding's fields are correct.
+func (f *FirewallScanner) Validate() bool { return true }
 
 // FirewallID returns the numerical ID of the firewall.
 func (f *FirewallScanner) FirewallID() string {

@@ -17,13 +17,13 @@ package sha
 
 import (
 	"encoding/json"
+	"log"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 )
 
-// baseFinding contains fields all SCC SHA findings should provide.
 type baseFinding struct {
 	NotificationConfigName string
 	Finding                struct {
@@ -54,56 +54,92 @@ type baseFinding struct {
 	}
 }
 
-// Finding is a 'base' struct representing SCC SHA fields that all findings should satisfy.
+// Finding represents SHA findings.
 type Finding struct {
 	base *baseFinding
+
+	firewallScanner        *FirewallScanner
+	IAMScanner             *IamScanner
+	StorageScanner         *StorageScanner
+	ComputeInstanceScanner *ComputeInstanceScanner
 }
 
-// NewFinding returns a new ShaFinding.
+// NewFinding returns a new SHA finding.
 func NewFinding(m *pubsub.Message) (*Finding, error) {
-	f := Finding{}
-
+	f := &Finding{}
 	if err := json.Unmarshal(m.Data, &f.base); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
-
-	if err := f.validate(); err != nil {
-		return nil, err
+	if ok := f.validate(); !ok {
+		return nil, entities.ErrValueNotFound
 	}
-
-	return &f, nil
+	switch f.ScannerName() {
+	case "FIREWALL_SCANNER":
+		ff := &FirewallScanner{}
+		ff.Finding = f
+		if err := open(m, ff); err != nil {
+			return nil, err
+		}
+		f.firewallScanner = ff
+	case "IAM_SCANNER":
+		ff := &IamScanner{}
+		ff.Finding = f
+		if err := open(m, ff); err != nil {
+			return nil, err
+		}
+		log.Println("got ff")
+		log.Printf("%+v\n", ff)
+		f.IAMScanner = ff
+	case "STORAGE_SCANNER":
+		ff := &StorageScanner{}
+		ff.Finding = f
+		if err := open(m, ff); err != nil {
+			return nil, err
+		}
+		f.StorageScanner = ff
+	case "COMPUTE_INSTANCE_SCANNER":
+		ff := &ComputeInstanceScanner{}
+		ff.Finding = f
+		if err := open(m, ff); err != nil {
+			return nil, err
+		}
+		f.ComputeInstanceScanner = ff
+	default:
+		return nil, entities.ErrValueNotFound
+	}
+	return f, nil
 }
 
-func (f *Finding) validate() error {
-
-	if f.ResourceName() == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a resource name")
+func open(ps *pubsub.Message, dst entities.Interface) error {
+	if err := json.Unmarshal(ps.Data, dst.Fields()); err != nil {
+		return entities.ErrUnmarshal
 	}
-
-	if f.Category() == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a category")
+	if ok := dst.Validate(); !ok {
+		return entities.ErrValueNotFound
 	}
-
 	return nil
-
 }
 
-// ResourceName returns the finding ResourceName
+func (f *Finding) validate() bool {
+	return f.ResourceName() != "" || f.Category() != ""
+}
+
+// ResourceName returns the finding's affected resource.
 func (f *Finding) ResourceName() string {
 	return f.base.Finding.ResourceName
 }
 
-// Category returns the finding Category
+// Category returns the category of the finding.
 func (f *Finding) Category() string {
 	return f.base.Finding.Category
 }
 
-// ScannerName returns the Security Health Analytics finding ScannerName
+// ScannerName returns the scanner name from the finding.
 func (f *Finding) ScannerName() string {
 	return f.base.Finding.SourceProperties.ScannerName
 }
 
-// ProjectID returns the Security Health Analytics finding ProjectID
+// ProjectID returns the affected project ID.
 func (f *Finding) ProjectID() string {
 	return f.base.Finding.SourceProperties.ProjectID
 }
