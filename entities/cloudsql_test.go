@@ -203,39 +203,4 @@ func TestClosePublicAccess(t *testing.T) {
 
 		})
 	}
-
-	func TestUpdateUserPassword(t *testing.T) {
-		tests := []struct {
-			name          string
-			projectID     string
-			instance      string
-			host          string
-			userName      string
-			password      string
-			expectedError error
-		}{
-	
-			{
-				name:          "Update Password",
-				projectID:     "project-test",
-				instance:      "test-db",
-				host:          "%",
-				userName:      "root",
-				password:      "root123",
-				expectedError: nil,
-			},
-		}
-	
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				s := &stubs.CloudSQL{}
-				c := NewCloudSQL(s)
-				ctx := context.Background()
-				_, err := c.UpdateUserPassword(ctx, tt.projectID, tt.instance, tt.host, tt.userName, tt.password)
-				if err != nil {
-					t.Errorf("%q failed: %q", tt.userName, err)
-				}
-			})
-		}
-	}
 }
