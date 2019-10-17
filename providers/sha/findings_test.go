@@ -119,7 +119,7 @@ const (
   }
 }`
 
-	publicIpAddressFinding = `{
+	publicIPAddressFinding = `{
   "notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
   "finding": {
 	"name": "organizations/1055058813388/sources/1986930501971458034/findings/d7ef72093c8c1e4c135d4c43fa847b83",
@@ -335,7 +335,7 @@ func TestForShaComputeInstanceScanner(t *testing.T) {
 	}{
 		{
 			name:        "valid SHA Compute Instance Scanner finding",
-			message:     &pubsub.Message{Data: []byte(publicIpAddressFinding)},
+			message:     &pubsub.Message{Data: []byte(publicIPAddressFinding)},
 			expZone:     "us-central1-a",
 			expInstance: "4312755253150365851",
 		},
