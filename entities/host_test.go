@@ -97,17 +97,11 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 
 	tests := []struct {
 		name                         string
-		project                      string
-		zone                         string
-		instance                     string
 		stubInstance                 *compute.Instance
 		expectedDeletedAccessConfigs []stubs.NetworkAccessConfigStub
 	}{
 		{
-			name:     "remove instance's external ip with two network interfaces",
-			project:  project,
-			zone:     zone,
-			instance: instance,
+			name: "remove the instance external ips with two network interfaces",
 			stubInstance: &compute.Instance{
 				NetworkInterfaces: []*compute.NetworkInterface{
 					&externalNic0,
@@ -126,10 +120,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 			},
 		},
 		{
-			name:     "remove instance's external ip with unknown access config type",
-			project:  project,
-			zone:     zone,
-			instance: instance,
+			name: "don't remove the instance external ip with unknown access config type",
 			stubInstance: &compute.Instance{
 				NetworkInterfaces: []*compute.NetworkInterface{
 					&externalNic2UnknownType,
@@ -145,9 +136,9 @@ func TestRemoveExternalIPFromInstanceNetworkInterfaces(t *testing.T) {
 				StubbedInstance: tt.stubInstance,
 			}
 			host := NewHost(computeStub)
-			err := host.RemoveExternalIPs(ctx, tt.project, tt.zone, tt.instance)
+			err := host.RemoveExternalIPs(ctx, project, zone, instance)
 			if err != nil {
-				t.Errorf("%v failed, err: %+v", tt.name, err)
+				t.Errorf("%v failed, err: %q", tt.name, err)
 			}
 
 			if diff := cmp.Diff(tt.expectedDeletedAccessConfigs, computeStub.DeletedAccessConfigs); diff != "" {
@@ -177,19 +168,13 @@ func TestRemoveExternalIPFromInstanceNetworkInterfacesFailing(t *testing.T) {
 
 	tests := []struct {
 		name                             string
-		project                          string
-		zone                             string
-		instance                         string
 		stubInstance                     *compute.Instance
 		expectedDeletedAccessConfigs     []stubs.NetworkAccessConfigStub
 		getInstanceCallShouldFail        bool
 		deleteAccessConfigCallShouldFail bool
 	}{
 		{
-			name:     "remove instance's external ip failing to get instance",
-			project:  project,
-			zone:     zone,
-			instance: instance,
+			name: "fail to get instance when trying to remove external ip",
 			stubInstance: &compute.Instance{
 				NetworkInterfaces: []*compute.NetworkInterface{
 					&externalNic0,
@@ -200,10 +185,7 @@ func TestRemoveExternalIPFromInstanceNetworkInterfacesFailing(t *testing.T) {
 			deleteAccessConfigCallShouldFail: false,
 		},
 		{
-			name:     "don't remove instance's external ip failing to delete access config",
-			project:  project,
-			zone:     zone,
-			instance: instance,
+			name: "fail to delete access config",
 			stubInstance: &compute.Instance{
 				NetworkInterfaces: []*compute.NetworkInterface{
 					&externalNic0,
@@ -222,9 +204,9 @@ func TestRemoveExternalIPFromInstanceNetworkInterfacesFailing(t *testing.T) {
 				DeleteAccessConfigShouldFail: tt.deleteAccessConfigCallShouldFail,
 			}
 			host := NewHost(computeStub)
-			err := host.RemoveExternalIPs(ctx, tt.project, tt.zone, tt.instance)
+			err := host.RemoveExternalIPs(ctx, project, zone, instance)
 			if err == nil {
-				t.Errorf("%v failed, error expected but it was: %+v", tt.name, err)
+				t.Errorf("%q failed got:nil want:%q", tt.name, err)
 			}
 		})
 	}

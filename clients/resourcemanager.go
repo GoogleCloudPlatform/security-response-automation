@@ -51,3 +51,13 @@ func (c *CloudResourceManager) SetPolicyProject(ctx context.Context, projectID s
 func (c *CloudResourceManager) GetAncestry(ctx context.Context, projectID string) (*crm.GetAncestryResponse, error) {
 	return c.service.Projects.GetAncestry(projectID, &crm.GetAncestryRequest{}).Context(ctx).Do()
 }
+
+// GetPolicyOrganization returns the IAM policy for the given organization resource.
+func (c *CloudResourceManager) GetPolicyOrganization(ctx context.Context, organizationID string) (*crm.Policy, error) {
+	return c.service.Organizations.GetIamPolicy(organizationID, &crm.GetIamPolicyRequest{}).Context(ctx).Do()
+}
+
+// SetPolicyOrganization sets an IAM policy for the given organization resource.
+func (c *CloudResourceManager) SetPolicyOrganization(ctx context.Context, organizationID string, p *crm.Policy) (*crm.Policy, error) {
+	return c.service.Organizations.SetIamPolicy(organizationID, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
+}

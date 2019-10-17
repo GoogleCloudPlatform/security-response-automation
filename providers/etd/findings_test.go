@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"golang.org/x/xerrors"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
@@ -41,7 +42,7 @@ func TestForFailures(t *testing.T) {
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewBadIP(tt.message)
-			if err != nil && errors.Cause(err).Error() != tt.exp.Error() {
+			if !xerrors.Is(errors.Cause(err), tt.exp) {
 				t.Errorf("%s failed got:%q want:%q", tt.name, err, tt.exp)
 			}
 		})

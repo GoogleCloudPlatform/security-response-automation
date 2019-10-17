@@ -65,7 +65,7 @@ func NewFinding(m *pubsub.Message) (*Finding, error) {
 	var sd entities.StackDriverLog
 	f := &Finding{}
 	if err := json.Unmarshal(m.Data, &sd); err != nil {
-		return f, entities.ErrUnmarshal
+		return f, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
 	if sd.LogName == "" {

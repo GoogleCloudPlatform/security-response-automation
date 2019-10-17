@@ -12,8 +12,11 @@ require (
 	github.com/googleapis/gax-go/v2 v2.0.5
 	github.com/mibk/dupl v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1
+	github.com/sendgrid/rest v2.4.1+incompatible
+	github.com/sendgrid/sendgrid-go v3.5.0+incompatible
 	golang.org/x/lint v0.0.0-20190930215403-16217165b5de // indirect
 	golang.org/x/tools v0.0.0-20191010201905-e5ffc44a6fee // indirect
+	golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7
 	google.golang.org/api v0.10.0
 	google.golang.org/genproto v0.0.0-20190905072037-92dd089d5514
 	google.golang.org/grpc v1.21.1

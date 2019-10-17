@@ -22,6 +22,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/pkg/errors"
+	"golang.org/x/xerrors"
 
 	"cloud.google.com/go/pubsub"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
@@ -32,7 +34,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 
 	test := []struct {
 		name          string
-		expectedError string
+		expectedError error
 		// Incoming finding.
 		incomingLog pubsub.Message
 		// Initial set of members on IAM policy from `GetIamPolicy`.
@@ -48,7 +50,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	}{
 		{
 			name:            "invalid finding",
-			expectedError:   `failed to read finding: "failed to unmarshal"`,
+			expectedError:   entities.ErrUnmarshal,
 			incomingLog:     pubsub.Message{},
 			initialMembers:  nil,
 			folderID:        []string{""},
@@ -58,7 +60,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		},
 		{
 			name:            "no folder provided and doesn't remove members",
-			expectedError:   "",
+			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderID:        []string{""},
@@ -68,7 +70,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		},
 		{
 			name:            "remove new gmail user",
-			expectedError:   "",
+			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderID:        []string{"folderID"},
@@ -78,7 +80,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		},
 		{
 			name:            "remove new user only",
-			expectedError:   "",
+			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderID:        []string{"folderID"},
@@ -88,7 +90,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		},
 		{
 			name:            "domain not in disallowed list",
-			expectedError:   "",
+			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@foo.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com"},
 			folderID:        []string{"folderID"},
@@ -98,7 +100,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		},
 		{
 			name:            "provide multiple folders and remove gmail users",
-			expectedError:   "",
+			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderID:        []string{"folderID", "folderID1"},
@@ -108,7 +110,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 		},
 		{
 			name:            "cannot revoke in this folder",
-			expectedError:   "",
+			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderID:        []string{"folderID", "folderID1"},
@@ -119,16 +121,17 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			loggerStub := &stubs.LoggerStub{}
-			l := entities.NewLogger(loggerStub)
-			crmStub := &stubs.ResourceManagerStub{}
-			storageStub := &stubs.StorageStub{}
-			r := entities.NewResource(crmStub, storageStub)
+			ent, crmStub := revokeGrantsSetup()
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
-			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, r, tt.folderID, tt.disallowed, l); err != nil {
-				if err.Error() != tt.expectedError {
-					t.Errorf("%s test failed want:%q", tt.name, err)
+
+			conf := NewConfiguration(ent.Resource)
+			conf.FoldersIDs = tt.folderID
+			conf.Removelist = tt.disallowed
+
+			if err := RevokeExternalGrantsFolders(ctx, tt.incomingLog, ent, conf); err != nil {
+				if !xerrors.Is(errors.Cause(err), tt.expectedError) {
+					t.Errorf("%q failed want:%q got:%q", tt.name, tt.expectedError, errors.Cause(err))
 				}
 			}
 			// Nothing to save if we expected nothing.
@@ -188,4 +191,13 @@ func createMessage(member string) pubsub.Message {
 		},
 		"logName": "projects/carise-etdeng-joonix/logs/threatdetection.googleapis.com%2Fdetection"
 	}`)}
+}
+
+func revokeGrantsSetup() (*entities.Entity, *stubs.ResourceManagerStub) {
+	loggerStub := &stubs.LoggerStub{}
+	l := entities.NewLogger(loggerStub)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := entities.NewResource(crmStub, storageStub)
+	return &entities.Entity{Log: l, Resource: r}, crmStub
 }

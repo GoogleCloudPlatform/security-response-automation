@@ -16,12 +16,12 @@ package cloudfunctions
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -48,10 +48,10 @@ var supportedRules = map[string]bool{"bad_ip": true, "bad_domain": true}
 // In order for the snapshot to be create the service account must be granted the correct
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
-func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource, h *entities.Host, l *entities.Logger) error {
+func CreateSnapshot(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
 	f, err := etd.NewBadIP(&m)
 	if err != nil {
-		return fmt.Errorf("failed to create bad ip: %q", err)
+		return errors.Wrap(err, "failed to create bad ip")
 	}
 
 	if !supportedRules[f.RuleName()] {
@@ -61,19 +61,19 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
 
 	rule := strings.Replace(f.RuleName(), "_", "-", -1)
-	disks, err := h.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
+	disks, err := ent.Host.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
 
 	log.Printf("obtained the following list of disks names from instance %q: %+v", f.Instance(), disks)
 
 	if err != nil {
-		return fmt.Errorf("failed to list disks: %q", err)
+		return errors.Wrap(err, "failed to list disks")
 	}
 
 	log.Printf("listing snapshots in project %q", f.ProjectID())
 
-	snapshots, err := h.ListProjectSnapshots(ctx, f.ProjectID())
+	snapshots, err := ent.Host.ListProjectSnapshots(ctx, f.ProjectID())
 	if err != nil {
-		return fmt.Errorf("failed to list snapshots: %q", err)
+		return errors.Wrap(err, "failed to list snapshots")
 	}
 
 	log.Printf("obtained the following list of snapshots in project %q: %+v", f.Instance(), snapshots.Items)
@@ -81,24 +81,22 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, r *entities.Resource,
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
-
-		log.Printf("disk %q returned %v as can be deleted", f.Instance(), create)
-
 		if err != nil {
 			return err
 		}
+		log.Printf("disk %q returned %v as can be deleted", f.Instance(), create)
 
 		if !create {
 			continue
 		}
 
-		l.Info("removing previous snapshot of disk %q", disk.Name)
-		if err := removeExistingSnapshots(h, f.ProjectID(), removeExisting); err != nil {
+		// ent.Log.Info("removing previous snapshot of disk %q", disk)
+		if err := removeExistingSnapshots(ent.Host, f.ProjectID(), removeExisting); err != nil {
 			return err
 		}
 
-		l.Info("creating snapshot for disk %q", disk.Name)
-		if err := createSnapshot(ctx, h, disk, f.ProjectID(), f.Zone(), sn); err != nil {
+		ent.Log.Info("creating snapshot for disk %q", disk.Name)
+		if err := createSnapshot(ctx, ent.Host, disk, f.ProjectID(), f.Zone(), sn); err != nil {
 			return err
 		}
 		// TODO(tomfitzgerald): Add metadata (indicators) to snapshot labels.
@@ -132,10 +130,10 @@ func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule
 func createSnapshot(ctx context.Context, h *entities.Host, disk *compute.Disk, projectID, zone, name string) error {
 	op, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk.Name, name)
 	if err != nil {
-		return fmt.Errorf("failed to create disk snapshot: %q", err)
+		return errors.Wrap(err, "failed to create disk snapshot")
 	}
 	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
-		return fmt.Errorf("failed waiting: first error: %s", errs[0])
+		return errors.Wrap(errs[0], "failed waiting: first error")
 	}
 	return nil
 }
@@ -147,7 +145,7 @@ func removeExistingSnapshots(h *entities.Host, projectID string, remove map[stri
 			return err
 		}
 		if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
-			return fmt.Errorf("failed waiting")
+			return errors.Wrap(errs[0], "failed waiting: first error")
 		}
 	}
 	return nil
