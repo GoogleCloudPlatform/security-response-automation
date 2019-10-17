@@ -16,5 +16,12 @@
       "gmail.com",
       "test.com"
     ]
+  },
+  "disable_firewall": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
   }
 }
