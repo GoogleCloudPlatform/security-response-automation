@@ -40,23 +40,23 @@ func DisableFirewall(ctx context.Context, m pubsub.Message, ent *entities.Entity
 	}
 
 	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.DisableFirewall.Resources.FolderIDs, finding.ProjectID(), disable(ctx, finding, ent.Logger, ent.Firewall)); err != nil {
-		return errors.Wrap(err, "folders failed")
+		return err
 	}
 
 	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.DisableFirewall.Resources.ProjectIDs, finding.ProjectID(), disable(ctx, finding, ent.Logger, ent.Firewall)); err != nil {
-		return errors.Wrap(err, "projects failed")
+		return err
 	}
 
 	return nil
 }
 
-func disable(ctx context.Context, finding *sha.FirewallScanner, log *entities.Logger, fw *entities.Firewall) func() error {
+func disable(ctx context.Context, finding *sha.FirewallScanner, logr *entities.Logger, fw *entities.Firewall) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, finding.ProjectID(), finding.FirewallID())
 		if err != nil {
 			return errors.Wrap(err, "failed to get the firewall rule")
 		}
-		log.Info("disabling firewall %q in project %q.", r.Name, finding.ProjectID())
+		logr.Info("disabling firewall %q in project %q.", r.Name, finding.ProjectID())
 		op, err := fw.DisableFirewallRule(ctx, finding.ProjectID(), finding.FirewallID(), r.Name)
 		if err != nil {
 			return errors.Wrap(err, "failed to disable firewall rule:")

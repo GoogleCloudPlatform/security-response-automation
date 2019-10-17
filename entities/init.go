@@ -93,7 +93,6 @@ func initResource(ctx context.Context) (*Resource, error) {
 }
 
 func initFirewall(ctx context.Context) (*Firewall, error) {
-
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
