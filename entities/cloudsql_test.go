@@ -182,9 +182,9 @@ func TestClosePublicAccess(t *testing.T) {
 				}
 			}
 
-			var databaseInstance, err = c.InstanceDetails(ctx, tt.projectID, tt.instance)
+			databaseInstance, err := c.InstanceDetails(ctx, tt.projectID, tt.instance)
 
-			if tt.expectedError != nil && tt.expectedError.Error() != err.Error() {
+			if err != nil && tt.expectedError != nil && tt.expectedError.Error() != err.Error() {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
 
@@ -196,7 +196,6 @@ func TestClosePublicAccess(t *testing.T) {
 			if tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
-
 			if diff := cmp.Diff(r, tt.expectedResponse); diff != "" {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
 			}
