@@ -27,10 +27,6 @@ resource "google_cloudfunctions_function" "disable-firewall" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
   }
-
-  environment_variables = {
-    folder_ids = "${join(",", var.folder-ids)}"
-  }
 }
 
 # Required to retrieve ancestry for projects within this folder.
