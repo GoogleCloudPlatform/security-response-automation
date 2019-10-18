@@ -23,5 +23,12 @@
         "670032686187"
       ]
     }
+  },
+  "remove_public_ip": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
   }
 }
