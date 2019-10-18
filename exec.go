@@ -81,3 +81,8 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 func DisableFirewall(ctx context.Context, m pubsub.Message) error {
 	return cloudfunctions.DisableFirewall(ctx, m, ent)
 }
+
+// RemovePublicIP removes all the external IP addresses of a GCE instance.
+func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
+	return cloudfunctions.RemovePublicIP(ctx, m, ent)
+}
