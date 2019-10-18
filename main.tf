@@ -53,3 +53,11 @@ module "create_disk_snapshot" {
   source = "./automations/create-disk-snapshot"
   setup  = "${module.google-setup}"
 }
+
+module "disable_firewall" {
+  source = "./automations/disable-firewall"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
