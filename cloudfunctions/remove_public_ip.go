@@ -25,6 +25,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	expectedCategory = "PUBLIC_IP_ADDRESS"
+)
+
 // RemovePublicIP removes all the external IP addresses of a GCE instance.
 func RemovePublicIP(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
 
@@ -33,8 +37,8 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message, ent *entities.Entity)
 		return errors.Wrap(err, "failed to read finding")
 	}
 
-	if finding.Category() != "PUBLIC_IP_ADDRESS" {
-		log.Printf("Unknown compute instance scanner category: %s. Skipping execution.", finding.Category())
+	if finding.Category() != expectedCategory {
+		log.Printf("Not an expected Finding Category. Skipping execution. Category Expected=%s, Received=%s.", expectedCategory, finding.Category())
 		return nil
 	}
 
