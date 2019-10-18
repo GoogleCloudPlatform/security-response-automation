@@ -33,27 +33,23 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name          string
-		expectedError error
-		// Incoming finding.
-		incomingLog pubsub.Message
-		// Initial set of members on IAM policy from `GetIamPolicy`.
-		initialMembers []string
-		// folderID specifies which folder to remove members from.
-		folderID []string
-		// disallowed is the domains disallowed in the IAM policy.
-		disallowed []string
-		// Set members from `SetIamPolicy`.
+		name            string
+		expectedError   error
+		incomingLog     pubsub.Message
+		initialMembers  []string
+		folderIDs       []string
+		projectIDs      []string
+		disallowed      []string
 		expectedMembers []string
-		// Incoming project's ancestry.
-		ancestry *crm.GetAncestryResponse
+		ancestry        *crm.GetAncestryResponse
 	}{
 		{
 			name:            "invalid finding",
 			expectedError:   entities.ErrUnmarshal,
 			incomingLog:     pubsub.Message{},
 			initialMembers:  nil,
-			folderID:        []string{""},
+			folderIDs:       []string{""},
+			projectIDs:      []string{},
 			disallowed:      []string{""},
 			expectedMembers: nil,
 			ancestry:        createAncestors([]string{}),
@@ -63,17 +59,30 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
-			folderID:        []string{""},
+			folderIDs:       []string{""},
+			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: nil,
 			ancestry:        createAncestors([]string{}),
 		},
 		{
-			name:            "remove new gmail user",
+			name:            "remove new gmail user folder",
 			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
-			folderID:        []string{"folderID"},
+			folderIDs:       []string{"folderID"},
+			projectIDs:      []string{},
+			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			expectedMembers: []string{"user:test@test.com"},
+			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+		},
+		{
+			name:            "remove new gmail user project",
+			expectedError:   nil,
+			incomingLog:     createMessage("user:tom@gmail.com"),
+			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
+			folderIDs:       []string{},
+			projectIDs:      []string{"test-project-id"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com"},
 			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
@@ -83,7 +92,8 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
-			folderID:        []string{"folderID"},
+			folderIDs:       []string{"folderID"},
+			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
 			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
@@ -93,7 +103,8 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@foo.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com"},
-			folderID:        []string{"folderID"},
+			folderIDs:       []string{"folderID"},
+			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@foo.com"},
 			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
@@ -103,7 +114,8 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
-			folderID:        []string{"folderID", "folderID1"},
+			folderIDs:       []string{"folderID", "folderID1"},
+			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
 			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID1", "organization/organizationID"}),
@@ -113,7 +125,8 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 			expectedError:   nil,
 			incomingLog:     createMessage("user:tom@gmail.com"),
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
-			folderID:        []string{"folderID", "folderID1"},
+			folderIDs:       []string{"folderID", "folderID1"},
+			projectIDs:      []string{},
 			disallowed:      []string{"gmail.com"},
 			expectedMembers: nil,
 			ancestry:        createAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
@@ -121,7 +134,7 @@ func TestRevokeExternalGrantsFolders(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, crmStub := revokeGrantsSetup(tt.folderID, tt.disallowed)
+			ent, crmStub := revokeGrantsSetup(tt.folderIDs, tt.projectIDs, tt.disallowed)
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
 
@@ -176,10 +189,10 @@ func createMessage(member string) pubsub.Message {
 				"ruleName": "iam_anomalous_grant"
 			},
 			"affectedResources":[{
-				"gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/test-project-1-246321"
+				"gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/1234567890"
 			}],
 			"properties": {
-				"project_id": "test-foo",
+				"project_id": "test-project-id",
 				"externalMembers": [
 					"` + member + `"
 				]
@@ -189,7 +202,7 @@ func createMessage(member string) pubsub.Message {
 	}`)}
 }
 
-func revokeGrantsSetup(folderIDs, disallowed []string) (*entities.Entity, *stubs.ResourceManagerStub) {
+func revokeGrantsSetup(folderIDs, projectIDs, disallowed []string) (*entities.Entity, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	l := entities.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
@@ -198,7 +211,8 @@ func revokeGrantsSetup(folderIDs, disallowed []string) (*entities.Entity, *stubs
 	conf := &entities.Configuration{
 		RevokeGrants: &entities.RevokeGrants{
 			Resources: &entities.Resources{
-				FolderIDs: folderIDs,
+				FolderIDs:  folderIDs,
+				ProjectIDs: projectIDs,
 			},
 			Removelist: disallowed,
 		},

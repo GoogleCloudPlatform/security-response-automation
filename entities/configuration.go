@@ -18,6 +18,7 @@ type CloseBucket struct {
 	Resources *Resources
 }
 
+// DisableFirewall contains configuration required for the disable firewall function.
 type DisableFirewall struct {
 	Resources *Resources
 }

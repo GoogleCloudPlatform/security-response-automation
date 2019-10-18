@@ -202,6 +202,17 @@ func (r *Resource) IfProjectInFolders(ctx context.Context, ids []string, project
 }
 
 // IfProjectInProjects will apply the function if the project ID is within the project IDs.
-func (r *Resource) IfProjectInProjects(_ context.Context, _ []string, _ string, _ func() error) error {
+func (r *Resource) IfProjectInProjects(ctx context.Context, ids []string, projectID string, fn func() error) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	for _, v := range ids {
+		if v != projectID {
+			continue
+		}
+		if err := fn(); err != nil {
+			return err
+		}
+	}
 	return nil
 }

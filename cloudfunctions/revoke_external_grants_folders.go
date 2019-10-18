@@ -46,6 +46,9 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message, ent *ent
 	if err := ent.Resource.IfProjectInFolders(ctx, conf.RevokeGrants.Resources.FolderIDs, finding.ProjectID(), revokeMembers(ctx, finding.ProjectID(), ent.Logger, ent.Resource, members)); err != nil {
 		return err
 	}
+	if err := ent.Resource.IfProjectInProjects(ctx, conf.RevokeGrants.Resources.ProjectIDs, finding.ProjectID(), revokeMembers(ctx, finding.ProjectID(), ent.Logger, ent.Resource, members)); err != nil {
+		return err
+	}
 
 	return nil
 }
