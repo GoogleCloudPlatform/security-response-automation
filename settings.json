@@ -22,6 +22,8 @@
       "folder_ids": [
         "670032686187"
       ]
-    }
+    },
+    "remediation_action": "DISABLE",
+    "source_ranges": ["127.0.0.0/8"]
   }
 }
