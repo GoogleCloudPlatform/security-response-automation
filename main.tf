@@ -54,7 +54,7 @@ module "create_disk_snapshot" {
   setup  = "${module.google-setup}"
 }
 
-module "disable_firewall" {
+module "open_firewall" {
   source = "./automations/disable-firewall"
   setup  = "${module.google-setup}"
   folder-ids = [

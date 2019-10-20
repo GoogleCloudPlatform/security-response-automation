@@ -77,7 +77,7 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	return cloudfunctions.CloseBucket(ctx, m, ent)
 }
 
-// DisableFirewall will disable an open firewall found by SHA
-func DisableFirewall(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.DisableFirewall(ctx, m, ent)
+// OpenFirewall will disable an open firewall found by SHA
+func OpenFirewall(ctx context.Context, m pubsub.Message) error {
+	return cloudfunctions.OpenFirewall(ctx, m, ent)
 }

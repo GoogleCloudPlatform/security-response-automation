@@ -101,47 +101,75 @@ var (
 	}`)}
 )
 
-func TestDisableFirewall(t *testing.T) {
+func TestOpenFirewall(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
-		name            string
-		firewallRule    *compute.Firewall
-		expFirewallRule *compute.Firewall
-		folderIDs       []string
-		ancestry        *crm.GetAncestryResponse
-		finding         pubsub.Message
+		name              string
+		firewallRule      *compute.Firewall
+		expFirewallRule   *compute.Firewall
+		folderIDs         []string
+		ancestry          *crm.GetAncestryResponse
+		finding           pubsub.Message
+		remediationAction string
+		sourceRange       []string
 	}{
 		{
-			name:            "disable open firewall",
-			firewallRule:    &compute.Firewall{Name: "default_allow_all", Disabled: false},
-			expFirewallRule: &compute.Firewall{Name: "default_allow_all", Disabled: true},
-			folderIDs:       []string{"123"},
-			ancestry:        createAncestors([]string{"folder/123"}),
-			finding:         openFirewallFinding,
+			name:              "disable open firewall",
+			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
+			expFirewallRule:   &compute.Firewall{Name: "default_allow_all", Disabled: true},
+			folderIDs:         []string{"123"},
+			ancestry:          createAncestors([]string{"folder/123"}),
+			finding:           openFirewallFinding,
+			remediationAction: "DISABLE",
+			sourceRange:       []string{"127.0.0.1/8"},
 		},
 		{
-			name:            "wrong category",
-			firewallRule:    &compute.Firewall{Name: "default_allow_all", Disabled: false},
-			expFirewallRule: nil,
-			folderIDs:       []string{"123"},
-			ancestry:        createAncestors([]string{"folder/123"}),
-			finding:         wrongCategoryFinding,
+			name:              "update source range for open firewall",
+			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false, SourceRanges: []string{"0.0.0.0/0"}},
+			expFirewallRule:   &compute.Firewall{Name: "default_allow_all", Disabled: false, SourceRanges: []string{"6.6.6.6/24"}},
+			folderIDs:         []string{"123"},
+			ancestry:          createAncestors([]string{"folder/123"}),
+			finding:           openFirewallFinding,
+			remediationAction: "UPDATE_RANGE",
+			sourceRange:       []string{"6.6.6.6/24"},
 		},
 		{
-			name:            "no valid folder",
-			firewallRule:    &compute.Firewall{Name: "default_allow_all", Disabled: false},
-			expFirewallRule: nil,
-			folderIDs:       []string{"4242"},
-			ancestry:        createAncestors([]string{"folder/123"}),
-			finding:         openFirewallFinding,
+			name:              "delete open firewall",
+			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
+			expFirewallRule:   nil,
+			folderIDs:         []string{"123"},
+			ancestry:          createAncestors([]string{"folder/123"}),
+			finding:           openFirewallFinding,
+			remediationAction: "DELETE",
+			sourceRange:       []string{"127.0.0.1/8"},
+		},
+		{
+			name:              "wrong category",
+			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
+			expFirewallRule:   nil,
+			folderIDs:         []string{"123"},
+			ancestry:          createAncestors([]string{"folder/123"}),
+			finding:           wrongCategoryFinding,
+			remediationAction: "DISABLE",
+			sourceRange:       []string{"127.0.0.1/8"},
+		},
+		{
+			name:              "no valid folder",
+			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
+			expFirewallRule:   nil,
+			folderIDs:         []string{"4242"},
+			ancestry:          createAncestors([]string{"folder/123"}),
+			finding:           openFirewallFinding,
+			remediationAction: "DISABLE",
+			sourceRange:       []string{"127.0.0.1/8"},
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, computeStub, crmStub := disableFirewallSetup(tt.folderIDs)
+			ent, computeStub, crmStub := openFirewallSetup(tt.folderIDs, tt.remediationAction, tt.sourceRange)
 			computeStub.StubbedFirewall = tt.firewallRule
 			crmStub.GetAncestryResponse = tt.ancestry
-			if err := DisableFirewall(ctx, tt.finding, ent); err != nil {
+			if err := OpenFirewall(ctx, tt.finding, ent); err != nil {
 				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedFirewallRule, tt.expFirewallRule); diff != "" {
@@ -151,7 +179,7 @@ func TestDisableFirewall(t *testing.T) {
 	}
 }
 
-func disableFirewallSetup(folderIDs []string) (*entities.Entity, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
+func openFirewallSetup(folderIDs []string, remediationAction string, sourceRanges []string) (*entities.Entity, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
@@ -164,6 +192,8 @@ func disableFirewallSetup(folderIDs []string) (*entities.Entity, *stubs.ComputeS
 			Resources: &entities.Resources{
 				FolderIDs: folderIDs,
 			},
+			RemediationAction: remediationAction,
+			SourceRanges:      sourceRanges,
 		},
 	}
 	return &entities.Entity{Logger: log, Firewall: f, Resource: res, Configuration: conf}, computeStub, crmStub
