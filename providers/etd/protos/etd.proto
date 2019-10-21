@@ -1,0 +1,84 @@
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// The protos here are used for deserializing only. The variable casing is meant to match
+// their JSON counterpart. This is a temporary solution until finding providers publish
+// their own protocol buffers. This was done because it's easier to define the structure
+// using protcol buffers instead of reinventing it ourselves in Go. These protos are not 
+// complete, many fields are missing.
+//
+// Generate by running: protoc -I=providers --go_out=compiled providers/etd/protos/*
+
+syntax = "proto3";
+
+
+// TODO: Finish.
+message BadDomain {
+    string ip_address = 1;
+}
+
+message AnomalousIAMGrant {
+    message Properties {
+        string project_id = 1;
+        repeated string externalMembers = 2;        
+    }
+
+    message AffectedResource {
+        string gcpResourceName = 1;
+    }
+
+    message DetectionCategory {
+        string ruleName = 1;
+        string subRuleName = 2;
+    }
+
+    message JSONPayload {
+        repeated AffectedResource affectedResources = 1;
+        Properties properties = 2;
+        DetectionCategory detectionCategory = 3;
+    }
+
+    string insertId = 1;
+    string logName = 2;
+    JSONPayload jsonPayload = 3;
+}
+
+message BadIP {
+
+    message Properties {
+        string project_id = 1;
+        string location = 2;
+        string instanceDetails = 3;
+        string zone = 4;
+    }
+
+    message AffectedResource {
+        string gcpResourceName = 1;
+    }
+
+    message DetectionCategory {
+        string ruleName = 1;
+    }
+
+    message JSONPayload {
+        repeated AffectedResource affectedResources = 1;
+        Properties properties = 2;
+        DetectionCategory detectionCategory = 3;
+    }
+
+    string insertId = 1;
+    string logName = 2;
+    JSONPayload jsonPayload = 3;
+    
+}

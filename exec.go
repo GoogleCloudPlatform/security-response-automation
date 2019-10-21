@@ -20,7 +20,10 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
@@ -52,7 +55,11 @@ func init() {
 // By default the service account used can only revoke projects that are found within the
 // folder ID specified within `action-revoke-member-folders.tf`.
 func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, ent)
+	r, err := revokeiam.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return revokeiam.Execute(ctx, r, ent)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -69,15 +76,27 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 //
 // TODO: Support assigning roles at the folder and organization level.
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.CreateSnapshot(ctx, m, ent)
+	r, err := createsnapshot.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return createsnapshot.Execute(ctx, r, ent)
 }
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.CloseBucket(ctx, m, ent)
+	r, err := closebucket.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return closebucket.Execute(ctx, r, ent)
 }
 
-// OpenFirewall will disable an open firewall found by SHA
+// OpenFirewall will remediate an open firewall.
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.OpenFirewall(ctx, m, ent)
+	r, err := openfirewall.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return openfirewall.Execute(ctx, r, ent)
 }

@@ -16,94 +16,38 @@ package sha
 // limitations under the License.
 
 import (
-	"encoding/json"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/pkg/errors"
+	"regexp"
+	"strings"
 )
 
-// baseFinding contains fields all SCC SHA findings should provide.
-type baseFinding struct {
-	NotificationConfigName string
-	Finding                struct {
-		Name             string
-		Parent           string
-		ResourceName     string
-		State            string
-		Category         string
-		ExternalURI      string
-		SourceProperties struct {
-			ReactivationCount     float32
-			ExceptionInstructions string
-			SeverityLevel         string
-			Recommendation        string
-			ProjectID             string
-			DeactivationReason    string
-			AssetCreationTime     string
-			ScannerName           string
-			ScanRunID             string
-			Explanation           string
-		}
-		SecurityMarks struct {
-			Name  string
-			Marks map[string]string
-		}
-		EventTime  string
-		CreateTime string
-	}
+const resourcePrefix = "//storage.googleapis.com/"
+
+var (
+	// extractZone is a regex to extract the zone of the instance that is on the external uri.
+	extractZone = regexp.MustCompile(`/zones/(.+)/instances`)
+
+	// extractInstance is a regex to extract the name of the instance that is on the external uri.
+	extractInstance = regexp.MustCompile(`/instances/(.+)`)
+	// extractFirewallID is a regex to extract the firewall ID that is on the resource name.
+	extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
+)
+
+// Zone returns the zone of the instance.
+func Zone(resource string) string {
+	return extractZone.FindStringSubmatch(resource)[1]
 }
 
-// Finding is a 'base' struct representing SCC SHA fields that all findings should satisfy.
-type Finding struct {
-	base *baseFinding
+// Instance returns the name of the instance.
+func Instance(resource string) string {
+	return extractInstance.FindStringSubmatch(resource)[1]
 }
 
-// NewFinding returns a new ShaFinding.
-func NewFinding(m *pubsub.Message) (*Finding, error) {
-	f := Finding{}
-
-	if err := json.Unmarshal(m.Data, &f.base); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
-	}
-
-	if err := f.validate(); err != nil {
-		return nil, err
-	}
-
-	return &f, nil
+// BucketName returns name of the bucket. Resource assumed valid due to prior validate call.
+func BucketName(resource string) string {
+	return strings.Split(resource, resourcePrefix)[1]
 }
 
-func (f *Finding) validate() error {
-
-	if f.ResourceName() == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a resource name")
-	}
-
-	if f.Category() == "" {
-		return errors.Wrap(entities.ErrValueNotFound, "does not have a category")
-	}
-
-	return nil
-
-}
-
-// ResourceName returns the finding ResourceName
-func (f *Finding) ResourceName() string {
-	return f.base.Finding.ResourceName
-}
-
-// Category returns the finding Category
-func (f *Finding) Category() string {
-	return f.base.Finding.Category
-}
-
-// ScannerName returns the Security Health Analytics finding ScannerName
-func (f *Finding) ScannerName() string {
-	return f.base.Finding.SourceProperties.ScannerName
-}
-
-// ProjectID returns the Security Health Analytics finding ProjectID
-func (f *Finding) ProjectID() string {
-	return f.base.Finding.SourceProperties.ProjectID
+// FirewallID returns the numerical ID of the firewall.
+func FirewallID(resource string) string {
+	return extractFirewallID.FindStringSubmatch(resource)[1]
 }

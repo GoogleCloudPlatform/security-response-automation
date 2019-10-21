@@ -1,0 +1,89 @@
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// The protos here are used for deserializing only. The variable casing is meant to match
+// their JSON counterpart. This is a temporary solution until finding providers publish
+// their own protocol buffers. This was done because it's easier to define the structure
+// using protcol buffers instead of reinventing it ourselves in Go. These protos are not 
+// complete, many fields are missing.
+//
+// Generate by running: protoc -I=providers --go_out=compiled providers/sha/protos/*
+
+syntax = "proto3";
+
+message StorageScanner {
+
+    message SourceProperties {
+        string projectId = 1;
+    }
+
+    message Finding {
+      SourceProperties sourceProperties = 1;
+      string resourceName = 2;
+      string category = 3;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}
+
+message FirewallScanner {
+
+    message SourceProperties {
+        string projectId = 1;
+        string allowed = 2;
+        string allowedIpRange = 3;
+        string activationTrigger = 4;
+        string sourceRange = 5;
+    }
+
+    message Finding {
+      SourceProperties sourceProperties = 1;
+      string category = 2;
+      string resourceName = 3;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}
+
+message ComputeInstanceScanner {
+
+    message SourceProperties {
+        string projectID = 1;
+    }
+
+    message Finding {
+      SourceProperties sourceProperties = 1;
+      string category = 2;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}
+
+message IamScanner {
+    message SourceProperties {
+        string projectID = 1;
+        string offendingIamRoles = 2;
+    }
+
+    message Finding {
+      SourceProperties sourceProperties = 1;
+      string category = 2;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}

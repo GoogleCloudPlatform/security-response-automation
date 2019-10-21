@@ -1,4 +1,4 @@
-package cloudfunctions
+package createsnapshot
 
 // Copyright 2019 Google LLC
 //
@@ -16,16 +16,16 @@ package cloudfunctions
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"strings"
 	"time"
 
-	"cloud.google.com/go/pubsub"
-	"github.com/pkg/errors"
-	compute "google.golang.org/api/compute/v1"
-
+	pb "github.com/googlecloudplatform/threat-automation/compiled/etd/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/etd"
+	"github.com/pkg/errors"
+	compute "google.golang.org/api/compute/v1"
 )
 
 const (
@@ -36,10 +36,33 @@ const (
 	maxLabelLength = 60
 )
 
-// supportedRules contains a map of rules this function supports.
-var supportedRules = map[string]bool{"bad_ip": true, "bad_domain": true}
+// Required contains the required values needed for this function.
+type Required struct {
+	ProjectID, RuleName, Instance, Zone string
+}
 
-// CreateSnapshot creates a snapshot of an instance's disk.
+// ReadFinding will attempt to deserialize all supported findings for this function.
+func ReadFinding(b []byte) (*Required, error) {
+	var finding pb.BadIP
+	r := &Required{}
+	if err := json.Unmarshal(b, &finding); err != nil {
+		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+	}
+	// TODO: Support pb.BadDomain as well.
+	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
+	case "bad_ip":
+		r.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
+		r.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
+		r.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
+		r.Zone = finding.GetJsonPayload().GetProperties().GetZone()
+	}
+	if r.RuleName == "" || r.ProjectID == "" || r.Instance == "" || r.Zone == "" {
+		return nil, entities.ErrValueNotFound
+	}
+	return r, nil
+}
+
+// Execute creates a snapshot of an instance's disk.
 //
 // For a given supported finding pull each disk associated with the affected instance.
 // 	- Check to make sure we haven't created a snapshot for this finding recently.
@@ -48,35 +71,23 @@ var supportedRules = map[string]bool{"bad_ip": true, "bad_domain": true}
 // In order for the snapshot to be create the service account must be granted the correct
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
-func CreateSnapshot(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
-	f, err := etd.NewBadIP(&m)
-	if err != nil {
-		return errors.Wrap(err, "failed to create bad ip")
-	}
+func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
+	log.Printf("listing disk names within instance %q, in zone %q and project %q", required.Instance, required.Zone, required.ProjectID)
 
-	if !supportedRules[f.RuleName()] {
-		return nil
-	}
-
-	log.Printf("listing disk names within instance %q, in zone %q and project %q", f.Instance(), f.Zone(), f.ProjectID())
-
-	rule := strings.Replace(f.RuleName(), "_", "-", -1)
-	disks, err := ent.Host.ListInstanceDisks(ctx, f.ProjectID(), f.Zone(), f.Instance())
-
-	log.Printf("obtained the following list of disks names from instance %q: %+v", f.Instance(), disks)
-
+	rule := strings.Replace(required.RuleName, "_", "-", -1)
+	disks, err := ent.Host.ListInstanceDisks(ctx, required.ProjectID, required.Zone, required.Instance)
 	if err != nil {
 		return errors.Wrap(err, "failed to list disks")
 	}
 
-	log.Printf("listing snapshots in project %q", f.ProjectID())
+	log.Printf("listing snapshots in project %q", required.ProjectID)
 
-	snapshots, err := ent.Host.ListProjectSnapshots(ctx, f.ProjectID())
+	snapshots, err := ent.Host.ListProjectSnapshots(ctx, required.ProjectID)
 	if err != nil {
 		return errors.Wrap(err, "failed to list snapshots")
 	}
 
-	log.Printf("obtained the following list of snapshots in project %q: %+v", f.Instance(), snapshots.Items)
+	log.Printf("obtained the following list of snapshots in project %q: %+v", required.Instance, snapshots.Items)
 
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
@@ -84,18 +95,18 @@ func CreateSnapshot(ctx context.Context, m pubsub.Message, ent *entities.Entity)
 		if err != nil {
 			return err
 		}
-		log.Printf("disk %q returned %v as can be deleted", f.Instance(), create)
+		log.Printf("disk %q returned %v as can be deleted", required.Instance, create)
 
 		if !create {
 			continue
 		}
 
-		if err := removeExistingSnapshots(ent.Host, f.ProjectID(), removeExisting); err != nil {
+		if err := removeExistingSnapshots(ent.Host, required.ProjectID, removeExisting); err != nil {
 			return err
 		}
 		ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
 
-		if err := createSnapshot(ctx, ent.Host, disk, f.ProjectID(), f.Zone(), sn); err != nil {
+		if err := createSnapshot(ctx, ent.Host, disk, required.ProjectID, required.Zone, sn); err != nil {
 			return err
 		}
 		ent.Logger.Info("created snapshot for disk %s", disk.Name)
