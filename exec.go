@@ -20,7 +20,10 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
@@ -35,7 +38,7 @@ func init() {
 	}
 }
 
-// RevokeExternalGrantsFolders is the entry point for IAM revoker Cloud Function.
+// RevokeIAM is the entry point for the IAM revoker Cloud Function.
 //
 // This Cloud Function will be triggered when Event Threat Detection
 // detects an anomalous IAM grant. Once triggered this function will
@@ -48,11 +51,15 @@ func init() {
 // long as they match the domains you specify.
 //
 // Permissions required
+// 	- roles/resourcemanager.folderAdmin to revoke IAM grants.
+//	- roles/viewer to verify the affected project is within the enforced folder.
 //
-// By default the service account used can only revoke projects that are found within the
-// folder ID specified within `action-revoke-member-folders.tf`.
-func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.RevokeExternalGrantsFolders(ctx, m, ent)
+func RevokeIAM(ctx context.Context, m pubsub.Message) error {
+	r, err := revokeiam.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return revokeiam.Execute(ctx, r, ent)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
@@ -63,23 +70,42 @@ func RevokeExternalGrantsFolders(ctx context.Context, m pubsub.Message) error {
 // taken a snapshot recently, take a new snapshot for each disk within the instance.
 //
 // Permissions required
+//	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
-// By default the service account can only be used to create snapshots for the projects
-// specified in `action-snaphot-disk.tf`
-//
-// TODO: Support assigning roles at the folder and organization level.
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.CreateSnapshot(ctx, m, ent)
+	r, err := createsnapshot.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return createsnapshot.Execute(ctx, r, ent)
 }
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
+//
+// Permissions required
+//	- roles/viewer to retrieve ancestry.
+//	- roles/storeage.admin to modify buckets.
+//
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.CloseBucket(ctx, m, ent)
+	r, err := closebucket.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return closebucket.Execute(ctx, r, ent)
 }
 
-// DisableFirewall will disable an open firewall found by SHA
-func DisableFirewall(ctx context.Context, m pubsub.Message) error {
-	return cloudfunctions.DisableFirewall(ctx, m, ent)
+// OpenFirewall will remediate an open firewall.
+//
+// Permissions required
+//	- roles/viewer to retrieve ancestry.
+//	- roles/compute.securityAdmin to modify firewall rules.
+//
+func OpenFirewall(ctx context.Context, m pubsub.Message) error {
+	r, err := openfirewall.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return openfirewall.Execute(ctx, r, ent)
 }
 
 // RemovePublicIP removes all the external IP addresses of a GCE instance.

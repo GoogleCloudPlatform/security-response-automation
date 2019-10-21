@@ -1,4 +1,4 @@
-package cloudfunctions
+package createsnapshot
 
 // Copyright 2019 Google LLC
 //
@@ -19,35 +19,84 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/entities"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/google/go-cmp/cmp"
+	"golang.org/x/xerrors"
 	compute "google.golang.org/api/compute/v1"
 )
 
-var (
-	sampleFinding = pubsub.Message{Data: []byte(`{
-  "insertId": "eppsoda4",
-  "jsonPayload": {
-    "detectionCategory": {
-      "ruleName": "bad_ip"
-    },
-    "affectedResources": [
-      {
-        "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/test-project"
-      }
-    ],
-    "properties": {
-			"project_id": "foo-test",
-      "location": "test-zone",
-      "sourceInstance": "/projects/test-project/zones/test-zone/instances/instance1"
-    }
-  },
-  "logName": "projects/test-project/logs/threatdetection.googleapis.com%2Fdetection"
-}`)}
-)
+func TestReadFinding(t *testing.T) {
+	const (
+		validBadIP = `{
+			"jsonPayload": {
+				"properties": {
+					"location": "us-central1",
+					"project_id": "test-project",
+					"instanceDetails": "/instances/source-instance-name",
+					"zone": "zone-name"
+				},
+				"detectionCategory": {
+					"ruleName": "bad_ip"
+				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+		missingProperties = `{
+			"jsonPayload": {				
+				"detectionCategory": {
+					"ruleName": "bad_ip"
+				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+		wrongRule = `{
+			"jsonPayload": {
+				"properties": {
+					"location": "us-central1",
+					"project_id": "test-project",
+					"instanceDetails": "/instances/source-instance-name",
+					"zone": "zone-name"
+				},
+				"detectionCategory": {
+					"ruleName": "something_else"
+				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+	)
+	for _, tt := range []struct {
+		name, rule, projectID, instance, zone string
+		bytes                                 []byte
+		expectedError                         error
+	}{
+		{name: "read", rule: "bad_ip", projectID: "test-project", zone: "zone-name", instance: "source-instance-name", expectedError: nil, bytes: []byte(validBadIP)},
+		{name: "missing properties", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrValueNotFound, bytes: []byte(missingProperties)},
+		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrValueNotFound, bytes: []byte(wrongRule)},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			r, err := ReadFinding(tt.bytes)
+			if tt.expectedError == nil && err != nil {
+				t.Errorf("%s failed: %q", tt.name, err)
+			}
+			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
+			}
+			if err == nil && r.RuleName != tt.rule {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.RuleName, tt.rule)
+			}
+			if err == nil && r.Instance != tt.instance {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Instance, tt.instance)
+			}
+			if err == nil && r.Zone != tt.zone {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Zone, tt.zone)
+			}
+			if err == nil && r.ProjectID != tt.projectID {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
+			}
+		})
+	}
+}
 
 func TestCreateSnapshot(t *testing.T) {
 	ctx := context.Background()
@@ -154,7 +203,13 @@ func TestCreateSnapshot(t *testing.T) {
 			ent, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = &compute.SnapshotList{Items: tt.existingDiskSnapshots}
-			if err := CreateSnapshot(ctx, sampleFinding, ent); err != nil {
+			required := &Required{
+				ProjectID: "foo-test",
+				RuleName:  "bad_ip",
+				Instance:  "instance1",
+				Zone:      "test-zone",
+			}
+			if err := Execute(ctx, required, ent); err != nil {
 				t.Errorf("%s failed to create snapshot: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {

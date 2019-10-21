@@ -48,6 +48,11 @@ func (f *Firewall) DisableFirewallRule(ctx context.Context, projectID string, ru
 	return f.c.PatchFirewallRule(ctx, projectID, ruleID, &compute.Firewall{Name: name, Disabled: true})
 }
 
+// UpdateFirewallRuleSourceRange updates the firewall source ranges
+func (f *Firewall) UpdateFirewallRuleSourceRange(ctx context.Context, projectID string, ruleID string, name string, sourceRanges []string) (*compute.Operation, error) {
+	return f.c.PatchFirewallRule(ctx, projectID, ruleID, &compute.Firewall{Name: name, SourceRanges: sourceRanges})
+}
+
 // DeleteFirewallRule delete the firewall rule.
 func (f *Firewall) DeleteFirewallRule(ctx context.Context, projectID string, ruleID string) (*compute.Operation, error) {
 	return f.c.DeleteFirewallRule(ctx, projectID, ruleID)

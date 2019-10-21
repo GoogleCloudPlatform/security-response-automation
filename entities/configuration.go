@@ -20,7 +20,9 @@ type CloseBucket struct {
 
 // DisableFirewall contains configuration required for the disable firewall function.
 type DisableFirewall struct {
-	Resources *Resources
+	Resources         *Resources
+	RemediationAction string   `json:"remediation_action"`
+	SourceRanges      []string `json:"source_ranges"`
 }
 
 // RevokeGrants contains configuration required for the Revoke Grants function.
