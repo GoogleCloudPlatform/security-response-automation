@@ -27,7 +27,7 @@ import (
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
-func TestRevokeExternalGrantsFolders(t *testing.T) {
+func TestRevokeIAM(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {

@@ -23,7 +23,7 @@ provider "google" {
 }
 
 module "google-setup" {
-  source = "./automations/modules/google-setup"
+  source = "./terraform/setup/google-setup"
 
   region                          = "${local.region}"
   organization-id                 = "${var.organization-id}"
@@ -34,7 +34,7 @@ module "google-setup" {
 }
 
 module "close_public_bucket" {
-  source = "./automations/close-public-bucket"
+  source = "./terraform/automations/close-public-bucket"
   setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",
@@ -42,7 +42,7 @@ module "close_public_bucket" {
 }
 
 module "revoke_iam_grants" {
-  source = "./automations/revoke-iam-grants"
+  source = "./terraform/automations/revoke-iam-grants"
   setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",
@@ -50,12 +50,12 @@ module "revoke_iam_grants" {
 }
 
 module "create_disk_snapshot" {
-  source = "./automations/create-disk-snapshot"
+  source = "./terraform/automations/create-disk-snapshot"
   setup  = "${module.google-setup}"
 }
 
 module "open_firewall" {
-  source = "./automations/disable-firewall"
+  source = "./terraform/automations/disable-firewall"
   setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",

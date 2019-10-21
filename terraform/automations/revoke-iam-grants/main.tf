@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 resource "google_cloudfunctions_function" "revoke_member_function" {
-  name                  = "RevokeExternalGrantsFolders"
+  name                  = "RevokeIAM"
   description           = "Revokes IAM Event Threat Detection anomalous IAM grants."
   runtime               = "go111"
   available_memory_mb   = 128
@@ -23,7 +23,7 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   timeout               = 60
   project               = "${var.setup.automation-project}"
   region                = "${var.setup.region}"
-  entry_point           = "RevokeExternalGrantsFolders"
+  entry_point           = "RevokeIAM"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
@@ -35,7 +35,7 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   }
 }
 
-# Required by RevokeExternalGrantsFolders to revoke IAM grants on projects within this folder.
+# Required by RevokeIAM to revoke IAM grants on projects within this folder.
 resource "google_folder_iam_member" "revoke_member_cloudfunction-folder-bind" {
   count = length(var.folder-ids)
 
