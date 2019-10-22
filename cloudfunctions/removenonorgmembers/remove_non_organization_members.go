@@ -35,37 +35,28 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// RemoveNonOrganizationMembers is the entry point of the Cloud Function.
-//func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message, ent *entities.Entity) error {
-//	finding, err := sha.NewFinding(&m)
-//	if err != nil {
-//		return errors.Wrap(err, "failed to read finding")
-//	}
-//	organization, err := ent.Resource.Organization(ctx, finding.OrganizationID())
-//	if err != nil {
-//		return errors.Wrap(err, "failed to retrieve organization")
-//	}
-//	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
-//	if err != nil {
-//		return errors.Wrap(err, "failed to retrieve organization policies")
-//	}
-//	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, withPrefixAndNotContains)
-//	_, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy)
-//	if err != nil {
-//		return errors.Wrap(err, "failed to remove organization policies")
-//	}
-//	return nil
-//}
-
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
+	organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
+	if err != nil {
+		return errors.Wrap(err, "failed to retrieve organization")
+	}
+	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
+	if err != nil {
+		return errors.Wrap(err, "failed to retrieve organization policies")
+	}
+	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, withPrefixAndNotContains)
+	_, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove organization policies")
+	}
 	return nil
 }
 
 func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding,
-	isNotFromOrganization func(s string, memberPrefix string, organizationDisplayName string) bool) (nonOrgMembers []string) {
+	hasPrefixAndNotFromOrganization func(s string, memberPrefix string, organizationDisplayName string) bool) (nonOrgMembers []string) {
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if isNotFromOrganization(m, "user:", organizationDisplayName) {
+			if hasPrefixAndNotFromOrganization(m, "user:", organizationDisplayName) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
