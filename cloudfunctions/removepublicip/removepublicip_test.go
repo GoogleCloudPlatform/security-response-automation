@@ -23,6 +23,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/entities"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/google/go-cmp/cmp"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
@@ -128,18 +129,52 @@ func TestReadFinding(t *testing.T) {
 
 func TestRemovePublicIP(t *testing.T) {
 	ctx := context.Background()
+
+	externalNic0 := compute.NetworkInterface{
+		Name: "nic0",
+		AccessConfigs: []*compute.AccessConfig{
+			{
+				Name:  "External NAT",
+				NatIP: "35.192.206.126",
+				Type:  "ONE_TO_ONE_NAT",
+			},
+		},
+	}
+
 	test := []struct {
-		name      string
-		instance  *compute.Instance
-		folderIDs []string
-		ancestry  *crm.GetAncestryResponse
-		finding   pubsub.Message
+		name                         string
+		instance                     *compute.Instance
+		expectedDeletedAccessConfigs []stubs.NetworkAccessConfigStub
+		folderIDs                    []string
+		ancestry                     *crm.GetAncestryResponse
+		finding                      pubsub.Message
 	}{
 		{
-			name:      "remove public ip",
-			instance:  &compute.Instance{},
+			name: "remove public ip",
+			instance: &compute.Instance{
+				NetworkInterfaces: []*compute.NetworkInterface{
+					&externalNic0,
+				},
+			},
+			expectedDeletedAccessConfigs: []stubs.NetworkAccessConfigStub{
+				{
+					NetworkInterfaceName: "nic0",
+					AccessConfigName:     "External NAT",
+				},
+			},
 			folderIDs: []string{"123"},
 			ancestry:  createAncestors([]string{"folder/123"}),
+		},
+		{
+			name: "no valid folder",
+			instance: &compute.Instance{
+				NetworkInterfaces: []*compute.NetworkInterface{
+					&externalNic0,
+				},
+			},
+			expectedDeletedAccessConfigs: nil,
+			folderIDs:                    []string{"456"},
+			ancestry:                     createAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
@@ -155,6 +190,10 @@ func TestRemovePublicIP(t *testing.T) {
 
 			if err := Execute(ctx, required, ent); err != nil {
 				t.Errorf("%s failed to remove public ip :%q", tt.name, err)
+			}
+
+			if diff := cmp.Diff(tt.expectedDeletedAccessConfigs, computeStub.DeletedAccessConfigs); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})
 	}
