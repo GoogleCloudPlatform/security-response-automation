@@ -8,6 +8,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/entities"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/google/go-cmp/cmp"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
@@ -43,15 +44,30 @@ var (
 
 func TestRemoveNonOrgMembers(t *testing.T) {
 	tests := []struct {
-		name        string
-		pubSubInput pubsub.Message
-		policyInput []*crm.Binding
+		name            string
+		pubSubInput     pubsub.Message
+		policyInput     []*crm.Binding
+		expectedMembers []string
 	}{
 		{
-			name:        "Remove non-Org members and non user members (user:)",
+			name:        "Remove non-Org user member (user:)",
 			pubSubInput: findingRemoveNonOrgMember,
-			policyInput: createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com",
-				"user:mans@cloudorg.com", "serviceAccount:473000000749@cloudbuild.gserviceaccount.com"}),
+			policyInput: createBindings([]string{"user:bob@gmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com", "user:tim@thegmail.com",
+				"group:admins@example.com", "domain:google.com"}),
+			expectedMembers: []string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"group:admins@example.com", "domain:google.com"},
+		},
+		{
+			name:        "None non-Org user member to remove (user:)",
+			pubSubInput: findingRemoveNonOrgMember,
+			policyInput: createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"group:admins@example.com", "domain:google.com"}),
+			expectedMembers: []string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"group:admins@example.com", "domain:google.com"},
 		},
 	}
 	for _, tt := range tests {
@@ -64,9 +80,13 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			required := &Required{
 				OrganizationName: "organizations/1050000000008",
 			}
-			err := Execute(context.Background(), required, &entities.Entity{Resource: res})
-			if err != nil {
+			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
 				t.Errorf("Could not run %s due %q", tt.name, err)
+			}
+			for _, b := range crmStub.SavedSetPolicy.Bindings {
+				if diff := cmp.Diff(b.Members, tt.expectedMembers); diff != "" {
+					t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedMembers, b.Members)
+				}
 			}
 		})
 

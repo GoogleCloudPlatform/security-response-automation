@@ -18,6 +18,10 @@ type Required struct {
 	OrganizationName string
 }
 
+var withPrefixAndNotContains = func(s string, prefix string, content string) bool {
+	return strings.HasPrefix(s, prefix) && !strings.Contains(s, content)
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Required, error) {
 	var finding pb.IamScanner
@@ -35,6 +39,7 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
+// Execute remove non-organization members.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
 	if err != nil {
@@ -62,8 +67,4 @@ func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresour
 		}
 	}
 	return nonOrgMembers
-}
-
-var withPrefixAndNotContains = func(s string, prefix string, content string) bool {
-	return strings.HasPrefix(s, prefix) && !strings.Contains(s, content)
 }
