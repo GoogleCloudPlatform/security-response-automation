@@ -23,6 +23,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
@@ -106,4 +107,12 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return openfirewall.Execute(ctx, r, ent)
+}
+
+func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
+	r, err := removenonorgmembers.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return removenonorgmembers.Execute(ctx, r, ent)
 }
