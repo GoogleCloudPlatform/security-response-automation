@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	authFile     = "credentials/auth.json"
+	authFile     = "../credentials/auth.json"
 	settingsFile = "settings.json"
 )
 
@@ -19,6 +19,7 @@ type Entity struct {
 	Resource      *Resource
 	Host          *Host
 	Firewall      *Firewall
+	Container     *Container
 }
 
 // New returns an initialized Entity struct.
@@ -47,12 +48,19 @@ func New(ctx context.Context) (*Entity, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cont, err := initContainer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Entity{
 		Configuration: config,
 		Host:          host,
 		Logger:        log,
 		Resource:      res,
 		Firewall:      fw,
+		Container:     cont,
 	}, nil
 }
 
@@ -98,4 +106,12 @@ func initFirewall(ctx context.Context) (*Firewall, error) {
 		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
 	return NewFirewall(cs), nil
+}
+
+func initContainer(ctx context.Context) (*Container, error) {
+	cc, err := clients.NewContainer(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to initialize container client: %q", err)
+	}
+	return NewContainer(cc), nil
 }
