@@ -21,9 +21,12 @@ import (
 )
 
 // ContainerStub provides a stub for the Container client.
-type ContainerStub struct{}
+type ContainerStub struct {
+	UpdatedAddonsConfig *container.SetAddonsConfigRequest
+}
 
-// DisableDashboard disables the Kubernetes Dashboard for a given cluster.
-func (c *ContainerStub) DisableDashboard(context.Context, string, string, string) (*container.Operation, error) {
-	return nil, nil
+// UpdateAddonsConfig updates the addons configuration of a given cluster.
+func (c *ContainerStub) UpdateAddonsConfig(ctx context.Context, projectID, zone, clusterID string, conf *container.SetAddonsConfigRequest) (*container.Operation, error) {
+	c.UpdatedAddonsConfig = conf
+	return &container.Operation{}, nil
 }
