@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	authFile     = "../credentials/auth.json"
+	authFile     = "credentials/auth.json"
 	settingsFile = "settings.json"
 )
 
