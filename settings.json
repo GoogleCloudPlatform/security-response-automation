@@ -25,7 +25,6 @@
     },
     "remediation_action": "DISABLE",
     "source_ranges": ["127.0.0.0/8"]
-    }
   },
   "remove_public_ip": {
     "resources": {
