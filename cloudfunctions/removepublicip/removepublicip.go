@@ -67,7 +67,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 func removePublicIP(ctx context.Context, logr *entities.Logger, host *entities.Host, projectID, instanceZone, instanceID string) func() error {
 	return func() error {
 		if err := host.RemoveExternalIPs(ctx, projectID, instanceZone, instanceID); err != nil {
-			return errors.Wrap(err, "failed to remove public ip:")
+			return errors.Wrap(err, "failed to remove public ip")
 		}
 		logr.Info("removed ip addresses for instance %q, in zone %q in project %q.", instanceID, instanceZone, projectID)
 		return nil
