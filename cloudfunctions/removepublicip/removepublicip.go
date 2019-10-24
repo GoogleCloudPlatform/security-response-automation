@@ -21,7 +21,6 @@ import (
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
-
 	"github.com/pkg/errors"
 )
 

@@ -18,12 +18,11 @@ import (
 	"context"
 	"testing"
 
+	"cloud.google.com/go/pubsub"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/google/go-cmp/cmp"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
