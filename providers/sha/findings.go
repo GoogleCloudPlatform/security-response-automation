@@ -28,8 +28,15 @@ var (
 
 	// extractInstance is a regex to extract the name of the instance that is on the external uri.
 	extractInstance = regexp.MustCompile(`/instances/(.+)`)
+
 	// extractFirewallID is a regex to extract the firewall ID that is on the resource name.
 	extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
+
+	// extractClusterZone is a regex to extract the zone of the cluster that is on the resource name.
+	extractClusterZone = regexp.MustCompile(`/zones/(.+)/clusters`)
+
+	// extractClusterID is a regex to extract the Cluster ID of the cluster that is on the resource name.
+	extractClusterID = regexp.MustCompile(`/clusters/(.+)`)
 )
 
 // Zone returns the zone of the instance.
@@ -50,4 +57,14 @@ func BucketName(resource string) string {
 // FirewallID returns the numerical ID of the firewall.
 func FirewallID(resource string) string {
 	return extractFirewallID.FindStringSubmatch(resource)[1]
+}
+
+// ClusterZone returns the zone of the cluster.
+func ClusterZone(resource string) string {
+	return extractClusterZone.FindStringSubmatch(resource)[1]
+}
+
+// ClusterID returns the cluster id of the cluster.
+func ClusterID(resource string) string {
+	return extractClusterID.FindStringSubmatch(resource)[1]
 }
