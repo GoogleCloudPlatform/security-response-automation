@@ -27,12 +27,12 @@ type ContainerClient interface {
 
 // Container Entity.
 type Container struct {
-	cc ContainerClient
+	client ContainerClient
 }
 
 // NewContainer returns a new Container entity.
-func NewContainer(cc ContainerClient) *Container {
-	return &Container{cc: cc}
+func NewContainer(client ContainerClient) *Container {
+	return &Container{client: client}
 }
 
 // DisableDashboard disables the Kubernetes Dashboard for a given cluster.
@@ -44,5 +44,5 @@ func (c *Container) DisableDashboard(ctx context.Context, projectID, zone, clust
 			},
 		},
 	}
-	return c.cc.UpdateAddonsConfig(ctx, projectID, zone, clusterID, req)
+	return c.client.UpdateAddonsConfig(ctx, projectID, zone, clusterID, req)
 }
