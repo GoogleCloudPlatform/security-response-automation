@@ -16,12 +16,12 @@ package closebucket
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
@@ -152,14 +152,14 @@ func TestCloseBucket(t *testing.T) {
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
-			ancestry:       createAncestors([]string{"folder/123"}),
+			ancestry:       testhelpers.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:           "no folders",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      nil,
 			expected:       nil,
-			ancestry:       createAncestors([]string{"folder/123"}),
+			ancestry:       testhelpers.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
@@ -204,21 +204,4 @@ func closeBucketSetup(folderIDs []string) (*entities.Entity, *stubs.ResourceMana
 		},
 	}
 	return &entities.Entity{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub
-}
-
-func createAncestors(members []string) *crm.GetAncestryResponse {
-	ancestors := []*crm.Ancestor{}
-	// 'members' here looks like a resource string but it's really just an easy way to pass the
-	// type and id in a single string easily. Note to leave off the "s" from "folders" which is added
-	// downstream.
-	for _, m := range members {
-		mm := strings.Split(m, "/")
-		ancestors = append(ancestors, &crm.Ancestor{
-			ResourceId: &crm.ResourceId{
-				Type: mm[0],
-				Id:   mm[1],
-			},
-		})
-	}
-	return &crm.GetAncestryResponse{Ancestor: ancestors}
 }

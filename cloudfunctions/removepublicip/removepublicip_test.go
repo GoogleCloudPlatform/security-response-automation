@@ -16,10 +16,10 @@ package removepublicip
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
 
 	"cloud.google.com/go/pubsub"
@@ -163,7 +163,7 @@ func TestRemovePublicIP(t *testing.T) {
 				},
 			},
 			folderIDs: []string{"123"},
-			ancestry:  createAncestors([]string{"folder/123"}),
+			ancestry:  testhelpers.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name: "no valid folder",
@@ -174,7 +174,7 @@ func TestRemovePublicIP(t *testing.T) {
 			},
 			expectedDeletedAccessConfigs: nil,
 			folderIDs:                    []string{"456"},
-			ancestry:                     createAncestors([]string{"folder/123"}),
+			ancestry:                     testhelpers.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
@@ -215,22 +215,4 @@ func setupRemovePublicIP(folderIDs []string) (*entities.Entity, *stubs.ComputeSt
 		},
 	}
 	return &entities.Entity{Logger: log, Host: h, Resource: res, Configuration: conf}, computeStub, crmStub
-}
-
-// TODO: (akieras) Refactor this duplicated function (from openfirewall_test.go)
-func createAncestors(members []string) *crm.GetAncestryResponse {
-	ancestors := []*crm.Ancestor{}
-	// 'members' here looks like a resource string but it's really just an easy way to pass the
-	// type and id in a single string easily. Note to leave off the "s" from "folders" which is added
-	// downstream.
-	for _, m := range members {
-		mm := strings.Split(m, "/")
-		ancestors = append(ancestors, &crm.Ancestor{
-			ResourceId: &crm.ResourceId{
-				Type: mm[0],
-				Id:   mm[1],
-			},
-		})
-	}
-	return &crm.GetAncestryResponse{Ancestor: ancestors}
 }
