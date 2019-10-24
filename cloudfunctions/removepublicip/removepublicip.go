@@ -25,10 +25,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	expectedCategory = "PUBLIC_IP_ADDRESS"
-)
-
 // Required contains the required values needed for this function.
 type Required struct {
 	ProjectID, InstanceZone, InstanceID string
@@ -42,7 +38,7 @@ func ReadFinding(b []byte) (*Required, error) {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 
-	if finding.GetFinding().GetCategory() == expectedCategory {
+	if finding.GetFinding().GetCategory() == "PUBLIC_IP_ADDRESS" {
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 		r.InstanceZone = sha.Zone(finding.GetFinding().GetResourceName())
 		r.InstanceID = sha.Instance(finding.GetFinding().GetResourceName())
