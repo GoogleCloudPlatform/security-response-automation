@@ -67,6 +67,7 @@ message ComputeInstanceScanner {
     message Finding {
       SourceProperties sourceProperties = 1;
       string category = 2;
+      string resourceName = 3;
     }
 
     string notificationConfigName = 1;
