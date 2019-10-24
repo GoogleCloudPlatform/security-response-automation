@@ -36,14 +36,7 @@ func NewContainer(ctx context.Context, authFile string) (*Container, error) {
 	return &Container{container: cc}, nil
 }
 
-// DisableDashboard disables the Kubernetes Dashboard for a given cluster.
-func (c *Container) DisableDashboard(ctx context.Context, projectID, zone, clusterID string) (*container.Operation, error) {
-	req := &container.SetAddonsConfigRequest{
-		AddonsConfig: &container.AddonsConfig{
-			KubernetesDashboard: &container.KubernetesDashboard{
-				Disabled: true,
-			},
-		},
-	}
-	return c.container.Projects.Zones.Clusters.Addons(projectID, zone, clusterID, req).Context(ctx).Do()
+// UpdateAddonsConfig updates the addons configuration of a given cluster.
+func (c *Container) UpdateAddonsConfig(ctx context.Context, projectID, zone, clusterID string, conf *container.SetAddonsConfigRequest) (*container.Operation, error) {
+	return c.container.Projects.Zones.Clusters.Addons(projectID, zone, clusterID, conf).Context(ctx).Do()
 }
