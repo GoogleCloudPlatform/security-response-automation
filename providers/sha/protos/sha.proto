@@ -89,7 +89,7 @@ message IamScanner {
 }
 
 message SqlScanner {
-   message SourceProperties {
+    message SourceProperties {
         string projectID = 1;
     }
 
@@ -101,4 +101,20 @@ message SqlScanner {
 
     string notificationConfigName = 1;
     Finding finding = 2;
+}
+
+message ContainerScanner {
+
+  message SourceProperties {
+      string projectID = 1;
+  }
+
+  message Finding {
+    SourceProperties sourceProperties = 1;
+    string category = 2;
+    string resourceName = 3;
+  }
+
+  string notificationConfigName = 1;
+  Finding finding = 2;
 }
