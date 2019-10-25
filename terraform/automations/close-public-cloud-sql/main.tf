@@ -42,7 +42,7 @@ resource "google_folder_iam_member" "roles-viewer" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# Required to modify buckets within this folder.
+# Required to modify cloud sql instance within this folder.
 resource "google_folder_iam_member" "roles-storage-admin" {
   count = length(var.folder-ids)
 
