@@ -17,10 +17,6 @@ type Required struct {
 	OrganizationID string
 }
 
-var withPrefixAndNotContains = func(s string, prefix string, content string) bool {
-	return strings.HasPrefix(s, prefix) && !strings.Contains(s, content)
-}
-
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Required, error) {
 	var finding pb.IamScanner
@@ -48,7 +44,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policies")
 	}
-	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, withPrefixAndNotContains)
+	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings)
 	_, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy)
 	if err != nil {
 		return errors.Wrap(err, "failed to remove organization policies")
@@ -56,8 +52,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	return nil
 }
 
-func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding,
-	hasPrefixAndNotFromOrganization func(s string, memberPrefix string, organizationDisplayName string) bool) (nonOrgMembers []string) {
+func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding) (nonOrgMembers []string) {
 	for _, b := range bindings {
 		for _, m := range b.Members {
 			if hasPrefixAndNotFromOrganization(m, "user:", organizationDisplayName) {
@@ -66,4 +61,8 @@ func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresour
 		}
 	}
 	return nonOrgMembers
+}
+
+func hasPrefixAndNotFromOrganization(s string, prefix string, content string) bool {
+	return strings.HasPrefix(s, prefix) && !strings.Contains(s, content)
 }
