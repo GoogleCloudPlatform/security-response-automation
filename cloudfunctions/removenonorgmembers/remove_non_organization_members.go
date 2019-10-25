@@ -8,7 +8,6 @@ import (
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
-
 	"github.com/pkg/errors"
 	"google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -31,7 +30,7 @@ func ReadFinding(b []byte) (*Required, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		r.OrganizationID = sha.OrganizationID(finding.GetFinding().Parent)
+		r.OrganizationID = sha.OrganizationID(finding.GetFinding().GetParent())
 	}
 	if r.OrganizationID == "" {
 		return nil, entities.ErrValueNotFound
@@ -39,7 +38,7 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute remove non-organization members.
+// Execute removes non-organization members.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	organization, err := ent.Resource.Organization(ctx, required.OrganizationID)
 	if err != nil {

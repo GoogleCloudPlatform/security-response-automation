@@ -30,7 +30,7 @@ var (
 	extractInstance = regexp.MustCompile(`/instances/(.+)`)
 	// extractFirewallID is a regex to extract the firewall ID that is on the resource name.
 	extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
-	// extractOrganizationID is a regex to extract the organizationID value from Finding Parent attribute.
+	// extractOrganizationID is a regex to extract the organizationID value from a resource string.
 	extractOrganizationID = regexp.MustCompile(`organizations/(.+)/sources`)
 )
 

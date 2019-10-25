@@ -4,10 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/entities"
-
-	"github.com/google/go-cmp/cmp"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -99,22 +98,36 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		expectedMembers []string
 	}{
 		{
-			name: "remove non-Org user member (user:)",
-			policyInput: createBindings([]string{"user:bob@gmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
-				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com", "user:tim@thegmail.com",
-				"group:admins@example.com", "domain:google.com"}),
-			expectedMembers: []string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+			name: "remove non-org user",
+			policyInput: createBindings([]string{
+				"user:bob@gmail.com",
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-				"group:admins@example.com", "domain:google.com"},
+				"user:tim@thegmail.com",
+				"group:admins@example.com",
+				"domain:google.com"}),
+			expectedMembers: []string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"group:admins@example.com",
+				"domain:google.com"},
 		},
 		{
 			name: "none non-Org user member to remove (user:)",
-			policyInput: createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+			policyInput: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-				"group:admins@example.com", "domain:google.com"}),
-			expectedMembers: []string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com",
+				"group:admins@example.com",
+				"domain:google.com"}),
+			expectedMembers: []string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-				"group:admins@example.com", "domain:google.com"},
+				"group:admins@example.com",
+				"domain:google.com"},
 		},
 	}
 	for _, tt := range tests {
@@ -128,7 +141,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				OrganizationID: "organizations/1050000000008",
 			}
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
-				t.Errorf("Could not run %s due %q", tt.name, err)
+				t.Errorf("%s failed: %q", tt.name, err)
 			}
 			for _, b := range crmStub.SavedSetPolicy.Bindings {
 				if diff := cmp.Diff(b.Members, tt.expectedMembers); diff != "" {
