@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removepublicip"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
@@ -124,4 +125,21 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return removepublicip.Execute(ctx, r, ent)
+}
+
+// DisableDashboard will disable the kubernetes dashboard addon.
+//
+// This Cloud Function will respond to Security Health Analytics **Web UI Enabled** findings
+// from **Container Scanner**. The Kubernetes dashboard addon will be disabled when this
+// function is activated.
+//
+// Permissions required
+//	- roles/container.clusterAdmin update cluster addon.
+//
+func DisableDashboard(ctx context.Context, m pubsub.Message) error {
+	r, err := disabledashboard.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return disabledashboard.Execute(ctx, r, ent)
 }
