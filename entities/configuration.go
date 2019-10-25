@@ -36,12 +36,18 @@ type RemovePublicIP struct {
 	Resources *Resources
 }
 
+// DisableDashboard contains configuration required for the disable dashboard function.
+type DisableDashboard struct {
+	Resources *Resources
+}
+
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	CloseBucket     *CloseBucket     `json:"close_bucket"`
-	RevokeGrants    *RevokeGrants    `json:"revoke_grants"`
-	DisableFirewall *DisableFirewall `json:"disable_firewall"`
-	RemovePublicIP  *RemovePublicIP  `json:"remove_public_ip"`
+	CloseBucket      *CloseBucket      `json:"close_bucket"`
+	RevokeGrants     *RevokeGrants     `json:"revoke_grants"`
+	DisableFirewall  *DisableFirewall  `json:"disable_firewall"`
+	RemovePublicIP   *RemovePublicIP   `json:"remove_public_ip"`
+	DisableDashboard *DisableDashboard `json:"disable_dashboard"`
 }
 
 // NewConfiguration returns a new configuration.
