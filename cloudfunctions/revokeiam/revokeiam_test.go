@@ -16,15 +16,16 @@ package revokeiam
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
+
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
+	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
 func TestRevokeIAM(t *testing.T) {
@@ -50,7 +51,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: nil,
-			ancestry:        createAncestors([]string{}),
+			ancestry:        testhelpers.CreateAncestors([]string{}),
 		},
 		{
 			name:            "remove new gmail user folder",
@@ -61,7 +62,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com"},
-			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        testhelpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new gmail user project",
@@ -72,7 +73,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{"test-project-id"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com"},
-			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        testhelpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new user only",
@@ -83,7 +84,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
-			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        testhelpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "domain not in disallowed list",
@@ -94,7 +95,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@foo.com"},
-			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        testhelpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "provide multiple folders and remove gmail users",
@@ -105,7 +106,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
-			ancestry:        createAncestors([]string{"project/projectID", "folder/folderID1", "organization/organizationID"}),
+			ancestry:        testhelpers.CreateAncestors([]string{"project/projectID", "folder/folderID1", "organization/organizationID"}),
 		},
 		{
 			name:            "cannot revoke in this folder",
@@ -116,7 +117,7 @@ func TestRevokeIAM(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"gmail.com"},
 			expectedMembers: nil,
-			ancestry:        createAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
+			ancestry:        testhelpers.CreateAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
 		},
 	}
 	for _, tt := range test {
@@ -143,23 +144,6 @@ func TestRevokeIAM(t *testing.T) {
 			}
 		})
 	}
-}
-
-func createAncestors(members []string) *crm.GetAncestryResponse {
-	ancestors := []*crm.Ancestor{}
-	// 'members' here looks like a resource string but it's really just an easy way to pass the
-	// type and id in a single string easily. Note to leave off the "s" from "folders" which is added
-	// downstream.
-	for _, m := range members {
-		mm := strings.Split(m, "/")
-		ancestors = append(ancestors, &crm.Ancestor{
-			ResourceId: &crm.ResourceId{
-				Type: mm[0],
-				Id:   mm[1],
-			},
-		})
-	}
-	return &crm.GetAncestryResponse{Ancestor: ancestors}
 }
 
 func createPolicy(members []string) []*crm.Binding {

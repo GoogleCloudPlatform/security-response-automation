@@ -56,6 +56,29 @@ This Cloud Function responds to Event Threat Detection's Anomalous IAM grant det
 }
 ```
 
+**Remove Public IPs from GCE Instance**
+
+This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify. 
+Depending on which resources you specify will determine which projects are enforced.
+
+- `folder_ids` If the instance is in a project under a folder within this set the public access will be removed.
+- `project_ids` If the instance is in a project that is within this set the public access will be removed.
+- `organization_id` Any instance found with public access within this organization will have the public access removed.
+
+For example, if you wanted to only remove public access in the folder **development** you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager) and place into the `folder_ids` array.
+
+```json
+{
+  "remove_public_ip": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  }
+}
+```
+
 ### Installation
 
 We'll enable a few needed services first then use Terraform for the rest. Following these

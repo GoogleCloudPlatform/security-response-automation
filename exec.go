@@ -23,6 +23,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removepublicip"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
@@ -106,4 +107,21 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return openfirewall.Execute(ctx, r, ent)
+}
+
+// RemovePublicIP removes all the external IP addresses of a GCE instance.
+//
+// This Cloud Function will respond to Security Health Analytics **Public IP Address** findings
+// from **Compute Instance Scanner**. All public IP addresses of the affected instance will be
+// deleted when this function is activated.
+//
+// Permissions required
+//	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
+//
+func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
+	r, err := removepublicip.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return removepublicip.Execute(ctx, r, ent)
 }
