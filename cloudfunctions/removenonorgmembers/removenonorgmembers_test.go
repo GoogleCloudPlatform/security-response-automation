@@ -115,7 +115,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"domain:google.com"},
 		},
 		{
-			name: "none non-Org user member to remove (user:)",
+			name: "none non-org user to remove",
 			policyInput: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
