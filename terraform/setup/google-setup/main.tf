@@ -19,8 +19,17 @@ data "archive_file" "cloud_functions_zip" {
   type        = "zip"
   source_dir  = "${path.root}"
   output_path = "${path.root}/deploy/functions.zip"
-  depends_on  = ["local_file.cloudfunction-key-file"]
   excludes    = ["deploy", ".git", ".terraform"]
+  depends_on = [
+    "local_file.cloudfunction-key-file",
+    "google_project_service.compute_api",
+    "google_project_service.cloudresourcemanager_api",
+    "google_project_service.storage_api",
+    "google_project_service.logging_api",
+    "google_project_service.storage_component_api",
+    "google_project_service.pubsub_api",
+    "google_project_service.cloudfunctions_api"
+  ]
 }
 
 // service accounts
@@ -79,4 +88,54 @@ resource "google_project_iam_member" "stackdriver-writer" {
   project = "${var.automation-project}"
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.automation-service-account.email}"
+}
+
+
+resource "google_project_service" "compute_api" {
+  project                    = "${var.automation-project}"
+  service                    = "compute.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "cloudresourcemanager_api" {
+  project                    = "${var.automation-project}"
+  service                    = "cloudresourcemanager.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "storage_api" {
+  project                    = "${var.automation-project}"
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "logging_api" {
+  project                    = "${var.automation-project}"
+  service                    = "logging.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "storage_component_api" {
+  project                    = "${var.automation-project}"
+  service                    = "storage-component.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "pubsub_api" {
+  project                    = "${var.automation-project}"
+  service                    = "pubsub.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "cloudfunctions_api" {
+  project                    = "${var.automation-project}"
+  service                    = "cloudfunctions.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

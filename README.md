@@ -81,20 +81,10 @@ For example, if you wanted to only remove public access in the folder **developm
 
 ### Installation
 
-We'll enable a few needed services first then use Terraform for the rest. Following these
-instructions will enable all SRA Cloud Functions.
+Following these instructions will enable all SRA Cloud Functions.
 
 ```shell
 $ gcloud auth application-default login
-$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
-  ORGANIZATION_ID=154584661726 \
-  PROJECT_ID=aerial-jigsaw-235219 \
-  TOPIC_ID=cscc-notifications-topic
-
-$ project=[project ID where the Cloud Function will be installed]
-$ for service in cloudresourcemanager pubsub cloudfunctions;
-    do gcloud services enable $service.googleapis.com --project=$project;
-  done
 $ terraform init
 $ terraform apply
 ```
