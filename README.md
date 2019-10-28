@@ -100,6 +100,11 @@ If at any point you want to revert the changes we've made just run `terraform de
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
 ```shell
+$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
+  ORGANIZATION_ID=154584661726 \
+  PROJECT_ID=aerial-jigsaw-235219 \
+  TOPIC_ID=cscc-notifications-topic
+
 $ ./enable-cscc-notfications.sh
 ```
 
