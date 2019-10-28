@@ -67,6 +67,7 @@ message ComputeInstanceScanner {
     message Finding {
       SourceProperties sourceProperties = 1;
       string category = 2;
+      string resourceName = 3;
     }
 
     string notificationConfigName = 1;
@@ -83,6 +84,21 @@ message IamScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string parent = 3;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}
+
+message SqlScanner {
+   message SourceProperties {
+        string projectID = 1;
+    }
+
+    message Finding {
+      SourceProperties sourceProperties = 1;
+      string category = 2;
+      string resourceName = 3;
     }
 
     string notificationConfigName = 1;
