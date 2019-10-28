@@ -69,3 +69,11 @@ module "remove_public_ip" {
     "670032686187",
   ]
 }
+
+module "disable_dashboard" {
+  source = "./terraform/automations/disable-dashboard"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
