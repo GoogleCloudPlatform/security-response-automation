@@ -23,9 +23,10 @@ import (
 
 // ResourceManagerStub provides a stub for the CRM client.
 type ResourceManagerStub struct {
-	GetPolicyResponse   *crm.Policy
-	GetAncestryResponse *crm.GetAncestryResponse
-	SavedSetPolicy      *crm.Policy
+	GetPolicyResponse       *crm.Policy
+	GetAncestryResponse     *crm.GetAncestryResponse
+	SavedSetPolicy          *crm.Policy
+	GetOrganizationResponse *crm.Organization
 }
 
 // GetPolicyProject is a stub of Cloud Resource Manager's GetIamPolicy.
@@ -57,6 +58,5 @@ func (s *ResourceManagerStub) SetPolicyOrganization(ctx context.Context, organiz
 
 // GetOrganization is a stub of Cloud Resource Manager's GetOrganization.
 func (s *ResourceManagerStub) GetOrganization(ctx context.Context, organizationID string) (*crm.Organization, error) {
-	// TODO: implement GetOrganizationResponse
-	return nil, nil
+	return s.GetOrganizationResponse, nil
 }
