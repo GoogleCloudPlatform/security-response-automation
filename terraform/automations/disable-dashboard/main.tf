@@ -14,7 +14,7 @@
 
 resource "google_cloudfunctions_function" "disable-dashboard" {
   name                  = "DisableDasboard"
-  description           = "Disable the kubernetes dashboard addon"
+  description           = "Disable the Kubernetes dashboard addon"
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = "${var.setup.gcf-bucket-name}"
