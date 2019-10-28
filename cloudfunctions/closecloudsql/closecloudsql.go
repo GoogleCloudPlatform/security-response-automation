@@ -17,6 +17,7 @@ package closecloudsql
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -62,12 +63,11 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 
 func remove(ctx context.Context, required *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
 	return func() error {
+		log.Printf("getting details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		instance, err := sql.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
 		if err != nil{
 			return err
 		}
-		logr.Info("got details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
-
 		op, err := sql.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
 		if err != nil{
 			return err
