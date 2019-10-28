@@ -128,7 +128,7 @@ func TestDisableDashboard(t *testing.T) {
 		},
 	}
 	for _, tt := range test {
-		req, ent, crmStub := disabledashboardSetup(tt.folderIDs)
+		req, ent, crmStub := disableDashboardSetup(tt.folderIDs)
 		crmStub.GetAncestryResponse = tt.ancestry
 		if err := Execute(ctx, req, ent); err != nil {
 			t.Errorf("%s test failed want:%q", tt.name, err)
@@ -136,7 +136,7 @@ func TestDisableDashboard(t *testing.T) {
 	}
 }
 
-func disabledashboardSetup(folderIDs []string) (*Required, *entities.Entity, *stubs.ResourceManagerStub) {
+func disableDashboardSetup(folderIDs []string) (*Required, *entities.Entity, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
 	containerStub := &stubs.ContainerStub{}
