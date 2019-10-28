@@ -1,5 +1,19 @@
 package removenonorgmembers
 
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import (
 	"context"
 	"encoding/json"
@@ -45,8 +59,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		return errors.Wrap(err, "failed to retrieve organization policies")
 	}
 	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings)
-	_, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy)
-	if err != nil {
+	if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 		return errors.Wrap(err, "failed to remove organization policies")
 	}
 	return nil
@@ -55,7 +68,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding) (nonOrgMembers []string) {
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if hasPrefixAndNotFromOrganization(m, "user:", organizationDisplayName) {
+			if notFromOrg(m, "user:", organizationDisplayName) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
@@ -63,6 +76,6 @@ func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresour
 	return nonOrgMembers
 }
 
-func hasPrefixAndNotFromOrganization(s string, prefix string, content string) bool {
-	return strings.HasPrefix(s, prefix) && !strings.Contains(s, content)
+func notFromOrg(member, prefix, content string) bool {
+	return strings.HasPrefix(member, prefix) && !strings.Contains(member, content)
 }
