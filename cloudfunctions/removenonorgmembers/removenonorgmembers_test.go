@@ -109,7 +109,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 	tests := []struct {
 		name            string
 		policyInput     []*crm.Binding
-		expectedMembers []string
+		expectedBinding []*crm.Binding
 	}{
 		{
 			name: "remove non-org user",
@@ -121,12 +121,12 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"user:tim@thegmail.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
-			expectedMembers: []string{
+			expectedBinding: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
-				"domain:google.com"},
+				"domain:google.com"}),
 		},
 		{
 			name: "none non-org user to remove",
@@ -136,12 +136,12 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
-			expectedMembers: []string{
+			expectedBinding: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
-				"domain:google.com"},
+				"domain:google.com"}),
 		},
 	}
 	for _, tt := range tests {
@@ -157,10 +157,8 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)
 			}
-			for _, b := range crmStub.SavedSetPolicy.Bindings {
-				if diff := cmp.Diff(b.Members, tt.expectedMembers); diff != "" {
-					t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedMembers, b.Members)
-				}
+			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})
 
