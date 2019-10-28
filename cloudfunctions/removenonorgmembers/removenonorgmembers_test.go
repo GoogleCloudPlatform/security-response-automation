@@ -106,6 +106,12 @@ func TestReadFinding(t *testing.T) {
 }
 
 func TestRemoveNonOrgMembers(t *testing.T) {
+	orgDisplayName := "cloudorg.com"
+	orgID := "1050000000008"
+
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+
 	tests := []struct {
 		name            string
 		policyInput     []*crm.Binding
@@ -146,13 +152,11 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			crmStub := &stubs.ResourceManagerStub{}
-			storageStub := &stubs.StorageStub{}
-			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: "cloudorg.com", Name: "organizations/1050000000008"}
+			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
 			res := entities.NewResource(crmStub, storageStub)
 			required := &Required{
-				OrganizationID: "organizations/1050000000008",
+				OrganizationID: orgID,
 			}
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)
