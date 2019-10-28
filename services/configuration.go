@@ -41,6 +41,11 @@ type EnableBucketOnlyPolicy struct {
 	Resources *Resources
 }
 
+// EnableAuditLogs configuration required to enable data access audit logs
+type EnableAuditLogs struct {
+	Resources *Resources
+}
+
 // CloseCloudSQL contains configuration required for the close Cloud SQL function.
 type CloseCloudSQL struct {
 	Resources *Resources
@@ -81,6 +86,7 @@ type Configuration struct {
 	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
+	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
 	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
 	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 }

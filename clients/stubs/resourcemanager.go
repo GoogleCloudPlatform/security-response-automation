@@ -40,6 +40,12 @@ func (s *ResourceManagerStub) SetPolicyProject(ctx context.Context, projectID st
 	return s.SavedSetPolicy, nil
 }
 
+// SetPolicyProjectWithMask is a stub of Cloud Resource Manager's SetIamPolicy.
+func (s *ResourceManagerStub) SetPolicyProjectWithMask(ctx context.Context, projectID string, p *crm.Policy, fields ...string) (*crm.Policy, error) {
+	s.SavedSetPolicy = p
+	return s.SavedSetPolicy, nil
+}
+
 // GetAncestry is a stub of Cloud Resource Manager's GetAncestry.
 func (s *ResourceManagerStub) GetAncestry(context.Context, string) (*crm.GetAncestryResponse, error) {
 	return s.GetAncestryResponse, nil

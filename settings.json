@@ -54,5 +54,12 @@
     "resources": {
       "folder_ids": ["670032686187"]
     }
+  },
+  "enable_audit_logs": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    }
   }
 }
