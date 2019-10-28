@@ -110,6 +110,13 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 	return openfirewall.Execute(ctx, r, ent)
 }
 
+// RemoveNonOrganizationMember removes all members that do not match the organization.
+//
+// This Cloud Function will respond to Security Health Analytics **NON_ORG_IAM_MEMBER** findings from **IAM Scanner**.
+// All user member types (user:) that do not correspond to the organization, will be removed from policy binding.
+//
+// Permissions required
+//	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 	r, err := removenonorgmembers.ReadFinding(m.Data)
 	if err != nil {
