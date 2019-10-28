@@ -176,7 +176,7 @@ func TestCloseCloudSql(t *testing.T) {
 				InstanceName: "public-sql-instance",
 			}
 			if err := Execute(ctx, required, ent); err != nil {
-				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
+				t.Errorf("%s failed to remove public ip from instance :%q", tt.name, err)
 			}
 
 			if diff := cmp.Diff(sqlStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {

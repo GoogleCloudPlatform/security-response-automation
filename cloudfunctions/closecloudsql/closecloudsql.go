@@ -65,11 +65,11 @@ func remove(ctx context.Context, required *Required, logr *entities.Logger, sql 
 	return func() error {
 		log.Printf("getting details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		instance, err := sql.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		op, err := sql.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		if errs := sql.Wait(required.ProjectID, op); len(errs) > 0 {
