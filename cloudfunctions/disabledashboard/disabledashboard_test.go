@@ -16,10 +16,10 @@ package disabledashboard
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
@@ -123,7 +123,7 @@ func TestDisableDashboard(t *testing.T) {
 		{
 			name:          "disable dashboard",
 			folderIDs:     []string{"123"},
-			ancestry:      createAncestors([]string{"folder/123"}),
+			ancestry:      testhelpers.CreateAncestors([]string{"folder/123"}),
 			expectedError: nil,
 		},
 	}
@@ -157,18 +157,4 @@ func disabledashboardSetup(folderIDs []string) (*Required, *entities.Entity, *st
 		},
 	}
 	return req, &entities.Entity{Logger: log, Configuration: conf, Resource: resource, Container: cont}, crmStub
-}
-
-func createAncestors(members []string) *crm.GetAncestryResponse {
-	ancestors := []*crm.Ancestor{}
-	for _, m := range members {
-		mm := strings.Split(m, "/")
-		ancestors = append(ancestors, &crm.Ancestor{
-			ResourceId: &crm.ResourceId{
-				Type: mm[0],
-				Id:   mm[1],
-			},
-		})
-	}
-	return &crm.GetAncestryResponse{Ancestor: ancestors}
 }
