@@ -10,7 +10,8 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License.resource "google_cloudfunctions_function" "open-firewall" {
+# limitations under the License.
+
 resource "google_cloudfunctions_function" "disable-dashboard" {
   name                  = "DisableDasboard"
   description           = "Disable the kubernetes dashboard addon"
