@@ -62,13 +62,13 @@ func Execute(ctx context.Context, req *Required, ent *entities.Entity) error {
 	return nil
 }
 
-func disableDashboard(ctx context.Context, req *Required, log *entities.Logger, cont *entities.Container) func() error {
+func disableDashboard(ctx context.Context, req *Required, logr *entities.Logger, cont *entities.Container) func() error {
 	return func() error {
-		log.Info("Disabling dashboard from cluster")
+		logr.Info("Disabling dashboard from cluster")
 		if _, err := cont.DisableDashboard(ctx, req.ProjectID, req.Zone, req.ClusterID); err != nil {
 			return err
 		}
-		log.Info("Successfully disabled dashboard from cluster %s in project %s", req.ClusterID, req.ProjectID)
+		logr.Info("Successfully disabled dashboard from cluster %s in project %s", req.ClusterID, req.ProjectID)
 		return nil
 	}
 }
