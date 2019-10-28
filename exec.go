@@ -127,7 +127,7 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 	return removepublicip.Execute(ctx, r, ent)
 }
 
-// DisableDashboard will disable the kubernetes dashboard addon.
+// DisableDashboard will disable the Kubernetes dashboard addon.
 //
 // This Cloud Function will respond to Security Health Analytics **Web UI Enabled** findings
 // from **Container Scanner**. The Kubernetes dashboard addon will be disabled when this
