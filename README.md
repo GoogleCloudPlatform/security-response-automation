@@ -81,7 +81,7 @@ For example, if you wanted to only remove public access in the folder **developm
 
 ### Installation
 
-Following these instructions will enable all SRA Cloud Functions.
+Following these instructions will deploy all SRA Cloud Functions.
 
 ```shell
 $ gcloud auth application-default login
