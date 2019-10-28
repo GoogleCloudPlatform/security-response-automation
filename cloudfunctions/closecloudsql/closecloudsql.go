@@ -1,3 +1,5 @@
+package closecloudsql
+
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,8 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-package closecloudsql
 
 import (
 	"context"
@@ -47,7 +47,7 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute will remove any public users from buckets found within the provided folders.
+// Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	r := remove(ctx, required, ent.Logger, ent.CloudSQL)
 	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseCloudSql.Resources.FolderIDs, required.ProjectID, r); err != nil {
@@ -57,30 +57,25 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseCloudSql.Resources.ProjectIDs, required.ProjectID, r); err != nil {
 		return errors.Wrap(err, "projects failed")
 	}
-
 	return nil
 }
 
-func remove(ctx context.Context, required *Required, log *entities.Logger, sql *entities.CloudSQL) func() error {
+func remove(ctx context.Context, required *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
 	return func() error {
-		log.Info("getting details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		instance, err := sql.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
-
 		if err != nil{
 			return err
 		}
+		logr.Info("got details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 
 		op, err := sql.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
-
 		if err != nil{
 			return err
 		}
-
 		if errs := sql.Wait(required.ProjectID, op); len(errs) > 0 {
 			return errs[0]
 		}
-		log.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		logr.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil
-
 	}
 }

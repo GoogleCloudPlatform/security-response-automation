@@ -178,9 +178,6 @@ func TestCloseCloudSql(t *testing.T) {
 			if err := Execute(ctx, required, ent); err != nil {
 				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
 			}
-			if diff := cmp.Diff(sqlStub.InstanceDetailsResponse, tt.instanceDetailsResponse); diff != "" {
-				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.instanceDetailsResponse, sqlStub.InstanceDetailsResponse)
-			}
 
 			if diff := cmp.Diff(sqlStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
 				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedRequest, sqlStub.SavedInstanceUpdated)

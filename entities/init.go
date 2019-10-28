@@ -55,7 +55,7 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
-	sql, err := initCloudSql(ctx)
+	sql, err := initCloudSQL(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -123,10 +123,10 @@ func initContainer(ctx context.Context) (*Container, error) {
 	return NewContainer(cc), nil
 }
 
-func initCloudSql(ctx context.Context) (*CloudSQL, error) {
+func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 	cs, err := clients.NewCloudSQL(ctx, authFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
+		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
 	return NewCloudSQL(cs), nil
 }
