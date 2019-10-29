@@ -71,9 +71,26 @@ For example, if you wanted to only remove public access in the folder **developm
 {
   "remove_public_ip": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
+    }
+  }
+}
+```
+
+**Disable Kubernetes Dashboard addon**
+
+This Cloud Function will automatically disable Kubernetes Dashboard addon found by Security Health Analytics.
+Depending on which resources you specify will determine which projects are enforced.
+
+- `folder_ids` If the cluster is in a project under a folder within this set the Kubernetes Dashboard addon will be disabled.
+- `project_ids` If the cluster is in a project that is within this set the Kubernetes Dashboard addon will be disabled.
+- `organization_id` Any cluster found within this organization will have Kubernetes Dashboard addon disabled.
+
+```json
+{
+  "disable_dashboard": {
+    "resources": {
+      "folder_ids": ["670032686187"]
     }
   }
 }
