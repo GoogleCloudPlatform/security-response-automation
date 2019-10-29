@@ -18,11 +18,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
+	"google.golang.org/api/container/v1"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -115,32 +117,47 @@ func TestDisableDashboard(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name          string
-		folderIDs     []string
-		ancestry      *crm.GetAncestryResponse
-		expectedError error
+		name            string
+		folderIDs       []string
+		ancestry        *crm.GetAncestryResponse
+		expectedRequest *container.SetAddonsConfigRequest
 	}{
 		{
-			name:          "disable dashboard",
-			folderIDs:     []string{"123"},
-			ancestry:      testhelpers.CreateAncestors([]string{"folder/123"}),
-			expectedError: nil,
+			name:      "disable dashboard",
+			folderIDs: []string{"123"},
+			ancestry:  testhelpers.CreateAncestors([]string{"folder/123"}),
+			expectedRequest: &container.SetAddonsConfigRequest{
+				AddonsConfig: &container.AddonsConfig{
+					KubernetesDashboard: &container.KubernetesDashboard{
+						Disabled: true,
+					},
+				},
+			},
+		},
+		{
+			name:            "no valid folder",
+			folderIDs:       []string{"456"},
+			ancestry:        testhelpers.CreateAncestors([]string{"folder/123"}),
+			expectedRequest: nil,
 		},
 	}
 	for _, tt := range test {
-		req, ent, crmStub := disableDashboardSetup(tt.folderIDs)
+		req, ent, crmStub, contStub := disableDashboardSetup(tt.folderIDs)
 		crmStub.GetAncestryResponse = tt.ancestry
 		if err := Execute(ctx, req, ent); err != nil {
 			t.Errorf("%s test failed want:%q", tt.name, err)
 		}
+		if diff := cmp.Diff(contStub.UpdatedAddonsConfig, tt.expectedRequest); diff != "" {
+			t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedRequest, contStub.UpdatedAddonsConfig)
+		}
 	}
 }
 
-func disableDashboardSetup(folderIDs []string) (*Required, *entities.Entity, *stubs.ResourceManagerStub) {
+func disableDashboardSetup(folderIDs []string) (*Required, *entities.Entity, *stubs.ResourceManagerStub, *stubs.ContainerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
-	containerStub := &stubs.ContainerStub{}
-	cont := entities.NewContainer(containerStub)
+	contStub := &stubs.ContainerStub{}
+	cont := entities.NewContainer(contStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	resource := entities.NewResource(crmStub, storageStub)
@@ -156,5 +173,5 @@ func disableDashboardSetup(folderIDs []string) (*Required, *entities.Entity, *st
 			},
 		},
 	}
-	return req, &entities.Entity{Logger: log, Configuration: conf, Resource: resource, Container: cont}, crmStub
+	return req, &entities.Entity{Logger: log, Configuration: conf, Resource: resource, Container: cont}, crmStub, contStub
 }
