@@ -33,6 +33,8 @@ var (
 	extractClusterZone = regexp.MustCompile(`/zones/(.+)/clusters`)
 	// extractClusterID is a regex to extract the Cluster ID of the cluster that is on the resource name.
 	extractClusterID = regexp.MustCompile(`/clusters/(.+)`)
+	// extractOrganizationID is a regex to extract the organizationID value from a resource string.
+	extractOrganizationID = regexp.MustCompile(`organizations/(.+)/sources`)
 )
 
 // Zone returns the zone of the instance.
@@ -63,4 +65,9 @@ func ClusterZone(resource string) string {
 // ClusterID returns the cluster id of the cluster.
 func ClusterID(resource string) string {
 	return extractClusterID.FindStringSubmatch(resource)[1]
+}
+
+// OrganizationID returns the organization ID.
+func OrganizationID(resource string) string {
+	return extractOrganizationID.FindStringSubmatch(resource)[1]
 }

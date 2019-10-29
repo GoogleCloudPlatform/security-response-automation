@@ -81,20 +81,10 @@ For example, if you wanted to only remove public access in the folder **developm
 
 ### Installation
 
-We'll enable a few needed services first then use Terraform for the rest. Following these
-instructions will enable all SRA Cloud Functions.
+Following these instructions will deploy all SRA Cloud Functions.
 
 ```shell
 $ gcloud auth application-default login
-$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
-  ORGANIZATION_ID=154584661726 \
-  PROJECT_ID=aerial-jigsaw-235219 \
-  TOPIC_ID=cscc-notifications-topic
-
-$ project=[project ID where the Cloud Function will be installed]
-$ for service in cloudresourcemanager pubsub cloudfunctions;
-    do gcloud services enable $service.googleapis.com --project=$project;
-  done
 $ terraform init
 $ terraform apply
 ```
@@ -110,6 +100,11 @@ If at any point you want to revert the changes we've made just run `terraform de
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
 ```shell
+$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
+  ORGANIZATION_ID=154584661726 \
+  PROJECT_ID=aerial-jigsaw-235219 \
+  TOPIC_ID=cscc-notifications-topic
+
 $ ./enable-cscc-notfications.sh
 ```
 

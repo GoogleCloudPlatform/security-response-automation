@@ -24,6 +24,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removepublicip"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -108,6 +109,21 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return openfirewall.Execute(ctx, r, ent)
+}
+
+// RemoveNonOrganizationMember removes all members that do not match the organization.
+//
+// This Cloud Function will respond to Security Health Analytics **NON_ORG_IAM_MEMBER** findings from **IAM Scanner**.
+// All user member types (user:) that do not correspond to the organization, will be removed from policy binding.
+//
+// Permissions required
+//	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
+func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
+	r, err := removenonorgmembers.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return removenonorgmembers.Execute(ctx, r, ent)
 }
 
 // RemovePublicIP removes all the external IP addresses of a GCE instance.
