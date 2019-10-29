@@ -83,6 +83,7 @@ message IamScanner {
     message Finding {
       SourceProperties sourceProperties = 1;
       string category = 2;
+      string parent = 3;
     }
 
     string notificationConfigName = 1;
