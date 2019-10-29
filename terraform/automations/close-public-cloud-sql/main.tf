@@ -43,7 +43,7 @@ resource "google_folder_iam_member" "roles-viewer" {
 }
 
 # Required to modify cloud sql instance within this folder.
-resource "google_folder_iam_member" "roles-storage-admin" {
+resource "google_folder_iam_member" "roles-cloud-sql-admin" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"

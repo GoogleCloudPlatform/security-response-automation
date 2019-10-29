@@ -2,5 +2,5 @@ variable "setup" {}
 
 variable "folder-ids" {
   type        = list(string)
-  description = "Remove public ips from cloud sql instances if they are within the given folder IDs."
+  description = "Folder IDs to grant the necessary permissions for this Cloud Function execution."
 }
