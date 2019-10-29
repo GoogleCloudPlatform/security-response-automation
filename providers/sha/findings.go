@@ -25,16 +25,12 @@ const resourcePrefix = "//storage.googleapis.com/"
 var (
 	// extractZone is a regex to extract the zone of the instance that is on the external uri.
 	extractZone = regexp.MustCompile(`/zones/(.+)/instances`)
-
 	// extractInstance is a regex to extract the name of the instance that is on the external uri.
 	extractInstance = regexp.MustCompile(`/instances/(.+)`)
-
 	// extractFirewallID is a regex to extract the firewall ID that is on the resource name.
 	extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
-
 	// extractClusterZone is a regex to extract the zone of the cluster that is on the resource name.
 	extractClusterZone = regexp.MustCompile(`/zones/(.+)/clusters`)
-
 	// extractClusterID is a regex to extract the Cluster ID of the cluster that is on the resource name.
 	extractClusterID = regexp.MustCompile(`/clusters/(.+)`)
 )
