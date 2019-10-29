@@ -48,7 +48,7 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute will remove any public users from buckets found within the provided folders.
+// Execute disables the Kubernetes dashboard addon
 func Execute(ctx context.Context, req *Required, ent *entities.Entity) error {
 	folders := ent.Configuration.DisableDashboard.Resources.FolderIDs
 	projects := ent.Configuration.DisableDashboard.Resources.ProjectIDs
