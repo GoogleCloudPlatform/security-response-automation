@@ -161,7 +161,7 @@ func CloseCloudSql(ctx context.Context, m pubsub.Message) error {
 	return closecloudsql.Execute(ctx, r, ent)
 }
 
-// CloudSQLRequireSSL enforces SSL to a Cloud SQL instance.
+// CloudSQLRequireSSL enables the SSL requirement for a Cloud SQL instance.
 //
 // This Cloud Function will respond to Security Health Analytics **Public SQL Instance** findings
 // from **SQL Scanner**. All public IP addresses of the affected instance will be
