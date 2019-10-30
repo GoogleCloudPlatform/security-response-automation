@@ -51,11 +51,11 @@ func ReadFinding(b []byte) (*Required, error) {
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	r := remove(ctx, required, ent.Logger, ent.CloudSQL)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseCloudSql.Resources.FolderIDs, required.ProjectID, r); err != nil {
+	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseCloudSQL.Resources.FolderIDs, required.ProjectID, r); err != nil {
 		return errors.Wrap(err, "folders failed")
 	}
 
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseCloudSql.Resources.ProjectIDs, required.ProjectID, r); err != nil {
+	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseCloudSQL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
 		return errors.Wrap(err, "projects failed")
 	}
 	return nil

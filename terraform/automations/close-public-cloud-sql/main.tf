@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 resource "google_cloudfunctions_function" "close-cloud-sql" {
-  name                  = "CloseCloudSql"
+  name                  = "CloseCloudSQL"
   description           = "Removes public IPs from a Cloud SQL instance."
   runtime               = "go111"
   available_memory_mb   = 128
@@ -21,7 +21,7 @@ resource "google_cloudfunctions_function" "close-cloud-sql" {
   timeout               = 60
   project               = "${var.setup.automation-project}"
   region                = "${var.setup.region}"
-  entry_point           = "CloseCloudSql"
+  entry_point           = "CloseCloudSQL"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"

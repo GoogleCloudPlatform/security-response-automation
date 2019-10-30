@@ -119,6 +119,7 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //
 // Permissions required
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
+//
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 	r, err := removenonorgmembers.ReadFinding(m.Data)
 	if err != nil {
@@ -144,7 +145,7 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 	return removepublicip.Execute(ctx, r, ent)
 }
 
-// CloseCloudSql removes public IP for a Cloud SQL instance.
+// CloseCloudSQL removes public IP for a Cloud SQL instance.
 //
 // This Cloud Function will respond to Security Health Analytics **Public SQL Instance** findings
 // from **SQL Scanner**. All public IP addresses of the affected instance will be
@@ -153,7 +154,7 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 // Permissions required
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
-func CloseCloudSql(ctx context.Context, m pubsub.Message) error {
+func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 	r, err := closecloudsql.ReadFinding(m.Data)
 	if err != nil {
 		return err
