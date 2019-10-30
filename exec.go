@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closecloudsql"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloudsqlrequiressl"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removenonorgmembers"
@@ -159,4 +160,21 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return closecloudsql.Execute(ctx, r, ent)
+}
+
+// CloudSQLRequireSSL enables the SSL requirement for a Cloud SQL instance.
+//
+// This Cloud Function will respond to Security Health Analytics **Public SQL Instance** findings
+// from **SQL Scanner**. All public IP addresses of the affected instance will be
+// deleted when this function is activated.
+//
+// Permissions required
+//	- roles/cloudsql.editor to get instance data and delete access config.
+//
+func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
+	r, err := cloudsqlrequiressl.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return cloudsqlrequiressl.Execute(ctx, r, ent)
 }
