@@ -40,6 +40,10 @@ type EnableBucketOnlyPolicy struct {
 	Resources *Resources
 }
 
+type CloseCloudSql struct {
+	Resources *Resources
+}
+
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
@@ -47,6 +51,7 @@ type Configuration struct {
 	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
+	CloseCloudSql          *CloseCloudSql          `json:"close_cloud_sql"`
 }
 
 // NewConfiguration returns a new configuration.

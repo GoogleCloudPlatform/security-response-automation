@@ -20,6 +20,7 @@ type Entity struct {
 	Host          *Host
 	Firewall      *Firewall
 	Container     *Container
+	CloudSQL      *CloudSQL
 }
 
 // New returns an initialized Entity struct.
@@ -54,6 +55,11 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
+	sql, err := initCloudSQL(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Entity{
 		Configuration: config,
 		Host:          host,
@@ -61,6 +67,7 @@ func New(ctx context.Context) (*Entity, error) {
 		Resource:      res,
 		Firewall:      fw,
 		Container:     cont,
+		CloudSQL:      sql,
 	}, nil
 }
 
@@ -114,4 +121,12 @@ func initContainer(ctx context.Context) (*Container, error) {
 		return nil, fmt.Errorf("Failed to initialize container client: %q", err)
 	}
 	return NewContainer(cc), nil
+}
+
+func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
+	cs, err := clients.NewCloudSQL(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
+	}
+	return NewCloudSQL(cs), nil
 }
