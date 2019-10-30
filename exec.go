@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/enablebucketonlypolicy"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removepublicip"
@@ -140,4 +141,20 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return removepublicip.Execute(ctx, r, ent)
+}
+
+// EnableBucketOnlyPolicy Enable bucket only policy on a GCS bucket.
+//
+// This Cloud Function will respond to Security Health Analytics **BUCKET_POLICY_ONLY_DISABLED** findings
+// from **STORAGE_SCANNER**. Bucket only ACL policy will be enforce on the bucket.
+//
+// Permissions required
+//	- roles/storage.admin to change the Bucket ACL policy mode.
+//
+func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
+	r, err := enablebucketonlypolicy.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return enablebucketonlypolicy.Execute(ctx, r, ent)
 }

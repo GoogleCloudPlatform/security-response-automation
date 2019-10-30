@@ -23,9 +23,10 @@ import (
 
 // StorageStub provides a stub for the Storage client.
 type StorageStub struct {
-	service              *storage.Client
-	BucketPolicyResponse *iam.Policy
-	RemoveBucketPolicy   *iam.Policy
+	service               *storage.Client
+	BucketPolicyResponse  *iam.Policy
+	RemoveBucketPolicy    *iam.Policy
+	EnabledPolicyOnBucket string
 }
 
 // SetBucketPolicy set a policy for the given bucket.
@@ -37,4 +38,9 @@ func (s *StorageStub) SetBucketPolicy(ctx context.Context, bucketName string, p 
 // BucketPolicy gets a bucket's policy.
 func (s *StorageStub) BucketPolicy(ctx context.Context, bucketName string) (*iam.Policy, error) {
 	return s.BucketPolicyResponse, nil
+}
+
+func (s *StorageStub) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
+	s.EnabledPolicyOnBucket = bucketName
+	return nil
 }

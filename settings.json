@@ -32,5 +32,12 @@
         "670032686187"
       ]
     }
+  },
+  "enable_bucket_only_policy": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
   }
 }

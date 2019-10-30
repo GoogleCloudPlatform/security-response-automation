@@ -36,12 +36,17 @@ type RemovePublicIP struct {
 	Resources *Resources
 }
 
+type EnableBucketOnlyPolicy struct {
+	Resources *Resources
+}
+
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	CloseBucket     *CloseBucket     `json:"close_bucket"`
-	RevokeGrants    *RevokeGrants    `json:"revoke_grants"`
-	DisableFirewall *DisableFirewall `json:"disable_firewall"`
-	RemovePublicIP  *RemovePublicIP  `json:"remove_public_ip"`
+	CloseBucket            *CloseBucket            `json:"close_bucket"`
+	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
+	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
+	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
+	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
 }
 
 // NewConfiguration returns a new configuration.
