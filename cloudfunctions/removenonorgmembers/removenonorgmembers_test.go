@@ -83,12 +83,12 @@ func TestReadFinding(t *testing.T) {
 	}`
 	)
 	for _, tt := range []struct {
-		name, OrganizationID string
-		bytes                []byte
-		expectedError        error
+		name, OrganizationName string
+		bytes                  []byte
+		expectedError          error
 	}{
-		{name: "read", OrganizationID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
-		{name: "wrong category", OrganizationID: "", bytes: []byte(findingOtherCategory), expectedError: entities.ErrValueNotFound},
+		{name: "read", OrganizationName: "organizations/1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
+		{name: "wrong category", OrganizationName: "", bytes: []byte(findingOtherCategory), expectedError: entities.ErrValueNotFound},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -98,8 +98,8 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.OrganizationID != tt.OrganizationID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.OrganizationID, tt.OrganizationID)
+			if err == nil && r.OrganizationName != tt.OrganizationName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.OrganizationName, tt.OrganizationName)
 			}
 		})
 	}
@@ -107,7 +107,7 @@ func TestReadFinding(t *testing.T) {
 
 func TestRemoveNonOrgMembers(t *testing.T) {
 	orgDisplayName := "cloudorg.com"
-	orgID := "1050000000008"
+	orgName := "organizations/1050000000008"
 
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
@@ -152,11 +152,11 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
+			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: orgName}
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
 			res := entities.NewResource(crmStub, storageStub)
 			required := &Required{
-				OrganizationID: orgID,
+				OrganizationName: orgName,
 			}
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)

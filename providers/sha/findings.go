@@ -30,8 +30,8 @@ var (
 	extractInstance = regexp.MustCompile(`/instances/(.+)`)
 	// extractFirewallID is a regex to extract the firewall ID that is on the resource name.
 	extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
-	// extractOrganizationID is a regex to extract the organizationID value from a resource string.
-	extractOrganizationID = regexp.MustCompile(`organizations/(.+)/sources`)
+	// extractOrganizationName is a regex to extract the organizationID value from a resource string.
+	extractOrganizationName = regexp.MustCompile(`(organizations/\d.+)/sources`)
 )
 
 // Zone returns the zone of the instance.
@@ -54,7 +54,7 @@ func FirewallID(resource string) string {
 	return extractFirewallID.FindStringSubmatch(resource)[1]
 }
 
-// OrganizationID returns the organization ID.
-func OrganizationID(resource string) string {
-	return extractOrganizationID.FindStringSubmatch(resource)[1]
+// OrganizationName returns the organization ID.
+func OrganizationName(resource string) string {
+	return extractOrganizationName.FindStringSubmatch(resource)[1]
 }
