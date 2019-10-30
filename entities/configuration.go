@@ -40,13 +40,18 @@ type CloseCloudSql struct {
 	Resources *Resources
 }
 
+type CloudSQLRequireSSL struct {
+	Resources *Resources
+}
+
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	CloseBucket     *CloseBucket     `json:"close_bucket"`
-	RevokeGrants    *RevokeGrants    `json:"revoke_grants"`
-	DisableFirewall *DisableFirewall `json:"disable_firewall"`
-	RemovePublicIP  *RemovePublicIP  `json:"remove_public_ip"`
-	CloseCloudSql   *CloseCloudSql   `json:"close_cloud_sql"`
+	CloseBucket          *CloseBucket          `json:"close_bucket"`
+	RevokeGrants         *RevokeGrants         `json:"revoke_grants"`
+	DisableFirewall      *DisableFirewall      `json:"disable_firewall"`
+	RemovePublicIP       *RemovePublicIP       `json:"remove_public_ip"`
+	CloseCloudSql        *CloseCloudSql        `json:"close_cloud_sql"`
+	CloudSQLRequireSSL   *CloudSQLRequireSSL   `json:"cloud_sql_require_ssl"`
 }
 
 // NewConfiguration returns a new configuration.
