@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-resource "google_cloudfunctions_function" "close-cloud-sql" {
-  name                  = "CloseCloudSQL"
-  description           = "Removes public IPs from a Cloud SQL instance."
+resource "google_cloudfunctions_function" "enforce-ssl-cloud-sql" {
+  name                  = "CloudSQLRequireSSL"
+  description           = "Enforces SSL to a Cloud SQL instance."
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = "${var.setup.gcf-bucket-name}"
@@ -21,7 +21,7 @@ resource "google_cloudfunctions_function" "close-cloud-sql" {
   timeout               = 60
   project               = "${var.setup.automation-project}"
   region                = "${var.setup.region}"
-  entry_point           = "CloseCloudSQL"
+  entry_point           = "CloudSQLRequireSSL"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
