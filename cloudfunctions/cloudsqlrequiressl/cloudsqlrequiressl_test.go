@@ -21,8 +21,8 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
+	testhelpers "github.com/googlecloudplatform/threat-automation/entities/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
@@ -147,7 +147,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, sqlStub, crmStub := cloudSqlRequireSSL(tt.folderIDs)
+			ent, sqlStub, crmStub := cloudSQLRequireSSL(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 			required := &Required{
 				ProjectID:  "sha-resources-20191002",
@@ -164,7 +164,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	}
 }
 
-func cloudSqlRequireSSL(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
+func cloudSQLRequireSSL(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
