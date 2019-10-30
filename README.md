@@ -79,6 +79,30 @@ For example, if you wanted to only remove public access in the folder **developm
 }
 ```
 
+**Enable bucket only ACL policy**
+
+This Cloud Function will automatically enable bucket only ACL policy on the select bucket. 
+Depending on which resources you specify it will determine which projects are enforced.
+
+- `folder_ids` If the bucket is in a project under a folder within this set the bucket only ACL policy will be enabled.
+- `project_ids` If the bucket is in a project that is within this set the bucket only ACL policy will be enabled.
+
+For example, if you wanted to only enable bucket only ACL policy in the folder **development** 
+you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
+and place into the `folder_ids` array.
+
+```json
+{
+  "enable_bucket_only_policy": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  }
+}
+```
+
 ### Installation
 
 Following these instructions will deploy all SRA Cloud Functions.
