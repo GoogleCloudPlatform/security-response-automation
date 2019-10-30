@@ -33,6 +33,13 @@
       ]
     }
   },
+  "close_cloud_sql": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  },
   "disable_dashboard": {
     "resources": {
       "folder_ids": [

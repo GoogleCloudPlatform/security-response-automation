@@ -41,12 +41,18 @@ type DisableDashboard struct {
 	Resources *Resources
 }
 
+// CloseCloudSql contains configuration required for the close cloud sql function.
+type CloseCloudSql struct {
+	Resources *Resources
+}
+
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	CloseBucket      *CloseBucket      `json:"close_bucket"`
 	RevokeGrants     *RevokeGrants     `json:"revoke_grants"`
 	DisableFirewall  *DisableFirewall  `json:"disable_firewall"`
 	RemovePublicIP   *RemovePublicIP   `json:"remove_public_ip"`
+	CloseCloudSql    *CloseCloudSql    `json:"close_cloud_sql"`
 	DisableDashboard *DisableDashboard `json:"disable_dashboard"`
 }
 
