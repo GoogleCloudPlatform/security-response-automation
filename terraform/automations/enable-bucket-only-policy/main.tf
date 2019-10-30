@@ -13,7 +13,7 @@
 # limitations under the License.
 resource "google_cloudfunctions_function" "enable-bucket-only-policy" {
   name                  = "EnableBucketOnlyPolicy"
-  description           = "Enable bucket only policy on GCS buckets."
+  description           = "Enable bucket only IAM policy on GCS buckets."
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = "${var.setup.gcf-bucket-name}"
