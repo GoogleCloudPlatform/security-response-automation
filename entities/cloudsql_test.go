@@ -44,7 +44,6 @@ func TestEnforceSSLConnection(t *testing.T) {
 			expectedSave: &sqladmin.DatabaseInstance{
 				Name:           "instance1",
 				Project:        "project-exists",
-				ConnectionName: "project-exists" + ":" + "us-central1" + ":" + "instance1",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						RequireSsl: true,
@@ -65,7 +64,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 			s := &stubs.CloudSQL{}
 			ctx := context.Background()
 			c := NewCloudSQL(s)
-			_, err := c.RequireSSL(ctx, tt.projectID, instance, region)
+			_, err := c.RequireSSL(ctx, tt.projectID, instance)
 			if err != nil && !tt.expectedFail {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
