@@ -173,8 +173,7 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 			}
 
 			if tt.expected != "" {
-				s := storageStub.EnabledPolicyOnBucket
-				if s != tt.expected {
+				if s := storageStub.EnabledPolicyOnBucket; s != tt.expected {
 					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expected, s)
 				}
 			}

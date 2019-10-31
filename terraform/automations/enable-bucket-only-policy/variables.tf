@@ -2,5 +2,5 @@ variable "setup" {}
 
 variable "folder-ids" {
   type        = list(string)
-  description = "Remove public users from buckets if they are within the given folder IDs."
+  description = "Enable Bucket only policy if the buckets are within the given folder IDs."
 }

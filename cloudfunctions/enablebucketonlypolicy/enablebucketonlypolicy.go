@@ -63,9 +63,12 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	return nil
 }
 
-func enable(ctx context.Context, required *Required, log *entities.Logger, res *entities.Resource) func() error {
+func enable(ctx context.Context, required *Required, logr *entities.Logger, res *entities.Resource) func() error {
 	return func() error {
-		log.Info("enable bucket only policy on bucket %q in project %q.", required.BucketName, required.ProjectID)
-		return res.EnableBucketOnlyPolicy(ctx, required.BucketName)
+		err := res.EnableBucketOnlyPolicy(ctx, required.BucketName)
+		if err == nil {
+			logr.Info("Bucket only policy enabled on bucket %q in project %q.", required.BucketName, required.ProjectID)
+		}
+		return err
 	}
 }

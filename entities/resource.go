@@ -180,7 +180,7 @@ func (r *Resource) Organization(ctx context.Context, organizationID string) (*cr
 	return r.crm.GetOrganization(ctx, organizationID)
 }
 
-//
+// EnableBucketOnlyPolicy enable bucket only policy for the given bucket
 func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }

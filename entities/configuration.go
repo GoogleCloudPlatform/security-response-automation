@@ -36,10 +36,12 @@ type RemovePublicIP struct {
 	Resources *Resources
 }
 
+// EnableBucketOnlyPolicy contains configuration required for the enable bucket only policy function.
 type EnableBucketOnlyPolicy struct {
 	Resources *Resources
 }
 
+// CloseCloudSql contains configuration required for the close cloud sql function.
 type CloseCloudSql struct {
 	Resources *Resources
 }

@@ -81,13 +81,13 @@ For example, if you wanted to only remove public access in the folder **developm
 
 **Enable bucket only IAM policy**
 
-This Cloud Function will automatically enable bucket only IAM policy on the select bucket. 
+This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
 Depending on which resources you specify it will determine which projects are enforced.
 
 - `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
 - `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
 
-For example, if you wanted to only enable bucket only IAM policy in the folder **development** 
+For example, if you want to only enable bucket only IAM policy in the folder **development** 
 you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
 and place into the `folder_ids` array.
 

@@ -40,6 +40,7 @@ func (s *StorageStub) BucketPolicy(ctx context.Context, bucketName string) (*iam
 	return s.BucketPolicyResponse, nil
 }
 
+// EnableBucketOnlyPolicy saves the bucket that receives the request for enabling bucket only policy.
 func (s *StorageStub) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
 	s.EnabledPolicyOnBucket = bucketName
 	return nil
