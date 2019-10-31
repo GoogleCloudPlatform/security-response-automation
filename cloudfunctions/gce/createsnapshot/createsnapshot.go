@@ -103,19 +103,18 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 
 		for k := range removeExisting {
 			if err := ent.Host.DeleteDiskSnapshot(ctx, required.ProjectID, k); err != nil {
-				return err
+				return errors.Wrapf(err, "failed deleting snapshot: %s", k)
 			}
 			ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
 		}
 
-		log.Printf("creating disk snapshot for %s", disk.Name)
 		if err := ent.Host.CreateDiskSnapshot(ctx, required.ProjectID, required.Zone, disk.Name, sn); err != nil {
-			return err
+			return errors.Wrapf(err, "failed creating snapshot: %s", sn)
 		}
 		ent.Logger.Info("created snapshot for disk %s", disk.Name)
 
 		if err := ent.Host.SetSnapshotLabels(ctx, required.ProjectID, sn, disk, labels); err != nil {
-			return err
+			return errors.Wrapf(err, "failed setting labels: %s", sn)
 		}
 	}
 	return nil

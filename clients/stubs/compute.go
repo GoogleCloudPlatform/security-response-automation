@@ -101,9 +101,7 @@ func (c *ComputeStub) ListProjectSnapshots(context.Context, string) (*compute.Sn
 	pop := c.StubbedListProjectSnapshots[len(c.StubbedListProjectSnapshots)-1 : len(c.StubbedListProjectSnapshots)][0]
 	c.StubbedListProjectSnapshots = c.StubbedListProjectSnapshots[0 : len(c.StubbedListProjectSnapshots)-1]
 	if pop == nil {
-		return &compute.SnapshotList{
-			Items: []*compute.Snapshot{},
-		}, nil
+		return &compute.SnapshotList{Items: []*compute.Snapshot{}}, nil
 	}
 	return pop, nil
 }
