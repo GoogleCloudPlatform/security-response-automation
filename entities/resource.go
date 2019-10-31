@@ -179,6 +179,17 @@ func (r *Resource) Organization(ctx context.Context, organizationID string) (*cr
 	return r.crm.GetOrganization(ctx, organizationID)
 }
 
+// IfProjectWithinResources executes the provided function if the project ID is an ancestor of any provided resources.
+func (r *Resource) IfProjectWithinResources(ctx context.Context, conf *Resources, projectID string, fn func() error) error {
+	if err := r.IfProjectInFolders(ctx, conf.FolderIDs, projectID, fn); err != nil {
+		return err
+	}
+	if err := r.IfProjectInProjects(ctx, conf.ProjectIDs, projectID, fn); err != nil {
+		return err
+	}
+	return nil
+}
+
 // IfProjectInFolders will apply the function if the project ID is within the folder IDs.
 func (r *Resource) IfProjectInFolders(ctx context.Context, ids []string, projectID string, fn func() error) error {
 	if len(ids) == 0 {

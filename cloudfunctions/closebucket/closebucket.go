@@ -52,21 +52,12 @@ func ReadFinding(b []byte) (*Required, error) {
 
 // Execute will remove any public users from buckets found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	r := remove(ctx, required, ent.Logger, ent.Resource)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseBucket.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseBucket.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
-	}
-
-	return nil
-}
-
-func remove(ctx context.Context, required *Required, log *entities.Logger, res *entities.Resource) func() error {
-	return func() error {
-		log.Info("removing public members from bucket %q in project %q.", required.BucketName, required.ProjectID)
-		return res.RemoveMembersFromBucket(ctx, required.BucketName, publicUsers)
-	}
+	resources := ent.Configuration.CloseBucket.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if err := ent.Resource.RemoveMembersFromBucket(ctx, required.BucketName, publicUsers); err != nil {
+			return err
+		}
+		ent.Logger.Info("removed public members from bucket %q in project %q", required.BucketName, required.ProjectID)
+		return nil
+	})
 }

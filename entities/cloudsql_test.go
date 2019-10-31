@@ -42,8 +42,8 @@ func TestEnforceSSLConnection(t *testing.T) {
 			projectID:    "project-exists",
 			expectedFail: false,
 			expectedSave: &sqladmin.DatabaseInstance{
-				Name:           "instance1",
-				Project:        "project-exists",
+				Name:    "instance1",
+				Project: "project-exists",
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						RequireSsl: true,
