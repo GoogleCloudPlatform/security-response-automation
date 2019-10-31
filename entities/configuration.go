@@ -46,8 +46,13 @@ type CloseCloudSQL struct {
 	Resources *Resources
 }
 
-// CloudSQLRequireSSL contains configuration required for the Cloud SQL requires SSL function.
+// CloudSQLRequireSSL contains configuration required for the Cloud SQL require SSL function.
 type CloudSQLRequireSSL struct {
+	Resources *Resources
+}
+
+// DisableDashboard contains configuration required for the disable dashboard function.
+type DisableDashboard struct {
 	Resources *Resources
 }
 
@@ -59,6 +64,7 @@ type Configuration struct {
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
 	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`
 	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
+	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
 }
 

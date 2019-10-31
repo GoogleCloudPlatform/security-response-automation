@@ -53,5 +53,12 @@
         "670032686187"
       ]
     }
+  },
+  "disable_dashboard": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    }
   }
 }
