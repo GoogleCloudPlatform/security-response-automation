@@ -17,7 +17,6 @@ package entities
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -96,11 +95,8 @@ func (h *Host) DiskSnapshot(ctx context.Context, snapshotName, projectID string,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list snapshots")
 	}
-	log.Printf("DiskSnapshot snapshots from ListProjectSnapshots: %d", len(snapshots.Items))
 	for _, s := range snapshots.Items {
-		log.Printf("DiskSnapshot\n %s vs %s\n%s vs %s\n", s.SourceDisk, disk.SelfLink, s.Name, snapshotName)
 		if s.SourceDisk == disk.SelfLink && s.Name == snapshotName {
-			log.Printf("yes match returning: %+v\n", s)
 			return s, nil
 		}
 	}

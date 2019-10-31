@@ -85,18 +85,12 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		return errors.Wrap(err, "failed to list disks")
 	}
 
-	log.Printf("listing snapshots in project %q", required.ProjectID)
-
 	snapshots, err := ent.Host.ListProjectSnapshots(ctx, required.ProjectID)
 	if err != nil {
 		return errors.Wrap(err, "failed to list snapshots")
 	}
 
-	log.Printf("disks:%d snapshots:%d for %s in project %q", len(disks), len(snapshots.Items), required.Instance, required.ProjectID)
-
 	for _, disk := range disks {
-		log.Println("---------------------------------------")
-		log.Printf("disk:%s", disk.Name)
 		sn := snapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 		if err != nil {
@@ -104,13 +98,10 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		}
 
 		if !create {
-			log.Printf("%s cannot create because its too new or didnt match", disk.Name)
 			continue
 		}
 
-		log.Printf("%d existing snapshots to remove", len(removeExisting))
 		for k := range removeExisting {
-			log.Printf("deleting snapshot %s", k)
 			if err := ent.Host.DeleteDiskSnapshot(ctx, required.ProjectID, k); err != nil {
 				return err
 			}
@@ -135,7 +126,6 @@ func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule
 	create := true
 	prefix := snapshotName(rule, disk.Name)
 	removeExisting := map[string]bool{}
-	log.Printf("do these snapshots match dis: %s\n", disk.Name)
 	for _, s := range snapshots.Items {
 		if s.SourceDisk != disk.SelfLink || !strings.HasPrefix(s.Name, prefix) {
 			continue

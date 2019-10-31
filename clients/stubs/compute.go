@@ -17,7 +17,6 @@ package stubs
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
@@ -101,7 +100,6 @@ func (c *ComputeStub) ListProjectSnapshots(context.Context, string) (*compute.Sn
 	}
 	pop := c.StubbedListProjectSnapshots[len(c.StubbedListProjectSnapshots)-1 : len(c.StubbedListProjectSnapshots)][0]
 	c.StubbedListProjectSnapshots = c.StubbedListProjectSnapshots[0 : len(c.StubbedListProjectSnapshots)-1]
-	log.Printf("pop %+v\n", pop)
 	if pop == nil {
 		return &compute.SnapshotList{
 			Items: []*compute.Snapshot{},
