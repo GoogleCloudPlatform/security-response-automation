@@ -139,12 +139,8 @@ func TestCreateSnapshot(t *testing.T) {
 				createDisk(diskName, "instance1"),
 			},
 			existingDiskSnapshots: []*compute.SnapshotList{
-				{
-					Items: []*compute.Snapshot{createSs(snapshotName, now, diskName)},
-				},
-				{
-					Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName)},
-				},
+				{Items: []*compute.Snapshot{createSs(snapshotName, now, diskName)}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName)}},
 			},
 			expectedSnapshots: expectedSnapshot,
 		},
