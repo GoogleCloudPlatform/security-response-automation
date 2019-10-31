@@ -20,8 +20,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/container/v1"
@@ -125,7 +125,7 @@ func TestDisableDashboard(t *testing.T) {
 		{
 			name:      "disable dashboard",
 			folderIDs: []string{"123"},
-			ancestry:  testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &container.SetAddonsConfigRequest{
 				AddonsConfig: &container.AddonsConfig{
 					KubernetesDashboard: &container.KubernetesDashboard{
@@ -137,7 +137,7 @@ func TestDisableDashboard(t *testing.T) {
 		{
 			name:            "no valid folder",
 			folderIDs:       []string{"456"},
-			ancestry:        testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:        helpers.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: nil,
 		},
 	}
