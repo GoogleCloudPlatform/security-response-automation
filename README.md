@@ -12,81 +12,56 @@ This repository contains Cloud Functions to take automated actions on findings f
 
 ### Configuration
 
-Before we install we'll want to configure our Cloud Functions which is done within settings.json. In the current setup we'll need to provision the SRA service account to have the appropriate permissions required to take the below actions.
+Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs. Each Function that considers resources will support the following resources:
 
-** NOTE: At this time only folder IDs are supported. **
+- Project IDs `folder_ids`: The Function will execute if the affected project ID is within this set.
+- Folder IDs `project_ids`: Take the action if the affected project ID has an ancestor of a folder ID within this set.
+- Organization ID `organization_id`: Take the action if the affected project ID is within this organization ID.
 
 **Close open buckets**
 
 This Cloud Function will automatically close public buckets found by Security Health Analytics that match the criteria you specify. Depending on which resources you specify will determine which projects are enforced.
 
-- `folder_ids` If the bucket is in a project under a folder within this set the bucket will be closed.
-- `project_ids` If the bucket is in a project that is within this set the bucket will be closed.
-- `organization_id` Any bucket found within this organization will be automatically closed.
-
 For example, if you wanted to only close buckets in the folder **development** you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager) and place into the `folder_ids` array.
 
-```json
-{
-  "close_bucket": {
-    "resources": {
-      "folder_ids": ["670032686187"]
-    }
-  }
-}
-```
+- Configured in settings.json under the `close_bucket` key.
 
 **Revoke IAM grants**
 
 This Cloud Function responds to Event Threat Detection's Anomalous IAM grant detector sub rule, external account added sub-rule. Within this configuration you can specify a list of domain names that you wish to disable. This way you can control which members are removed.
 
+- Configured in settings.json under the `revoke_iam` key.
 - `remove_list` An array of strings containing domain names to be matched against the members added. If there is a match, the member will be removed from the resource if that are within the below resources.
-- `folder_ids` If the member is added to a project that matches the above domain list and within a folder within this array then remove.
-- `project_ids` Same logic as above but uses project IDs.
-- `organization_id` Any member granted to a project within this organization will be removed.
-
-```json
-{
-  "revoke_grants": {
-    "resources": {
-      "folder_ids": ["670032686187"]
-    },
-    "remove_list": ["gmail.com"]
-  }
-}
-```
 
 **Remove Public IPs from GCE Instance**
 
-This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify. 
+This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify.
 Depending on which resources you specify will determine which projects are enforced.
 
-- `folder_ids` If the instance is in a project under a folder within this set the public access will be removed.
-- `project_ids` If the instance is in a project that is within this set the public access will be removed.
-- `organization_id` Any instance found with public access within this organization will have the public access removed.
+- Configured in settings.json under the `remove_public_ip` key.
 
 For example, if you wanted to only remove public access in the folder **development** you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager) and place into the `folder_ids` array.
 
-```json
-{
-  "remove_public_ip": {
-    "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
-    }
-  }
-}
-```
+### Granting permissions
+
+In order for the Cloud Function service account to take the actions needed we have to grant the necessary permissions. At this time only folder level permissions are supported. This way you grant only the level access needed only at the folder needed.
+
+**If you need more granular or broader permissions granted please send feedback to tomfitzgerald@google.com**
 
 ### Installation
 
-Following these instructions will deploy all SRA Cloud Functions.
+Following these instructions will deploy all SRA Cloud Functions. Before you get started be sure
+you have (at least) **Go version 1.11 installed**.
 
 ```shell
 $ gcloud auth application-default login
 $ terraform init
+
+// Install all Functions.
 $ terraform apply
+
+// Install a single Function.
+$ terraform apply --target module.revoke_iam_grants
 ```
 
 TIP: Instead of entering variables every time you can create `terraform.tfvars`
@@ -100,9 +75,9 @@ If at any point you want to revert the changes we've made just run `terraform de
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
 ```shell
-$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@aerial-jigsaw-235219.iam.gserviceaccount.com \
+$ export PROJECT_ID=ae-threat-detection \
+  SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
   ORGANIZATION_ID=154584661726 \
-  PROJECT_ID=aerial-jigsaw-235219 \
   TOPIC_ID=cscc-notifications-topic
 
 $ ./enable-cscc-notfications.sh
