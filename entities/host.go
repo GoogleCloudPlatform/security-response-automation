@@ -17,6 +17,7 @@ package entities
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -29,7 +30,7 @@ import (
 type ComputeClient interface {
 	CreateSnapshot(context.Context, string, string, string, *compute.Snapshot) (*compute.Operation, error)
 	DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error)
-	DeleteDiskSnapshot(string, string) (*compute.Operation, error)
+	DeleteDiskSnapshot(context.Context, string, string) (*compute.Operation, error)
 	DeleteInstance(context.Context, string, string, string) (*compute.Operation, error)
 	GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error)
 	ListDisks(context.Context, string, string) (*compute.DiskList, error)
@@ -52,8 +53,8 @@ func NewHost(cs ComputeClient) *Host {
 }
 
 // DeleteDiskSnapshot deletes the given snapshot from the project.
-func (h *Host) DeleteDiskSnapshot(projectID, snapshot string) error {
-	op, err := h.client.DeleteDiskSnapshot(projectID, snapshot)
+func (h *Host) DeleteDiskSnapshot(ctx context.Context, projectID, snapshot string) error {
+	op, err := h.client.DeleteDiskSnapshot(ctx, projectID, snapshot)
 	if err != nil {
 		return nil
 	}
@@ -95,8 +96,11 @@ func (h *Host) DiskSnapshot(ctx context.Context, snapshotName, projectID string,
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list snapshots")
 	}
+	log.Printf("DiskSnapshot snapshots from ListProjectSnapshots: %d", len(snapshots.Items))
 	for _, s := range snapshots.Items {
-		if s.SourceDisk != disk.SelfLink && s.Name == snapshotName {
+		log.Printf("DiskSnapshot\n %s vs %s\n%s vs %s\n", s.SourceDisk, disk.SelfLink, s.Name, snapshotName)
+		if s.SourceDisk == disk.SelfLink && s.Name == snapshotName {
+			log.Printf("yes match returning: %+v\n", s)
 			return s, nil
 		}
 	}
@@ -121,11 +125,7 @@ func (h *Host) CreateDiskSnapshot(ctx context.Context, projectID, zone, disk, na
 
 // ListProjectSnapshots returns a list of snapshots.
 func (h *Host) ListProjectSnapshots(ctx context.Context, projectID string) (*compute.SnapshotList, error) {
-	snapshots, err := h.client.ListProjectSnapshots(ctx, projectID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list snapshots: %q", err)
-	}
-	return snapshots, nil
+	return h.client.ListProjectSnapshots(ctx, projectID)
 }
 
 // ListInstanceDisks returns a list of disk names for a given instance.
@@ -146,6 +146,9 @@ func (h *Host) ListInstanceDisks(ctx context.Context, projectID, zone, instance 
 // SetSnapshotLabels sets the labels on a snapshot.
 func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, snapshotName string, disk *compute.Disk, labels map[string]string) error {
 	snapshot, err := h.DiskSnapshot(ctx, snapshotName, projectID, disk)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get disk snapshots for %s in %s", disk.Name, projectID)
+	}
 	id := strconv.FormatUint(snapshot.Id, 10)
 	labelFp := snapshot.LabelFingerprint
 
