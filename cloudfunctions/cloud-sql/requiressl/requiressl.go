@@ -1,4 +1,4 @@
-package cloudsqlrequiressl
+package requiressl
 
 // Copyright 2019 Google LLC
 //

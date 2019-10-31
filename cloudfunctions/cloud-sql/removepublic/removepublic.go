@@ -1,4 +1,4 @@
-package closecloudsql
+package removepublic
 
 // Copyright 2019 Google LLC
 //
