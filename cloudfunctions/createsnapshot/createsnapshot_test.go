@@ -33,8 +33,7 @@ func TestReadFinding(t *testing.T) {
 				"properties": {
 					"location": "us-central1",
 					"project_id": "test-project",
-					"instanceDetails": "/instances/source-instance-name",
-					"zone": "zone-name"
+					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
 				},
 				"detectionCategory": {
 					"ruleName": "bad_ip"
@@ -43,7 +42,7 @@ func TestReadFinding(t *testing.T) {
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
 		missingProperties = `{
-			"jsonPayload": {				
+			"jsonPayload": {
 				"detectionCategory": {
 					"ruleName": "bad_ip"
 				}
@@ -55,8 +54,7 @@ func TestReadFinding(t *testing.T) {
 				"properties": {
 					"location": "us-central1",
 					"project_id": "test-project",
-					"instanceDetails": "/instances/source-instance-name",
-					"zone": "zone-name"
+					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
 				},
 				"detectionCategory": {
 					"ruleName": "something_else"

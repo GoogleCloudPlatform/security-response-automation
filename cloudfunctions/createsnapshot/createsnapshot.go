@@ -54,7 +54,7 @@ func ReadFinding(b []byte) (*Required, error) {
 		r.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
 		r.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
 		r.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		r.Zone = finding.GetJsonPayload().GetProperties().GetZone()
+		r.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 	}
 	if r.RuleName == "" || r.ProjectID == "" || r.Instance == "" || r.Zone == "" {
 		return nil, entities.ErrValueNotFound
@@ -87,7 +87,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		return errors.Wrap(err, "failed to list snapshots")
 	}
 
-	log.Printf("obtained the following list of snapshots in project %q: %+v", required.Instance, snapshots.Items)
+	log.Printf("disks:%d snapshots:%d for %s in project %q", len(disks), len(snapshots.Items), required.Instance, required.ProjectID)
 
 	for _, disk := range disks {
 		sn := snapshotName(rule, disk.Name)
@@ -95,7 +95,6 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		if err != nil {
 			return err
 		}
-		log.Printf("disk %q returned %v as can be deleted", required.Instance, create)
 
 		if !create {
 			continue

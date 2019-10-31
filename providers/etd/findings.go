@@ -16,12 +16,25 @@ import "regexp"
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// extractInstance used to extract a instance.
-var extractInstance = regexp.MustCompile(`/instances/(.*)$`)
+var (
+	// extractInstance used to extract a instance.
+	extractInstance = regexp.MustCompile(`/instances/(.*)$`)
+	// extractZone used to extract a zone.
+	extractZone = regexp.MustCompile(`/zones/([^/]*)`)
+)
 
 // Instance returns the instance name from the source instance string.
-func Instance(sourceInstance string) string {
-	i := extractInstance.FindStringSubmatch(sourceInstance)
+func Instance(resource string) string {
+	i := extractInstance.FindStringSubmatch(resource)
+	if len(i) != 2 {
+		return ""
+	}
+	return i[1]
+}
+
+// Zone returns the zone from the source instance string.
+func Zone(resource string) string {
+	i := extractZone.FindStringSubmatch(resource)
 	if len(i) != 2 {
 		return ""
 	}

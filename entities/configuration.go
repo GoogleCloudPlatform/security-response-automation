@@ -31,7 +31,7 @@ type RevokeGrants struct {
 	Removelist []string `json:"remove_list"`
 }
 
-// RemovePublicIP contains configuration required for the remove public ip function.
+// RemovePublicIP contains configuration required for the remove public IP function.
 type RemovePublicIP struct {
 	Resources *Resources
 }
@@ -41,19 +41,25 @@ type EnableBucketOnlyPolicy struct {
 	Resources *Resources
 }
 
-// CloseCloudSql contains configuration required for the close cloud sql function.
-type CloseCloudSql struct {
+// CloseCloudSQL contains configuration required for the close Cloud SQL function.
+type CloseCloudSQL struct {
 	Resources *Resources
 }
 
-// Configuration contains the ID(s) to apply actions to.
+// CloudSQLRequireSSL contains configuration required for the Cloud SQL requires SSL function.
+type CloudSQLRequireSSL struct {
+	Resources *Resources
+}
+
+// Configuration contains the IDs to apply actions to.
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
 	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
+	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`
+	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
-	CloseCloudSql          *CloseCloudSql          `json:"close_cloud_sql"`
 }
 
 // NewConfiguration returns a new configuration.

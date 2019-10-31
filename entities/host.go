@@ -110,10 +110,9 @@ func (h *Host) ListInstanceDisks(ctx context.Context, projectID, zone, instance 
 	}
 	dl := []*compute.Disk{}
 	for _, d := range ds.Items {
-		if !h.diskBelongsToInstance(d, instance) {
-			return []*compute.Disk{}, nil
+		if h.diskBelongsToInstance(d, instance) {
+			dl = append(dl, d)
 		}
-		dl = append(dl, d)
 	}
 	return dl, nil
 }

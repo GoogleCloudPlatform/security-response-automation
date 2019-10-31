@@ -1,4 +1,4 @@
-package closecloudsql
+package cloudsqlrequiressl
 
 // Copyright 2019 Google LLC
 //
@@ -17,7 +17,6 @@ package closecloudsql
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -38,7 +37,7 @@ func ReadFinding(b []byte) (*Required, error) {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
-	case "PUBLIC_SQL_INSTANCE":
+	case "SSL_NOT_ENFORCED":
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	}
@@ -51,11 +50,11 @@ func ReadFinding(b []byte) (*Required, error) {
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	r := remove(ctx, required, ent.Logger, ent.CloudSQL)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseCloudSQL.Resources.FolderIDs, required.ProjectID, r); err != nil {
+	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloudSQLRequireSSL.Resources.FolderIDs, required.ProjectID, r); err != nil {
 		return errors.Wrap(err, "folders failed")
 	}
 
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseCloudSQL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
+	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloudSQLRequireSSL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
 		return errors.Wrap(err, "projects failed")
 	}
 	return nil
@@ -63,19 +62,14 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 
 func remove(ctx context.Context, required *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
 	return func() error {
-		log.Printf("getting details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
-		instance, err := sql.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
-		if err != nil {
-			return err
-		}
-		op, err := sql.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
+		op, err := sql.RequireSSL(ctx, required.ProjectID, required.InstanceName)
 		if err != nil {
 			return err
 		}
 		if errs := sql.Wait(required.ProjectID, op); len(errs) > 0 {
 			return errs[0]
 		}
-		logr.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		logr.Info("enforced ssl on sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil
 	}
 }
