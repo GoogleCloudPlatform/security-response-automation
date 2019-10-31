@@ -46,5 +46,16 @@
         "670032686187"
       ]
     }
+  },
+  "remove_non_org_members": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    },
+    "whitelist": [
+      "ciandt.com",
+      "google.com"
+    ]
   }
 }

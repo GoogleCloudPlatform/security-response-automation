@@ -54,7 +54,7 @@ func FirewallID(resource string) string {
 	return extractFirewallID.FindStringSubmatch(resource)[1]
 }
 
-// OrganizationName returns the organization ID.
+// OrganizationName returns the organization name.
 func OrganizationName(resource string) string {
 	return extractOrganizationName.FindStringSubmatch(resource)[1]
 }

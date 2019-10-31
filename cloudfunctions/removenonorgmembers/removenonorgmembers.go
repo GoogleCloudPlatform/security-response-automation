@@ -50,6 +50,8 @@ func ReadFinding(b []byte) (*Required, error) {
 
 // Execute removes non-organization members.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
+	conf := ent.Configuration
+	whitelistOrgs := conf.RemoveNonOrgMembers.Whitelist
 	organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization")
@@ -58,22 +60,31 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policies")
 	}
-	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings)
+	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, whitelistOrgs)
 	if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 		return errors.Wrap(err, "failed to remove organization policies")
 	}
 	return nil
 }
 
-func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding) (nonOrgMembers []string) {
+func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, whitelistOrgs []string) (nonOrgMembers []string) {
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if notFromOrg(m, "user:", organizationDisplayName) {
+			if notFromOrg(m, "user:", organizationDisplayName) && notWhitelisted(m, whitelistOrgs) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
 	}
 	return nonOrgMembers
+}
+
+func notWhitelisted(member string, whitelistOrgs []string) bool {
+	for _, org := range whitelistOrgs {
+		if strings.Contains(member, org) {
+			return false
+		}
+	}
+	return true
 }
 
 func notFromOrg(member, prefix, content string) bool {

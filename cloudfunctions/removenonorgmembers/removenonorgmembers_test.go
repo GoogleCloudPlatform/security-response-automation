@@ -116,6 +116,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		name            string
 		policyInput     []*crm.Binding
 		expectedBinding []*crm.Binding
+		whitelistOrgs   []string
 	}{
 		{
 			name: "remove non-org user",
@@ -133,6 +134,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
+			whitelistOrgs: []string{},
 		},
 		{
 			name: "none non-org user to remove",
@@ -148,6 +150,31 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
+			whitelistOrgs: []string{
+				"google.com",
+			},
+		},
+		{
+			name: "remove non-org and non-whitelisted user",
+			policyInput: createBindings([]string{
+				"user:bob@gmail.com",
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"user:tim@thegmail.com",
+				"anyone@google.com",
+				"group:admins@example.com",
+				"domain:aol.com"}),
+			expectedBinding: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"anyone@google.com",
+				"group:admins@example.com",
+				"domain:aol.com"}),
+			whitelistOrgs: []string{
+				"google.com",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -158,7 +185,13 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			required := &Required{
 				OrganizationName: orgName,
 			}
-			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
+			conf := &entities.Configuration{
+				RemoveNonOrgMembers: &entities.RemoveNonOrgMembers{
+					Resources: nil,
+					Whitelist: tt.whitelistOrgs,
+				},
+			}
+			if err := Execute(context.Background(), required, &entities.Entity{Resource: res, Configuration: conf}); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {

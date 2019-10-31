@@ -46,13 +46,20 @@ type CloudSQLRequireSSL struct {
 }
 
 // Configuration contains the IDs to apply actions to.
+type RemoveNonOrgMembers struct {
+	Resources *Resources
+	Whitelist []string `json:"whitelist"`
+}
+
+// Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	CloseBucket          *CloseBucket          `json:"close_bucket"`
-	RevokeGrants         *RevokeGrants         `json:"revoke_grants"`
-	DisableFirewall      *DisableFirewall      `json:"disable_firewall"`
-	RemovePublicIP       *RemovePublicIP       `json:"remove_public_ip"`
-	CloseCloudSQL        *CloseCloudSQL        `json:"close_cloud_sql"`
-	CloudSQLRequireSSL   *CloudSQLRequireSSL   `json:"cloud_sql_require_ssl"`
+	CloseBucket         *CloseBucket         `json:"close_bucket"`
+	RevokeGrants        *RevokeGrants        `json:"revoke_grants"`
+	DisableFirewall     *DisableFirewall     `json:"disable_firewall"`
+	RemovePublicIP      *RemovePublicIP      `json:"remove_public_ip"`
+	CloseCloudSQL       *CloseCloudSQL       `json:"close_cloud_sql"`
+	CloudSQLRequireSSL  *CloudSQLRequireSSL  `json:"cloud_sql_require_ssl"`
+	RemoveNonOrgMembers *RemoveNonOrgMembers `json:"remove_non_org_members"`
 }
 
 // NewConfiguration returns a new configuration.
