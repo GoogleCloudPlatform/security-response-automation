@@ -121,6 +121,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		{
 			name: "remove non-org user",
 			policyInput: createBindings([]string{
+				"user:anyone@google.com",
 				"user:bob@gmail.com",
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
@@ -141,12 +142,14 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			policyInput: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
+				"user:anyone@google.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
 			expectedBinding: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
+				"user:anyone@google.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
@@ -162,14 +165,14 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"user:tim@thegmail.com",
-				"anyone@google.com",
+				"user:anyone@google.com",
 				"group:admins@example.com",
 				"domain:aol.com"}),
 			expectedBinding: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-				"anyone@google.com",
+				"user:anyone@google.com",
 				"group:admins@example.com",
 				"domain:aol.com"}),
 			whitelistOrgs: []string{
