@@ -36,6 +36,11 @@ const (
 	maxLabelLength = 60
 )
 
+// labels that will be saved to every disk snapshot created.
+var labels = map[string]string{
+	"info": "Created by Security Response Automation",
+}
+
 // Required contains the required values needed for this function.
 type Required struct {
 	ProjectID, RuleName, Instance, Zone string
@@ -100,16 +105,21 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 			continue
 		}
 
-		if err := removeExistingSnapshots(ent.Host, required.ProjectID, removeExisting); err != nil {
-			return err
+		for k := range removeExisting {
+			if err := ent.Host.DeleteDiskSnapshot(required.ProjectID, k); err != nil {
+				return err
+			}
+			ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
 		}
-		ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
 
-		if err := createSnapshot(ctx, ent.Host, disk, required.ProjectID, required.Zone, sn); err != nil {
+		if err := ent.Host.CreateDiskSnapshot(ctx, required.ProjectID, required.Zone, disk.Name, sn); err != nil {
 			return err
 		}
 		ent.Logger.Info("created snapshot for disk %s", disk.Name)
-		// TODO(tomfitzgerald): Add metadata (indicators) to snapshot labels.
+
+		if ent.Host.SetSnapshotLabels(ctx, required.ProjectID, sn, disk, labels); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -136,26 +146,10 @@ func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule
 	return create, removeExisting, nil
 }
 
-// createSnaphot will create the snapshot and wait for its completion.
-func createSnapshot(ctx context.Context, h *entities.Host, disk *compute.Disk, projectID, zone, name string) error {
-	op, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk.Name, name)
-	if err != nil {
-		return errors.Wrap(err, "failed to create disk snapshot")
-	}
-	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
-		return errors.Wrap(errs[0], "failed waiting: first error")
-	}
-	return nil
-}
-
 func removeExistingSnapshots(h *entities.Host, projectID string, remove map[string]bool) error {
 	for k := range remove {
-		op, err := h.DeleteDiskSnapshot(projectID, k)
-		if err != nil {
+		if err := h.DeleteDiskSnapshot(projectID, k); err != nil {
 			return err
-		}
-		if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
-			return errors.Wrap(errs[0], "failed waiting: first error")
 		}
 	}
 	return nil
