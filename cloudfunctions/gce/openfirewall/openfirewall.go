@@ -17,7 +17,7 @@ package openfirewall
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -54,38 +54,20 @@ func ReadFinding(b []byte) (*Required, error) {
 
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	folders := ent.Configuration.DisableFirewall.Resources.FolderIDs
-	projects := ent.Configuration.DisableFirewall.Resources.ProjectIDs
+	resources := ent.Configuration.DisableFirewall.Resources
+	var fn func() error
 	switch action := ent.Configuration.DisableFirewall.RemediationAction; action {
 	case "DISABLE":
-		d := disable(ctx, ent.Logger, ent.Firewall, required.ProjectID, required.FirewallID)
-		if err := ent.Resource.IfProjectInFolders(ctx, folders, required.ProjectID, d); err != nil {
-			return err
-		}
-		if err := ent.Resource.IfProjectInProjects(ctx, projects, required.ProjectID, d); err != nil {
-			return err
-		}
+		fn = disable(ctx, ent.Logger, ent.Firewall, required.ProjectID, required.FirewallID)
 	case "DELETE":
-		del := delete(ctx, ent.Logger, ent.Firewall, required.ProjectID, required.FirewallID)
-		if err := ent.Resource.IfProjectInFolders(ctx, folders, required.ProjectID, del); err != nil {
-			return err
-		}
-		if err := ent.Resource.IfProjectInProjects(ctx, projects, required.ProjectID, del); err != nil {
-			return err
-		}
+		fn = delete(ctx, ent.Logger, ent.Firewall, required.ProjectID, required.FirewallID)
 	case "UPDATE_RANGE":
-		up := updateRange(ctx, ent.Logger, ent.Configuration.DisableFirewall.SourceRanges, ent.Firewall, required.ProjectID, required.FirewallID)
-		if err := ent.Resource.IfProjectInFolders(ctx, folders, required.ProjectID, up); err != nil {
-			return err
-		}
-		if err := ent.Resource.IfProjectInProjects(ctx, projects, required.ProjectID, up); err != nil {
-			return err
-		}
+		fn = updateRange(ctx, ent.Logger, ent.Configuration.DisableFirewall.SourceRanges, ent.Firewall, required.ProjectID, required.FirewallID)
 	default:
-		log.Printf("unknown open firewall remediation action %q.", action)
+		return fmt.Errorf("unknown open firewall remediation action %q", action)
 	}
 
-	return nil
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, fn)
 }
 
 func disable(ctx context.Context, logr *entities.Logger, fw *entities.Firewall, projectID, firewallID string) func() error {

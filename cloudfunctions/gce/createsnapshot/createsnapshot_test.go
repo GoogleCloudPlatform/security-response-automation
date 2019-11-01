@@ -102,86 +102,93 @@ func TestCreateSnapshot(t *testing.T) {
 	var (
 		// TODO(tomfitzgerald): Consider migrating to https://github.com/tflach/clockwork.
 		fiveMinAgo       = time.Now().Add(-time.Minute * 5).Format(time.RFC3339)
+		now              = time.Now().Format(time.RFC3339)
 		expectedSnapshot = map[string]compute.Snapshot{
 			"sample-disk-name": {
 				Description:       "Snapshot of sample-disk-name",
 				Name:              "forensic-snapshots-bad-ip-sample-disk-name",
-				CreationTimestamp: time.Now().Format(time.RFC3339),
+				CreationTimestamp: now,
 			},
 		}
 		expectedSnapshot2 = map[string]compute.Snapshot{
 			"sample-disk-name": {
 				Description:       "Snapshot of sample-disk-name",
 				Name:              "forensic-snapshots-bad-ip-sample-disk-name",
-				CreationTimestamp: time.Now().Format(time.RFC3339),
+				CreationTimestamp: now,
 			},
 			"sample-disk-name2": {
 				Description:       "Snapshot of sample-disk-name2",
 				Name:              "forensic-snapshots-bad-ip-sample-disk-name2",
-				CreationTimestamp: time.Now().Format(time.RFC3339),
+				CreationTimestamp: now,
 			},
 		}
 		diskName = "sample-disk-name"
 		// snapshotName is the expected snapshot name, default prefix, rule name and disk name.
-		snapshotName = "forensic-snapshots-bad-ip-sample-disk-name"
+		snapshotName  = "forensic-snapshots-bad-ip-sample-disk-name"
+		snapshotName2 = "forensic-snapshots-bad-ip-sample-disk-name2"
 	)
 	test := []struct {
 		name                  string
 		existingProjectDisks  []*compute.Disk
-		existingDiskSnapshots []*compute.Snapshot
+		existingDiskSnapshots []*compute.SnapshotList
 		expectedSnapshots     map[string]compute.Snapshot
 	}{
 		{
-			name: "generate disk snapshot (1 disk and 1 snapshot)",
+			name: "generate disk snapshot 1 existing disk and 1 snapshot",
 			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*compute.Snapshot{
-				createSs(snapshotName, fiveMinAgo, diskName),
+			existingDiskSnapshots: []*compute.SnapshotList{
+				{Items: []*compute.Snapshot{createSs(snapshotName, now, diskName)}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName)}},
 			},
 			expectedSnapshots: expectedSnapshot,
 		},
 		{
-			name: "generate disk snapshot (1 disk and 2 snapshot)",
+			name: "generate disk snapshot 1 existing disk and 2 snapshot",
 			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*compute.Snapshot{
-				createSs(snapshotName, fiveMinAgo, diskName),
-				createSs(snapshotName, fiveMinAgo, diskName),
+			existingDiskSnapshots: []*compute.SnapshotList{
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName), createSs(snapshotName, now, diskName)}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName), createSs(snapshotName, fiveMinAgo, diskName)}},
 			},
 			expectedSnapshots: expectedSnapshot,
 		},
 		{
-			name: "generate disk snapshot (2 disk and 1 snapshot)",
+			name: "generate disk snapshot 2 existing disks and 1 snapshot",
 			existingProjectDisks: []*compute.Disk{
-				createDisk(diskName, "instance1"),
+				createDisk("sample-disk-name", "instance1"),
 				createDisk("sample-disk-name2", "instance1"),
 			},
-			existingDiskSnapshots: []*compute.Snapshot{
-				createSs(snapshotName, fiveMinAgo, diskName),
+			existingDiskSnapshots: []*compute.SnapshotList{
+				{Items: []*compute.Snapshot{createSs(snapshotName2, now, "sample-disk-name2")}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, now, diskName)}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName)}},
 			},
 			expectedSnapshots: expectedSnapshot2,
 		},
 		{
-			name: "generate disk snapshot (2 disk and 2 snapshot)",
+			name: "create new snapshot for 2 existing disks and snapshots",
 			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 				createDisk("sample-disk-name2", "instance1"),
 			},
-			existingDiskSnapshots: []*compute.Snapshot{
-				createSs(snapshotName, fiveMinAgo, diskName),
-				createSs("forensic-snapshots-bad-ip-sample-disk-name2", fiveMinAgo, "sample-disk-name2"),
+			existingDiskSnapshots: []*compute.SnapshotList{
+				{Items: []*compute.Snapshot{createSs(snapshotName, now, diskName), createSs("forensic-snapshots-bad-ip-sample-disk-name2", now, "sample-disk-name2")}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName), createSs("forensic-snapshots-bad-ip-sample-disk-name2", fiveMinAgo, "sample-disk-name2")}},
+				{Items: []*compute.Snapshot{createSs(snapshotName, fiveMinAgo, diskName), createSs("forensic-snapshots-bad-ip-sample-disk-name2", fiveMinAgo, "sample-disk-name2")}},
 			},
 			expectedSnapshots: expectedSnapshot2,
 		},
 		{
-			name: "snapshotName preffix is different so generate disk snapshot",
+			name: "prefix is different so generate disk snapshot",
 			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*compute.Snapshot{
-				createSs("forensic-snapshots-bad-domain-simple-disk-name", fiveMinAgo, diskName),
+			existingDiskSnapshots: []*compute.SnapshotList{
+				{Items: []*compute.Snapshot{createSs("forensic-snapshots-bad-ip-sample-disk-name", fiveMinAgo, diskName)}},
+				{Items: []*compute.Snapshot{createSs("forensic-snapshots-bad-domain-sample-disk-name", fiveMinAgo, diskName)}},
 			},
 			expectedSnapshots: expectedSnapshot,
 		},
@@ -190,8 +197,8 @@ func TestCreateSnapshot(t *testing.T) {
 			existingProjectDisks: []*compute.Disk{
 				createDisk(diskName, "instance1"),
 			},
-			existingDiskSnapshots: []*compute.Snapshot{
-				createSs(snapshotName, time.Now().Add(-time.Minute*2).Format(time.RFC3339), diskName),
+			existingDiskSnapshots: []*compute.SnapshotList{
+				{Items: []*compute.Snapshot{createSs(snapshotName, time.Now().Add(-time.Minute*2).Format(time.RFC3339), diskName)}},
 			},
 			expectedSnapshots: make(map[string]compute.Snapshot),
 		},
@@ -200,7 +207,7 @@ func TestCreateSnapshot(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ent, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
-			computeStub.StubbedListProjectSnapshots = &compute.SnapshotList{Items: tt.existingDiskSnapshots}
+			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
 			required := &Required{
 				ProjectID: "foo-test",
 				RuleName:  "bad_ip",
@@ -211,7 +218,7 @@ func TestCreateSnapshot(t *testing.T) {
 				t.Errorf("%s failed to create snapshot: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {
-				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedSnapshots, computeStub.SavedCreateSnapshots)
+				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedSnapshots, diff)
 			}
 		})
 	}
@@ -227,6 +234,8 @@ func createDisk(name, instance string) *compute.Disk {
 
 func createSs(name, time, disk string) *compute.Snapshot {
 	return &compute.Snapshot{
+		Id:                012345,
+		LabelFingerprint:  "foo123",
 		Name:              name,
 		CreationTimestamp: time,
 		SourceDisk:        "/projects/test-project/zones/test-zone/disks/" + disk,

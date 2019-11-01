@@ -77,8 +77,17 @@ module "close_public_cloud_sql" {
     "670032686187",
   ]
 }
+
 module "cloud-sql-require-ssl" {
   source = "./terraform/automations/cloud-sql-require-ssl"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
+
+module "disable_dashboard" {
+  source = "./terraform/automations/disable-dashboard"
   setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",

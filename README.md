@@ -18,7 +18,9 @@ Before installation we'll configure our Cloud Functions in `settings.json`. With
 - Folder IDs `project_ids`: Take the action if the affected project ID has an ancestor of a folder ID within this set.
 - Organization ID `organization_id`: Take the action if the affected project ID is within this organization ID.
 
-**Close open buckets**
+**Google Cloud Storage**
+
+***Close open buckets***
 
 This Cloud Function will automatically close public buckets found by Security Health Analytics that match the criteria you specify. Depending on which resources you specify will determine which projects are enforced.
 
@@ -40,13 +42,12 @@ Depending on which resources you specify will determine which projects are enfor
 
 - Configured in settings.json under the `remove_public_ip` key.
 
-For example, if you wanted to only remove public access in the folder **development** you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager) and place into the `folder_ids` array.
+**Disable Kubernetes Dashboard addon**
 
-### Granting permissions
+This Cloud Function will automatically disable Kubernetes Dashboard addon found by Security Health Analytics.
+Depending on which resources you specify will determine which projects are enforced.
 
-In order for the Cloud Function service account to take the actions needed we have to grant the necessary permissions. At this time only folder level permissions are supported. This way you grant only the level access needed only at the folder needed.
-
-**If you need more granular or broader permissions granted please send feedback to tomfitzgerald@google.com**
+- Configured in settings.json under the `disable_dashboard` key.
 
 ### Installation
 

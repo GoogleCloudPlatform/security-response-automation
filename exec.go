@@ -20,14 +20,15 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closebucket"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/closecloudsql"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloudsqlrequiressl"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/createsnapshot"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/openfirewall"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removenonorgmembers"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/removepublicip"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/revokeiam"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/closebucket"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
@@ -112,10 +113,10 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 	return openfirewall.Execute(ctx, r, ent)
 }
 
-// RemoveNonOrganizationMember removes all members that do not match the organization.
+// RemoveNonOrganizationMember removes all members that do not match the organization domain.
 //
 // This Cloud Function will respond to Security Health Analytics **NON_ORG_IAM_MEMBER** findings from **IAM Scanner**.
-// All user member types (user:) that do not correspond to the organization, will be removed from policy binding.
+// All user member types (user:) that do not correspond to the organization will be removed from policy binding.
 //
 // Permissions required
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
@@ -155,11 +156,11 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	r, err := closecloudsql.ReadFinding(m.Data)
+	r, err := removepublic.ReadFinding(m.Data)
 	if err != nil {
 		return err
 	}
-	return closecloudsql.Execute(ctx, r, ent)
+	return removepublic.Execute(ctx, r, ent)
 }
 
 // CloudSQLRequireSSL enables the SSL requirement for a Cloud SQL instance.
@@ -172,9 +173,26 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	r, err := cloudsqlrequiressl.ReadFinding(m.Data)
+	r, err := requiressl.ReadFinding(m.Data)
 	if err != nil {
 		return err
 	}
-	return cloudsqlrequiressl.Execute(ctx, r, ent)
+	return requiressl.Execute(ctx, r, ent)
+}
+
+// DisableDashboard will disable the Kubernetes dashboard addon.
+//
+// This Cloud Function will respond to Security Health Analytics **Web UI Enabled** findings
+// from **Container Scanner**. The Kubernetes dashboard addon will be disabled when this
+// function is activated.
+//
+// Permissions required
+//	- roles/container.clusterAdmin update cluster addon.
+//
+func DisableDashboard(ctx context.Context, m pubsub.Message) error {
+	r, err := disabledashboard.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return disabledashboard.Execute(ctx, r, ent)
 }
