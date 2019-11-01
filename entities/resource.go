@@ -187,6 +187,9 @@ func (r *Resource) IfProjectWithinResources(ctx context.Context, conf *Resources
 	if err := r.IfProjectInProjects(ctx, conf.ProjectIDs, projectID, fn); err != nil {
 		return err
 	}
+	if err := r.IfProjectInOrg(ctx, conf.OrganizationID, projectID, fn); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -223,6 +226,25 @@ func (r *Resource) IfProjectInProjects(ctx context.Context, ids []string, projec
 		}
 		if err := fn(); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// IfProjectInOrg will apply the function if the project ID is within the organization.
+func (r *Resource) IfProjectInOrg(ctx context.Context, orgID, projectID string, fn func() error) error {
+	if orgID == "" {
+		return nil
+	}
+	ancestors, err := r.GetProjectAncestry(ctx, projectID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get project ancestry")
+	}
+	for _, resource := range ancestors {
+		if resource == "organizations/"+orgID {
+			if err := fn(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
