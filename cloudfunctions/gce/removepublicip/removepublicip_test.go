@@ -171,7 +171,7 @@ func TestRemovePublicIP(t *testing.T) {
 					&externalNic0,
 				},
 			},
-			expectedDeletedAccessConfigs: nil,
+			expectedDeletedAccessConfigs: []stubs.NetworkAccessConfigStub{},
 			folderIDs:                    []string{"456"},
 			ancestry:                     helpers.CreateAncestors([]string{"folder/123"}),
 		},
