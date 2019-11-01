@@ -60,5 +60,12 @@
         "593987969559"
       ]
     }
+  },
+  "update_root_password": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    }
   }
 }

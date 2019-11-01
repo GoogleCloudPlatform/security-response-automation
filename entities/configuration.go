@@ -56,6 +56,11 @@ type DisableDashboard struct {
 	Resources *Resources
 }
 
+// UpdateRootPassword contains configuration required for the update root password function.
+type UpdateRootPassword struct {
+	Resources *Resources
+}
+
 // Configuration contains the IDs to apply actions to.
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
@@ -66,6 +71,7 @@ type Configuration struct {
 	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
+	UpdateRootPassword     *UpdateRootPassword     `json:"update_root_password"`
 }
 
 // NewConfiguration returns a new configuration.
