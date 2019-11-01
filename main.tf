@@ -70,6 +70,14 @@ module "remove_public_ip" {
   ]
 }
 
+module "enable_bucket_only_policy" {
+  source = "./terraform/automations/enable-bucket-only-policy"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
+
 module "close_public_cloud_sql" {
   source = "./terraform/automations/close-public-cloud-sql"
   setup  = "${module.google-setup}"

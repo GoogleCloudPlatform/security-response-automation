@@ -37,6 +37,7 @@ type crmClient interface {
 type storageClient interface {
 	SetBucketPolicy(context.Context, string, *iam.Policy) error
 	BucketPolicy(context.Context, string) (*iam.Policy, error)
+	EnableBucketOnlyPolicy(context.Context, string) error
 }
 
 // Resource entity.
@@ -177,6 +178,11 @@ func (r *Resource) PolicyOrganization(ctx context.Context, organizationName stri
 // Organization returns the organization name for the given organization resource.
 func (r *Resource) Organization(ctx context.Context, organizationID string) (*crm.Organization, error) {
 	return r.crm.GetOrganization(ctx, organizationID)
+}
+
+// EnableBucketOnlyPolicy enable bucket only policy for the given bucket
+func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
+	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }
 
 // IfProjectWithinResources executes the provided function if the project ID is an ancestor of any provided resources.
