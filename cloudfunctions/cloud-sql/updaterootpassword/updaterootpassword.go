@@ -53,25 +53,14 @@ func ReadFinding(b []byte) (*Required, error) {
 // Execute will update the root password in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	required.Password = ent.PasswordGenerator.GeneratePassword()
-	r := updateRootPassword(ctx, required, ent.Logger, ent.CloudSQL)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseCloudSQL.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseCloudSQL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
-	}
-	return nil
-}
-
-func updateRootPassword(ctx context.Context, req *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
-	return func() error {
-		log.Printf("updating root password for sql instance %q in project %q.", req.InstanceName, req.ProjectID)
-		_, err := sql.UpdateUserPassword(ctx, req.ProjectID, req.InstanceName, req.Host, req.UserName, req.Password)
+	resources := ent.Configuration.UpdateRootPassword.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		log.Printf("updating root password for sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		_, err := ent.CloudSQL.UpdateUserPassword(ctx, required.ProjectID, required.InstanceName, required.Host, required.UserName, required.Password)
 		if err != nil {
 			return err
 		}
-		logr.Info("updated root password for sql instance %q in project %q.", req.InstanceName, req.ProjectID)
+		ent.Logger.Info("updated root password for sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil
-	}
+	})
 }
