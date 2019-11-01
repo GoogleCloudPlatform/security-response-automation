@@ -48,6 +48,7 @@ type CloudSQLRequireSSL struct {
 // Configuration contains the IDs to apply actions to.
 type RemoveNonOrgMembers struct {
 	Resources *Resources
+	Enabled   bool
 	Whitelist []string `json:"whitelist"`
 }
 

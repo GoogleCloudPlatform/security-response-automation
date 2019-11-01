@@ -17,6 +17,7 @@ package removenonorgmembers
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strings"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
@@ -51,20 +52,25 @@ func ReadFinding(b []byte) (*Required, error) {
 // Execute removes non-organization members.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	conf := ent.Configuration
-	whitelistOrgs := conf.RemoveNonOrgMembers.Whitelist
-	organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
-	if err != nil {
-		return errors.Wrap(err, "failed to retrieve organization")
+	if conf.RemoveNonOrgMembers.Enabled {
+		whitelistOrgs := conf.RemoveNonOrgMembers.Whitelist
+		organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
+		if err != nil {
+			return errors.Wrap(err, "failed to retrieve organization")
+		}
+		policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
+		if err != nil {
+			return errors.Wrap(err, "failed to retrieve organization policies")
+		}
+		membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, whitelistOrgs)
+		if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
+			return errors.Wrap(err, "failed to remove organization policies")
+		}
+		return nil
+	} else {
+		log.Printf("remove non-org members execution disabled: check settings.")
+		return nil
 	}
-	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
-	if err != nil {
-		return errors.Wrap(err, "failed to retrieve organization policies")
-	}
-	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, whitelistOrgs)
-	if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
-		return errors.Wrap(err, "failed to remove organization policies")
-	}
-	return nil
 }
 
 func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, whitelistOrgs []string) (nonOrgMembers []string) {

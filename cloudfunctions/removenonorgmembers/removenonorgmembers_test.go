@@ -192,6 +192,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				RemoveNonOrgMembers: &entities.RemoveNonOrgMembers{
 					Resources: nil,
 					Whitelist: tt.whitelistOrgs,
+					Enabled:   true,
 				},
 			}
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res, Configuration: conf}); err != nil {

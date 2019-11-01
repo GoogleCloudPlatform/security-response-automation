@@ -53,6 +53,7 @@
         "670032686187"
       ]
     },
+    "enabled": false,
     "whitelist": [
       "ciandt.com",
       "google.com"
