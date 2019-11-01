@@ -22,7 +22,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
