@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
@@ -177,4 +178,21 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return requiressl.Execute(ctx, r, ent)
+}
+
+// DisableDashboard will disable the Kubernetes dashboard addon.
+//
+// This Cloud Function will respond to Security Health Analytics **Web UI Enabled** findings
+// from **Container Scanner**. The Kubernetes dashboard addon will be disabled when this
+// function is activated.
+//
+// Permissions required
+//	- roles/container.clusterAdmin update cluster addon.
+//
+func DisableDashboard(ctx context.Context, m pubsub.Message) error {
+	r, err := disabledashboard.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return disabledashboard.Execute(ctx, r, ent)
 }
