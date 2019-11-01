@@ -38,7 +38,7 @@ const (
 
 // labels to be saved with each disk snapshot created.
 var labels = map[string]string{
-	"info": "Created by Security Response Automation",
+	"info": "created-by-security-response-automation",
 }
 
 // Required contains the required values needed for this function.
@@ -89,41 +89,45 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	if err != nil {
 		return errors.Wrap(err, "failed to list snapshots")
 	}
+	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), required.ProjectID)
 
 	for _, disk := range disks {
-		sn := snapshotName(rule, disk.Name)
+		snapshotName := createSnapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 		if err != nil {
-			return errors.Wrapf(err, "failed checking if can create snapshot for %s", disk.Name)
+			return errors.Wrapf(err, "failed checking if can create snapshot for %q", disk.Name)
 		}
 
 		if !create {
+			log.Printf("snapshot %q for disk %q will be skipped (not old enough or from another finding)", snapshotName, disk.Name)
 			continue
 		}
 
 		for k := range removeExisting {
 			if err := ent.Host.DeleteDiskSnapshot(ctx, required.ProjectID, k); err != nil {
-				return errors.Wrapf(err, "failed deleting snapshot: %s", k)
+				return errors.Wrapf(err, "failed deleting snapshot: %q", k)
 			}
-			ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
+			ent.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
 		}
 
-		if err := ent.Host.CreateDiskSnapshot(ctx, required.ProjectID, required.Zone, disk.Name, sn); err != nil {
-			return errors.Wrapf(err, "failed creating snapshot: %s", sn)
+		if err := ent.Host.CreateDiskSnapshot(ctx, required.ProjectID, required.Zone, disk.Name, snapshotName); err != nil {
+			return errors.Wrapf(err, "failed creating snapshot: %q", snapshotName)
 		}
-		ent.Logger.Info("created snapshot for disk %s", disk.Name)
+		ent.Logger.Info("created snapshot for disk %q", disk.Name)
 
-		if err := ent.Host.SetSnapshotLabels(ctx, required.ProjectID, sn, disk, labels); err != nil {
-			return errors.Wrapf(err, "failed setting labels: %s", sn)
+		if err := ent.Host.SetSnapshotLabels(ctx, required.ProjectID, snapshotName, disk, labels); err != nil {
+			return errors.Wrapf(err, "failed setting labels: %q", snapshotName)
 		}
+		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 	}
+	log.Printf("completed")
 	return nil
 }
 
 // canCreateSnapshot checks if we should create a snapshot along with a map of existing snapshots to be removed.
 func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule string) (bool, map[string]bool, error) {
 	create := true
-	prefix := snapshotName(rule, disk.Name)
+	prefix := createSnapshotName(rule, disk.Name)
 	removeExisting := map[string]bool{}
 	for _, s := range snapshots.Items {
 		if s.SourceDisk != disk.SelfLink || !strings.HasPrefix(s.Name, prefix) {
@@ -151,6 +155,6 @@ func isSnapshotCreatedWithin(snapshotTime string, window time.Duration) (bool, e
 	return time.Since(t) < window, nil
 }
 
-func snapshotName(rule, disk string) string {
+func createSnapshotName(rule, disk string) string {
 	return snapshotPrefix + rule + "-" + disk
 }

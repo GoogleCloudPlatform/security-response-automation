@@ -17,6 +17,7 @@ package entities
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -136,11 +137,13 @@ func (h *Host) ListInstanceDisks(ctx context.Context, projectID, zone, instance 
 			dl = append(dl, d)
 		}
 	}
+	log.Printf("got %d disks associated with instance %q", len(dl), instance)
 	return dl, nil
 }
 
 // SetSnapshotLabels sets the labels on a snapshot.
 func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, snapshotName string, disk *compute.Disk, labels map[string]string) error {
+	log.Printf("get snapshot %q from %q %q", snapshotName, projectID, disk.Name)
 	snapshot, err := h.DiskSnapshot(ctx, snapshotName, projectID, disk)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get disk snapshots for %s in %s", disk.Name, projectID)
@@ -149,6 +152,7 @@ func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, snapshotName st
 	labelFp := snapshot.LabelFingerprint
 
 	req := &compute.GlobalSetLabelsRequest{LabelFingerprint: labelFp, Labels: labels}
+	log.Printf("set label for %q %+v", projectID, labels)
 	op, err := h.client.SetLabels(ctx, projectID, id, req)
 	if err != nil {
 		return errors.Wrapf(err, "failed setting labels for %s %s", projectID, id)
