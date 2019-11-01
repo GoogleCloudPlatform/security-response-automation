@@ -101,3 +101,11 @@ module "disable_dashboard" {
     "670032686187",
   ]
 }
+
+module "update_root_password" {
+  source = "./terraform/automations/update-root-password"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
