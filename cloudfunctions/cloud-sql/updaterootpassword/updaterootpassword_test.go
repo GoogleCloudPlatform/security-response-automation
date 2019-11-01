@@ -175,7 +175,7 @@ func updateRootPasswordSetup(folderIDs []string) (*entities.Entity, *stubs.Cloud
 	pwGenStub := &stubs.PasswordGeneratorStub{}
 	passwordGenerator := entities.NewPasswordGenerator(pwGenStub)
 	conf := &entities.Configuration{
-		CloseCloudSQL: &entities.CloseCloudSQL{
+		UpdateRootPassword: &entities.UpdateRootPassword{
 			Resources: &entities.Resources{
 				FolderIDs: folderIDs,
 			},
