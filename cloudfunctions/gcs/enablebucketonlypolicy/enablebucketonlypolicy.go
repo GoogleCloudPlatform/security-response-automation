@@ -49,21 +49,12 @@ func ReadFinding(b []byte) (*Required, error) {
 
 // Execute will enable bucket only policy on buckets found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	r := enable(ctx, required, ent.Logger, ent.Resource)
 	resources := ent.Configuration.EnableBucketOnlyPolicy.Resources
-	if err := ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, r); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func enable(ctx context.Context, required *Required, logr *entities.Logger, res *entities.Resource) func() error {
-	return func() error {
-		if err := res.EnableBucketOnlyPolicy(ctx, required.BucketName); err != nil {
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if err := ent.Resource.EnableBucketOnlyPolicy(ctx, required.BucketName); err != nil {
 			return err
 		}
-		logr.Info("Bucket only policy enabled on bucket %q in project %q.", required.BucketName, required.ProjectID)
+		ent.Logger.Info("Bucket only policy enabled on bucket %q in project %q.", required.BucketName, required.ProjectID)
 		return nil
-	}
+	})
 }
