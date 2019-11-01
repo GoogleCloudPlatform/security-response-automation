@@ -14,21 +14,23 @@ package stubs
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import "log"
+
 // LoggerStub provides a stub for the Logger client.
 type LoggerStub struct {
 }
 
 // Info push info log to buffer.
-func (l *LoggerStub) Info(message string, a ...interface{}) {}
+func (l *LoggerStub) Info(message string, a ...interface{}) { log.Printf(message, a...) }
 
 // Warning push warning log to buffer.
-func (l *LoggerStub) Warning(message string, a ...interface{}) {}
+func (l *LoggerStub) Warning(message string, a ...interface{}) { log.Printf(message, a...) }
 
 // Error push error log to buffer.
-func (l *LoggerStub) Error(message string, a ...interface{}) {}
+func (l *LoggerStub) Error(message string, a ...interface{}) { log.Printf(message, a...) }
 
 // Debug push debug log to buffer.
-func (l *LoggerStub) Debug(message string, a ...interface{}) {}
+func (l *LoggerStub) Debug(message string, a ...interface{}) { log.Printf(message, a...) }
 
 // Close buffer and send messages to stackdriver.
 func (l *LoggerStub) Close() {}

@@ -17,6 +17,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"cloud.google.com/go/logging"
@@ -45,21 +46,25 @@ func NewLogger(ctx context.Context, authFile string) (*Logger, error) {
 
 // Info sends a message to the logger using info as the severity.
 func (l *Logger) Info(message string, a ...interface{}) {
+	log.Printf(message, a...)
 	l.logger.Log(logging.Entry{Payload: fmt.Sprintf(message, a...), Severity: logging.Info})
 }
 
 // Warning sends a message to the logger using warning as the severity.
 func (l *Logger) Warning(message string, a ...interface{}) {
+	log.Printf(message, a...)
 	l.logger.Log(logging.Entry{Payload: fmt.Sprintf(message, a...), Severity: logging.Warning})
 }
 
 // Error sends a message to the logger using error as the severity.
 func (l *Logger) Error(message string, a ...interface{}) {
+	log.Printf(message, a...)
 	l.logger.Log(logging.Entry{Payload: fmt.Sprintf(message, a...), Severity: logging.Error})
 }
 
 // Debug sends a message to the logger using debug as the severity.
 func (l *Logger) Debug(message string, a ...interface{}) {
+	log.Printf(message, a...)
 	l.logger.Log(logging.Entry{Payload: fmt.Sprintf(message, a...), Severity: logging.Debug})
 }
 
