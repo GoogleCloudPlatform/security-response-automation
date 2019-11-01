@@ -1,4 +1,4 @@
-package disabledashboard
+package closebucket
 
 // Copyright 2019 Google LLC
 //
@@ -24,51 +24,40 @@ import (
 	"github.com/pkg/errors"
 )
 
+// publicUsers contains a slice of public users we want to remove.
+var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
+
 // Required contains the required values needed for this function.
 type Required struct {
-	ProjectID, Zone, ClusterID string
+	BucketName, ProjectID string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Required, error) {
-	var finding pb.ContainerScanner
+	var finding pb.StorageScanner
 	r := &Required{}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
-	case "WEB_UI_ENABLED":
-		r.ProjectID = finding.Finding.SourceProperties.GetProjectID()
-		r.Zone = sha.ClusterZone(finding.GetFinding().GetResourceName())
-		r.ClusterID = sha.ClusterID(finding.GetFinding().GetResourceName())
+	case "PUBLIC_BUCKET_ACL":
+		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
+		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
 	}
-	if r.ProjectID == "" || r.Zone == "" || r.ClusterID == "" {
+	if r.BucketName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound
 	}
 	return r, nil
 }
 
-// Execute disables the Kubernetes dashboard.
-func Execute(ctx context.Context, req *Required, ent *entities.Entity) error {
-	folders := ent.Configuration.DisableDashboard.Resources.FolderIDs
-	projects := ent.Configuration.DisableDashboard.Resources.ProjectIDs
-	r := disableDashboard(ctx, req, ent.Logger, ent.Container)
-	if err := ent.Resource.IfProjectInFolders(ctx, folders, req.ProjectID, r); err != nil {
-		return err
-	}
-	if err := ent.Resource.IfProjectInProjects(ctx, projects, req.ProjectID, r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func disableDashboard(ctx context.Context, req *Required, logr *entities.Logger, cont *entities.Container) func() error {
-	return func() error {
-		logr.Info("Disabling dashboard from cluster")
-		if _, err := cont.DisableDashboard(ctx, req.ProjectID, req.Zone, req.ClusterID); err != nil {
+// Execute will remove any public users from buckets found within the provided folders.
+func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
+	resources := ent.Configuration.CloseBucket.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if err := ent.Resource.RemoveMembersFromBucket(ctx, required.BucketName, publicUsers); err != nil {
 			return err
 		}
-		logr.Info("Successfully disabled dashboard from cluster %s in project %s", req.ClusterID, req.ProjectID)
+		ent.Logger.Info("removed public members from bucket %q in project %q", required.BucketName, required.ProjectID)
 		return nil
-	}
+	})
 }

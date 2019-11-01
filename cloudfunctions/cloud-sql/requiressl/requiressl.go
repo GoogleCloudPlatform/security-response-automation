@@ -1,4 +1,4 @@
-package cloudsqlrequiressl
+package requiressl
 
 // Copyright 2019 Google LLC
 //
@@ -49,27 +49,16 @@ func ReadFinding(b []byte) (*Required, error) {
 
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	r := remove(ctx, required, ent.Logger, ent.CloudSQL)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloudSQLRequireSSL.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloudSQLRequireSSL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
-	}
-	return nil
-}
-
-func remove(ctx context.Context, required *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
-	return func() error {
-		op, err := sql.RequireSSL(ctx, required.ProjectID, required.InstanceName)
+	resources := ent.Configuration.CloudSQLRequireSSL.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		op, err := ent.CloudSQL.RequireSSL(ctx, required.ProjectID, required.InstanceName)
 		if err != nil {
 			return err
 		}
-		if errs := sql.Wait(required.ProjectID, op); len(errs) > 0 {
+		if errs := ent.CloudSQL.Wait(required.ProjectID, op); len(errs) > 0 {
 			return errs[0]
 		}
-		logr.Info("enforced ssl on sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		ent.Logger.Info("enforced ssl on sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil
-	}
+	})
 }

@@ -49,26 +49,14 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute the removal of public IP addresses in a GCE instance.
+// Execute removes the public IP of a GCE instance.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	folders := ent.Configuration.RemovePublicIP.Resources.FolderIDs
-	projects := ent.Configuration.RemovePublicIP.Resources.ProjectIDs
-	r := removePublicIP(ctx, ent.Logger, ent.Host, required.ProjectID, required.InstanceZone, required.InstanceID)
-	if err := ent.Resource.IfProjectInFolders(ctx, folders, required.ProjectID, r); err != nil {
-		return err
-	}
-	if err := ent.Resource.IfProjectInProjects(ctx, projects, required.ProjectID, r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func removePublicIP(ctx context.Context, logr *entities.Logger, host *entities.Host, projectID, instanceZone, instanceID string) func() error {
-	return func() error {
-		if err := host.RemoveExternalIPs(ctx, projectID, instanceZone, instanceID); err != nil {
+	resources := ent.Configuration.RemovePublicIP.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if err := ent.Host.RemoveExternalIPs(ctx, required.ProjectID, required.InstanceZone, required.InstanceID); err != nil {
 			return errors.Wrap(err, "failed to remove public ip")
 		}
-		logr.Info("removed ip addresses for instance %q, in zone %q in project %q.", instanceID, instanceZone, projectID)
+		ent.Logger.Info("removed public IP address for instance %q, in zone %q in project %q.", required.InstanceID, required.InstanceZone, required.ProjectID)
 		return nil
-	}
+	})
 }

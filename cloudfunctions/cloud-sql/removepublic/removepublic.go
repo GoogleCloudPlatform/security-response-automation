@@ -1,4 +1,4 @@
-package closecloudsql
+package removepublic
 
 // Copyright 2019 Google LLC
 //
@@ -50,32 +50,21 @@ func ReadFinding(b []byte) (*Required, error) {
 
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	r := remove(ctx, required, ent.Logger, ent.CloudSQL)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseCloudSQL.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseCloudSQL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
-	}
-	return nil
-}
-
-func remove(ctx context.Context, required *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
-	return func() error {
-		log.Printf("getting details from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
-		instance, err := sql.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
+	resources := ent.Configuration.CloseCloudSQL.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		log.Printf("getting details from Cloud SQL instance %q in project %q.", required.InstanceName, required.ProjectID)
+		instance, err := ent.CloudSQL.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
 		if err != nil {
 			return err
 		}
-		op, err := sql.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
+		op, err := ent.CloudSQL.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
 		if err != nil {
 			return err
 		}
-		if errs := sql.Wait(required.ProjectID, op); len(errs) > 0 {
+		if errs := ent.CloudSQL.Wait(required.ProjectID, op); len(errs) > 0 {
 			return errs[0]
 		}
-		logr.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		ent.Logger.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil
-	}
+	})
 }

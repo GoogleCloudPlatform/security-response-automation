@@ -1,4 +1,4 @@
-package cloudsqlrequiressl
+package requiressl
 
 // Copyright 2019 Google LLC
 //
@@ -97,8 +97,8 @@ func TestReadFinding(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, InstanceName, projectID string
-		bytes                       []byte
-		expectedError               error
+		bytes                         []byte
+		expectedError                 error
 	}{
 		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance", bytes: []byte(enforceSSL), expectedError: nil},
 		{name: "wrong category", projectID: "", InstanceName: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrValueNotFound},
@@ -124,16 +124,16 @@ func TestReadFinding(t *testing.T) {
 func TestCloudSQLRequireSSL(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
-		name               		string
-		folderIDs         	 	[]string
-		ancestry          		*crm.GetAncestryResponse
-		finding           		pubsub.Message
-		expectedRequest        *sqladmin.DatabaseInstance
+		name            string
+		folderIDs       []string
+		ancestry        *crm.GetAncestryResponse
+		finding         pubsub.Message
+		expectedRequest *sqladmin.DatabaseInstance
 	}{
 		{
-			name:              "enforce ssl on sql instance",
-			folderIDs:         []string{"123"},
-			ancestry:          testhelpers.CreateAncestors([]string{"folder/123"}),
+			name:      "enforce ssl on sql instance",
+			folderIDs: []string{"123"},
+			ancestry:  testhelpers.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",
@@ -150,7 +150,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 			ent, sqlStub, crmStub := cloudSQLRequireSSL(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 			required := &Required{
-				ProjectID:  "sha-resources-20191002",
+				ProjectID:    "sha-resources-20191002",
 				InstanceName: "public-sql-instance",
 			}
 			if err := Execute(ctx, required, ent); err != nil {
@@ -179,5 +179,5 @@ func cloudSQLRequireSSL(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, 
 			},
 		},
 	}
-	return &entities.Entity{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res }, sqlStub, crmStub
+	return &entities.Entity{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub
 }
