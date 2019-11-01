@@ -49,26 +49,13 @@ func ReadFinding(b []byte) (*Required, error) {
 }
 
 // Execute disables the Kubernetes dashboard.
-func Execute(ctx context.Context, req *Required, ent *entities.Entity) error {
-	folders := ent.Configuration.DisableDashboard.Resources.FolderIDs
-	projects := ent.Configuration.DisableDashboard.Resources.ProjectIDs
-	r := disableDashboard(ctx, req, ent.Logger, ent.Container)
-	if err := ent.Resource.IfProjectInFolders(ctx, folders, req.ProjectID, r); err != nil {
-		return err
-	}
-	if err := ent.Resource.IfProjectInProjects(ctx, projects, req.ProjectID, r); err != nil {
-		return err
-	}
-	return nil
-}
-
-func disableDashboard(ctx context.Context, req *Required, logr *entities.Logger, cont *entities.Container) func() error {
-	return func() error {
-		logr.Info("Disabling dashboard from cluster")
-		if _, err := cont.DisableDashboard(ctx, req.ProjectID, req.Zone, req.ClusterID); err != nil {
+func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
+	resources := ent.Configuration.DisableDashboard.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if _, err := ent.Container.DisableDashboard(ctx, required.ProjectID, required.Zone, required.ClusterID); err != nil {
 			return err
 		}
-		logr.Info("Successfully disabled dashboard from cluster %s in project %s", req.ClusterID, req.ProjectID)
+		ent.Logger.Info("successfully disabled dashboard from cluster %q in project %q", required.ClusterID, required.ProjectID)
 		return nil
-	}
+	})
 }
