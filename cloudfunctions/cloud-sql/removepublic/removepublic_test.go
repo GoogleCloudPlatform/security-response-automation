@@ -18,14 +18,14 @@ import (
 	"context"
 	"testing"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
+
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -128,7 +128,6 @@ func TestCloseCloudSQL(t *testing.T) {
 		folderIDs               []string
 		instanceDetailsResponse *sqladmin.DatabaseInstance
 		ancestry                *crm.GetAncestryResponse
-		finding                 pubsub.Message
 		expectedRequest         *sqladmin.DatabaseInstance
 	}{
 		{

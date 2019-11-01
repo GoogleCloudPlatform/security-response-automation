@@ -141,7 +141,6 @@ func TestCloseBucket(t *testing.T) {
 
 	test := []struct {
 		name           string
-		expectedError  string
 		initialMembers []string
 		folderIDs      []string
 		expected       []string
