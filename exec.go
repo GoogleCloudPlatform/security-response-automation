@@ -27,6 +27,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/closebucket"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revokeiam"
 	"github.com/googlecloudplatform/threat-automation/entities"
