@@ -50,14 +50,9 @@ func ReadFinding(b []byte) (*Required, error) {
 // Execute will enable bucket only policy on buckets found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	r := enable(ctx, required, ent.Logger, ent.Resource)
-	execFolders := ent.Configuration.EnableBucketOnlyPolicy.Resources.FolderIDs
-	if err := ent.Resource.IfProjectInFolders(ctx, execFolders, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	execProjects := ent.Configuration.EnableBucketOnlyPolicy.Resources.ProjectIDs
-	if err := ent.Resource.IfProjectInProjects(ctx, execProjects, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
+	resources := ent.Configuration.EnableBucketOnlyPolicy.Resources
+	if err := ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, r); err != nil {
+		return err
 	}
 
 	return nil
@@ -65,10 +60,10 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 
 func enable(ctx context.Context, required *Required, logr *entities.Logger, res *entities.Resource) func() error {
 	return func() error {
-		err := res.EnableBucketOnlyPolicy(ctx, required.BucketName)
-		if err == nil {
-			logr.Info("Bucket only policy enabled on bucket %q in project %q.", required.BucketName, required.ProjectID)
+		if err := res.EnableBucketOnlyPolicy(ctx, required.BucketName); err != nil {
+			return err
 		}
-		return err
+		logr.Info("Bucket only policy enabled on bucket %q in project %q.", required.BucketName, required.ProjectID)
+		return nil
 	}
 }
