@@ -93,3 +93,8 @@ module "disable_dashboard" {
     "670032686187",
   ]
 }
+
+module "remove_non_org_members" {
+  source = "./terraform/automations/remove-non-org-members"
+  setup  = "${module.google-setup}"
+}
