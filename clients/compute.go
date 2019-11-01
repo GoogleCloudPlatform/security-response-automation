@@ -54,8 +54,8 @@ func NewCompute(ctx context.Context, authFile string) (*Compute, error) {
 }
 
 // DeleteDiskSnapshot deletes the given snapshot from the project.
-func (c *Compute) DeleteDiskSnapshot(project, snapshot string) (*compute.Operation, error) {
-	return c.snapshots.Delete(project, snapshot).Do()
+func (c *Compute) DeleteDiskSnapshot(ctx context.Context, project, snapshot string) (*compute.Operation, error) {
+	return c.snapshots.Delete(project, snapshot).Context(ctx).Do()
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.

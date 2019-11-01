@@ -18,10 +18,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
@@ -247,6 +247,43 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 			}
 			if diff := cmp.Diff(newPolicy.Bindings, tt.expected); diff != "" {
 				t.Errorf("%v failed, difference: %v", tt.name, diff)
+			}
+		})
+	}
+}
+
+func TestProjectInOrg(t *testing.T) {
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := NewResource(crmStub, storageStub)
+	ctx := context.Background()
+	const projectID = "test-project"
+	tests := []struct {
+		name     string
+		orgID    string
+		ancestry *crm.GetAncestryResponse
+		inOrg    bool
+	}{
+		{name: "in org", inOrg: true, orgID: "456", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "out org", inOrg: false, orgID: "888", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "no org", inOrg: false, orgID: "", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			crmStub.GetAncestryResponse = tt.ancestry
+			exec := false
+			if err := r.IfProjectInOrg(ctx, tt.orgID, projectID, func() error {
+				exec = true
+				return nil
+			}); err != nil {
+				t.Errorf("%s failed, err: %+v", tt.name, err)
+			}
+			if !tt.inOrg && exec {
+				t.Errorf("%s failed: out of org but executed function", tt.name)
+			}
+			if tt.inOrg && !exec {
+				t.Errorf("%s failed: in org but did not execute function", tt.name)
 			}
 		})
 	}

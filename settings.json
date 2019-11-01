@@ -47,6 +47,13 @@
       ]
     }
   },
+  "disable_dashboard": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    }
+  },
   "remove_non_org_members": {
     "resources": {
       "folder_ids": [

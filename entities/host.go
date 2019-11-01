@@ -17,46 +17,56 @@ package entities
 import (
 	"context"
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 )
 
 // ComputeClient contains minimum interface required by the host entity.
 type ComputeClient interface {
-	GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error)
-	DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error)
 	CreateSnapshot(context.Context, string, string, string, *compute.Snapshot) (*compute.Operation, error)
-	ListProjectSnapshots(context.Context, string) (*compute.SnapshotList, error)
-	ListDisks(context.Context, string, string) (*compute.DiskList, error)
-	SetLabels(context.Context, string, string, *compute.GlobalSetLabelsRequest) (*compute.Operation, error)
-	DeleteDiskSnapshot(string, string) (*compute.Operation, error)
-	WaitZone(string, string, *compute.Operation) []error
-	WaitGlobal(string, *compute.Operation) []error
-	StopInstance(context.Context, string, string, string) (*compute.Operation, error)
-	StartInstance(context.Context, string, string, string) (*compute.Operation, error)
+	DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error)
+	DeleteDiskSnapshot(context.Context, string, string) (*compute.Operation, error)
 	DeleteInstance(context.Context, string, string, string) (*compute.Operation, error)
+	GetInstance(ctx context.Context, project, zone, instance string) (*compute.Instance, error)
+	ListDisks(context.Context, string, string) (*compute.DiskList, error)
+	ListProjectSnapshots(context.Context, string) (*compute.SnapshotList, error)
+	SetLabels(context.Context, string, string, *compute.GlobalSetLabelsRequest) (*compute.Operation, error)
+	StartInstance(context.Context, string, string, string) (*compute.Operation, error)
+	StopInstance(context.Context, string, string, string) (*compute.Operation, error)
+	WaitGlobal(string, *compute.Operation) []error
+	WaitZone(string, string, *compute.Operation) []error
 }
 
 // Host entity.
 type Host struct {
-	c ComputeClient
+	client ComputeClient
 }
 
 // NewHost returns a host entity.
 func NewHost(cs ComputeClient) *Host {
-	return &Host{c: cs}
+	return &Host{client: cs}
 }
 
 // DeleteDiskSnapshot deletes the given snapshot from the project.
-func (h *Host) DeleteDiskSnapshot(project, snapshot string) (*compute.Operation, error) {
-	return h.c.DeleteDiskSnapshot(project, snapshot)
+func (h *Host) DeleteDiskSnapshot(ctx context.Context, projectID, snapshot string) error {
+	op, err := h.client.DeleteDiskSnapshot(ctx, projectID, snapshot)
+	if err != nil {
+		return nil
+	}
+	if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
+		return errors.Wrap(errs[0], "failed waiting")
+	}
+	return nil
 }
 
 // RemoveExternalIPs iterates on all network interfaces of an instance and deletes its accessConfigs, actually removing the external IP addresses of the instance.
 func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance string) error {
-	i, err := h.c.GetInstance(ctx, project, zone, instance)
+	i, err := h.client.GetInstance(ctx, project, zone, instance)
 	if err != nil {
 		return fmt.Errorf("failed to get instance: %q", err)
 	}
@@ -67,7 +77,7 @@ func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance st
 				continue
 			}
 
-			op, err := h.c.DeleteAccessConfig(ctx, project, zone, instance, ac.Name, ni.Name)
+			op, err := h.client.DeleteAccessConfig(ctx, project, zone, instance, ac.Name, ni.Name)
 			if err != nil {
 				return fmt.Errorf("failed to remove external ip: %q", err)
 			}
@@ -80,62 +90,87 @@ func (h *Host) RemoveExternalIPs(ctx context.Context, project, zone, instance st
 	return nil
 }
 
+// DiskSnapshot gets a snapshot by name associated with a given disk.
+func (h *Host) DiskSnapshot(ctx context.Context, snapshotName, projectID string, disk *compute.Disk) (*compute.Snapshot, error) {
+	snapshots, err := h.ListProjectSnapshots(ctx, projectID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list snapshots")
+	}
+	for _, s := range snapshots.Items {
+		if s.SourceDisk == disk.SelfLink && s.Name == snapshotName {
+			return s, nil
+		}
+	}
+	return nil, errors.New("failed to find snapshot")
+}
+
 // CreateDiskSnapshot creates a snapshot.
-func (h *Host) CreateDiskSnapshot(ctx context.Context, projectID, zone, disk, name string) (*compute.Operation, error) {
-	cs, err := h.c.CreateSnapshot(ctx, projectID, zone, disk, &compute.Snapshot{
+func (h *Host) CreateDiskSnapshot(ctx context.Context, projectID, zone, disk, name string) error {
+	op, err := h.client.CreateSnapshot(ctx, projectID, zone, disk, &compute.Snapshot{
 		Description:       "Snapshot of " + disk,
 		Name:              name,
 		CreationTimestamp: time.Now().Format(time.RFC3339),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create snapshot: %q", err)
+		return fmt.Errorf("failed to create snapshot: %q", err)
 	}
-	return cs, nil
+	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
+		return errors.Wrap(errs[0], "failed waiting: first error")
+	}
+	return nil
 }
 
 // ListProjectSnapshots returns a list of snapshots.
 func (h *Host) ListProjectSnapshots(ctx context.Context, projectID string) (*compute.SnapshotList, error) {
-	snapshots, err := h.c.ListProjectSnapshots(ctx, projectID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list snapshots: %q", err)
-	}
-	return snapshots, nil
+	return h.client.ListProjectSnapshots(ctx, projectID)
 }
 
 // ListInstanceDisks returns a list of disk names for a given instance.
 func (h *Host) ListInstanceDisks(ctx context.Context, projectID, zone, instance string) ([]*compute.Disk, error) {
-	ds, err := h.c.ListDisks(ctx, projectID, zone)
+	ds, err := h.client.ListDisks(ctx, projectID, zone)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list disks: %q", err)
 	}
 	dl := []*compute.Disk{}
 	for _, d := range ds.Items {
-		if !h.diskBelongsToInstance(d, instance) {
-			return []*compute.Disk{}, nil
+		if h.diskBelongsToInstance(d, instance) {
+			dl = append(dl, d)
 		}
-		dl = append(dl, d)
 	}
+	log.Printf("got %d disks associated with instance %q", len(dl), instance)
 	return dl, nil
 }
 
 // SetSnapshotLabels sets the labels on a snapshot.
-func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, name string, m map[string]string) error {
-	rb := &compute.GlobalSetLabelsRequest{Labels: m}
-	_, err := h.c.SetLabels(ctx, projectID, "42WmSpB8rSM=", rb)
+func (h *Host) SetSnapshotLabels(ctx context.Context, projectID, snapshotName string, disk *compute.Disk, labels map[string]string) error {
+	log.Printf("get snapshot %q from %q %q", snapshotName, projectID, disk.Name)
+	snapshot, err := h.DiskSnapshot(ctx, snapshotName, projectID, disk)
 	if err != nil {
-		return fmt.Errorf("failed to set disk labels: %q", err)
+		return errors.Wrapf(err, "failed to get disk snapshots for %s in %s", disk.Name, projectID)
+	}
+	id := strconv.FormatUint(snapshot.Id, 10)
+	labelFp := snapshot.LabelFingerprint
+
+	req := &compute.GlobalSetLabelsRequest{LabelFingerprint: labelFp, Labels: labels}
+	log.Printf("set label for %q %+v", projectID, labels)
+	op, err := h.client.SetLabels(ctx, projectID, id, req)
+	if err != nil {
+		return errors.Wrapf(err, "failed setting labels for %s %s", projectID, id)
+	}
+	if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
+		return errors.Wrapf(errs[0], "failed waiting for setting labels on %s", projectID)
 	}
 	return nil
 }
 
 // WaitZone will wait for the zonal operation to complete.
 func (h *Host) WaitZone(project, zone string, op *compute.Operation) []error {
-	return h.c.WaitZone(project, zone, op)
+	return h.client.WaitZone(project, zone, op)
 }
 
 // WaitGlobal will wait for the global operation to complete.
 func (h *Host) WaitGlobal(project string, op *compute.Operation) []error {
-	return h.c.WaitGlobal(project, op)
+	return h.client.WaitGlobal(project, op)
 }
 
 // diskBelongsToInstance returns if the disk is attributed to the given instance.
@@ -150,7 +185,7 @@ func (h *Host) diskBelongsToInstance(disks *compute.Disk, instance string) bool 
 
 // StopInstance stops the provided instance.
 func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance string) error {
-	op, err := h.c.StopInstance(ctx, projectID, zone, instance)
+	op, err := h.client.StopInstance(ctx, projectID, zone, instance)
 	if err != nil {
 		return fmt.Errorf("failed to stop instance: %q", err)
 	}
@@ -162,7 +197,7 @@ func (h *Host) StopInstance(ctx context.Context, projectID, zone, instance strin
 
 // StartInstance starts a given instance in given zone.
 func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance string) error {
-	op, err := h.c.StartInstance(ctx, projectID, zone, instance)
+	op, err := h.client.StartInstance(ctx, projectID, zone, instance)
 	if err != nil {
 		return fmt.Errorf("failed to start instance: %q", err)
 	}
@@ -174,5 +209,5 @@ func (h *Host) StartInstance(ctx context.Context, projectID, zone, instance stri
 
 // DeleteInstance starts a given instance in given zone.
 func (h *Host) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	return h.c.DeleteInstance(ctx, projectID, zone, instance)
+	return h.client.DeleteInstance(ctx, projectID, zone, instance)
 }

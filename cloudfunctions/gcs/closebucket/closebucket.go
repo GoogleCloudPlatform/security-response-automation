@@ -1,4 +1,4 @@
-package cloudsqlrequiressl
+package closebucket
 
 // Copyright 2019 Google LLC
 //
@@ -24,52 +24,40 @@ import (
 	"github.com/pkg/errors"
 )
 
+// publicUsers contains a slice of public users we want to remove.
+var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
+
 // Required contains the required values needed for this function.
 type Required struct {
-	ProjectID, InstanceName string
+	BucketName, ProjectID string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Required, error) {
-	var finding pb.SqlScanner
+	var finding pb.StorageScanner
 	r := &Required{}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
-	case "SSL_NOT_ENFORCED":
-		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+	case "PUBLIC_BUCKET_ACL":
+		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
+		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
 	}
-	if r.InstanceName == "" || r.ProjectID == "" {
+	if r.BucketName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound
 	}
 	return r, nil
 }
 
-// Execute will remove any public ips in sql instance found within the provided folders.
+// Execute will remove any public users from buckets found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	r := remove(ctx, required, ent.Logger, ent.CloudSQL)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloudSQLRequireSSL.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloudSQLRequireSSL.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
-	}
-	return nil
-}
-
-func remove(ctx context.Context, required *Required, logr *entities.Logger, sql *entities.CloudSQL) func() error {
-	return func() error {
-		op, err := sql.RequireSSL(ctx, required.ProjectID, required.InstanceName)
-		if err != nil {
+	resources := ent.Configuration.CloseBucket.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if err := ent.Resource.RemoveMembersFromBucket(ctx, required.BucketName, publicUsers); err != nil {
 			return err
 		}
-		if errs := sql.Wait(required.ProjectID, op); len(errs) > 0 {
-			return errs[0]
-		}
-		logr.Info("enforced ssl on sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		ent.Logger.Info("removed public members from bucket %q in project %q", required.BucketName, required.ProjectID)
 		return nil
-	}
+	})
 }

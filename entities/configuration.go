@@ -41,7 +41,13 @@ type CloseCloudSQL struct {
 	Resources *Resources
 }
 
+// CloudSQLRequireSSL contains configuration required for the Cloud SQL require SSL function.
 type CloudSQLRequireSSL struct {
+	Resources *Resources
+}
+
+// DisableDashboard contains configuration required for the disable dashboard function.
+type DisableDashboard struct {
 	Resources *Resources
 }
 
@@ -61,6 +67,7 @@ type Configuration struct {
 	CloseCloudSQL       *CloseCloudSQL       `json:"close_cloud_sql"`
 	CloudSQLRequireSSL  *CloudSQLRequireSSL  `json:"cloud_sql_require_ssl"`
 	RemoveNonOrgMembers *RemoveNonOrgMembers `json:"remove_non_org_members"`
+	DisableDashboard    *DisableDashboard    `json:"disable_dashboard"`
 }
 
 // NewConfiguration returns a new configuration.
