@@ -14,46 +14,58 @@ This repository contains Cloud Functions to take automated actions on findings f
 
 Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs. Each Function that considers resources will support the following resources:
 
+#### Resources
+
 - Project IDs `folder_ids`: The Function will execute if the affected project ID is within this set.
 - Folder IDs `project_ids`: Take the action if the affected project ID has an ancestor of a folder ID within this set.
 - Organization ID `organization_id`: Take the action if the affected project ID is within this organization ID.
 
 Each function will check if it's affected project is within the configured resources and only take an action if there's a match. Setting an `organization_id` in a Function's configuration will allow every project within the organization to affected by that Function.
 
-**Google Cloud Storage**
+### Google Cloud Storage
 
-**_Remove public access_**
+#### Remove public access
 
-This Cloud Function will automatically remove public access from Google Cloud Storage buckets found to be public by Security Health Analytics. Depending on which resources you specify will determine which projects are enforced.
+Removes public access from Google Cloud Storage buckets.
 
-For example, if you wanted to only remove public access from buckets in the folder **development** you'll want to find that folder's ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager) and place into the `folder_ids` array.
+Configuration
 
 - Configured in settings.json under the `close_bucket` key.
+- See general [resource list](#resources) options.
 
-**IAM**
+### IAM
 
-**_Revoke IAM grants_**
+#### Revoke IAM grants
 
 Removes members from an IAM policy.
 
-- Configured in settings.json under the `revoke_iam` key.
-- `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
+Configuration
 
-**Google Compute Engine**
+  - Configured in settings.json under the `revoke_iam` key.
+  - See general [resource list](#resources) options.
+  - `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
 
-**_Remove public IPs from an instance_**
+### Google Compute Engine
 
-Remove public IPs from a instance.
+#### Remove public IPs from an instance
+
+Removes all public IPs from an instance's network interface.
+
+Configuration
 
 - Configured in settings.json under the `remove_public_ip` key.
+- See general [resource list](#resources) options.
 
-**Google Kubernetes Engine**
+### Google Kubernetes Engine
 
-**_Disable Kubernetes Dashboard addon_**
+#### Disable Kubernetes Dashboard addon
 
 Automatically disable the Kubernetes Dashboard addon.
 
+Configuration
+
 - Configured in settings.json under the `disable_dashboard` key.
+- See general [resource list](#resources) options.
 
 ### Installation
 
