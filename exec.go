@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/updaterootpassword"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
@@ -30,7 +31,6 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revokeiam"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/updaterootpassword"
 	"github.com/googlecloudplatform/threat-automation/entities"
 )
 
@@ -222,7 +222,7 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 // a new password when this function is activated.
 //
 // Permissions required
-//	- roles/cloudsql.editor to update a user password.
+//	- roles/cloudsql.admin to update a user password.
 //
 func UpdateRootPassword(ctx context.Context, m pubsub.Message) error {
 	r, err := updaterootpassword.ReadFinding(m.Data)
