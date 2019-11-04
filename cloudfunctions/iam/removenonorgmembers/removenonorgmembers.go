@@ -69,7 +69,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		log.Printf("removed members: %s", membersToRemove)
 		return nil
 	}
-	log.Println("remove non-org members execution disabled: check settings.")
+	log.Println("remove non-org members execution disabled: check settings.json.")
 	return nil
 }
 
