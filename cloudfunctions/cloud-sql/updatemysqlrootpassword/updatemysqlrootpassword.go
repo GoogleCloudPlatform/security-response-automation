@@ -1,4 +1,4 @@
-package updaterootpassword
+package updatemysqlrootpassword
 
 // Copyright 2019 Google LLC
 //
@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/google/uuid"
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
@@ -30,6 +31,13 @@ type Required struct {
 	ProjectID, InstanceName, Host, UserName, Password string
 }
 
+const (
+	// host is the user root host value.
+	host = "%"
+	// userName is the user root name.
+	userName = "root"
+)
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Required, error) {
 	var finding pb.SqlScanner
@@ -37,12 +45,12 @@ func ReadFinding(b []byte) (*Required, error) {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
-	switch finding.GetFinding().GetCategory() {
-	case "SQL_NO_ROOT_PASSWORD":
+	if finding.GetFinding().GetCategory() == "SQL_NO_ROOT_PASSWORD" {
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		r.Host = "%"        // The user root host.
-		r.UserName = "root" // The user root name.
+		r.Host = host
+		r.UserName = userName
+		r.Password = uuid.New().String()
 	}
 	if r.InstanceName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound
@@ -50,10 +58,9 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute will update the root password in sql instance found within the provided folders.
+// Execute will update the root password in mysql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	required.Password = ent.PasswordGenerator.GeneratePassword()
-	resources := ent.Configuration.UpdateRootPassword.Resources
+	resources := ent.Configuration.UpdateMySQLRootPassword.Resources
 	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
 		log.Printf("updating root password for sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		_, err := ent.CloudSQL.UpdateUserPassword(ctx, required.ProjectID, required.InstanceName, required.Host, required.UserName, required.Password)

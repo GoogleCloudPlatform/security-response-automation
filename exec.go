@@ -22,7 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/updaterootpassword"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/updatemysqlrootpassword"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
@@ -215,7 +215,7 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 	return disabledashboard.Execute(ctx, r, ent)
 }
 
-// UpdateRootPassword updates the root password for a Cloud SQL instance.
+// UpdateMySQLRootPassword updates the root password for a Cloud SQL instance.
 //
 // This Cloud Function will respond to Security Health Analytics **SQL No Root Password** findings
 // from **SQL Scanner**. The root user of the affected instance will be updated with
@@ -224,10 +224,10 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 // Permissions required
 //	- roles/cloudsql.admin to update a user password.
 //
-func UpdateRootPassword(ctx context.Context, m pubsub.Message) error {
-	r, err := updaterootpassword.ReadFinding(m.Data)
+func UpdateMySQLRootPassword(ctx context.Context, m pubsub.Message) error {
+	r, err := updatemysqlrootpassword.ReadFinding(m.Data)
 	if err != nil {
 		return err
 	}
-	return updaterootpassword.Execute(ctx, r, ent)
+	return updatemysqlrootpassword.Execute(ctx, r, ent)
 }

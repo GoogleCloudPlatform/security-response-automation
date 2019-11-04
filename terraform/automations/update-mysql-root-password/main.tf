@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-resource "google_cloudfunctions_function" "update-root-password" {
-  name                  = "UpdateRootPassword"
+resource "google_cloudfunctions_function" "update-mysql-root-password" {
+  name                  = "UpdateMySQLRootPassword"
   description           = "Updates the root user password from a Cloud SQL instance."
   runtime               = "go111"
   available_memory_mb   = 128
@@ -21,7 +21,7 @@ resource "google_cloudfunctions_function" "update-root-password" {
   timeout               = 60
   project               = "${var.setup.automation-project}"
   region                = "${var.setup.region}"
-  entry_point           = "UpdateRootPassword"
+  entry_point           = "UpdateMySQLRootPassword"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
@@ -42,7 +42,7 @@ resource "google_folder_iam_member" "roles-viewer" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# Required to modify cloud sql instance within this folder.
+# Required to update a cloud sql user within this folder.
 resource "google_folder_iam_member" "roles-cloud-sql-admin" {
   count = length(var.folder-ids)
 

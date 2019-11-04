@@ -1,4 +1,4 @@
-package updaterootpassword
+package updatemysqlrootpassword
 
 // Copyright 2019 Google LLC
 //
@@ -115,6 +115,9 @@ func TestReadFinding(t *testing.T) {
 			if err == nil && r.UserName != tt.userName {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.UserName, tt.userName)
 			}
+			if err == nil && r.Password == "" {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.UserName, tt.userName)
+			}
 		})
 	}
 }
@@ -144,14 +147,14 @@ func TestUpdateRootPassword(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, sqlStub, crmStub, pwGenStub := updateRootPasswordSetup(tt.folderIDs)
+			ent, sqlStub, crmStub := updateRootPasswordSetup(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
-			pwGenStub.GeneratedPassword = "e68d74a0-594a-438a-bf61-4199294d50c4"
 			required := &Required{
 				ProjectID:    "threat-auto-tests-07102019",
 				InstanceName: "test-no-password",
 				Host:         "%",
 				UserName:     "root",
+				Password:     "e68d74a0-594a-438a-bf61-4199294d50c4",
 			}
 			if err := Execute(ctx, required, ent); err != nil {
 				t.Errorf("%s failed to update root password for instance :%q", tt.name, err)
@@ -164,7 +167,7 @@ func TestUpdateRootPassword(t *testing.T) {
 	}
 }
 
-func updateRootPasswordSetup(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub, *stubs.PasswordGeneratorStub) {
+func updateRootPasswordSetup(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
@@ -172,14 +175,12 @@ func updateRootPasswordSetup(folderIDs []string) (*entities.Entity, *stubs.Cloud
 	storageStub := &stubs.StorageStub{}
 	crmStub := &stubs.ResourceManagerStub{}
 	res := entities.NewResource(crmStub, storageStub)
-	pwGenStub := &stubs.PasswordGeneratorStub{}
-	passwordGenerator := entities.NewPasswordGenerator(pwGenStub)
 	conf := &entities.Configuration{
-		UpdateRootPassword: &entities.UpdateRootPassword{
+		UpdateMySQLRootPassword: &entities.UpdateMySQLRootPassword{
 			Resources: &entities.Resources{
 				FolderIDs: folderIDs,
 			},
 		},
 	}
-	return &entities.Entity{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res, PasswordGenerator: passwordGenerator}, sqlStub, crmStub, pwGenStub
+	return &entities.Entity{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub
 }

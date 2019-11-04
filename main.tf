@@ -102,8 +102,8 @@ module "disable_dashboard" {
   ]
 }
 
-module "update_root_password" {
-  source = "./terraform/automations/update-root-password"
+module "update_mysql_root_password" {
+  source = "./terraform/automations/update-mysql-root-password"
   setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",

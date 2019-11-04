@@ -14,14 +14,13 @@ const (
 
 // Entity holds all initialized entities.
 type Entity struct {
-	Configuration     *Configuration
-	Logger            *Logger
-	Resource          *Resource
-	Host              *Host
-	Firewall          *Firewall
-	Container         *Container
-	CloudSQL          *CloudSQL
-	PasswordGenerator *PasswordGenerator
+	Configuration *Configuration
+	Logger        *Logger
+	Resource      *Resource
+	Host          *Host
+	Firewall      *Firewall
+	Container     *Container
+	CloudSQL      *CloudSQL
 }
 
 // New returns an initialized Entity struct.
@@ -61,20 +60,14 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
-	pg, err := initPasswordGenerator()
-	if err != nil {
-		return nil, err
-	}
-
 	return &Entity{
-		Configuration:     config,
-		Host:              host,
-		Logger:            log,
-		Resource:          res,
-		Firewall:          fw,
-		Container:         cont,
-		CloudSQL:          sql,
-		PasswordGenerator: pg,
+		Configuration: config,
+		Host:          host,
+		Logger:        log,
+		Resource:      res,
+		Firewall:      fw,
+		Container:     cont,
+		CloudSQL:      sql,
 	}, nil
 }
 
@@ -136,12 +129,4 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
 	return NewCloudSQL(cs), nil
-}
-
-func initPasswordGenerator() (*PasswordGenerator, error) {
-	pc, err := clients.NewPasswordGenerator()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize password generator client: %q", err)
-	}
-	return NewPasswordGenerator(pc), nil
 }
