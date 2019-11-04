@@ -1,4 +1,4 @@
-package closebucket
+package enablebucketonlypolicy
 
 // Copyright 2019 Google LLC
 //
@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"cloud.google.com/go/iam"
-	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/entities/helpers"
@@ -36,7 +35,7 @@ func TestReadFinding(t *testing.T) {
 		  "parent": "organizations/154584661726/sources/2673592633662526977",
 		  "resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
 		  "state": "ACTIVE",
-		  "category": "PUBLIC_BUCKET_ACL",
+		  "category": "BUCKET_POLICY_ONLY_DISABLED",
 		  "externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
 		  "sourceProperties": {
 			"ReactivationCount": 0.0,
@@ -96,7 +95,7 @@ func TestReadFinding(t *testing.T) {
 		  "parent": "organizations/154584661726/sources/2673592633662526977",
 		  "resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
 		  "state": "ACTIVE",
-		  "category": "PUBLIC_BUCKET_ACL",
+		  "category": "BUCKET_POLICY_ONLY_DISABLED",
 		  "externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
 		  "securityMarks": {
 			"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
@@ -126,61 +125,54 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.BucketName != tt.bucket {
+			if r != nil && err == nil && r.BucketName != tt.bucket {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.BucketName, tt.bucket)
 			}
-			if err == nil && r.ProjectID != tt.projectID {
+			if r != nil && err == nil && r.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
 			}
 		})
 	}
 }
 
-func TestCloseBucket(t *testing.T) {
+func TestEnableBucketOnlyPolicy(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name           string
-		initialMembers []string
-		folderIDs      []string
-		expected       []string
-		ancestry       *crm.GetAncestryResponse
+		name      string
+		folderIDs []string
+		expected  string
+		ancestry  *crm.GetAncestryResponse
 	}{
 		{
-			name:           "remove allUsers",
-			initialMembers: []string{"allUsers", "member:tom@tom.com"},
-			folderIDs:      []string{"123"},
-			expected:       []string{"member:tom@tom.com"},
-			ancestry:       helpers.CreateAncestors([]string{"folder/123"}),
+			name:      "enable bucket only policy",
+			folderIDs: []string{"123"},
+			expected:  "bucket-to-enable-policy",
+			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
 		},
 		{
-			name:           "no folders",
-			initialMembers: []string{"allUsers", "member:tom@tom.com"},
-			folderIDs:      nil,
-			expected:       nil,
-			ancestry:       helpers.CreateAncestors([]string{"folder/123"}),
+			name:      "no folders",
+			folderIDs: nil,
+			expected:  "",
+			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, crmStub, storageStub := closeBucketSetup(tt.folderIDs)
+			ent, crmStub, storageStub := enableBucketOnlyPolicySetup(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
-			for _, v := range tt.initialMembers {
-				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
-			}
 
 			required := &Required{
 				ProjectID:  "project-name",
-				BucketName: "open-bucket-name",
+				BucketName: "bucket-to-enable-policy",
 			}
 
 			if err := Execute(ctx, required, ent); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
 
-			if tt.expected != nil {
-				s := storageStub.RemoveBucketPolicy.Members("project/viewer")
-				if diff := cmp.Diff(s, tt.expected); diff != "" {
+			if tt.expected != "" {
+				if s := storageStub.EnabledPolicyOnBucket; s != tt.expected {
 					t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expected, s)
 				}
 			}
@@ -188,7 +180,7 @@ func TestCloseBucket(t *testing.T) {
 	}
 }
 
-func closeBucketSetup(folderIDs []string) (*entities.Entity, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func enableBucketOnlyPolicySetup(folderIDs []string) (*entities.Entity, *stubs.ResourceManagerStub, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
@@ -196,7 +188,7 @@ func closeBucketSetup(folderIDs []string) (*entities.Entity, *stubs.ResourceMana
 	res := entities.NewResource(crmStub, storageStub)
 	storageStub.BucketPolicyResponse = &iam.Policy{}
 	conf := &entities.Configuration{
-		CloseBucket: &entities.CloseBucket{
+		EnableBucketOnlyPolicy: &entities.EnableBucketOnlyPolicy{
 			Resources: &entities.Resources{
 				FolderIDs: folderIDs,
 			},
