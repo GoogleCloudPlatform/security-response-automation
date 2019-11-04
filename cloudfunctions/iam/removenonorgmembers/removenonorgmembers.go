@@ -66,11 +66,11 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 			return errors.Wrap(err, "failed to remove organization policies")
 		}
-		return nil
-	} else {
-		log.Printf("remove non-org members execution disabled: check settings.")
+		log.Printf("removed members: %s", membersToRemove)
 		return nil
 	}
+	log.Println("remove non-org members execution disabled: check settings.")
+	return nil
 }
 
 func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, whitelistOrgs []string) (nonOrgMembers []string) {
