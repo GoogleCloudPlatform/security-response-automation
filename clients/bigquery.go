@@ -24,27 +24,45 @@ import (
 
 // BigQuery client.
 type BigQuery struct {
-	service *bigquery.Client
+	service  *bigquery.Client
+	authFile string
+	init     bool
 }
 
-// NewBigQuery returns and initializes the BigQuery client.
-func NewBigQuery(ctx context.Context, projectID string, authFile string) (*BigQuery, error) {
-	c, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile(authFile))
-	if err != nil {
-		return nil, fmt.Errorf("failed to init bigquery: %q", err)
-	}
+// NewBigQuery returns the BigQuery client, that will be initialized later when the ProjectID of the finding is known.
+func NewBigQuery(ctx context.Context, authFile string) (*BigQuery, error) {
+	return &BigQuery{
+		service:  nil,
+		authFile: authFile,
+		init:     false,
+	}, nil
+}
 
-	return &BigQuery{service: c}, nil
+// Init initializes the bigquery client.
+func (bq *BigQuery) Init(ctx context.Context, projectID string) error {
+	c, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile(bq.authFile))
+	if err != nil {
+		return fmt.Errorf("failed to init bigquery: %q", err)
+	}
+	bq.service = c
+	bq.init = true
+	return nil
 }
 
 // DatasetMetadata fetches the metadata for the dataset.
 func (bq *BigQuery) DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
+	if !bq.init {
+		return nil, fmt.Errorf("bigquery service was not initialized")
+	}
 	return bq.service.DatasetInProject(projectID, datasetID).Metadata(ctx)
 }
 
-// UpdateDatasetMetadata modifies specific Dataset metadata fields.
-func (bq *BigQuery) UpdateDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error) {
-	// An empty string for etag denotes a "blind write". Ref: https://godoc.org/cloud.google.com/go/bigquery#Dataset.Update
+// OverwriteDatasetMetadata modifies specific Dataset metadata fields.
+// This method ignores the existing metadata state (and possibly overwrites other updates) by doing a "blind write". See https://godoc.org/cloud.google.com/go/bigquery#Dataset.Update for details.
+func (bq *BigQuery) OverwriteDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error) {
+	if !bq.init {
+		return nil, fmt.Errorf("bigquery service was not initialized")
+	}
 	blindWrite := ""
 	return bq.service.DatasetInProject(projectID, datasetID).Update(ctx, dm, blindWrite)
 }
