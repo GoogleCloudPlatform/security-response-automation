@@ -45,11 +45,10 @@ func (s *CloudSQL) Wait(project string, op *sqladmin.Operation) []error {
 }
 
 // RequireSSL modifies the configuration to require only SSL connections.
-func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance string, region string) (*sqladmin.Operation, error) {
+func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance string) (*sqladmin.Operation, error) {
 	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
-		Name:           instance,
-		Project:        projectID,
-		ConnectionName: projectID + ":" + region + ":" + instance,
+		Name:    instance,
+		Project: projectID,
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
 				RequireSsl: true,

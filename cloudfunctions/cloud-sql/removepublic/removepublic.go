@@ -1,4 +1,4 @@
-package closebucket
+package removepublic
 
 // Copyright 2019 Google LLC
 //
@@ -17,6 +17,7 @@ package closebucket
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
@@ -24,49 +25,46 @@ import (
 	"github.com/pkg/errors"
 )
 
-// publicUsers contains a slice of public users we want to remove.
-var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
-
 // Required contains the required values needed for this function.
 type Required struct {
-	BucketName, ProjectID string
+	ProjectID, InstanceName string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Required, error) {
-	var finding pb.StorageScanner
+	var finding pb.SqlScanner
 	r := &Required{}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
-	case "PUBLIC_BUCKET_ACL":
-		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+	case "PUBLIC_SQL_INSTANCE":
+		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
+		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	}
-	if r.BucketName == "" || r.ProjectID == "" {
+	if r.InstanceName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound
 	}
 	return r, nil
 }
 
-// Execute will remove any public users from buckets found within the provided folders.
+// Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	r := remove(ctx, required, ent.Logger, ent.Resource)
-	if err := ent.Resource.IfProjectInFolders(ctx, ent.Configuration.CloseBucket.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "folders failed")
-	}
-
-	if err := ent.Resource.IfProjectInProjects(ctx, ent.Configuration.CloseBucket.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return errors.Wrap(err, "projects failed")
-	}
-
-	return nil
-}
-
-func remove(ctx context.Context, required *Required, log *entities.Logger, res *entities.Resource) func() error {
-	return func() error {
-		log.Info("removing public members from bucket %q in project %q.", required.BucketName, required.ProjectID)
-		return res.RemoveMembersFromBucket(ctx, required.BucketName, publicUsers)
-	}
+	resources := ent.Configuration.CloseCloudSQL.Resources
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		log.Printf("getting details from Cloud SQL instance %q in project %q.", required.InstanceName, required.ProjectID)
+		instance, err := ent.CloudSQL.InstanceDetails(ctx, required.ProjectID, required.InstanceName)
+		if err != nil {
+			return err
+		}
+		op, err := ent.CloudSQL.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
+		if err != nil {
+			return err
+		}
+		if errs := ent.CloudSQL.Wait(required.ProjectID, op); len(errs) > 0 {
+			return errs[0]
+		}
+		ent.Logger.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		return nil
+	})
 }

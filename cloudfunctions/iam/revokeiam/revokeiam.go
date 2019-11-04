@@ -49,37 +49,26 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute is the entry point of the Cloud Function.
+// Execute is the entry point for the IAM revoker Cloud Function.
 //
-// This Cloud Function will read the incoming finding, if it's an ETD anomalous IAM grant
-// identicating an external member was invited to policy check to see if the external member
+// This Cloud Function will read the incoming finding, if it's a supported type of finding that
+// indicates an external member was invited to a policy check to see if the external member
 // is in a list of disallowed domains.
 //
-// Additionally check to see if the affected project is in the specified folder. If the grant
-// was to a domain explicitly disallowed and within the folder then remove the member from the
-// entire IAM policy for the resource.
+// Additionally, check to see if the affected project is within the configured resources. If the grant
+// was to a domain explicitly disallowed and within the parent resource then remove the member from
+// the IAM policy for the affected resource.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	conf := ent.Configuration
+	resources := ent.Configuration.RevokeGrants.Resources
 	members := toRemove(required.ExternalMembers, conf.RevokeGrants.Removelist)
-	r := revokeMembers(ctx, required.ProjectID, ent.Logger, ent.Resource, members)
-	if err := ent.Resource.IfProjectInFolders(ctx, conf.RevokeGrants.Resources.FolderIDs, required.ProjectID, r); err != nil {
-		return err
-	}
-	if err := ent.Resource.IfProjectInProjects(ctx, conf.RevokeGrants.Resources.ProjectIDs, required.ProjectID, r); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func revokeMembers(ctx context.Context, projectID string, logr *entities.Logger, res *entities.Resource, members []string) func() error {
-	return func() error {
-		if _, err := res.RemoveMembersProject(ctx, projectID, members); err != nil {
+	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
+		if _, err := ent.Resource.RemoveMembersProject(ctx, required.ProjectID, members); err != nil {
 			return err
 		}
-		logr.Info("successfully removed %q from %s", members, projectID)
+		ent.Logger.Info("successfully removed %q from %s", members, required.ProjectID)
 		return nil
-	}
+	})
 }
 
 // toRemove returns a slice containing only external members that are disallowed.

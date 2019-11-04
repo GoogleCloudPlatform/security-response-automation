@@ -48,14 +48,3 @@ type StackDriverLog struct {
 	InsertID string `json:"insertId"`
 	LogName  string `json:"logName"`
 }
-
-// badNetworkFinding contains any finding based off VPC flow logs.
-type badNetworkFinding struct {
-	JSONPayload struct {
-		Properties struct {
-			Location       string
-			SourceInstance string
-			IP             []string
-		}
-	}
-}

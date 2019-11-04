@@ -33,10 +33,31 @@
       ]
     }
   },
+  "enable_bucket_only_policy": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  },
   "close_cloud_sql": {
     "resources": {
       "folder_ids": [
         "670032686187"
+      ]
+    }
+  },
+  "cloud_sql_require_ssl": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  },
+  "disable_dashboard": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
       ]
     }
   }

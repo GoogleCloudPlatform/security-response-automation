@@ -18,19 +18,19 @@ import (
 	"context"
 	"testing"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
+
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
 	const (
-		publicIpAddressFinding = `{
+		publicIPAddressFinding = `{
 			"notificationConfigName": "organizations/1055058813388/notificationConfigs/noticonf-active-001-id",
 			"finding": {
 				"name": "organizations/1055058813388/sources/1986930501971458034/findings/d7ef72093c8c1e4c135d4c43fa847b83",
@@ -102,7 +102,7 @@ func TestReadFinding(t *testing.T) {
 		bytes         []byte
 		expectedError error
 	}{
-		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a", instanceID: "4312755253150365851", bytes: []byte(publicIpAddressFinding), expectedError: nil},
+		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a", instanceID: "4312755253150365851", bytes: []byte(publicIPAddressFinding), expectedError: nil},
 		{name: "wrong category", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrValueNotFound},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -146,7 +146,6 @@ func TestRemovePublicIP(t *testing.T) {
 		expectedDeletedAccessConfigs []stubs.NetworkAccessConfigStub
 		folderIDs                    []string
 		ancestry                     *crm.GetAncestryResponse
-		finding                      pubsub.Message
 	}{
 		{
 			name: "remove public ip",
@@ -162,7 +161,7 @@ func TestRemovePublicIP(t *testing.T) {
 				},
 			},
 			folderIDs: []string{"123"},
-			ancestry:  testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name: "no valid folder",
@@ -173,7 +172,7 @@ func TestRemovePublicIP(t *testing.T) {
 			},
 			expectedDeletedAccessConfigs: nil,
 			folderIDs:                    []string{"456"},
-			ancestry:                     testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:                     helpers.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {

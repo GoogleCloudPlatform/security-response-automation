@@ -32,9 +32,12 @@ const (
 	snapshotPrefix = "forensic-snapshots-"
 	// allowSnapshotOlderThanDuration defines how old a snapshot must be before we overwrite.
 	allowSnapshotOlderThanDuration = 5 * time.Minute
-	// maxLabelLength is the maximum size of a label name.
-	maxLabelLength = 60
 )
+
+// labels to be saved with each disk snapshot created.
+var labels = map[string]string{
+	"info": "created-by-security-response-automation",
+}
 
 // Required contains the required values needed for this function.
 type Required struct {
@@ -54,7 +57,7 @@ func ReadFinding(b []byte) (*Required, error) {
 		r.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
 		r.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
 		r.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		r.Zone = finding.GetJsonPayload().GetProperties().GetZone()
+		r.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 	}
 	if r.RuleName == "" || r.ProjectID == "" || r.Instance == "" || r.Zone == "" {
 		return nil, entities.ErrValueNotFound
@@ -80,45 +83,49 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		return errors.Wrap(err, "failed to list disks")
 	}
 
-	log.Printf("listing snapshots in project %q", required.ProjectID)
-
 	snapshots, err := ent.Host.ListProjectSnapshots(ctx, required.ProjectID)
 	if err != nil {
 		return errors.Wrap(err, "failed to list snapshots")
 	}
-
-	log.Printf("obtained the following list of snapshots in project %q: %+v", required.Instance, snapshots.Items)
+	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), required.ProjectID)
 
 	for _, disk := range disks {
-		sn := snapshotName(rule, disk.Name)
+		snapshotName := createSnapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed checking if can create snapshot for %q", disk.Name)
 		}
-		log.Printf("disk %q returned %v as can be deleted", required.Instance, create)
 
 		if !create {
+			log.Printf("snapshot %q for disk %q will be skipped (not old enough or from another finding)", snapshotName, disk.Name)
 			continue
 		}
 
-		if err := removeExistingSnapshots(ent.Host, required.ProjectID, removeExisting); err != nil {
-			return err
+		for k := range removeExisting {
+			if err := ent.Host.DeleteDiskSnapshot(ctx, required.ProjectID, k); err != nil {
+				return errors.Wrapf(err, "failed deleting snapshot: %q", k)
+			}
+			ent.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
 		}
-		ent.Logger.Info("removed existing snapshot for disk %s", disk.Name)
 
-		if err := createSnapshot(ctx, ent.Host, disk, required.ProjectID, required.Zone, sn); err != nil {
-			return err
+		if err := ent.Host.CreateDiskSnapshot(ctx, required.ProjectID, required.Zone, disk.Name, snapshotName); err != nil {
+			return errors.Wrapf(err, "failed creating snapshot: %q", snapshotName)
 		}
-		ent.Logger.Info("created snapshot for disk %s", disk.Name)
-		// TODO(tomfitzgerald): Add metadata (indicators) to snapshot labels.
+		ent.Logger.Info("created snapshot for disk %q", disk.Name)
+
+		if err := ent.Host.SetSnapshotLabels(ctx, required.ProjectID, snapshotName, disk, labels); err != nil {
+			return errors.Wrapf(err, "failed setting labels: %q", snapshotName)
+		}
+		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 	}
+	log.Printf("completed")
 	return nil
 }
 
 // canCreateSnapshot checks if we should create a snapshot along with a map of existing snapshots to be removed.
 func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule string) (bool, map[string]bool, error) {
 	create := true
-	prefix := snapshotName(rule, disk.Name)
+	prefix := createSnapshotName(rule, disk.Name)
 	removeExisting := map[string]bool{}
 	for _, s := range snapshots.Items {
 		if s.SourceDisk != disk.SelfLink || !strings.HasPrefix(s.Name, prefix) {
@@ -137,31 +144,6 @@ func canCreateSnapshot(snapshots *compute.SnapshotList, disk *compute.Disk, rule
 	return create, removeExisting, nil
 }
 
-// createSnaphot will create the snapshot and wait for its completion.
-func createSnapshot(ctx context.Context, h *entities.Host, disk *compute.Disk, projectID, zone, name string) error {
-	op, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk.Name, name)
-	if err != nil {
-		return errors.Wrap(err, "failed to create disk snapshot")
-	}
-	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
-		return errors.Wrap(errs[0], "failed waiting: first error")
-	}
-	return nil
-}
-
-func removeExistingSnapshots(h *entities.Host, projectID string, remove map[string]bool) error {
-	for k := range remove {
-		op, err := h.DeleteDiskSnapshot(projectID, k)
-		if err != nil {
-			return err
-		}
-		if errs := h.WaitGlobal(projectID, op); len(errs) > 0 {
-			return errors.Wrap(errs[0], "failed waiting: first error")
-		}
-	}
-	return nil
-}
-
 // isSnapshotCreatedWithin checks if the previous snapshots created recently.
 func isSnapshotCreatedWithin(snapshotTime string, window time.Duration) (bool, error) {
 	t, err := time.Parse(time.RFC3339, snapshotTime)
@@ -171,6 +153,6 @@ func isSnapshotCreatedWithin(snapshotTime string, window time.Duration) (bool, e
 	return time.Since(t) < window, nil
 }
 
-func snapshotName(rule, disk string) string {
+func createSnapshotName(rule, disk string) string {
 	return snapshotPrefix + rule + "-" + disk
 }

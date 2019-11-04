@@ -21,8 +21,8 @@ import (
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	testhelpers "github.com/googlecloudplatform/threat-automation/cloudfunctions"
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -141,7 +141,6 @@ func TestCloseBucket(t *testing.T) {
 
 	test := []struct {
 		name           string
-		expectedError  string
 		initialMembers []string
 		folderIDs      []string
 		expected       []string
@@ -152,14 +151,14 @@ func TestCloseBucket(t *testing.T) {
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
-			ancestry:       testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:       helpers.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:           "no folders",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      nil,
 			expected:       nil,
-			ancestry:       testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:       helpers.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {

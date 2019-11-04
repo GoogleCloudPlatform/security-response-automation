@@ -37,6 +37,7 @@ type crmClient interface {
 type storageClient interface {
 	SetBucketPolicy(context.Context, string, *iam.Policy) error
 	BucketPolicy(context.Context, string) (*iam.Policy, error)
+	EnableBucketOnlyPolicy(context.Context, string) error
 }
 
 // Resource entity.
@@ -179,6 +180,25 @@ func (r *Resource) Organization(ctx context.Context, organizationID string) (*cr
 	return r.crm.GetOrganization(ctx, organizationID)
 }
 
+// EnableBucketOnlyPolicy enable bucket only policy for the given bucket
+func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
+	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
+}
+
+// IfProjectWithinResources executes the provided function if the project ID is an ancestor of any provided resources.
+func (r *Resource) IfProjectWithinResources(ctx context.Context, conf *Resources, projectID string, fn func() error) error {
+	if err := r.IfProjectInFolders(ctx, conf.FolderIDs, projectID, fn); err != nil {
+		return err
+	}
+	if err := r.IfProjectInProjects(ctx, conf.ProjectIDs, projectID, fn); err != nil {
+		return err
+	}
+	if err := r.IfProjectInOrg(ctx, conf.OrganizationID, projectID, fn); err != nil {
+		return err
+	}
+	return nil
+}
+
 // IfProjectInFolders will apply the function if the project ID is within the folder IDs.
 func (r *Resource) IfProjectInFolders(ctx context.Context, ids []string, projectID string, fn func() error) error {
 	if len(ids) == 0 {
@@ -212,6 +232,25 @@ func (r *Resource) IfProjectInProjects(ctx context.Context, ids []string, projec
 		}
 		if err := fn(); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// IfProjectInOrg will apply the function if the project ID is within the organization.
+func (r *Resource) IfProjectInOrg(ctx context.Context, orgID, projectID string, fn func() error) error {
+	if orgID == "" {
+		return nil
+	}
+	ancestors, err := r.GetProjectAncestry(ctx, projectID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get project ancestry")
+	}
+	for _, resource := range ancestors {
+		if resource == "organizations/"+orgID {
+			if err := fn(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

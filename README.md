@@ -58,7 +58,7 @@ This Cloud Function responds to Event Threat Detection's Anomalous IAM grant det
 
 **Remove Public IPs from GCE Instance**
 
-This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify. 
+This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify.
 Depending on which resources you specify will determine which projects are enforced.
 
 - `folder_ids` If the instance is in a project under a folder within this set the public access will be removed.
@@ -70,6 +70,47 @@ For example, if you wanted to only remove public access in the folder **developm
 ```json
 {
   "remove_public_ip": {
+    "resources": {
+      "folder_ids": ["670032686187"]
+    }
+  }
+}
+```
+
+**Disable Kubernetes Dashboard addon**
+
+This Cloud Function will automatically disable Kubernetes Dashboard addon found by Security Health Analytics.
+Depending on which resources you specify will determine which projects are enforced.
+
+- `folder_ids` If the cluster is in a project under a folder within this set the Kubernetes Dashboard addon will be disabled.
+- `project_ids` If the cluster is in a project that is within this set the Kubernetes Dashboard addon will be disabled.
+- `organization_id` Any cluster found within this organization will have Kubernetes Dashboard addon disabled.
+
+```json
+{
+  "disable_dashboard": {
+    "resources": {
+      "folder_ids": ["670032686187"]
+    }
+  }
+}
+```
+
+**Enable bucket only IAM policy**
+
+This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
+Depending on which resources you specify it will determine which projects are enforced.
+
+- `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
+- `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
+
+For example, if you want to only enable bucket only IAM policy in the folder **development**
+you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
+and place into the `folder_ids` array.
+
+```json
+{
+  "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": [
         "670032686187"
