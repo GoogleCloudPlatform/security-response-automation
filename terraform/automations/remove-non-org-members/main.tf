@@ -29,20 +29,9 @@ resource "google_cloudfunctions_function" "remove-non-org-members" {
   }
 }
 
-# Required to retrieve ancestry for projects within this folder.
-resource "google_folder_iam_member" "roles-viewer" {
-  count = length(var.folder-ids)
-
-  folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/viewer"
-  member = "serviceAccount:${var.setup.automation-service-account}"
-}
-
 #  Required to get and set organization policies.
-resource "google_folder_iam_member" "roles-org-admin" {
-  count = length(var.folder-ids)
-
-  folder = "folders/${var.folder-ids[count.index]}"
+resource "google_organization_iam_member" "roles-org-admin" {
+  org_id = "${var.setup.organization-id}"
   role   = "roles/resourcemanager.organizationAdmin"
   member = "serviceAccount:${var.setup.automation-service-account}"
 }

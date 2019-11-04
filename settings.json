@@ -62,11 +62,6 @@
     }
   },
   "remove_non_org_members": {
-    "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
-    },
     "enabled": false,
     "whitelist": [
       "ciandt.com",
