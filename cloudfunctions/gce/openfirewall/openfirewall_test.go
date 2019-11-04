@@ -18,14 +18,14 @@ import (
 	"context"
 	"testing"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
+
+	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -136,7 +136,6 @@ func TestOpenFirewall(t *testing.T) {
 		expFirewallRule   *compute.Firewall
 		folderIDs         []string
 		ancestry          *crm.GetAncestryResponse
-		finding           pubsub.Message
 		remediationAction string
 		sourceRange       []string
 	}{

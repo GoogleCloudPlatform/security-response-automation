@@ -26,9 +26,7 @@ import (
 
 func TestEnforceSSLConnection(t *testing.T) {
 	const (
-		instance  = "instance1"
-		projectID = "project1"
-		region    = "us-central1"
+		instance = "instance1"
 	)
 	tests := []struct {
 		name         string

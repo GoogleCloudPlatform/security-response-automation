@@ -34,7 +34,6 @@ func TestCreateDiskSnapshot(t *testing.T) {
 	tests := []struct {
 		name                string
 		expectedError       error
-		expectedResponse    *compute.Snapshot
 		expectedSnapshot    string
 		expectedDescription string
 	}{

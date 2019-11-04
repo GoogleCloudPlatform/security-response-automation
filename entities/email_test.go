@@ -16,8 +16,9 @@ package entities
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestParseTemplateEmail(t *testing.T) {

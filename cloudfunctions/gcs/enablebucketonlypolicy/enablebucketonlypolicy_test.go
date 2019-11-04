@@ -139,11 +139,10 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name          string
-		expectedError string
-		folderIDs     []string
-		expected      string
-		ancestry      *crm.GetAncestryResponse
+		name      string
+		folderIDs []string
+		expected  string
+		ancestry  *crm.GetAncestryResponse
 	}{
 		{
 			name:      "enable bucket only policy",

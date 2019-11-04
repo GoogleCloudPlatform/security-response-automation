@@ -18,12 +18,10 @@ import (
 	"context"
 
 	"cloud.google.com/go/iam"
-	"cloud.google.com/go/storage"
 )
 
 // StorageStub provides a stub for the Storage client.
 type StorageStub struct {
-	service               *storage.Client
 	BucketPolicyResponse  *iam.Policy
 	RemoveBucketPolicy    *iam.Policy
 	EnabledPolicyOnBucket string
