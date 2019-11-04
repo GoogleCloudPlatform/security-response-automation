@@ -37,12 +37,14 @@ func NewBigQuery(ctx context.Context, projectID string, authFile string) (*BigQu
 	return &BigQuery{service: c}, nil
 }
 
-// GetDatasetMetadata fetches the metadata for the dataset.
-func (bq *BigQuery) GetDatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
+// DatasetMetadata fetches the metadata for the dataset.
+func (bq *BigQuery) DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
 	return bq.service.DatasetInProject(projectID, datasetID).Metadata(ctx)
 }
 
-// Update modifies specific Dataset metadata fields.
+// UpdateDatasetMetadata modifies specific Dataset metadata fields.
 func (bq *BigQuery) UpdateDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error) {
-	return bq.service.DatasetInProject(projectID, datasetID).Update(ctx, dm, "")
+	// An empty string for etag denotes a "blind write". Ref: https://godoc.org/cloud.google.com/go/bigquery#Dataset.Update
+	blindWrite := ""
+	return bq.service.DatasetInProject(projectID, datasetID).Update(ctx, dm, blindWrite)
 }

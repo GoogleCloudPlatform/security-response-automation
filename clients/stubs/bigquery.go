@@ -26,12 +26,12 @@ type BigQueryStub struct {
 	SubbedMetadataUpdated *bigquery.DatasetMetadata
 }
 
-// GetDatasetMetadata fetches the metadata for the dataset.
-func (s *BigQueryStub) GetDatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
+// DatasetMetadata fetches the metadata for the dataset.
+func (s *BigQueryStub) DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
 	return s.StubbedGetMetadata, nil
 }
 
-// Update modifies specific Dataset metadata fields.
+// UpdateDatasetMetadata modifies specific Dataset metadata fields.
 func (s *BigQueryStub) UpdateDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error) {
 	return s.SubbedMetadataUpdated, nil
 }
