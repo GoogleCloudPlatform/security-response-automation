@@ -127,7 +127,7 @@ There's the option to enable/disable this execution and create an organization w
 
 Current implementation consider only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group  `groups:` are not covered yet
 
-Configured in settings.json under the `remove_non_org_members` key.
+- Configured in settings.json under the `remove_non_org_members` key.
 
 ### Installation
 
