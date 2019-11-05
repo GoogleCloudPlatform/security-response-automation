@@ -56,7 +56,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		whitelistOrgs := conf.RemoveNonOrgMembers.Whitelist
 		organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
 		if err != nil {
-			return errors.Wrap(err, "failed to retrieve organization")
+			return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationName)
 		}
 		policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
 		if err != nil {
