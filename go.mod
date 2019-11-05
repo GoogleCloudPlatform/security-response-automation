@@ -16,6 +16,7 @@ require (
 	github.com/davidrjenni/reftools v0.0.0-20190827201643-0605d60846fb // indirect
 	github.com/fatih/gomodifytags v1.0.1 // indirect
 	github.com/fatih/structtag v1.1.0 // indirect
+	github.com/fzipp/gocyclo v0.0.0-20150627053110-6acd4345c835 // indirect
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-querystring v1.0.0 // indirect
