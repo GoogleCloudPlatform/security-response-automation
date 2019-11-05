@@ -116,7 +116,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		name            string
 		policyInput     []*crm.Binding
 		expectedBinding []*crm.Binding
-		whitelistOrgs   []string
+		allowDomains    []string
 	}{
 		{
 			name: "remove non-org user",
@@ -135,7 +135,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
-			whitelistOrgs: []string{},
+			allowDomains: []string{},
 		},
 		{
 			name: "none non-org user to remove",
@@ -153,7 +153,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"group:admins@example.com",
 				"domain:google.com"}),
-			whitelistOrgs: []string{
+			allowDomains: []string{
 				"google.com",
 			},
 		},
@@ -175,7 +175,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"user:anyone@google.com",
 				"group:admins@example.com",
 				"domain:aol.com"}),
-			whitelistOrgs: []string{
+			allowDomains: []string{
 				"google.com",
 			},
 		},
@@ -190,9 +190,9 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			}
 			conf := &entities.Configuration{
 				RemoveNonOrgMembers: &entities.RemoveNonOrgMembers{
-					Resources: nil,
-					Whitelist: tt.whitelistOrgs,
-					Enabled:   true,
+					Resources:    nil,
+					AllowDomains: tt.allowDomains,
+					Enabled:      true,
 				},
 			}
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res, Configuration: conf}); err != nil {

@@ -58,9 +58,9 @@ type DisableDashboard struct {
 
 // RemoveNonOrgMembers contains configuration required for remove non-org members function.
 type RemoveNonOrgMembers struct {
-	Resources *Resources
-	Enabled   bool
-	Whitelist []string `json:"whitelist"`
+	Resources    *Resources
+	Enabled      bool
+	AllowDomains []string `json:"allow_domains"`
 }
 
 // Configuration contains the ID(s) to apply actions to.

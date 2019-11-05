@@ -53,7 +53,7 @@ func ReadFinding(b []byte) (*Required, error) {
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	conf := ent.Configuration
 	if conf.RemoveNonOrgMembers.Enabled {
-		whitelistOrgs := conf.RemoveNonOrgMembers.Whitelist
+		allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
 		organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
 		if err != nil {
 			return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationName)
@@ -62,7 +62,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve organization policies")
 		}
-		membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, whitelistOrgs)
+		membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
 		if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 			return errors.Wrap(err, "failed to remove organization policies")
 		}
@@ -73,10 +73,10 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	return nil
 }
 
-func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, whitelistOrgs []string) (nonOrgMembers []string) {
+func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) (nonOrgMembers []string) {
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if notFromOrg(m, "user:", organizationDisplayName) && notWhitelisted(m, whitelistOrgs) {
+			if notFromOrg(m, "user:", organizationDisplayName) && notWhitelisted(m, allowedDomains) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
@@ -84,9 +84,9 @@ func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresour
 	return nonOrgMembers
 }
 
-func notWhitelisted(member string, whitelistOrgs []string) bool {
-	for _, org := range whitelistOrgs {
-		if strings.Contains(member, org) {
+func notWhitelisted(member string, domains []string) bool {
+	for _, d := range domains {
+		if strings.Contains(member, d) {
 			return false
 		}
 	}

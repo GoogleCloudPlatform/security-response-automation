@@ -63,7 +63,7 @@
   },
   "remove_non_org_members": {
     "enabled": false,
-    "whitelist": [
+    "allow_domains": [
       "ciandt.com",
       "google.com"
     ]
