@@ -1,4 +1,4 @@
-package updatemysqlrootpassword
+package updatepassword
 
 // Copyright 2019 Google LLC
 //
@@ -58,14 +58,17 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute will update the root password in mysql instance found within the provided folders.
+// Execute will update the root password in a MySQL instance found within the provided resources.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	resources := ent.Configuration.UpdateMySQLRootPassword.Resources
+	resources := ent.Configuration.UpdatePassword.Resources
 	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
 		log.Printf("updating root password for sql instance %q in project %q.", required.InstanceName, required.ProjectID)
-		_, err := ent.CloudSQL.UpdateUserPassword(ctx, required.ProjectID, required.InstanceName, required.Host, required.UserName, required.Password)
+		op, err := ent.CloudSQL.UpdateUserPassword(ctx, required.ProjectID, required.InstanceName, required.Host, required.UserName, required.Password)
 		if err != nil {
 			return err
+		}
+		if errs := ent.CloudSQL.Wait(required.ProjectID, op); len(errs) > 0 {
+			return errs[0]
 		}
 		ent.Logger.Info("updated root password for sql instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil

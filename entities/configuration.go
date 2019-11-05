@@ -56,22 +56,22 @@ type DisableDashboard struct {
 	Resources *Resources
 }
 
-// UpdateMySQLRootPassword contains configuration required for the update root password function.
-type UpdateMySQLRootPassword struct {
+// UpdatePassword contains configuration required for the update password function.
+type UpdatePassword struct {
 	Resources *Resources
 }
 
 // Configuration contains the IDs to apply actions to.
 type Configuration struct {
-	CloseBucket             *CloseBucket             `json:"close_bucket"`
-	RevokeGrants            *RevokeGrants            `json:"revoke_grants"`
-	DisableFirewall         *DisableFirewall         `json:"disable_firewall"`
-	RemovePublicIP          *RemovePublicIP          `json:"remove_public_ip"`
-	CloseCloudSQL           *CloseCloudSQL           `json:"close_cloud_sql"`
-	CloudSQLRequireSSL      *CloudSQLRequireSSL      `json:"cloud_sql_require_ssl"`
-	DisableDashboard        *DisableDashboard        `json:"disable_dashboard"`
-	EnableBucketOnlyPolicy  *EnableBucketOnlyPolicy  `json:"enable_bucket_only_policy"`
-	UpdateMySQLRootPassword *UpdateMySQLRootPassword `json:"update_root_password"`
+	CloseBucket            *CloseBucket            `json:"close_bucket"`
+	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
+	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
+	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
+	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`
+	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
+	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
+	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
+	UpdatePassword         *UpdatePassword         `json:"update_password"`
 }
 
 // NewConfiguration returns a new configuration.

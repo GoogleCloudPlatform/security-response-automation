@@ -61,7 +61,7 @@
       ]
     }
   },
-  "update_mysql_root_password": {
+  "update_password": {
     "resources": {
       "folder_ids": [
         "670032686187"

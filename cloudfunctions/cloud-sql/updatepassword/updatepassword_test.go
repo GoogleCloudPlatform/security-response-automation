@@ -1,4 +1,4 @@
-package updatemysqlrootpassword
+package updatepassword
 
 // Copyright 2019 Google LLC
 //
@@ -68,23 +68,23 @@ func TestReadFinding(t *testing.T) {
 				"category": "PUBLIC_SQL_INSTANCE",
 				"externalUri": "https://console.cloud.google.com/sql/instances/public-sql-instance/connections?project=sha-resources-20191002",
 				"sourceProperties": {
-				  "ReactivationCount": 0,
-				  "AssetSettings": "{\"activationPolicy\":\"NEVER\",\"backupConfiguration\":{\"binaryLogEnabled\":true,\"enabled\":true,\"kind\":\"sql#backupConfiguration\",\"startTime\":\"17:00\"},\"dataDiskSizeGb\":\"10\",\"dataDiskType\":\"PD_SSD\",\"ipConfiguration\":{\"authorizedNetworks\":[{\"kind\":\"sql#aclEntry\",\"name\":\"public-sql-network\",\"value\":\"0.0.0.0/0\"}],\"ipv4Enabled\":true},\"kind\":\"sql#settings\",\"locationPreference\":{\"kind\":\"sql#locationPreference\",\"zone\":\"us-central1-f\"},\"maintenanceWindow\":{\"day\":0.0,\"hour\":0.0,\"kind\":\"sql#maintenanceWindow\"},\"pricingPlan\":\"PER_USE\",\"replicationType\":\"SYNCHRONOUS\",\"settingsVersion\":\"3\",\"storageAutoResize\":true,\"storageAutoResizeLimit\":\"0\",\"tier\":\"db-n1-standard-1\"}",
-				  "ExceptionInstructions": "Add the security mark \"allow_public_sql_instance\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
-				  "SeverityLevel": "High",
-				  "Recommendation": "Restrict the authorized networks at https://console.cloud.google.com/sql/instances/public-sql-instance/connections?project=sha-resources-20191002.",
-				  "ProjectId": "sha-resources-20191002",
-				  "AssetCreationTime": "2019-10-03T13:58:45.428Z",
-				  "ScannerName": "SQL_SCANNER",
-				  "ScanRunId": "2019-10-11T16:20:26.221-07:00",
-				  "Explanation": "You have added 0.0.0.0/0 as an allowed network. This prefix will allow any IPv4 client to pass the network firewall and make login attempts to your instance, including clients you did not intend to allow. Clients still need valid credentials to successfully log in to your instance. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ip"
+					"ReactivationCount": 0,
+					"AssetSettings": "{\"activationPolicy\":\"NEVER\",\"backupConfiguration\":{\"binaryLogEnabled\":true,\"enabled\":true,\"kind\":\"sql#backupConfiguration\",\"startTime\":\"17:00\"},\"dataDiskSizeGb\":\"10\",\"dataDiskType\":\"PD_SSD\",\"ipConfiguration\":{\"authorizedNetworks\":[{\"kind\":\"sql#aclEntry\",\"name\":\"public-sql-network\",\"value\":\"0.0.0.0/0\"}],\"ipv4Enabled\":true},\"kind\":\"sql#settings\",\"locationPreference\":{\"kind\":\"sql#locationPreference\",\"zone\":\"us-central1-f\"},\"maintenanceWindow\":{\"day\":0.0,\"hour\":0.0,\"kind\":\"sql#maintenanceWindow\"},\"pricingPlan\":\"PER_USE\",\"replicationType\":\"SYNCHRONOUS\",\"settingsVersion\":\"3\",\"storageAutoResize\":true,\"storageAutoResizeLimit\":\"0\",\"tier\":\"db-n1-standard-1\"}",
+					"ExceptionInstructions": "Add the security mark \"allow_public_sql_instance\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+					"SeverityLevel": "High",
+					"Recommendation": "Restrict the authorized networks at https://console.cloud.google.com/sql/instances/public-sql-instance/connections?project=sha-resources-20191002.",
+					"ProjectId": "sha-resources-20191002",
+					"AssetCreationTime": "2019-10-03T13:58:45.428Z",
+					"ScannerName": "SQL_SCANNER",
+					"ScanRunId": "2019-10-11T16:20:26.221-07:00",
+					"Explanation": "You have added 0.0.0.0/0 as an allowed network. This prefix will allow any IPv4 client to pass the network firewall and make login attempts to your instance, including clients you did not intend to allow. Clients still need valid credentials to successfully log in to your instance. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ip"
 				},
 				"securityMarks": {
-				  "name": "organizations/119612413569/sources/7086426792249889955/findings/b7a48a4162ca2fb64627dd0a9a9756e1/securityMarks"
+					"name": "organizations/119612413569/sources/7086426792249889955/findings/b7a48a4162ca2fb64627dd0a9a9756e1/securityMarks"
 				},
 				"eventTime": "2019-10-11T23:20:26.221Z",
 				"createTime": "2019-10-03T17:20:24.331Z"
-			 }
+			}
 		}`
 	)
 	for _, tt := range []struct {
@@ -122,7 +122,7 @@ func TestReadFinding(t *testing.T) {
 	}
 }
 
-func TestUpdateRootPassword(t *testing.T) {
+func TestUpdatePassword(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
 		name            string
@@ -147,7 +147,7 @@ func TestUpdateRootPassword(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, sqlStub, crmStub := updateRootPasswordSetup(tt.folderIDs)
+			ent, sqlStub, crmStub := updatePasswordSetup(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 			required := &Required{
 				ProjectID:    "threat-auto-tests-07102019",
@@ -167,7 +167,7 @@ func TestUpdateRootPassword(t *testing.T) {
 	}
 }
 
-func updateRootPasswordSetup(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
+func updatePasswordSetup(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := entities.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
@@ -176,7 +176,7 @@ func updateRootPasswordSetup(folderIDs []string) (*entities.Entity, *stubs.Cloud
 	crmStub := &stubs.ResourceManagerStub{}
 	res := entities.NewResource(crmStub, storageStub)
 	conf := &entities.Configuration{
-		UpdateMySQLRootPassword: &entities.UpdateMySQLRootPassword{
+		UpdatePassword: &entities.UpdatePassword{
 			Resources: &entities.Resources{
 				FolderIDs: folderIDs,
 			},
