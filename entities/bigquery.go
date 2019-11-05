@@ -38,18 +38,10 @@ func NewBigQuery(cs BigQueryClient) *BigQuery {
 	return &BigQuery{client: cs}
 }
 
-// init initializes the bigquery client.
-func (bq *BigQuery) init(ctx context.Context, projectID string) error {
-	if err := bq.client.Init(ctx, projectID); err != nil {
-		return errors.Wrap(err, "failed to init bigquery")
-	}
-	return nil
-}
-
 // RemoveDatasetPublicAccess removes allUsers and allAuthenticatedUsers access from a dataset metadata.
 func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, datasetID string) ([]*bigquery.AccessEntry, error) {
-	if err := bq.init(ctx, projectID); err != nil {
-		return nil, errors.Wrap(err, "failed to initialize bigquery")
+	if err := bq.client.Init(ctx, projectID); err != nil {
+		return nil, errors.Wrap(err, "failed to init bigquery")
 	}
 
 	md, err := bq.client.DatasetMetadata(ctx, projectID, datasetID)
