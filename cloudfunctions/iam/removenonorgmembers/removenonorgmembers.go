@@ -76,7 +76,7 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) (nonOrgMembers []string) {
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if notFromOrg(m, "user:", organizationDisplayName) && notWhitelisted(m, allowedDomains) {
+			if strings.HasPrefix(m, "user:") && !inOrg(m, "user:", organizationDisplayName) && !allowed(m, allowedDomains) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
@@ -84,15 +84,15 @@ func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresour
 	return nonOrgMembers
 }
 
-func notWhitelisted(member string, domains []string) bool {
+func allowed(member string, domains []string) bool {
 	for _, d := range domains {
 		if strings.Contains(member, d) {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }
 
-func notFromOrg(member, prefix, content string) bool {
-	return strings.HasPrefix(member, prefix) && !strings.Contains(member, content)
+func inOrg(member, prefix, content string) bool {
+	return strings.Contains(member, content)
 }
