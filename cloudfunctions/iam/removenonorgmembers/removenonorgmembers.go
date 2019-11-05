@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"regexp"
 	"strings"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
@@ -74,9 +75,10 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 }
 
 func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) (nonOrgMembers []string) {
+	regex := domainRegex(organizationDisplayName)
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if strings.HasPrefix(m, "user:") && !inOrg(m, "user:", organizationDisplayName) && !allowed(m, allowedDomains) {
+			if strings.HasPrefix(m, "user:") && !inOrg(m, regex) && !allowed(m, allowedDomains) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
@@ -84,15 +86,19 @@ func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresour
 	return nonOrgMembers
 }
 
+func domainRegex(domain string) *regexp.Regexp {
+	return regexp.MustCompile("^.+@" + domain + "$")
+}
+
 func allowed(member string, domains []string) bool {
 	for _, d := range domains {
-		if strings.Contains(member, d) {
+		if domainRegex(d).MatchString(member) {
 			return true
 		}
 	}
 	return false
 }
 
-func inOrg(member, prefix, content string) bool {
-	return strings.Contains(member, content)
+func inOrg(member string, regex *regexp.Regexp) bool {
+	return regex.MatchString(member)
 }
