@@ -26,6 +26,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/closebucket"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/enablebucketonlypolicy"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revokeiam"
@@ -144,6 +145,22 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 		return err
 	}
 	return removepublicip.Execute(ctx, r, ent)
+}
+
+// EnableBucketOnlyPolicy Enable bucket only policy on a GCS bucket.
+//
+// This Cloud Function will respond to Security Health Analytics **BUCKET_POLICY_ONLY_DISABLED** findings
+// from **STORAGE_SCANNER**. Bucket only IAM policy will be enforced on the bucket.
+//
+// Permissions required
+//	- roles/storage.admin to change the Bucket policy mode.
+//
+func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
+	r, err := enablebucketonlypolicy.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return enablebucketonlypolicy.Execute(ctx, r, ent)
 }
 
 // CloseCloudSQL removes public IP for a Cloud SQL instance.

@@ -16,10 +16,11 @@ package entities
 
 import (
 	"bytes"
-	"github.com/pkg/errors"
-	"github.com/sendgrid/rest"
 	"html/template"
 	"path/filepath"
+
+	"github.com/pkg/errors"
+	"github.com/sendgrid/rest"
 )
 
 const templatesPath = "../templates/"

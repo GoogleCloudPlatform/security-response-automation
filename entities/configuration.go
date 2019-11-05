@@ -36,6 +36,11 @@ type RemovePublicIP struct {
 	Resources *Resources
 }
 
+// EnableBucketOnlyPolicy contains configuration required for the enable bucket only policy function.
+type EnableBucketOnlyPolicy struct {
+	Resources *Resources
+}
+
 // CloseCloudSQL contains configuration required for the close Cloud SQL function.
 type CloseCloudSQL struct {
 	Resources *Resources
@@ -53,13 +58,14 @@ type DisableDashboard struct {
 
 // Configuration contains the IDs to apply actions to.
 type Configuration struct {
-	CloseBucket        *CloseBucket        `json:"close_bucket"`
-	RevokeGrants       *RevokeGrants       `json:"revoke_grants"`
-	DisableFirewall    *DisableFirewall    `json:"disable_firewall"`
-	RemovePublicIP     *RemovePublicIP     `json:"remove_public_ip"`
-	CloseCloudSQL      *CloseCloudSQL      `json:"close_cloud_sql"`
-	CloudSQLRequireSSL *CloudSQLRequireSSL `json:"cloud_sql_require_ssl"`
-	DisableDashboard   *DisableDashboard   `json:"disable_dashboard"`
+	CloseBucket            *CloseBucket            `json:"close_bucket"`
+	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
+	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
+	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
+	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`
+	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
+	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
+	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
 }
 
 // NewConfiguration returns a new configuration.

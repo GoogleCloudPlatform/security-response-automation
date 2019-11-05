@@ -41,6 +41,9 @@ Removes members from an IAM policy.
 
 Configuration
 
+This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify.
+Depending on which resources you specify will determine which projects are enforced.
+
   - Configured in settings.json under the `revoke_iam` key.
   - See general [resource list](#resources) options.
   - `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
@@ -66,6 +69,30 @@ Configuration
 
 - Configured in settings.json under the `disable_dashboard` key.
 - See general [resource list](#resources) options.
+
+**Enable bucket only IAM policy**
+
+This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
+Depending on which resources you specify it will determine which projects are enforced.
+
+- `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
+- `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
+
+For example, if you want to only enable bucket only IAM policy in the folder **development**
+you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
+and place into the `folder_ids` array.
+
+```json
+{
+  "enable_bucket_only_policy": {
+    "resources": {
+      "folder_ids": [
+        "670032686187"
+      ]
+    }
+  }
+}
+```
 
 ### Installation
 
