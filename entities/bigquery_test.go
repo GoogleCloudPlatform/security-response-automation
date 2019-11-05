@@ -18,6 +18,8 @@ import (
 	"context"
 	"testing"
 
+	"cloud.google.com/go/bigquery"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 )
 
@@ -27,23 +29,54 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 		datasetID = "test-dataset"
 	)
 
+	nonPublicAccessEntry := bigquery.AccessEntry{
+		Entity: "user@org.com",
+	}
+
+	allUsersAccessEntry := bigquery.AccessEntry{
+		Entity: "allUsers",
+	}
+
+	allAuthenticatedUsersAccessEntry := bigquery.AccessEntry{
+		Entity: "allAuthenticatedUsers",
+	}
+
 	tests := []struct {
-		name          string
-		expectedError error
+		name            string
+		datasetMetadata *bigquery.DatasetMetadata
+		expectedAccess  []*bigquery.AccessEntry
+		expectedError   error
 	}{
 		{
-			name:          "Remove BigQuery dataset public access",
+			name: "Remove BigQuery dataset public access",
+			datasetMetadata: &bigquery.DatasetMetadata{
+				Access: []*bigquery.AccessEntry{
+					&nonPublicAccessEntry,
+					&allUsersAccessEntry,
+					&allAuthenticatedUsersAccessEntry,
+				},
+			},
+			expectedAccess: []*bigquery.AccessEntry{
+				&nonPublicAccessEntry,
+			},
 			expectedError: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bqStub := &stubs.BigQueryStub{}
+			bqStub := &stubs.BigQueryStub{
+				StubbedMetadata: tt.datasetMetadata,
+			}
 			ctx := context.Background()
 			bq := NewBigQuery(bqStub)
 
-			if err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID); err != tt.expectedError {
+			newAccess, err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID)
+
+			if err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+			if diff := cmp.Diff(tt.expectedAccess, newAccess); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})
 	}
