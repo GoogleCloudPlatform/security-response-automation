@@ -48,7 +48,7 @@ func ReadFinding(b []byte) (*Required, error) {
 	return r, nil
 }
 
-// Execute will remove any public ips in sql instance found within the provided folders.
+// Execute will remove any public IPs in SQL instance found within the provided resources.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	resources := ent.Configuration.CloseCloudSQL.Resources
 	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
@@ -57,14 +57,14 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		if err != nil {
 			return err
 		}
-		op, err := ent.CloudSQL.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance)
+		op, err := ent.CloudSQL.ClosePublicAccess(ctx, required.ProjectID, required.InstanceName, instance.Settings.IpConfiguration.AuthorizedNetworks)
 		if err != nil {
 			return err
 		}
 		if errs := ent.CloudSQL.Wait(required.ProjectID, op); len(errs) > 0 {
 			return errs[0]
 		}
-		ent.Logger.Info("removed public access from sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		ent.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", required.InstanceName, required.ProjectID)
 		return nil
 	})
 }
