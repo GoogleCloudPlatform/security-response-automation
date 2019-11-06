@@ -28,19 +28,6 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 		projectID = "test-project"
 		datasetID = "test-dataset"
 	)
-
-	nonPublicAccessEntry := bigquery.AccessEntry{
-		Entity: "user@org.com",
-	}
-
-	allUsersAccessEntry := bigquery.AccessEntry{
-		Entity: "allUsers",
-	}
-
-	allAuthenticatedUsersAccessEntry := bigquery.AccessEntry{
-		Entity: "allAuthenticatedUsers",
-	}
-
 	tests := []struct {
 		name                   string
 		datasetMetadata        *bigquery.DatasetMetadata
@@ -51,14 +38,14 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 			name: "Remove BigQuery dataset public access",
 			datasetMetadata: &bigquery.DatasetMetadata{
 				Access: []*bigquery.AccessEntry{
-					&nonPublicAccessEntry,
-					&allUsersAccessEntry,
-					&allAuthenticatedUsersAccessEntry,
+					{Entity: "user@org.com"},
+					{Entity: "allUsers"},
+					{Entity: "allAuthenticatedUsers"},
 				},
 			},
 			updatedDatasetMetadata: &bigquery.DatasetMetadata{
 				Access: []*bigquery.AccessEntry{
-					&nonPublicAccessEntry,
+					{Entity: "user@org.com"},
 				},
 			},
 			expectedError: nil,
