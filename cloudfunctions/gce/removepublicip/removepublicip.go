@@ -36,13 +36,14 @@ func ReadFinding(b []byte) (*Required, error) {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
 	}
-
-	if finding.GetFinding().GetCategory() == "PUBLIC_IP_ADDRESS" {
+	switch finding.GetFinding().GetCategory() {
+	case "PUBLIC_IP_ADDRESS":
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 		r.InstanceZone = sha.Zone(finding.GetFinding().GetResourceName())
 		r.InstanceID = sha.Instance(finding.GetFinding().GetResourceName())
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
-
 	if r.ProjectID == "" || r.InstanceZone == "" || r.InstanceID == "" {
 		return nil, entities.ErrValueNotFound
 	}

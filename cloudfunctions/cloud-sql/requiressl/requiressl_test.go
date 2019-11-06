@@ -101,7 +101,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError                 error
 	}{
 		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance", bytes: []byte(enforceSSL), expectedError: nil},
-		{name: "wrong category", projectID: "", InstanceName: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrValueNotFound},
+		{name: "wrong category", projectID: "", InstanceName: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

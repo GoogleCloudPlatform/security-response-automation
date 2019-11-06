@@ -40,6 +40,8 @@ func ReadFinding(b []byte) (*Required, error) {
 	case "SSL_NOT_ENFORCED":
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
 	if r.InstanceName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound

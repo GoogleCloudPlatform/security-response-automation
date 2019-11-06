@@ -70,7 +70,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", rule: "bad_ip", projectID: "test-project", zone: "zone-name", instance: "source-instance-name", expectedError: nil, bytes: []byte(validBadIP)},
 		{name: "missing properties", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrValueNotFound, bytes: []byte(missingProperties)},
-		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrValueNotFound, bytes: []byte(wrongRule)},
+		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrUnsupportedFinding, bytes: []byte(wrongRule)},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -208,13 +208,16 @@ func TestCreateSnapshot(t *testing.T) {
 			ent, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
-			required := &Required{
+			values := &Values{
 				ProjectID: "foo-test",
 				RuleName:  "bad_ip",
 				Instance:  "instance1",
 				Zone:      "test-zone",
 			}
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, values, &Needed{
+				Host:   ent.Host,
+				Logger: ent.Logger,
+			}); err != nil {
 				t.Errorf("%s failed to create snapshot: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {

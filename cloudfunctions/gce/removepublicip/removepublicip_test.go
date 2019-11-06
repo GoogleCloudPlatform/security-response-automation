@@ -103,7 +103,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError error
 	}{
 		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a", instanceID: "4312755253150365851", bytes: []byte(publicIPAddressFinding), expectedError: nil},
-		{name: "wrong category", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrValueNotFound},
+		{name: "wrong category", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

@@ -108,7 +108,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError               error
 	}{
 		{name: "read", projectID: "onboarding-project", firewallID: "6190685430815455733", bytes: []byte(openFirewallFinding), expectedError: nil},
-		{name: "wrong category", projectID: "", firewallID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrValueNotFound},
+		{name: "wrong category", projectID: "", firewallID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

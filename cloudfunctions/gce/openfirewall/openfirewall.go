@@ -45,6 +45,8 @@ func ReadFinding(b []byte) (*Required, error) {
 	case "OPEN_RDP_PORT":
 		r.FirewallID = sha.FirewallID(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
 	if r.FirewallID == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound

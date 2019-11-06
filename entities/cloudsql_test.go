@@ -16,7 +16,6 @@ package entities
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -75,34 +74,20 @@ func TestEnforceSSLConnection(t *testing.T) {
 }
 
 func TestClosePublicAccess(t *testing.T) {
+	const (
+		instance  = "instance-name"
+		projectID = "project1"
+	)
 	tests := []struct {
-		name             string
-		instance         string
-		projectID        string
-		region           string
-		expectedError    error
-		expectedResponse *sqladmin.Operation
-		expectedRequest  *sqladmin.DatabaseInstance
+		name     string
+		acls     []*sqladmin.AclEntry
+		expected *sqladmin.DatabaseInstance
 	}{
 		{
-			name:             "close public access in a nonexisting database",
-			instance:         "not-found",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    fmt.Errorf("the Cloud SQL instance does not exist"),
-			expectedResponse: nil,
-			expectedRequest:  nil,
-		},
-		{
-			name:             "close public access in a existing database with only one auth ip",
-			instance:         "one-public-ip",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    nil,
-			expectedResponse: &sqladmin.Operation{},
-			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:    "one-public-ip",
-				Project: "project1",
+			name: "close public access in a existing database with only one auth ip",
+			expected: &sqladmin.DatabaseInstance{
+				Name:    instance,
+				Project: projectID,
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						AuthorizedNetworks: nil,
@@ -110,17 +95,17 @@ func TestClosePublicAccess(t *testing.T) {
 					},
 				},
 			},
+			acls: []*sqladmin.AclEntry{{Value: "0.0.0.0/0"}},
 		},
 		{
-			name:             "close public access in a existing database with more than one auth ip",
-			instance:         "two-public-ip",
-			projectID:        "project1",
-			region:           "us-central1",
-			expectedError:    nil,
-			expectedResponse: &sqladmin.Operation{},
-			expectedRequest: &sqladmin.DatabaseInstance{
-				Name:    "two-public-ip",
-				Project: "project1",
+			name: "close public access in a existing database with more than one auth ip",
+			acls: []*sqladmin.AclEntry{
+				{Value: "0.0.0.0/0"},
+				{Value: "199.27.199.0/24"},
+			},
+			expected: &sqladmin.DatabaseInstance{
+				Name:    instance,
+				Project: projectID,
 				Settings: &sqladmin.Settings{
 					IpConfiguration: &sqladmin.IpConfiguration{
 						AuthorizedNetworks: []*sqladmin.AclEntry{
@@ -132,71 +117,24 @@ func TestClosePublicAccess(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "no authorized networks",
+			acls:     []*sqladmin.AclEntry{},
+			expected: nil,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sqlAdminStub := &stubs.CloudSQL{}
+			cloudSQLStub := &stubs.CloudSQL{}
 			ctx := context.Background()
-			c := NewCloudSQL(sqlAdminStub)
-
-			if tt.instance == "not-found" {
-				sqlAdminStub.InstanceDetailsResponse = nil
+			c := NewCloudSQL(cloudSQLStub)
+			if _, err := c.ClosePublicAccess(ctx, projectID, instance, tt.acls); err != nil && tt.expected != nil {
+				t.Errorf("%v failed: %q", tt.name, err)
 			}
-
-			if tt.instance == "one-public-ip" {
-				sqlAdminStub.InstanceDetailsResponse = &sqladmin.DatabaseInstance{
-					Name:    tt.instance,
-					Project: tt.projectID,
-					Settings: &sqladmin.Settings{
-						IpConfiguration: &sqladmin.IpConfiguration{
-							AuthorizedNetworks: []*sqladmin.AclEntry{
-								{
-									Value: "0.0.0.0/0",
-								},
-							},
-						},
-					},
-				}
+			if diff := cmp.Diff(cloudSQLStub.SavedInstanceUpdated, tt.expected); diff != "" {
+				t.Errorf("%v failed difference:%+v", tt.name, diff)
 			}
-
-			if tt.instance == "two-public-ip" {
-				sqlAdminStub.InstanceDetailsResponse = &sqladmin.DatabaseInstance{
-					Name:    tt.instance,
-					Project: tt.projectID,
-					Settings: &sqladmin.Settings{
-						IpConfiguration: &sqladmin.IpConfiguration{
-							AuthorizedNetworks: []*sqladmin.AclEntry{
-								{
-									Value: "0.0.0.0/0",
-								},
-								{
-									Value: "199.27.199.0/24",
-								},
-							},
-						},
-					},
-				}
-			}
-
-			databaseInstance, err := c.InstanceDetails(ctx, tt.projectID, tt.instance)
-
-			if err != nil && tt.expectedError != nil && tt.expectedError.Error() != err.Error() {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
-			}
-
-			r, err := c.ClosePublicAccess(ctx, tt.projectID, tt.instance, databaseInstance)
-
-			if diff := cmp.Diff(sqlAdminStub.SavedInstanceUpdated, tt.expectedRequest); diff != "" {
-				t.Errorf("%v failed, difference: %+v", tt.name, diff)
-			}
-			if tt.expectedError != nil && err.Error() != tt.expectedError.Error() {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
-			}
-			if diff := cmp.Diff(r, tt.expectedResponse); diff != "" {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedResponse, r)
-			}
-
 		})
 	}
 }

@@ -30,7 +30,7 @@ import (
 
 // Required contains the required values needed for this function.
 type Required struct {
-	OrganizationName string
+	OrganizationID string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -42,9 +42,11 @@ func ReadFinding(b []byte) (*Required, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		r.OrganizationName = sha.OrganizationName(finding.GetFinding().GetParent())
+		r.OrganizationID = sha.OrganizationID(finding.GetFinding().GetParent())
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
-	if r.OrganizationName == "" {
+	if r.OrganizationID == "" {
 		return nil, entities.ErrValueNotFound
 	}
 	return r, nil
@@ -55,9 +57,9 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	conf := ent.Configuration
 	if conf.RemoveNonOrgMembers.Enabled {
 		allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
-		organization, err := ent.Resource.Organization(ctx, required.OrganizationName)
+		organization, err := ent.Resource.Organization(ctx, required.OrganizationID)
 		if err != nil {
-			return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationName)
+			return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationID)
 		}
 		policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
 		if err != nil {

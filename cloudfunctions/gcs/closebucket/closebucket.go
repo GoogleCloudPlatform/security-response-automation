@@ -43,6 +43,8 @@ func ReadFinding(b []byte) (*Required, error) {
 	case "PUBLIC_BUCKET_ACL":
 		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
 	if r.BucketName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound

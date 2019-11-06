@@ -42,6 +42,8 @@ func ReadFinding(b []byte) (*Required, error) {
 	case "external_member_added_to_policy":
 		r.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
 		r.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
 	if r.ProjectID == "" || len(r.ExternalMembers) == 0 {
 		return nil, entities.ErrValueNotFound

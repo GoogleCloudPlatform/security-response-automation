@@ -40,6 +40,8 @@ func ReadFinding(b []byte) (*Required, error) {
 	case "BUCKET_POLICY_ONLY_DISABLED":
 		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
 	if r.BucketName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound

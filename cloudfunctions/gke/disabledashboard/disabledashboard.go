@@ -41,6 +41,8 @@ func ReadFinding(b []byte) (*Required, error) {
 		r.ProjectID = finding.Finding.SourceProperties.GetProjectID()
 		r.Zone = sha.ClusterZone(finding.GetFinding().GetResourceName())
 		r.ClusterID = sha.ClusterID(finding.GetFinding().GetResourceName())
+	default:
+		return nil, entities.ErrUnsupportedFinding
 	}
 	if r.ProjectID == "" || r.Zone == "" || r.ClusterID == "" {
 		return nil, entities.ErrValueNotFound
