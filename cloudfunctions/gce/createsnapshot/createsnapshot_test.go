@@ -208,11 +208,7 @@ func TestCreateSnapshot(t *testing.T) {
 			ent, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
-<<<<<<< HEAD:cloudfunctions/gce/createsnapshot/createsnapshot_test.go
 			values := &Values{
-=======
-			required := &Required{
->>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e:cloudfunctions/createsnapshot/createsnapshot_test.go
 				ProjectID: "foo-test",
 				RuleName:  "bad_ip",
 				Instance:  "instance1",
