@@ -15,7 +15,7 @@
 // The protos here are used for deserializing only. The variable casing is meant to match
 // their JSON counterpart. This is a temporary solution until finding providers publish
 // their own protocol buffers. This was done because it's easier to define the structure
-// using protcol buffers instead of reinventing it ourselves in Go. These protos are not 
+// using protcol buffers instead of reinventing it ourselves in Go. These protos are not
 // complete, many fields are missing.
 //
 // Generate by running: protoc -I=providers --go_out=compiled providers/etd/protos/*
@@ -31,7 +31,7 @@ message BadDomain {
 message AnomalousIAMGrant {
     message Properties {
         string project_id = 1;
-        repeated string externalMembers = 2;        
+        repeated string externalMembers = 2;
     }
 
     message AffectedResource {
@@ -80,5 +80,5 @@ message BadIP {
     string insertId = 1;
     string logName = 2;
     JSONPayload jsonPayload = 3;
-    
+
 }

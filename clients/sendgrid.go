@@ -16,6 +16,7 @@ package clients
 
 import (
 	"fmt"
+
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"

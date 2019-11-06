@@ -26,6 +26,8 @@ var (
 	ErrParsing = errors.New("not a valid log")
 	// ErrValueNotFound thrown when a value is requested but not found.
 	ErrValueNotFound = errors.New("value not found")
+	// ErrUnsupportedFinding thrown when a finding is not supported by a function.
+	ErrUnsupportedFinding = errors.New("unsupported finding")
 )
 
 // Life of a finding
@@ -47,15 +49,4 @@ var (
 type StackDriverLog struct {
 	InsertID string `json:"insertId"`
 	LogName  string `json:"logName"`
-}
-
-// badNetworkFinding contains any finding based off VPC flow logs.
-type badNetworkFinding struct {
-	JSONPayload struct {
-		Properties struct {
-			Location       string
-			SourceInstance string
-			IP             []string
-		}
-	}
 }

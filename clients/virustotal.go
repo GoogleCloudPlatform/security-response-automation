@@ -23,6 +23,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // Sample holds a subset of fields returned in a sample request.
@@ -62,7 +64,9 @@ func SamplesFromDomain(domain string) ([]string, error) {
 	}
 	defer resp.Body.Close()
 	dr := new(DomainReport)
-	json.NewDecoder(resp.Body).Decode(&dr)
+	if err := json.NewDecoder(resp.Body).Decode(&dr); err != nil {
+		return nil, errors.Wrap(err, "error decoding json for domain report")
+	}
 	ss := []string{}
 	for _, s := range dr.Samples {
 		ss = append(ss, s.SHA256)

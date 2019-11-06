@@ -32,7 +32,7 @@ type ComputeStub struct {
 	DeletedAccessConfigs         []NetworkAccessConfigStub
 	DeleteAccessConfigShouldFail bool
 	GetInstanceShouldFail        bool
-	StubbedListProjectSnapshots  *compute.SnapshotList
+	StubbedListProjectSnapshots  []*compute.SnapshotList
 	StubbedListDisks             *compute.DiskList
 	StubbedFirewall              *compute.Firewall
 	StubbedStopInstance          *compute.Operation
@@ -83,19 +83,27 @@ func (c *ComputeStub) DeleteAccessConfig(ctx context.Context, project, zone, ins
 }
 
 // CreateSnapshot creates a snapshot of a specified persistent disk.
-func (c *ComputeStub) CreateSnapshot(ctx context.Context, _, _, disk string, rb *compute.Snapshot) (*compute.Operation, error) {
-	c.SavedCreateSnapshots[disk] = *rb
+func (c *ComputeStub) CreateSnapshot(ctx context.Context, _, _, disk string, snapshot *compute.Snapshot) (*compute.Operation, error) {
+	c.SavedCreateSnapshots[disk] = *snapshot
 	return nil, nil
 }
 
 // DeleteDiskSnapshot deletes a snapshot.
-func (c *ComputeStub) DeleteDiskSnapshot(_, _ string) (*compute.Operation, error) {
+func (c *ComputeStub) DeleteDiskSnapshot(_ context.Context, _, _ string) (*compute.Operation, error) {
 	return nil, nil
 }
 
 // ListProjectSnapshots returns a list of snapshot resources.
 func (c *ComputeStub) ListProjectSnapshots(context.Context, string) (*compute.SnapshotList, error) {
-	return c.StubbedListProjectSnapshots, nil
+	if len(c.StubbedListProjectSnapshots) == 0 {
+		return nil, nil
+	}
+	pop := c.StubbedListProjectSnapshots[len(c.StubbedListProjectSnapshots)-1 : len(c.StubbedListProjectSnapshots)][0]
+	c.StubbedListProjectSnapshots = c.StubbedListProjectSnapshots[0 : len(c.StubbedListProjectSnapshots)-1]
+	if pop == nil {
+		return &compute.SnapshotList{Items: []*compute.Snapshot{}}, nil
+	}
+	return pop, nil
 }
 
 // ListDisks returns a list of disks.

@@ -32,24 +32,30 @@ func TestCreateDiskSnapshot(t *testing.T) {
 		snapshot  = "test-snapshot"
 	)
 	tests := []struct {
-		name             string
-		expectedError    error
-		expectedResponse *compute.Snapshot
+		name                string
+		expectedError       error
+		expectedSnapshot    string
+		expectedDescription string
 	}{
 		{
-			name:             "test",
-			expectedError:    nil,
-			expectedResponse: &compute.Snapshot{},
+			name:                "test",
+			expectedError:       nil,
+			expectedSnapshot:    disk,
+			expectedDescription: "Snapshot of " + disk,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			computeStub := &stubs.ComputeStub{}
-			computeStub.SavedCreateSnapshots = make(map[string]compute.Snapshot)
+			computeStub := &stubs.ComputeStub{
+				SavedCreateSnapshots: make(map[string]compute.Snapshot),
+			}
 			ctx := context.Background()
 			h := NewHost(computeStub)
-			if _, err := h.CreateDiskSnapshot(ctx, projectID, zone, disk, snapshot); err != tt.expectedError {
+			if err := h.CreateDiskSnapshot(ctx, projectID, zone, disk, snapshot); err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+			}
+			if computeStub.SavedCreateSnapshots[disk].Description != tt.expectedDescription {
+				t.Errorf("%s failed exp:%s got:%s", tt.name, tt.expectedDescription, computeStub.SavedCreateSnapshots[disk].Description)
 			}
 		})
 	}

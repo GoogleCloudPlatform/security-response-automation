@@ -16,13 +16,14 @@ package entities
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestParseTemplateEmail(t *testing.T) {
 
-	var sampleTemplate = "%s Admin,\nSecurity Response Automation"
+	var sampleTemplate = "%s Admin, Security Response Automation"
 
 	type sampleContent struct {
 		Greeting string

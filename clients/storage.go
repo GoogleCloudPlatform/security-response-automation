@@ -46,3 +46,16 @@ func (s *Storage) SetBucketPolicy(ctx context.Context, bucketName string, policy
 func (s *Storage) BucketPolicy(ctx context.Context, bucketName string) (*iam.Policy, error) {
 	return s.service.Bucket(bucketName).IAM().Policy(ctx)
 }
+
+// EnableBucketOnlyPolicy enables the bucket only policy for the given bucket.
+func (s *Storage) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
+	enableBucketPolicyOnly := storage.BucketAttrsToUpdate{
+		BucketPolicyOnly: &storage.BucketPolicyOnly{
+			Enabled: true,
+		},
+	}
+	if _, err := s.service.Bucket(bucketName).Update(ctx, enableBucketPolicyOnly); err != nil {
+		return err
+	}
+	return nil
+}
