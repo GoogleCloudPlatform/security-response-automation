@@ -32,15 +32,12 @@ type Required struct {
 }
 
 const (
-	// defaultHostName is the host name of the default root user
-	// in a MySQL instance. The host name usually is a specific IP address or a
-	// address range that a user can connect from, but the root user can connect
-	// from any host. The symbol "%" means that the host name is unrestricted.
-	defaultHostName = "%"
-	// defaultUserName is the default user name for a Second Generation
-	// Cloud SQL instance that uses MySQL. For more information about it access:
-	// https://cloud.google.com/sql/docs/mysql/users.
-	defaultUserName = "root"
+	// defaultHostName is the host name of the MySQL instance.
+	// The % sign is a wildcard that matches any host. More information
+	// in the official documentation: https://cloud.google.com/sql/docs/mysql/users.
+	host = "%"
+	// userName is the MySQL user name that will have their password reset.
+	userName = "root"
 )
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -53,8 +50,8 @@ func ReadFinding(b []byte) (*Required, error) {
 	if finding.GetFinding().GetCategory() == "SQL_NO_ROOT_PASSWORD" {
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		r.Host = defaultHostName
-		r.UserName = defaultUserName
+		r.Host = host
+		r.UserName = userName
 		r.Password = uuid.New().String()
 	}
 	if r.InstanceName == "" || r.ProjectID == "" {
