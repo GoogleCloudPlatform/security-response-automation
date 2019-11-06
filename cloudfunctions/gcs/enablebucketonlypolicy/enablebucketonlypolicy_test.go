@@ -115,7 +115,11 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219", bytes: []byte(storageScanner), expectedError: nil},
 		{name: "missing properties", bucket: "", projectID: "", bytes: []byte(missingProperties), expectedError: entities.ErrValueNotFound},
+<<<<<<< HEAD
 		{name: "wrong category", bucket: "", projectID: "", bytes: []byte(somethingElse), expectedError: entities.ErrUnsupportedFinding},
+=======
+		{name: "wrong category", bucket: "", projectID: "", bytes: []byte(somethingElse), expectedError: entities.ErrValueNotFound},
+>>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

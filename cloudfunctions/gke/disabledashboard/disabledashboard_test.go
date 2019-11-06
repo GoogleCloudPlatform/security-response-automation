@@ -90,7 +90,11 @@ func TestReadFinding(t *testing.T) {
 		expectedError                    error
 	}{
 		{name: "read", projectID: "test-cat-findings-clseclab", zone: "us-central1-a", clusterID: "ex-abuse-cluster-3", bytes: []byte(webUIFinding), expectedError: nil},
+<<<<<<< HEAD
 		{name: "wrong category", projectID: "", zone: "", clusterID: "", bytes: []byte(wrongCategory), expectedError: entities.ErrUnsupportedFinding},
+=======
+		{name: "wrong category", projectID: "", zone: "", clusterID: "", bytes: []byte(wrongCategory), expectedError: entities.ErrValueNotFound},
+>>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

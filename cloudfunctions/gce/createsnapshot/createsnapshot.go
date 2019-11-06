@@ -39,8 +39,13 @@ var labels = map[string]string{
 	"info": "created-by-security-response-automation",
 }
 
+<<<<<<< HEAD:cloudfunctions/gce/createsnapshot/createsnapshot.go
 // Values contains the required values needed for this function.
 type Values struct {
+=======
+// Required contains the required values needed for this function.
+type Required struct {
+>>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e:cloudfunctions/createsnapshot/createsnapshot.go
 	ProjectID, RuleName, Instance, Zone string
 }
 

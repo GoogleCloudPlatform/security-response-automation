@@ -186,6 +186,22 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 	}
 }
 
+// EnableBucketOnlyPolicy Enable bucket only policy on a GCS bucket.
+//
+// This Cloud Function will respond to Security Health Analytics **BUCKET_POLICY_ONLY_DISABLED** findings
+// from **STORAGE_SCANNER**. Bucket only IAM policy will be enforced on the bucket.
+//
+// Permissions required
+//	- roles/storage.admin to change the Bucket policy mode.
+//
+func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
+	r, err := enablebucketonlypolicy.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return enablebucketonlypolicy.Execute(ctx, r, ent)
+}
+
 // CloseCloudSQL removes public IP for a Cloud SQL instance.
 //
 // This Cloud Function will respond to Security Health Analytics **Public SQL Instance** findings
@@ -196,6 +212,7 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
+<<<<<<< HEAD
 	switch r, err := removepublic.ReadFinding(m.Data); err {
 	case entities.ErrUnsupportedFinding:
 		return nil
@@ -204,6 +221,13 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
+=======
+	r, err := removepublic.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return removepublic.Execute(ctx, r, ent)
+>>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e
 }
 
 // CloudSQLRequireSSL enables the SSL requirement for a Cloud SQL instance.
@@ -216,6 +240,7 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
+<<<<<<< HEAD
 	switch r, err := requiressl.ReadFinding(m.Data); err {
 	case entities.ErrUnsupportedFinding:
 		return nil
@@ -224,6 +249,13 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
+=======
+	r, err := requiressl.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return requiressl.Execute(ctx, r, ent)
+>>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e
 }
 
 // DisableDashboard will disable the Kubernetes dashboard addon.
@@ -236,6 +268,7 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
+<<<<<<< HEAD
 	switch r, err := disabledashboard.ReadFinding(m.Data); err {
 	case entities.ErrUnsupportedFinding:
 		return nil
@@ -244,4 +277,11 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
+=======
+	r, err := disabledashboard.ReadFinding(m.Data)
+	if err != nil {
+		return err
+	}
+	return disabledashboard.Execute(ctx, r, ent)
+>>>>>>> 8a7432ce21d4d9e9221a655d9a2905020835022e
 }
