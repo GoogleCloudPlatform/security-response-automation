@@ -55,24 +55,20 @@ func ReadFinding(b []byte) (*Required, error) {
 // Execute removes non-organization members.
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	conf := ent.Configuration
-	if conf.RemoveNonOrgMembers.Enabled {
-		allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
-		organization, err := ent.Resource.Organization(ctx, required.OrganizationID)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationID)
-		}
-		policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
-		if err != nil {
-			return errors.Wrap(err, "failed to retrieve organization policies")
-		}
-		membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
-		if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
-			return errors.Wrap(err, "failed to remove organization policies")
-		}
-		log.Printf("removed members: %s", membersToRemove)
-		return nil
+	allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
+	organization, err := ent.Resource.Organization(ctx, required.OrganizationID)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationID)
 	}
-	log.Println("remove non-org members execution disabled: check settings.json.")
+	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
+	if err != nil {
+		return errors.Wrap(err, "failed to retrieve organization policies")
+	}
+	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
+	if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
+		return errors.Wrap(err, "failed to remove organization policies")
+	}
+	log.Printf("removed members: %s", membersToRemove)
 	return nil
 }
 

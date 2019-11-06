@@ -196,7 +196,6 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				RemoveNonOrgMembers: &entities.RemoveNonOrgMembers{
 					Resources:    nil,
 					AllowDomains: tt.allowDomains,
-					Enabled:      true,
 				},
 			}
 			if err := Execute(context.Background(), required, &entities.Entity{Resource: res, Configuration: conf}); err != nil {
