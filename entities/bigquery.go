@@ -54,25 +54,15 @@ func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, da
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to remove public access on bigquery dataset %q in project %q", datasetID, projectID)
 	}
-
 	return updatedMetadata.Access, nil
 }
 
 func nonPublicAccess(metadata *bigquery.DatasetMetadata) []*bigquery.AccessEntry {
 	newAccesses := []*bigquery.AccessEntry{}
 	for _, a := range metadata.Access {
-		if shouldKeepAccessEntry(a) {
+		if "allUsers" != a.Entity && "allAuthenticatedUsers" != a.Entity {
 			newAccesses = append(newAccesses, a)
 		}
 	}
 	return newAccesses
-}
-
-func shouldKeepAccessEntry(accessEntry *bigquery.AccessEntry) bool {
-	for _, e := range [...]string{"allUsers", "allAuthenticatedUsers"} {
-		if e == accessEntry.Entity {
-			return false
-		}
-	}
-	return true
 }
