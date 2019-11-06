@@ -29,21 +29,21 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 		datasetID = "test-dataset"
 	)
 	tests := []struct {
-		name                   string
-		datasetMetadata        *bigquery.DatasetMetadata
-		updatedDatasetMetadata *bigquery.DatasetMetadata
-		expectedError          error
+		name             string
+		fakedMetadata    *bigquery.DatasetMetadata
+		expectedMetadata *bigquery.DatasetMetadata
+		expectedError    error
 	}{
 		{
-			name: "Remove BigQuery dataset public access",
-			datasetMetadata: &bigquery.DatasetMetadata{
+			name: "remove bigquery dataset public access",
+			fakedMetadata: &bigquery.DatasetMetadata{
 				Access: []*bigquery.AccessEntry{
 					{Entity: "user@org.com"},
 					{Entity: "allUsers"},
 					{Entity: "allAuthenticatedUsers"},
 				},
 			},
-			updatedDatasetMetadata: &bigquery.DatasetMetadata{
+			expectedMetadata: &bigquery.DatasetMetadata{
 				Access: []*bigquery.AccessEntry{
 					{Entity: "user@org.com"},
 				},
@@ -54,18 +54,16 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bqStub := &stubs.BigQueryStub{
-				StubbedMetadata:        tt.datasetMetadata,
-				StubbedUpdatedMetadata: tt.updatedDatasetMetadata,
+				StubbedMetadata:        tt.fakedMetadata,
+				StubbedUpdatedMetadata: tt.expectedMetadata,
 			}
 			ctx := context.Background()
 			bq := NewBigQuery(bqStub)
-
-			newAccess, err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID)
-
+			access, err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID)
 			if err != tt.expectedError {
 				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
-			if diff := cmp.Diff(tt.updatedDatasetMetadata.Access, newAccess); diff != "" {
+			if diff := cmp.Diff(tt.expectedMetadata.Access, access); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})
