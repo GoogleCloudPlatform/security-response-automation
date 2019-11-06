@@ -22,7 +22,8 @@ import (
 
 // BigQueryStub provides a stub for the BigQuery client.
 type BigQueryStub struct {
-	StubbedMetadata *bigquery.DatasetMetadata
+	StubbedMetadata        *bigquery.DatasetMetadata
+	StubbedUpdatedMetadata *bigquery.DatasetMetadata
 }
 
 // Init initializes the stub client.
@@ -37,5 +38,5 @@ func (s *BigQueryStub) DatasetMetadata(ctx context.Context, projectID, datasetID
 
 // OverwriteDatasetMetadata modifies specific Dataset metadata fields.
 func (s *BigQueryStub) OverwriteDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error) {
-	return nil, nil
+	return s.StubbedUpdatedMetadata, nil
 }

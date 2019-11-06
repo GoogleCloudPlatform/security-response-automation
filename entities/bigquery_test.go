@@ -42,10 +42,10 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 	}
 
 	tests := []struct {
-		name            string
-		datasetMetadata *bigquery.DatasetMetadata
-		expectedAccess  []*bigquery.AccessEntry
-		expectedError   error
+		name                   string
+		datasetMetadata        *bigquery.DatasetMetadata
+		updatedDatasetMetadata *bigquery.DatasetMetadata
+		expectedError          error
 	}{
 		{
 			name: "Remove BigQuery dataset public access",
@@ -56,8 +56,10 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 					&allAuthenticatedUsersAccessEntry,
 				},
 			},
-			expectedAccess: []*bigquery.AccessEntry{
-				&nonPublicAccessEntry,
+			updatedDatasetMetadata: &bigquery.DatasetMetadata{
+				Access: []*bigquery.AccessEntry{
+					&nonPublicAccessEntry,
+				},
 			},
 			expectedError: nil,
 		},
@@ -65,7 +67,8 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bqStub := &stubs.BigQueryStub{
-				StubbedMetadata: tt.datasetMetadata,
+				StubbedMetadata:        tt.datasetMetadata,
+				StubbedUpdatedMetadata: tt.updatedDatasetMetadata,
 			}
 			ctx := context.Background()
 			bq := NewBigQuery(bqStub)
@@ -73,9 +76,9 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 			newAccess, err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID)
 
 			if err != tt.expectedError {
-				t.Errorf("%v failed exp:%v got: %v", tt.name, tt.expectedError, err)
+				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
 			}
-			if diff := cmp.Diff(tt.expectedAccess, newAccess); diff != "" {
+			if diff := cmp.Diff(tt.updatedDatasetMetadata.Access, newAccess); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})

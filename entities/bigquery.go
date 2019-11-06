@@ -43,26 +43,22 @@ func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, da
 	if err := bq.client.Init(ctx, projectID); err != nil {
 		return nil, errors.Wrap(err, "failed to init bigquery")
 	}
-
 	md, err := bq.client.DatasetMetadata(ctx, projectID, datasetID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get metadata for bigquery dataset %v in project %v", datasetID, projectID)
+		return nil, errors.Wrapf(err, "failed to get metadata for bigquery dataset %q in project %q", datasetID, projectID)
 	}
-
-	newAccess := keepOnlyNonPublicAccess(md)
-
 	dm := bigquery.DatasetMetadataToUpdate{
-		Access: newAccess,
+		Access: nonPublicAccess(md),
+	}
+	updatedMetadata, err := bq.client.OverwriteDatasetMetadata(ctx, projectID, datasetID, dm)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to remove public access on bigquery dataset %q in project %q", datasetID, projectID)
 	}
 
-	if _, err := bq.client.OverwriteDatasetMetadata(ctx, projectID, datasetID, dm); err != nil {
-		return nil, errors.Wrapf(err, "failed to remove public access on bigquery dataset %v in project %v", datasetID, projectID)
-	}
-
-	return newAccess, nil
+	return updatedMetadata.Access, nil
 }
 
-func keepOnlyNonPublicAccess(metadata *bigquery.DatasetMetadata) []*bigquery.AccessEntry {
+func nonPublicAccess(metadata *bigquery.DatasetMetadata) []*bigquery.AccessEntry {
 	newAccesses := []*bigquery.AccessEntry{}
 	for _, a := range metadata.Access {
 		if shouldKeepAccessEntry(a) {
