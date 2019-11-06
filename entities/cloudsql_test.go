@@ -77,7 +77,6 @@ func TestClosePublicAccess(t *testing.T) {
 	const (
 		instance  = "instance-name"
 		projectID = "project1"
-		region    = "us-central1"
 	)
 	tests := []struct {
 		name     string
