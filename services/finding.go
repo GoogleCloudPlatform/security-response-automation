@@ -1,5 +1,5 @@
-// Package entities holds commonly used methods used in security automation.
-package entities
+// Package services holds commonly used methods used in security automation.
+package services
 
 // Copyright 2019 Google LLC
 //

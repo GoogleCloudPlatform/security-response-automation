@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -20,7 +20,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-// FirewallClient holds the minimum interface required by the firewall entity.
+// FirewallClient holds the minimum interface required by the firewall service.
 type FirewallClient interface {
 	PatchFirewallRule(context.Context, string, string, *compute.Firewall) (*compute.Operation, error)
 	FirewallRule(context.Context, string, string) (*compute.Firewall, error)
@@ -28,12 +28,12 @@ type FirewallClient interface {
 	WaitGlobal(string, *compute.Operation) []error
 }
 
-// Firewall entity.
+// Firewall service.
 type Firewall struct {
 	c FirewallClient
 }
 
-// NewFirewall returns a new firewall entity.
+// NewFirewall returns a new firewall service.
 func NewFirewall(cs FirewallClient) *Firewall {
 	return &Firewall{c: cs}
 }

@@ -1,5 +1,5 @@
-// Package revokeiam provides the implementation of automated actions.
-package revokeiam
+// Package revoke provides the implementation of automated actions.
+package revoke
 
 // Copyright 2019 Google LLC
 //
@@ -21,34 +21,41 @@ import (
 	"strings"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/etd/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 )
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	ProjectID       string
 	ExternalMembers []string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	Resource      *services.Resource
+	Logger        *services.Logger
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.AnomalousIAMGrant
-	r := &Required{}
+	v := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetJsonPayload().GetDetectionCategory().GetSubRuleName() {
 	case "external_member_added_to_policy":
-		r.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		r.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
+		v.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
+		v.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
 	default:
-		return nil, entities.ErrUnsupportedFinding
+		return nil, services.ErrUnsupportedFinding
 	}
-	if r.ProjectID == "" || len(r.ExternalMembers) == 0 {
-		return nil, entities.ErrValueNotFound
+	if v.ProjectID == "" || len(v.ExternalMembers) == 0 {
+		return nil, services.ErrValueNotFound
 	}
-	return r, nil
+	return v, nil
 }
 
 // Execute is the entry point for the IAM revoker Cloud Function.
@@ -60,15 +67,15 @@ func ReadFinding(b []byte) (*Required, error) {
 // Additionally, check to see if the affected project is within the configured resources. If the grant
 // was to a domain explicitly disallowed and within the parent resource then remove the member from
 // the IAM policy for the affected resource.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	conf := ent.Configuration
-	resources := ent.Configuration.RevokeGrants.Resources
-	members := toRemove(required.ExternalMembers, conf.RevokeGrants.Removelist)
-	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
-		if _, err := ent.Resource.RemoveMembersProject(ctx, required.ProjectID, members); err != nil {
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	conf := services.Configuration
+	resources := services.Configuration.RevokeGrants.Resources
+	members := toRemove(values.ExternalMembers, conf.RevokeGrants.Removelist)
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if _, err := services.Resource.RemoveMembersProject(ctx, values.ProjectID, members); err != nil {
 			return err
 		}
-		ent.Logger.Info("successfully removed %q from %s", members, required.ProjectID)
+		services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
 		return nil
 	})
 }

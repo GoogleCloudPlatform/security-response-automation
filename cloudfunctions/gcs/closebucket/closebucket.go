@@ -19,47 +19,54 @@ import (
 	"encoding/json"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 )
 
 // publicUsers contains a slice of public users we want to remove.
 var publicUsers = []string{"allUsers", "allAuthenticatedUsers"}
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	BucketName, ProjectID string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	Resource      *services.Resource
+	Logger        *services.Logger
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.StorageScanner
-	r := &Required{}
+	r := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "PUBLIC_BUCKET_ACL":
 		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
 	default:
-		return nil, entities.ErrUnsupportedFinding
+		return nil, services.ErrUnsupportedFinding
 	}
 	if r.BucketName == "" || r.ProjectID == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
 // Execute will remove any public users from buckets found within the provided folders.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	resources := ent.Configuration.CloseBucket.Resources
-	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
-		if err := ent.Resource.RemoveMembersFromBucket(ctx, required.BucketName, publicUsers); err != nil {
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	resources := services.Configuration.CloseBucket.Resources
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if err := services.Resource.RemoveMembersFromBucket(ctx, values.BucketName, publicUsers); err != nil {
 			return err
 		}
-		ent.Logger.Info("removed public members from bucket %q in project %q", required.BucketName, required.ProjectID)
+		services.Logger.Info("removed public members from bucket %q in project %q", values.BucketName, values.ProjectID)
 		return nil
 	})
 }

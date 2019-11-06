@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -21,7 +21,7 @@ import (
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 

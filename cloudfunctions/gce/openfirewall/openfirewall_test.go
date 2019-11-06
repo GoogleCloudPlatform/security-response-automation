@@ -24,8 +24,8 @@ import (
 	compute "google.golang.org/api/compute/v1"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -108,7 +108,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError               error
 	}{
 		{name: "read", projectID: "onboarding-project", firewallID: "6190685430815455733", bytes: []byte(openFirewallFinding), expectedError: nil},
-		{name: "wrong category", projectID: "", firewallID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrUnsupportedFinding},
+		{name: "wrong category", projectID: "", firewallID: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -178,14 +178,19 @@ func TestOpenFirewall(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, computeStub, crmStub := openFirewallSetup(tt.folderIDs, tt.remediationAction, tt.sourceRange)
+			svcs, computeStub, crmStub := openFirewallSetup(tt.folderIDs, tt.remediationAction, tt.sourceRange)
 			computeStub.StubbedFirewall = tt.firewallRule
 			crmStub.GetAncestryResponse = tt.ancestry
-			required := &Required{
+			values := &Values{
 				ProjectID:  "test-project",
 				FirewallID: "open-firewall-id",
 			}
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, values, &Services{
+				Configuration: svcs.Configuration,
+				Firewall:      svcs.Firewall,
+				Resource:      svcs.Resource,
+				Logger:        svcs.Logger,
+			}); err != nil {
 				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedFirewallRule, tt.expFirewallRule); diff != "" {
@@ -195,22 +200,22 @@ func TestOpenFirewall(t *testing.T) {
 	}
 }
 
-func openFirewallSetup(folderIDs []string, remediationAction string, sourceRanges []string) (*entities.Entity, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
+func openFirewallSetup(folderIDs []string, remediationAction string, sourceRanges []string) (*services.Global, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
-	log := entities.NewLogger(loggerStub)
+	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
 	storageStub := &stubs.StorageStub{}
 	crmStub := &stubs.ResourceManagerStub{}
-	res := entities.NewResource(crmStub, storageStub)
-	f := entities.NewFirewall(computeStub)
-	conf := &entities.Configuration{
-		DisableFirewall: &entities.DisableFirewall{
-			Resources: &entities.Resources{
+	res := services.NewResource(crmStub, storageStub)
+	f := services.NewFirewall(computeStub)
+	conf := &services.Configuration{
+		DisableFirewall: &services.DisableFirewall{
+			Resources: &services.Resources{
 				FolderIDs: folderIDs,
 			},
 			RemediationAction: remediationAction,
 			SourceRanges:      sourceRanges,
 		},
 	}
-	return &entities.Entity{Logger: log, Firewall: f, Resource: res, Configuration: conf}, computeStub, crmStub
+	return &services.Global{Logger: log, Firewall: f, Resource: res, Configuration: conf}, computeStub, crmStub
 }

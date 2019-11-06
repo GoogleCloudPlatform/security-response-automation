@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -21,19 +21,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-// BigQueryClient contains minimum interface required by the entity.
+// BigQueryClient contains minimum interface required by the service.
 type BigQueryClient interface {
 	Init(ctx context.Context, projectID string) error
 	DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error)
 	OverwriteDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error)
 }
 
-// BigQuery entity.
+// BigQuery service.
 type BigQuery struct {
 	client BigQueryClient
 }
 
-// NewBigQuery returns a BigQuery entity.
+var publicUsers = map[string]bool{"allUsers": true, "allAuthenticatedUsers": true}
+
+// NewBigQuery returns a BigQuery service.
 func NewBigQuery(cs BigQueryClient) *BigQuery {
 	return &BigQuery{client: cs}
 }
@@ -62,7 +64,7 @@ func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, da
 func nonPublicAccess(metadata *bigquery.DatasetMetadata) []*bigquery.AccessEntry {
 	newAccesses := []*bigquery.AccessEntry{}
 	for _, a := range metadata.Access {
-		if "allUsers" != a.Entity && "allAuthenticatedUsers" != a.Entity {
+		if !publicUsers[a.Entity] {
 			newAccesses = append(newAccesses, a)
 		}
 	}

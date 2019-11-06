@@ -1,4 +1,4 @@
-package revokeiam
+package revoke
 
 // Copyright 2019 Google LLC
 //
@@ -20,14 +20,14 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
-func TestRevokeIAM(t *testing.T) {
+func TestIAMRevoke(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
@@ -121,15 +121,18 @@ func TestRevokeIAM(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, crmStub := revokeGrantsSetup(tt.folderIDs, tt.projectIDs, tt.disallowed)
+			svcs, crmStub := revokeGrantsSetup(tt.folderIDs, tt.projectIDs, tt.disallowed)
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
-
-			required := &Required{
+			values := &Values{
 				ProjectID:       "test-project-id",
 				ExternalMembers: tt.externalMembers,
 			}
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, values, &Services{
+				Configuration: svcs.Configuration,
+				Resource:      svcs.Resource,
+				Logger:        svcs.Logger,
+			}); err != nil {
 				if !xerrors.Is(errors.Cause(err), tt.expectedError) {
 					t.Errorf("%q failed want:%q got:%q", tt.name, tt.expectedError, errors.Cause(err))
 				}
@@ -154,20 +157,20 @@ func createPolicy(members []string) []*crm.Binding {
 	}
 }
 
-func revokeGrantsSetup(folderIDs, projectIDs, disallowed []string) (*entities.Entity, *stubs.ResourceManagerStub) {
+func revokeGrantsSetup(folderIDs, projectIDs, disallowed []string) (*services.Global, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
-	l := entities.NewLogger(loggerStub)
+	l := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
-	r := entities.NewResource(crmStub, storageStub)
-	conf := &entities.Configuration{
-		RevokeGrants: &entities.RevokeGrants{
-			Resources: &entities.Resources{
+	r := services.NewResource(crmStub, storageStub)
+	conf := &services.Configuration{
+		RevokeGrants: &services.RevokeGrants{
+			Resources: &services.Resources{
 				FolderIDs:  folderIDs,
 				ProjectIDs: projectIDs,
 			},
 			Removelist: disallowed,
 		},
 	}
-	return &entities.Entity{Logger: l, Resource: r, Configuration: conf}, crmStub
+	return &services.Global{Logger: l, Resource: r, Configuration: conf}, crmStub
 }

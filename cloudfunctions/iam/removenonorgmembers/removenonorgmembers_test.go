@@ -20,7 +20,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -88,7 +88,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError        error
 	}{
 		{name: "read", OrganizationID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
-		{name: "wrong category", OrganizationID: "", bytes: []byte(findingOtherCategory), expectedError: entities.ErrUnsupportedFinding},
+		{name: "wrong category", OrganizationID: "", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -154,11 +154,11 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
-			res := entities.NewResource(crmStub, storageStub)
-			required := &Required{
+			res := services.NewResource(crmStub, storageStub)
+			values := &Values{
 				OrganizationID: orgID,
 			}
-			if err := Execute(context.Background(), required, &entities.Entity{Resource: res}); err != nil {
+			if err := Execute(context.Background(), values, &Services{Resource: res}); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {

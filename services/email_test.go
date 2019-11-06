@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //

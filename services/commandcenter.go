@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -21,23 +21,23 @@ import (
 	"google.golang.org/genproto/protobuf/field_mask"
 )
 
-// CommandCenterClient contains minimum interface required by the command center entity.
+// CommandCenterClient contains minimum interface required by the command center service.
 type CommandCenterClient interface {
 	AddSecurityMarks(context.Context, *crm.UpdateSecurityMarksRequest) (*crm.SecurityMarks, error)
 }
 
-// CommandCenter entity.
+// CommandCenter service.
 type CommandCenter struct {
 	client CommandCenterClient
 }
 
-// NewCommandCenter returns a commmand center entity.
+// NewCommandCenter returns a commmand center service.
 func NewCommandCenter(cc CommandCenterClient) *CommandCenter {
 	return &CommandCenter{client: cc}
 }
 
 // AddSecurityMarks to a finding or asset.
-func (r *CommandCenter) AddSecurityMarks(ctx context.Context, entityID string, securityMarks map[string]string) (*crm.SecurityMarks, error) {
+func (r *CommandCenter) AddSecurityMarks(ctx context.Context, serviceID string, securityMarks map[string]string) (*crm.SecurityMarks, error) {
 	var paths []string
 	for k := range securityMarks {
 		paths = append(paths, "marks."+k)
@@ -48,7 +48,7 @@ func (r *CommandCenter) AddSecurityMarks(ctx context.Context, entityID string, s
 			Paths: paths,
 		},
 		SecurityMarks: &crm.SecurityMarks{
-			Name:  entityID + "/securityMarks",
+			Name:  serviceID + "/securityMarks",
 			Marks: securityMarks,
 		},
 	})

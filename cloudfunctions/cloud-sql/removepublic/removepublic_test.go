@@ -24,8 +24,8 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -101,7 +101,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError                 error
 	}{
 		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance", bytes: []byte(openCloudSQL), expectedError: nil},
-		{name: "wrong category", projectID: "", InstanceName: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrUnsupportedFinding},
+		{name: "wrong category", projectID: "", InstanceName: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -167,14 +167,19 @@ func TestCloseCloudSQL(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, sqlStub, crmStub := closeSQLSetup(tt.folderIDs)
+			svcs, sqlStub, crmStub := closeSQLSetup(tt.folderIDs)
 			sqlStub.InstanceDetailsResponse = tt.instanceDetailsResponse
 			crmStub.GetAncestryResponse = tt.ancestry
-			required := &Required{
+			values := &Values{
 				ProjectID:    "sha-resources-20191002",
 				InstanceName: "public-sql-instance",
 			}
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, values, &Services{
+				Configuration: svcs.Configuration,
+				CloudSQL:      svcs.CloudSQL,
+				Resource:      svcs.Resource,
+				Logger:        svcs.Logger,
+			}); err != nil {
 				t.Errorf("%s failed to remove public ip from instance :%q", tt.name, err)
 			}
 
@@ -185,20 +190,20 @@ func TestCloseCloudSQL(t *testing.T) {
 	}
 }
 
-func closeSQLSetup(folderIDs []string) (*entities.Entity, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
+func closeSQLSetup(folderIDs []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
-	log := entities.NewLogger(loggerStub)
+	log := services.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
-	sql := entities.NewCloudSQL(sqlStub)
+	sql := services.NewCloudSQL(sqlStub)
 	storageStub := &stubs.StorageStub{}
 	crmStub := &stubs.ResourceManagerStub{}
-	res := entities.NewResource(crmStub, storageStub)
-	conf := &entities.Configuration{
-		CloseCloudSQL: &entities.CloseCloudSQL{
-			Resources: &entities.Resources{
+	res := services.NewResource(crmStub, storageStub)
+	conf := &services.Configuration{
+		CloseCloudSQL: &services.CloseCloudSQL{
+			Resources: &services.Resources{
 				FolderIDs: folderIDs,
 			},
 		},
 	}
-	return &entities.Entity{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub
+	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub
 }

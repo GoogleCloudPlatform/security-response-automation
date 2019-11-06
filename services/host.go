@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -26,7 +26,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-// ComputeClient contains minimum interface required by the host entity.
+// ComputeClient contains minimum interface required by the host service.
 type ComputeClient interface {
 	CreateSnapshot(context.Context, string, string, string, *compute.Snapshot) (*compute.Operation, error)
 	DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error)
@@ -42,12 +42,12 @@ type ComputeClient interface {
 	WaitZone(string, string, *compute.Operation) []error
 }
 
-// Host entity.
+// Host service.
 type Host struct {
 	client ComputeClient
 }
 
-// NewHost returns a host entity.
+// NewHost returns a host service.
 func NewHost(cs ComputeClient) *Host {
 	return &Host{client: cs}
 }
