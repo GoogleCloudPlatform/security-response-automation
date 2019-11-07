@@ -156,28 +156,28 @@ func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Pol
 }
 
 // RemoveMembersOrganization removes the given members from the organization.
-func (r *Resource) RemoveMembersOrganization(ctx context.Context, organizationName string, remove []string, p *crm.Policy) (*crm.Policy, error) {
+func (r *Resource) RemoveMembersOrganization(ctx context.Context, name string, remove []string, p *crm.Policy) (*crm.Policy, error) {
 	j := strings.Replace(strings.Join(remove, "|"), ".", `\.`, -1)
 	e, err := regexp.Compile("^" + j + "$")
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile regex: %q", err)
 	}
 	newPolicy := r.removeMembersFromPolicy(e, p)
-	s, err := r.crm.SetPolicyOrganization(ctx, organizationName, newPolicy)
+	s, err := r.crm.SetPolicyOrganization(ctx, name, newPolicy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set project policy: %q", err)
 	}
 	return s, nil
 }
 
-// PolicyOrganization returns the IAM policy for the given organization resource.
-func (r *Resource) PolicyOrganization(ctx context.Context, organizationName string) (*crm.Policy, error) {
-	return r.crm.GetPolicyOrganization(ctx, organizationName)
+// PolicyOrganization returns the IAM policy for the given resource name.
+func (r *Resource) PolicyOrganization(ctx context.Context, name string) (*crm.Policy, error) {
+	return r.crm.GetPolicyOrganization(ctx, name)
 }
 
 // Organization returns the organization name for the given organization resource.
-func (r *Resource) Organization(ctx context.Context, organizationID string) (*crm.Organization, error) {
-	return r.crm.GetOrganization(ctx, organizationID)
+func (r *Resource) Organization(ctx context.Context, orgID string) (*crm.Organization, error) {
+	return r.crm.GetOrganization(ctx, "organizations/"+orgID)
 }
 
 // EnableBucketOnlyPolicy enable bucket only policy for the given bucket
