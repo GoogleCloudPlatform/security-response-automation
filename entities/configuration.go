@@ -71,7 +71,7 @@ type Configuration struct {
 	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
-	UpdatePassword         *UpdatePassword         `json:"update_password"`
+	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 }
 
 // NewConfiguration returns a new configuration.
