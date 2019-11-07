@@ -33,6 +33,15 @@ Configuration
 - Configured in settings.json under the `close_bucket` key.
 - See general [resource list](#resources) options.
 
+#### Enable bucket only policy
+
+Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
+
+ Configuration
+
+ - Configured in settings.json under the `enable_bucket_only_policy` key.
+ - See general [resource list](#resources) options.
+
 ### IAM
 
 #### Revoke IAM grants
@@ -58,6 +67,17 @@ Configuration
 
 - Configured in settings.json under the `remove_public_ip` key.
 - See general [resource list](#resources) options.
+
+#### Remediate open firewall
+
+Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
+
+Configuration
+
+- Configured in settings.json under the `disable_firewall` key.
+- See general [resource list](#resources) options.
+- `remediation_action`: one of  `DISABLE`, `DELETE` or `UPDATE_RANGE`
+- `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
 ### Google Kubernetes Engine
 
