@@ -83,12 +83,12 @@ func TestReadFinding(t *testing.T) {
 	}`
 	)
 	for _, tt := range []struct {
-		name, OrganizationID string
-		bytes                []byte
-		expectedError        error
+		name, OrgID   string
+		bytes         []byte
+		expectedError error
 	}{
-		{name: "read", OrganizationID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
-		{name: "wrong category", OrganizationID: "", bytes: []byte(findingOtherCategory), expectedError: entities.ErrUnsupportedFinding},
+		{name: "read", OrgID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
+		{name: "wrong category", OrgID: "", bytes: []byte(findingOtherCategory), expectedError: entities.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -98,8 +98,8 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.OrganizationID != tt.OrganizationID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.OrganizationID, tt.OrganizationID)
+			if err == nil && r.orgID != tt.OrgID {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, r.orgID, tt.OrgID)
 			}
 		})
 	}
@@ -190,7 +190,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
 			res := entities.NewResource(crmStub, storageStub)
 			required := &Required{
-				OrganizationID: orgID,
+				orgID: orgID,
 			}
 			conf := &entities.Configuration{
 				RemoveNonOrgMembers: &entities.RemoveNonOrgMembers{

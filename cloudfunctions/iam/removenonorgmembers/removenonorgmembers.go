@@ -30,7 +30,7 @@ import (
 
 // Required contains the required values needed for this function.
 type Required struct {
-	OrganizationID string
+	orgID string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -42,11 +42,11 @@ func ReadFinding(b []byte) (*Required, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		r.OrganizationID = sha.OrganizationID(finding.GetFinding().GetParent())
+		r.orgID = sha.OrgID(finding.GetFinding().GetParent())
 	default:
 		return nil, entities.ErrUnsupportedFinding
 	}
-	if r.OrganizationID == "" {
+	if r.orgID == "" {
 		return nil, entities.ErrValueNotFound
 	}
 	return r, nil
@@ -56,9 +56,9 @@ func ReadFinding(b []byte) (*Required, error) {
 func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
 	conf := ent.Configuration
 	allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
-	organization, err := ent.Resource.Organization(ctx, required.OrganizationID)
+	organization, err := ent.Resource.Organization(ctx, required.orgID)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get organization: %s", required.OrganizationID)
+		return errors.Wrapf(err, "failed to get organization: %s", required.orgID)
 	}
 	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
 	if err != nil {
@@ -89,6 +89,7 @@ func domainRegex(domain string) *regexp.Regexp {
 	return regexp.MustCompile("^.+@" + domain + "$")
 }
 
+// allowed returns a boolean if the member's email address matches one of the domain regular expressions.
 func allowed(member string, domains []string) bool {
 	for _, d := range domains {
 		if domainRegex(d).MatchString(member) {
