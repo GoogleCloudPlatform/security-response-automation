@@ -13,7 +13,7 @@
 # limitations under the License.
 resource "google_cloudfunctions_function" "update-password" {
   name                  = "UpdatePassword"
-  description           = "Updates the root user password from a Cloud SQL instance."
+  description           = "Updates the root user password of a Cloud SQL instance."
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = "${var.setup.gcf-bucket-name}"
