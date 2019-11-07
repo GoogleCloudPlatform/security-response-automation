@@ -171,16 +171,18 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"user:guy@evilgoogle.com",
 				"user:guy@google.evil.com",
 				"user:mls@cloudorgevil.com",
-				"user:mls@cloudorg.com.ev"}),
+				"user:mls@cloudorg.com.ev",
+				"user:buddy@prod.google.com"}),
 			expectedBinding: createBindings([]string{
 				"user:ddgo@cloudorg.com",
 				"user:mans@cloudorg.com",
 				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
 				"user:anyone@google.com",
 				"group:admins@example.com",
-				"domain:aol.com"}),
+				"domain:aol.com",
+				"user:buddy@prod.google.com"}),
 			allowDomains: []string{
-				"google.com",
+				"^.+@(prod\\.)*google\\.com$",
 			},
 		},
 	}

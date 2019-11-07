@@ -73,11 +73,12 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 }
 
 func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) []string {
-	regex := domainRegex(orgDisplayName)
+	regex, _ := regexp.Compile("^.+@" + orgDisplayName + "$")
 	var nonOrgMembers []string
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			if strings.HasPrefix(m, "user:") && !inOrg(m, regex) && !allowed(m, allowedDomains) {
+			inOrg := regex.MatchString(m)
+			if strings.HasPrefix(m, "user:") && !inOrg && !allowed(m, allowedDomains) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
@@ -85,20 +86,12 @@ func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager
 	return nonOrgMembers
 }
 
-func domainRegex(domain string) *regexp.Regexp {
-	return regexp.MustCompile("^.+@" + domain + "$")
-}
-
 // allowed returns a boolean if the member's email address matches one of the domain regular expressions.
 func allowed(member string, domains []string) bool {
 	for _, d := range domains {
-		if domainRegex(d).MatchString(member) {
+		if matches, _ := regexp.MatchString(d, member); matches {
 			return true
 		}
 	}
 	return false
-}
-
-func inOrg(member string, regex *regexp.Regexp) bool {
-	return regex.MatchString(member)
 }
