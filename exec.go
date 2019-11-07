@@ -295,9 +295,15 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.admin to update a user password.
 //
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
-	r, err := updatepassword.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := updatepassword.ReadFinding(m.Data); err {
+	case nil:
+		return updatepassword.Execute(ctx, values, &updatepassword.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	default:
 		return err
 	}
-	return updatepassword.Execute(ctx, r, ent)
 }
