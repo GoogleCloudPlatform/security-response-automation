@@ -42,20 +42,20 @@ type Services struct {
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.IamScanner
-	r := &Values{}
+	v := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		r.orgID = sha.OrgID(finding.GetFinding().GetParent())
+		v.orgID = sha.OrgID(finding.GetFinding().GetParent())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if r.orgID == "" {
+	if v.orgID == "" {
 		return nil, services.ErrValueNotFound
 	}
-	return r, nil
+	return v, nil
 }
 
 // Execute removes non-organization members.

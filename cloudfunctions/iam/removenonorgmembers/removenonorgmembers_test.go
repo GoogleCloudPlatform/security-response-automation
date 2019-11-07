@@ -88,7 +88,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError error
 	}{
 		{name: "read", OrgID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
-		{name: "wrong category", OrgID: "", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
+		{name: "wrong category", OrgID: "1050000000008", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
