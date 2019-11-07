@@ -19,9 +19,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/google/uuid"
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/entities/helpers"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
 	"github.com/pkg/errors"
 )
@@ -52,7 +52,11 @@ func ReadFinding(b []byte) (*Required, error) {
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 		r.Host = host
 		r.UserName = userName
-		r.Password = uuid.New().String()
+		pw, err := helpers.GeneratePassword()
+		if err != nil {
+			return nil, err
+		}
+		r.Password = pw
 	}
 	if r.InstanceName == "" || r.ProjectID == "" {
 		return nil, entities.ErrValueNotFound

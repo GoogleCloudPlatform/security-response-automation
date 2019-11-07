@@ -15,6 +15,9 @@ package helpers
 // limitations under the License.
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"strings"
 
 	"google.golang.org/api/cloudresourcemanager/v1"
@@ -33,4 +36,15 @@ func CreateAncestors(members []string) *cloudresourcemanager.GetAncestryResponse
 		})
 	}
 	return &cloudresourcemanager.GetAncestryResponse{Ancestor: ancestors}
+}
+
+// GeneratePassword generates a password based on randomly generated numbers that are hashed using SHA256.
+func GeneratePassword() (string, error) {
+	b := make([]byte, 64)
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+	sha := sha256.Sum256(b)
+	return hex.EncodeToString(sha[:]), nil
 }
