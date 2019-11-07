@@ -45,23 +45,22 @@ func (bq *BigQuery) Init(ctx context.Context, projectID string) error {
 	return bq.client.Init(ctx, projectID)
 }
 
-// RemoveDatasetPublicAccess removes allUsers and allAuthenticatedUsers access from a dataset metadata.
-func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, datasetID string) ([]*bigquery.AccessEntry, error) {
+// RemoveDatasetPublicAccess removes public users from a dataset.
+func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, datasetID string) error {
 	md, err := bq.client.DatasetMetadata(ctx, projectID, datasetID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get metadata for bigquery dataset %q in project %q", datasetID, projectID)
+		return errors.Wrapf(err, "failed to get metadata for bigquery dataset %q in project %q", datasetID, projectID)
 	}
 	dm := bigquery.DatasetMetadataToUpdate{
-		Access: nonPublicAccess(md),
+		Access: removePublicUsers(md),
 	}
-	updatedMetadata, err := bq.client.OverwriteDatasetMetadata(ctx, projectID, datasetID, dm)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to remove public access on bigquery dataset %q in project %q", datasetID, projectID)
+	if _, err := bq.client.OverwriteDatasetMetadata(ctx, projectID, datasetID, dm); err != nil {
+		return errors.Wrapf(err, "failed to remove public access on bigquery dataset %q in project %q", datasetID, projectID)
 	}
-	return updatedMetadata.Access, nil
+	return nil
 }
 
-func nonPublicAccess(metadata *bigquery.DatasetMetadata) []*bigquery.AccessEntry {
+func removePublicUsers(metadata *bigquery.DatasetMetadata) []*bigquery.AccessEntry {
 	newAccesses := []*bigquery.AccessEntry{}
 	for _, a := range metadata.Access {
 		if !publicUsers[a.Entity] {
