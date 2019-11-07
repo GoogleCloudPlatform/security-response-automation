@@ -135,7 +135,7 @@ func TestUpdatePassword(t *testing.T) {
 			folderIDs: []string{"123"},
 			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &sqladmin.User{
-				Password: "e68d74a0594a438abf614199294d50c4",
+				Password: "4a542dd833d9f8a7600b13cd281d00cf2b0a5610e825ff931260b2911bef95b5",
 			},
 		},
 		{
@@ -154,7 +154,7 @@ func TestUpdatePassword(t *testing.T) {
 				InstanceName: "test-no-password",
 				Host:         "%",
 				UserName:     "root",
-				Password:     "e68d74a0594a438abf614199294d50c4",
+				Password:     "4a542dd833d9f8a7600b13cd281d00cf2b0a5610e825ff931260b2911bef95b5",
 			}
 			if err := Execute(ctx, required, ent); err != nil {
 				t.Errorf("%s failed to update root password for instance :%q", tt.name, err)
