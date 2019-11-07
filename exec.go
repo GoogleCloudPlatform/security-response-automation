@@ -20,6 +20,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/bigquery/removepublicaccess"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
@@ -177,6 +178,31 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 		return removepublicip.Execute(ctx, values, &removepublicip.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
+		return err
+	}
+}
+
+// RemovePublicAccess removes public access of a BigQuery dataset.
+//
+// This Cloud Function will respond to Security Health Analytics **Public Dataset** findings
+// from **Dataset Scanner**. All public access of the affected dataset will be
+// removed when this function is activated.
+//
+// Permissions required
+//	- roles/bigquery.dataOwner to get and update dataset metadata.
+//
+func RemovePublicAccess(ctx context.Context, m pubsub.Message) error {
+	switch values, err := removepublicaccess.ReadFinding(m.Data); err {
+	case nil:
+		return removepublicaccess.Execute(ctx, values, &removepublicaccess.Services{
+			Configuration: svcs.Configuration,
+			BigQuery:      svcs.BigQuery,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
