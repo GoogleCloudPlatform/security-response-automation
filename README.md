@@ -90,6 +90,26 @@ Configuration
 - Configured in settings.json under the `disable_dashboard` key.
 - See general [resource list](#resources) options.
 
+### Google Cloud SQL
+
+#### Close public Cloud SQL instance
+
+Close a public cloud SQL instance.
+
+Configuration
+
+- Configured in settings.json under the `close_cloud_sql` key.
+- See general [resource list](#resources) options.
+
+#### Require SSL connection to Cloud SQL
+
+Update Cloud SQL instance to require SSL connections.
+
+Configuration
+
+- Configured in settings.json under the `cloud_sql_require_ssl` key.
+- See general [resource list](#resources) options.
+
 ### Installation
 
 Following these instructions will deploy all SRA Cloud Functions. Before you get started be sure
