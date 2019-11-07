@@ -62,18 +62,19 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 	}
 	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
 	if err != nil {
-		return errors.Wrap(err, "failed to retrieve organization policies")
+		return errors.Wrap(err, "failed to retrieve organization policy")
 	}
 	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
 	if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
-		return errors.Wrap(err, "failed to remove organization policies")
+		return errors.Wrap(err, "failed to remove organization policy")
 	}
 	log.Printf("removed members: %s", membersToRemove)
 	return nil
 }
 
-func filterNonOrgMembers(organizationDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) (nonOrgMembers []string) {
-	regex := domainRegex(organizationDisplayName)
+func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) []string {
+	regex := domainRegex(orgDisplayName)
+	var nonOrgMembers []string
 	for _, b := range bindings {
 		for _, m := range b.Members {
 			if strings.HasPrefix(m, "user:") && !inOrg(m, regex) && !allowed(m, allowedDomains) {
