@@ -41,8 +41,7 @@ func CreateAncestors(members []string) *cloudresourcemanager.GetAncestryResponse
 // GeneratePassword generates a password based on randomly generated numbers that are hashed using SHA256.
 func GeneratePassword() (string, error) {
 	b := make([]byte, 64)
-	_, err := rand.Read(b)
-	if err != nil {
+	if _, err := rand.Read(b); err != nil {
 		return "", err
 	}
 	sha := sha256.Sum256(b)
