@@ -48,7 +48,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		v.orgID = sha.OrgID(finding.GetFinding().GetParent())
+		v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
@@ -84,7 +84,8 @@ func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager
 	for _, b := range bindings {
 		for _, m := range b.Members {
 			inOrg := regex.MatchString(m)
-			if strings.HasPrefix(m, "user:") && !inOrg && !allowed(m, allowedDomains) {
+			isUser := strings.HasPrefix(m, "user:")
+			if isUser && !inOrg && !allowed(m, allowedDomains) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
