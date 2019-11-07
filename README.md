@@ -37,7 +37,7 @@ Configuration
 
 Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
 
- Configuration
+Configuration
 
  - Configured in settings.json under the `enable_bucket_only_policy` key.
  - See general [resource list](#resources) options.
@@ -89,30 +89,6 @@ Configuration
 
 - Configured in settings.json under the `disable_dashboard` key.
 - See general [resource list](#resources) options.
-
-**Enable bucket only IAM policy**
-
-This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
-Depending on which resources you specify it will determine which projects are enforced.
-
-- `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
-- `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
-
-For example, if you want to only enable bucket only IAM policy in the folder **development**
-you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
-and place into the `folder_ids` array.
-
-```json
-{
-  "enable_bucket_only_policy": {
-    "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
-    }
-  }
-}
-```
 
 ### Installation
 
