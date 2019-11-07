@@ -30,61 +30,71 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/enablebucketonlypolicy"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revokeiam"
-	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revoke"
+	"github.com/googlecloudplatform/threat-automation/services"
 )
 
-var ent *entities.Entity
+var svcs *services.Global
 
 func init() {
 	ctx := context.Background()
 	var err error
-	ent, err = entities.New(ctx)
+	svcs, err = services.New(ctx)
 	if err != nil {
-		log.Fatalf("failed to initialize entities: %q", err)
+		log.Fatalf("failed to initialize services: %q", err)
 	}
 }
 
-// RevokeIAM is the entry point for the IAM revoker Cloud Function.
+// IAMRevoke is the entry point for the IAM revoker Cloud Function.
 //
-// This Cloud Function will be triggered when Event Threat Detection
-// detects an anomalous IAM grant. Once triggered this function will
-// attempt to revoke the external members added to the policy if they match the provided
-// list of disallowed domains. Additionally this method will only remove members if the
-// project they were added to is within the specified folders. This configuration allows
-// you to take a remediation action only on specific members and folders. For example,
-// you may have a folder "development" where users can experiment without strict policies.
-// However in your "production" folder you may want to revoke any grants that ETD finds as
-// long as they match the domains you specify.
+// This function will attempt to revoke the external members added to the policy if they
+// match the provided list of disallowed domains. Additionally this method will only remove
+// members if the project they were added to is within the specified folders. This
+// configuration allows you to take a remediation action only on specific members and folders.
+// For example, you may have a folder "development" where users can experiment without strict
+// policies. However in your "production" folder you may want to revoke any grants that ETD
+// finds as long as they match the domains you specify.
 //
 // Permissions required
 // 	- roles/resourcemanager.folderAdmin to revoke IAM grants.
 //	- roles/viewer to verify the affected project is within the enforced folder.
 //
-func RevokeIAM(ctx context.Context, m pubsub.Message) error {
-	r, err := revokeiam.ReadFinding(m.Data)
-	if err != nil {
+func IAMRevoke(ctx context.Context, m pubsub.Message) error {
+	switch values, err := revoke.ReadFinding(m.Data); err {
+	case nil:
+		return revoke.Execute(ctx, values, &revoke.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return revokeiam.Execute(ctx, r, ent)
 }
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
 //
-// This Cloud Function will respond to Event Threat Detection **bad IP** findings. Once a bad IP
-// finding is received this Cloud Function will look for any existing disk snapshots for the
-// affected instance. If there are recent snapshots then no action is taken. If we have not
+// Once a bad IP finding is received this Cloud Function will look for any existing disk snapshots
+// for the affected instance. If there are recent snapshots then no action is taken. If we have not
 // taken a snapshot recently, take a new snapshot for each disk within the instance.
 //
 // Permissions required
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	r, err := createsnapshot.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := createsnapshot.ReadFinding(m.Data); err {
+	case nil:
+		return createsnapshot.Execute(ctx, values, &createsnapshot.Services{
+			Host:   svcs.Host,
+			Logger: svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return createsnapshot.Execute(ctx, r, ent)
 }
 
 // CloseBucket will remove any public users from buckets found within the provided folders.
@@ -94,11 +104,18 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 //	- roles/storeage.admin to modify buckets.
 //
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	r, err := closebucket.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := closebucket.ReadFinding(m.Data); err {
+	case nil:
+		return closebucket.Execute(ctx, values, &closebucket.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return closebucket.Execute(ctx, r, ent)
 }
 
 // OpenFirewall will remediate an open firewall.
@@ -108,11 +125,19 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.securityAdmin to modify firewall rules.
 //
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
-	r, err := openfirewall.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := openfirewall.ReadFinding(m.Data); err {
+	case nil:
+		return openfirewall.Execute(ctx, values, &openfirewall.Services{
+			Configuration: svcs.Configuration,
+			Firewall:      svcs.Firewall,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return openfirewall.Execute(ctx, r, ent)
 }
 
 // RemoveNonOrganizationMember removes all members that do not match the organization domain.
@@ -124,11 +149,17 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 //
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
-	r, err := removenonorgmembers.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
+	case nil:
+		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return removenonorgmembers.Execute(ctx, r, ent)
 }
 
 // RemovePublicIP removes all the external IP addresses of a GCE instance.
@@ -141,11 +172,19 @@ func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	r, err := removepublicip.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := removepublicip.ReadFinding(m.Data); err {
+	case nil:
+		return removepublicip.Execute(ctx, values, &removepublicip.Services{
+			Configuration: svcs.Configuration,
+			Host:          svcs.Host,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return removepublicip.Execute(ctx, r, ent)
 }
 
 // EnableBucketOnlyPolicy Enable bucket only policy on a GCS bucket.
@@ -157,11 +196,18 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/storage.admin to change the Bucket policy mode.
 //
 func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
-	r, err := enablebucketonlypolicy.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
+	case nil:
+		return enablebucketonlypolicy.Execute(ctx, values, &enablebucketonlypolicy.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return enablebucketonlypolicy.Execute(ctx, r, ent)
 }
 
 // CloseCloudSQL removes public IP for a Cloud SQL instance.
@@ -174,11 +220,19 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	r, err := removepublic.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := removepublic.ReadFinding(m.Data); err {
+	case nil:
+		return removepublic.Execute(ctx, values, &removepublic.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return removepublic.Execute(ctx, r, ent)
 }
 
 // CloudSQLRequireSSL enables the SSL requirement for a Cloud SQL instance.
@@ -191,11 +245,19 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	r, err := requiressl.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := requiressl.ReadFinding(m.Data); err {
+	case nil:
+		return requiressl.Execute(ctx, values, &requiressl.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
 		return err
 	}
-	return requiressl.Execute(ctx, r, ent)
 }
 
 // DisableDashboard will disable the Kubernetes dashboard addon.
@@ -208,11 +270,19 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
-	r, err := disabledashboard.ReadFinding(m.Data)
-	if err != nil {
+	switch values, err := disabledashboard.ReadFinding(m.Data); err {
+	case services.ErrUnsupportedFinding:
+		return nil
+	case nil:
+		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
+			Configuration: svcs.Configuration,
+			Container:     svcs.Container,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	default:
 		return err
 	}
-	return disabledashboard.Execute(ctx, r, ent)
 }
 
 // UpdatePassword updates the root password for a Cloud SQL instance.

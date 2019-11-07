@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -30,7 +30,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 	tests := []struct {
 		name             string
 		securityMark     map[string]string
-		entityID         string
+		serviceID        string
 		expectedError    error
 		expectedResponse *sccpb.SecurityMarks
 		expectedRequest  *sccpb.UpdateSecurityMarksRequest
@@ -39,7 +39,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 		{
 			name:             "add Security Mark on a existent finding",
 			securityMark:     map[string]string{"automationTest": "true"},
-			entityID:         "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
+			serviceID:        "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
 			expectedError:    nil,
 			expectedResponse: &sccpb.SecurityMarks{},
 			expectedRequest: &sccpb.UpdateSecurityMarksRequest{
@@ -55,7 +55,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 		{
 			name:             "add Security Mark on a nonexistent finding",
 			securityMark:     map[string]string{"automationTestFailing": "true"},
-			entityID:         "nonexistent",
+			serviceID:        "nonexistent",
 			expectedError:    stubs.ErrEntityNonExistent,
 			expectedResponse: nil,
 			expectedRequest: &sccpb.UpdateSecurityMarksRequest{
@@ -75,7 +75,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			commandCenterStub := &stubs.SecurityCommandCenterStub{}
 			ctx := context.Background()
 			c := NewCommandCenter(commandCenterStub)
-			r, err := c.AddSecurityMarks(ctx, tt.entityID, tt.securityMark)
+			r, err := c.AddSecurityMarks(ctx, tt.serviceID, tt.securityMark)
 
 			if diff := cmp.Diff(commandCenterStub.GetUpdateSecurityMarksRequest, tt.expectedRequest); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)

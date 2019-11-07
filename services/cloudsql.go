@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -21,7 +21,10 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
-// CloudSQLClient contains minimum interface required by the Cloud SQL entity.
+// allIPs represents a IP network covering all valid IPv4 addresses.
+const allIPs = "0.0.0.0/0"
+
+// CloudSQLClient contains minimum interface required by the Cloud SQL service.
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
 	WaitSQL(string, *sqladmin.Operation) []error
@@ -29,12 +32,12 @@ type CloudSQLClient interface {
 	UpdateUser(context.Context, string, string, string, string, *sqladmin.User) (*sqladmin.Operation, error)
 }
 
-// CloudSQL entity.
+// CloudSQL service.
 type CloudSQL struct {
 	client CloudSQLClient
 }
 
-// NewCloudSQL returns a Cloud SQL entity.
+// NewCloudSQL returns a Cloud SQL service.
 func NewCloudSQL(cc CloudSQLClient) *CloudSQL {
 	return &CloudSQL{client: cc}
 }
@@ -59,51 +62,42 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 
 // UpdateUserPassword updates a user's password.
 func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, host, name, password string) (*sqladmin.Operation, error) {
-	user := &sqladmin.User{
+	return s.client.UpdateUser(ctx, projectID, instance, host, name, &sqladmin.User{
 		Password: password,
-	}
-	return s.client.UpdateUser(ctx, projectID, instance, host, name, user)
+	})
 }
 
-// InstanceDetails get details for an instance
+// InstanceDetails get details for an instance.
 func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instance string) (*sqladmin.DatabaseInstance, error) {
 	return s.client.InstanceDetails(ctx, projectID, instance)
 }
 
-// ClosePublicAccess removes "0.0.0.0/0" from authorized IPs of an instance
-func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID string, instance string, instanceDetails *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
-
-	if instanceDetails == nil {
-		return nil, fmt.Errorf("the Cloud SQL instance does not exist")
-	}
-
-	var authorizedIps []*sqladmin.AclEntry
+// ClosePublicAccess removes all valid IPs the from the authorized networks for an instance.
+func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance string, acls []*sqladmin.AclEntry) (*sqladmin.Operation, error) {
+	var authorizedNetworks []*sqladmin.AclEntry
 	found := false
-	for _, ip := range instanceDetails.Settings.IpConfiguration.AuthorizedNetworks {
-		if ip.Value == "0.0.0.0/0" {
+	for _, ip := range acls {
+		if ip.Value == allIPs {
 			found = true
 			continue
 		}
-		authorizedIps = append(authorizedIps, ip)
-
+		authorizedNetworks = append(authorizedNetworks, ip)
 	}
-
 	if !found {
-		return nil, nil
+		return nil, fmt.Errorf("instance %q does not have public access enabled", instance)
 	}
-
-	// null fields are removed by default, must explicitly declare as intend to be null so they are preserved.
+	// If there are no authorized networks the field must be explictly declared as null.
+	// Otherwise null fields are removed if not declared as such.
 	var nullFields []string
-	if len(authorizedIps) == 0 {
+	if len(authorizedNetworks) == 0 {
 		nullFields = append(nullFields, "AuthorizedNetworks")
 	}
-
 	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
 		Name:    instance,
 		Project: projectID,
 		Settings: &sqladmin.Settings{
 			IpConfiguration: &sqladmin.IpConfiguration{
-				AuthorizedNetworks: authorizedIps,
+				AuthorizedNetworks: authorizedNetworks,
 				NullFields:         nullFields,
 			},
 		},

@@ -20,46 +20,54 @@ import (
 	"strings"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	OrganizationID string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	Resource      *services.Resource
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.IamScanner
-	r := &Required{}
+	r := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
 		r.OrganizationID = sha.OrganizationID(finding.GetFinding().GetParent())
+	default:
+		return nil, services.ErrUnsupportedFinding
 	}
 	if r.OrganizationID == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
 // Execute removes non-organization members.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	organization, err := ent.Resource.Organization(ctx, required.OrganizationID)
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	organization, err := services.Resource.Organization(ctx, values.OrganizationID)
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization")
 	}
-	policy, err := ent.Resource.PolicyOrganization(ctx, organization.Name)
+	policy, err := services.Resource.PolicyOrganization(ctx, organization.Name)
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policies")
 	}
 	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings)
-	if _, err = ent.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
+	if _, err = services.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 		return errors.Wrap(err, "failed to remove organization policies")
 	}
 	return nil

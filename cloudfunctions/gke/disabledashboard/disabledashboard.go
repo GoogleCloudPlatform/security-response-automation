@@ -19,43 +19,53 @@ import (
 	"encoding/json"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 )
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	ProjectID, Zone, ClusterID string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	Container     *services.Container
+	Resource      *services.Resource
+	Logger        *services.Logger
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.ContainerScanner
-	r := &Required{}
+	r := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "WEB_UI_ENABLED":
 		r.ProjectID = finding.Finding.SourceProperties.GetProjectID()
 		r.Zone = sha.ClusterZone(finding.GetFinding().GetResourceName())
 		r.ClusterID = sha.ClusterID(finding.GetFinding().GetResourceName())
+	default:
+		return nil, services.ErrUnsupportedFinding
 	}
 	if r.ProjectID == "" || r.Zone == "" || r.ClusterID == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
 // Execute disables the Kubernetes dashboard.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	resources := ent.Configuration.DisableDashboard.Resources
-	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
-		if _, err := ent.Container.DisableDashboard(ctx, required.ProjectID, required.Zone, required.ClusterID); err != nil {
+func Execute(ctx context.Context, values *Values, service *Services) error {
+	resources := service.Configuration.DisableDashboard.Resources
+	return service.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if _, err := service.Container.DisableDashboard(ctx, values.ProjectID, values.Zone, values.ClusterID); err != nil {
 			return err
 		}
-		ent.Logger.Info("successfully disabled dashboard from cluster %q in project %q", required.ClusterID, required.ProjectID)
+		service.Logger.Info("successfully disabled dashboard from cluster %q in project %q", values.ClusterID, values.ProjectID)
 		return nil
 	})
 }

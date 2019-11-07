@@ -1,4 +1,4 @@
-package entities
+package services
 
 import (
 	"encoding/json"

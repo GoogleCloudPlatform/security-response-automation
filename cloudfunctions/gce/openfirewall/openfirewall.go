@@ -20,22 +20,30 @@ import (
 	"fmt"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 )
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	ProjectID, FirewallID string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	Firewall      *services.Firewall
+	Resource      *services.Resource
+	Logger        *services.Logger
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.FirewallScanner
-	r := &Required{}
+	r := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "OPEN_FIREWALL":
@@ -45,32 +53,33 @@ func ReadFinding(b []byte) (*Required, error) {
 	case "OPEN_RDP_PORT":
 		r.FirewallID = sha.FirewallID(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+	default:
+		return nil, services.ErrUnsupportedFinding
 	}
 	if r.FirewallID == "" || r.ProjectID == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
 // Execute remediates an open firewall.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	resources := ent.Configuration.DisableFirewall.Resources
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	resources := services.Configuration.DisableFirewall.Resources
 	var fn func() error
-	switch action := ent.Configuration.DisableFirewall.RemediationAction; action {
+	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
 	case "DISABLE":
-		fn = disable(ctx, ent.Logger, ent.Firewall, required.ProjectID, required.FirewallID)
+		fn = disable(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "DELETE":
-		fn = delete(ctx, ent.Logger, ent.Firewall, required.ProjectID, required.FirewallID)
+		fn = delete(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "UPDATE_RANGE":
-		fn = updateRange(ctx, ent.Logger, ent.Configuration.DisableFirewall.SourceRanges, ent.Firewall, required.ProjectID, required.FirewallID)
+		fn = updateRange(ctx, services.Logger, services.Configuration.DisableFirewall.SourceRanges, services.Firewall, values.ProjectID, values.FirewallID)
 	default:
-		return fmt.Errorf("unknown open firewall remediation action %q", action)
+		return fmt.Errorf("unknown open firewall remediation action` %q", action)
 	}
-
-	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, fn)
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, fn)
 }
 
-func disable(ctx context.Context, logr *entities.Logger, fw *entities.Firewall, projectID, firewallID string) func() error {
+func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, projectID, firewallID)
 		if err != nil {
@@ -88,7 +97,7 @@ func disable(ctx context.Context, logr *entities.Logger, fw *entities.Firewall, 
 	}
 }
 
-func delete(ctx context.Context, logr *entities.Logger, fw *entities.Firewall, projectID, firewallID string) func() error {
+func delete(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, projectID, firewallID)
 		if err != nil {
@@ -106,7 +115,7 @@ func delete(ctx context.Context, logr *entities.Logger, fw *entities.Firewall, p
 	}
 }
 
-func updateRange(ctx context.Context, logr *entities.Logger, newRanges []string, fw *entities.Firewall, projectID, firewallID string) func() error {
+func updateRange(ctx context.Context, logr *services.Logger, newRanges []string, fw *services.Firewall, projectID, firewallID string) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, projectID, firewallID)
 		if err != nil {

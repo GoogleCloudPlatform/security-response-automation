@@ -21,8 +21,8 @@ import (
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -115,8 +115,8 @@ func TestReadFinding(t *testing.T) {
 		expectedError           error
 	}{
 		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219", bytes: []byte(storageScanner), expectedError: nil},
-		{name: "missing properties", bucket: "", projectID: "", bytes: []byte(missingProperties), expectedError: entities.ErrValueNotFound},
-		{name: "wrong category", bucket: "", projectID: "", bytes: []byte(somethingElse), expectedError: entities.ErrValueNotFound},
+		{name: "missing properties", bucket: "", projectID: "", bytes: []byte(missingProperties), expectedError: services.ErrValueNotFound},
+		{name: "wrong category", bucket: "", projectID: "", bytes: []byte(somethingElse), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -163,18 +163,22 @@ func TestCloseBucket(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, crmStub, storageStub := closeBucketSetup(tt.folderIDs)
+			svcs, crmStub, storageStub := closeBucketSetup(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 			for _, v := range tt.initialMembers {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
 
-			required := &Required{
+			required := &Values{
 				ProjectID:  "project-name",
 				BucketName: "open-bucket-name",
 			}
 
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, required, &Services{
+				Configuration: svcs.Configuration,
+				Resource:      svcs.Resource,
+				Logger:        svcs.Logger,
+			}); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
 
@@ -188,19 +192,19 @@ func TestCloseBucket(t *testing.T) {
 	}
 }
 
-func closeBucketSetup(folderIDs []string) (*entities.Entity, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func closeBucketSetup(folderIDs []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
-	log := entities.NewLogger(loggerStub)
+	log := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
-	res := entities.NewResource(crmStub, storageStub)
+	res := services.NewResource(crmStub, storageStub)
 	storageStub.BucketPolicyResponse = &iam.Policy{}
-	conf := &entities.Configuration{
-		CloseBucket: &entities.CloseBucket{
-			Resources: &entities.Resources{
+	conf := &services.Configuration{
+		CloseBucket: &services.CloseBucket{
+			Resources: &services.Resources{
 				FolderIDs: folderIDs,
 			},
 		},
 	}
-	return &entities.Entity{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub
+	return &services.Global{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub
 }

@@ -1,5 +1,5 @@
-// Package entities holds commonly used methods used in security automation.
-package entities
+// Package services holds commonly used methods used in security automation.
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -26,6 +26,8 @@ var (
 	ErrParsing = errors.New("not a valid log")
 	// ErrValueNotFound thrown when a value is requested but not found.
 	ErrValueNotFound = errors.New("value not found")
+	// ErrUnsupportedFinding thrown when a finding is not supported by a function.
+	ErrUnsupportedFinding = errors.New("unsupported finding")
 )
 
 // Life of a finding

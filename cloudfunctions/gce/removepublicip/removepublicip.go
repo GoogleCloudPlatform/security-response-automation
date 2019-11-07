@@ -19,44 +19,53 @@ import (
 	"encoding/json"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 )
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	ProjectID, InstanceZone, InstanceID string
 }
 
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
-	var finding pb.ComputeInstanceScanner
-	r := &Required{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
-	}
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	Host          *services.Host
+	Resource      *services.Resource
+	Logger        *services.Logger
+}
 
-	if finding.GetFinding().GetCategory() == "PUBLIC_IP_ADDRESS" {
+// ReadFinding will attempt to deserialize all supported findings for this function.
+func ReadFinding(b []byte) (*Values, error) {
+	var finding pb.ComputeInstanceScanner
+	r := &Values{}
+	if err := json.Unmarshal(b, &finding); err != nil {
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	switch finding.GetFinding().GetCategory() {
+	case "PUBLIC_IP_ADDRESS":
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 		r.InstanceZone = sha.Zone(finding.GetFinding().GetResourceName())
 		r.InstanceID = sha.Instance(finding.GetFinding().GetResourceName())
+	default:
+		return nil, services.ErrUnsupportedFinding
 	}
-
 	if r.ProjectID == "" || r.InstanceZone == "" || r.InstanceID == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
 // Execute removes the public IP of a GCE instance.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	resources := ent.Configuration.RemovePublicIP.Resources
-	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
-		if err := ent.Host.RemoveExternalIPs(ctx, required.ProjectID, required.InstanceZone, required.InstanceID); err != nil {
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	resources := services.Configuration.RemovePublicIP.Resources
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if err := services.Host.RemoveExternalIPs(ctx, values.ProjectID, values.InstanceZone, values.InstanceID); err != nil {
 			return errors.Wrap(err, "failed to remove public ip")
 		}
-		ent.Logger.Info("removed public IP address for instance %q, in zone %q in project %q.", required.InstanceID, required.InstanceZone, required.ProjectID)
+		services.Logger.Info("removed public IP address for instance %q, in zone %q in project %q.", values.InstanceID, values.InstanceZone, values.ProjectID)
 		return nil
 	})
 }

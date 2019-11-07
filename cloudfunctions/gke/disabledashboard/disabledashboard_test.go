@@ -20,8 +20,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/container/v1"
@@ -90,7 +90,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError                    error
 	}{
 		{name: "read", projectID: "test-cat-findings-clseclab", zone: "us-central1-a", clusterID: "ex-abuse-cluster-3", bytes: []byte(webUIFinding), expectedError: nil},
-		{name: "wrong category", projectID: "", zone: "", clusterID: "", bytes: []byte(wrongCategory), expectedError: entities.ErrValueNotFound},
+		{name: "wrong category", projectID: "", zone: "", clusterID: "", bytes: []byte(wrongCategory), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -142,9 +142,14 @@ func TestDisableDashboard(t *testing.T) {
 		},
 	}
 	for _, tt := range test {
-		req, ent, crmStub, contStub := disableDashboardSetup(tt.folderIDs)
+		values, svcs, crmStub, contStub := disableDashboardSetup(tt.folderIDs)
 		crmStub.GetAncestryResponse = tt.ancestry
-		if err := Execute(ctx, req, ent); err != nil {
+		if err := Execute(ctx, values, &Services{
+			Configuration: svcs.Configuration,
+			Container:     svcs.Container,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		}); err != nil {
 			t.Errorf("%s test failed want:%q", tt.name, err)
 		}
 		if diff := cmp.Diff(contStub.UpdatedAddonsConfig, tt.expectedRequest); diff != "" {
@@ -153,25 +158,25 @@ func TestDisableDashboard(t *testing.T) {
 	}
 }
 
-func disableDashboardSetup(folderIDs []string) (*Required, *entities.Entity, *stubs.ResourceManagerStub, *stubs.ContainerStub) {
+func disableDashboardSetup(folderIDs []string) (*Values, *services.Global, *stubs.ResourceManagerStub, *stubs.ContainerStub) {
 	loggerStub := &stubs.LoggerStub{}
-	log := entities.NewLogger(loggerStub)
+	log := services.NewLogger(loggerStub)
 	contStub := &stubs.ContainerStub{}
-	cont := entities.NewContainer(contStub)
+	cont := services.NewContainer(contStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
-	resource := entities.NewResource(crmStub, storageStub)
-	req := &Required{
+	resource := services.NewResource(crmStub, storageStub)
+	req := &Values{
 		ProjectID: "project-test",
 		Zone:      "us-central1-a",
 		ClusterID: "test-cluster",
 	}
-	conf := &entities.Configuration{
-		DisableDashboard: &entities.DisableDashboard{
-			Resources: &entities.Resources{
+	conf := &services.Configuration{
+		DisableDashboard: &services.DisableDashboard{
+			Resources: &services.Resources{
 				FolderIDs: folderIDs,
 			},
 		},
 	}
-	return req, &entities.Entity{Logger: log, Configuration: conf, Resource: resource, Container: cont}, crmStub, contStub
+	return req, &services.Global{Logger: log, Configuration: conf, Resource: resource, Container: cont}, crmStub, contStub
 }

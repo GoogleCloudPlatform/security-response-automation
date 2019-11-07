@@ -19,46 +19,56 @@ import (
 	"encoding/json"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 )
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	ProjectID, InstanceName string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Configuration *services.Configuration
+	CloudSQL      *services.CloudSQL
+	Resource      *services.Resource
+	Logger        *services.Logger
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.SqlScanner
-	r := &Required{}
+	r := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "SSL_NOT_ENFORCED":
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+	default:
+		return nil, services.ErrUnsupportedFinding
 	}
 	if r.InstanceName == "" || r.ProjectID == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
 // Execute will remove any public ips in sql instance found within the provided folders.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	resources := ent.Configuration.CloudSQLRequireSSL.Resources
-	return ent.Resource.IfProjectWithinResources(ctx, resources, required.ProjectID, func() error {
-		op, err := ent.CloudSQL.RequireSSL(ctx, required.ProjectID, required.InstanceName)
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	resources := services.Configuration.CloudSQLRequireSSL.Resources
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		op, err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName)
 		if err != nil {
 			return err
 		}
-		if errs := ent.CloudSQL.Wait(required.ProjectID, op); len(errs) > 0 {
+		if errs := services.CloudSQL.Wait(values.ProjectID, op); len(errs) > 0 {
 			return errs[0]
 		}
-		ent.Logger.Info("enforced ssl on sql instance %q in project %q.", required.InstanceName, required.ProjectID)
+		services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	})
 }

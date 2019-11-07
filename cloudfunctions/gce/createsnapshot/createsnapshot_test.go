@@ -21,7 +21,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"golang.org/x/xerrors"
 	compute "google.golang.org/api/compute/v1"
 )
@@ -69,8 +69,8 @@ func TestReadFinding(t *testing.T) {
 		expectedError                         error
 	}{
 		{name: "read", rule: "bad_ip", projectID: "test-project", zone: "zone-name", instance: "source-instance-name", expectedError: nil, bytes: []byte(validBadIP)},
-		{name: "missing properties", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrValueNotFound, bytes: []byte(missingProperties)},
-		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: entities.ErrValueNotFound, bytes: []byte(wrongRule)},
+		{name: "missing properties", rule: "", projectID: "", zone: "", instance: "", expectedError: services.ErrValueNotFound, bytes: []byte(missingProperties)},
+		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: services.ErrUnsupportedFinding, bytes: []byte(wrongRule)},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -208,13 +208,16 @@ func TestCreateSnapshot(t *testing.T) {
 			ent, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
-			required := &Required{
+			values := &Values{
 				ProjectID: "foo-test",
 				RuleName:  "bad_ip",
 				Instance:  "instance1",
 				Zone:      "test-zone",
 			}
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, values, &Services{
+				Host:   ent.Host,
+				Logger: ent.Logger,
+			}); err != nil {
 				t.Errorf("%s failed to create snapshot: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(computeStub.SavedCreateSnapshots, tt.expectedSnapshots); diff != "" {
@@ -242,14 +245,14 @@ func createSs(name, time, disk string) *compute.Snapshot {
 	}
 }
 
-func createSnapshotSetup() (*entities.Entity, *stubs.ComputeStub) {
+func createSnapshotSetup() (*services.Global, *stubs.ComputeStub) {
 	loggerStub := &stubs.LoggerStub{}
-	log := entities.NewLogger(loggerStub)
+	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
 	computeStub.SavedCreateSnapshots = make(map[string]compute.Snapshot)
 	resourceManagerStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
-	h := entities.NewHost(computeStub)
-	r := entities.NewResource(resourceManagerStub, storageStub)
-	return &entities.Entity{Host: h, Resource: r, Logger: log}, computeStub
+	h := services.NewHost(computeStub)
+	r := services.NewResource(resourceManagerStub, storageStub)
+	return &services.Global{Host: h, Resource: r, Logger: log}, computeStub
 }

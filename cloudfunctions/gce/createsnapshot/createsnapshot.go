@@ -22,8 +22,8 @@ import (
 	"time"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/etd/protos"
-	"github.com/googlecloudplatform/threat-automation/entities"
 	"github.com/googlecloudplatform/threat-automation/providers/etd"
+	"github.com/googlecloudplatform/threat-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 )
@@ -39,17 +39,23 @@ var labels = map[string]string{
 	"info": "created-by-security-response-automation",
 }
 
-// Required contains the required values needed for this function.
-type Required struct {
+// Values contains the required values needed for this function.
+type Values struct {
 	ProjectID, RuleName, Instance, Zone string
 }
 
+// Services contains the services needed for this function.
+type Services struct {
+	Host   *services.Host
+	Logger *services.Logger
+}
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Required, error) {
+func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.BadIP
-	r := &Required{}
+	r := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(entities.ErrUnmarshal, err.Error())
+		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	// TODO: Support pb.BadDomain as well.
 	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
@@ -58,9 +64,11 @@ func ReadFinding(b []byte) (*Required, error) {
 		r.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
 		r.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 		r.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
+	default:
+		return nil, services.ErrUnsupportedFinding
 	}
 	if r.RuleName == "" || r.ProjectID == "" || r.Instance == "" || r.Zone == "" {
-		return nil, entities.ErrValueNotFound
+		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
@@ -74,20 +82,20 @@ func ReadFinding(b []byte) (*Required, error) {
 // In order for the snapshot to be create the service account must be granted the correct
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
-func Execute(ctx context.Context, required *Required, ent *entities.Entity) error {
-	log.Printf("listing disk names within instance %q, in zone %q and project %q", required.Instance, required.Zone, required.ProjectID)
+func Execute(ctx context.Context, values *Values, services *Services) error {
+	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 
-	rule := strings.Replace(required.RuleName, "_", "-", -1)
-	disks, err := ent.Host.ListInstanceDisks(ctx, required.ProjectID, required.Zone, required.Instance)
+	rule := strings.Replace(values.RuleName, "_", "-", -1)
+	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
 		return errors.Wrap(err, "failed to list disks")
 	}
 
-	snapshots, err := ent.Host.ListProjectSnapshots(ctx, required.ProjectID)
+	snapshots, err := services.Host.ListProjectSnapshots(ctx, values.ProjectID)
 	if err != nil {
 		return errors.Wrap(err, "failed to list snapshots")
 	}
-	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), required.ProjectID)
+	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), values.ProjectID)
 
 	for _, disk := range disks {
 		snapshotName := createSnapshotName(rule, disk.Name)
@@ -102,18 +110,18 @@ func Execute(ctx context.Context, required *Required, ent *entities.Entity) erro
 		}
 
 		for k := range removeExisting {
-			if err := ent.Host.DeleteDiskSnapshot(ctx, required.ProjectID, k); err != nil {
+			if err := services.Host.DeleteDiskSnapshot(ctx, values.ProjectID, k); err != nil {
 				return errors.Wrapf(err, "failed deleting snapshot: %q", k)
 			}
-			ent.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
+			services.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
 		}
 
-		if err := ent.Host.CreateDiskSnapshot(ctx, required.ProjectID, required.Zone, disk.Name, snapshotName); err != nil {
+		if err := services.Host.CreateDiskSnapshot(ctx, values.ProjectID, values.Zone, disk.Name, snapshotName); err != nil {
 			return errors.Wrapf(err, "failed creating snapshot: %q", snapshotName)
 		}
-		ent.Logger.Info("created snapshot for disk %q", disk.Name)
+		services.Logger.Info("created snapshot for disk %q", disk.Name)
 
-		if err := ent.Host.SetSnapshotLabels(ctx, required.ProjectID, snapshotName, disk, labels); err != nil {
+		if err := services.Host.SetSnapshotLabels(ctx, values.ProjectID, snapshotName, disk, labels); err != nil {
 			return errors.Wrapf(err, "failed setting labels: %q", snapshotName)
 		}
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
