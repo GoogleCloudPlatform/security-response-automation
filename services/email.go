@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -44,12 +44,12 @@ type EmailResponse struct {
 	Body       string
 }
 
-// Email is the entity used to send emails.
+// Email is the service used to send emails.
 type Email struct {
 	service EmailClient
 }
 
-// NewEmail creates a new email entity.
+// NewEmail creates a new email service.
 func NewEmail(service EmailClient) *Email {
 	return &Email{service: service}
 }

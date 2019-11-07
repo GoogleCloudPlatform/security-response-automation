@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -40,13 +40,13 @@ type storageClient interface {
 	EnableBucketOnlyPolicy(context.Context, string) error
 }
 
-// Resource entity.
+// Resource service.
 type Resource struct {
 	crm     crmClient
 	storage storageClient
 }
 
-// NewResource returns a new resource entity.
+// NewResource returns a new resource service.
 func NewResource(crm crmClient, s storageClient) *Resource {
 	return &Resource{
 		crm:     crm,

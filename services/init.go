@@ -1,4 +1,4 @@
-package entities
+package services
 
 import (
 	"context"
@@ -12,8 +12,8 @@ const (
 	settingsFile = "settings.json"
 )
 
-// Entity holds all initialized entities.
-type Entity struct {
+// Global holds all initialized services.
+type Global struct {
 	Configuration *Configuration
 	Logger        *Logger
 	Resource      *Resource
@@ -24,8 +24,8 @@ type Entity struct {
 	BigQuery      *BigQuery
 }
 
-// New returns an initialized Entity struct.
-func New(ctx context.Context) (*Entity, error) {
+// New returns an initialized Global struct.
+func New(ctx context.Context) (*Global, error) {
 	host, err := initHost(ctx)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func New(ctx context.Context) (*Entity, error) {
 		return nil, err
 	}
 
-	return &Entity{
+	return &Global{
 		Configuration: config,
 		Host:          host,
 		Logger:        log,

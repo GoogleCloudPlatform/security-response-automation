@@ -29,43 +29,45 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/enablebucketonlypolicy"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revokeiam"
-	"github.com/googlecloudplatform/threat-automation/entities"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revoke"
+	"github.com/googlecloudplatform/threat-automation/services"
 )
 
-var ent *entities.Entity
+var svcs *services.Global
 
 func init() {
 	ctx := context.Background()
 	var err error
-	ent, err = entities.New(ctx)
+	svcs, err = services.New(ctx)
 	if err != nil {
-		log.Fatalf("failed to initialize entities: %q", err)
+		log.Fatalf("failed to initialize services: %q", err)
 	}
 }
 
-// RevokeIAM is the entry point for the IAM revoker Cloud Function.
+// IAMRevoke is the entry point for the IAM revoker Cloud Function.
 //
-// This Cloud Function will be triggered when Event Threat Detection
-// detects an anomalous IAM grant. Once triggered this function will
-// attempt to revoke the external members added to the policy if they match the provided
-// list of disallowed domains. Additionally this method will only remove members if the
-// project they were added to is within the specified folders. This configuration allows
-// you to take a remediation action only on specific members and folders. For example,
-// you may have a folder "development" where users can experiment without strict policies.
-// However in your "production" folder you may want to revoke any grants that ETD finds as
-// long as they match the domains you specify.
+// This function will attempt to revoke the external members added to the policy if they
+// match the provided list of disallowed domains. Additionally this method will only remove
+// members if the project they were added to is within the specified folders. This
+// configuration allows you to take a remediation action only on specific members and folders.
+// For example, you may have a folder "development" where users can experiment without strict
+// policies. However in your "production" folder you may want to revoke any grants that ETD
+// finds as long as they match the domains you specify.
 //
 // Permissions required
 // 	- roles/resourcemanager.folderAdmin to revoke IAM grants.
 //	- roles/viewer to verify the affected project is within the enforced folder.
 //
-func RevokeIAM(ctx context.Context, m pubsub.Message) error {
-	switch r, err := revokeiam.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+func IAMRevoke(ctx context.Context, m pubsub.Message) error {
+	switch values, err := revoke.ReadFinding(m.Data); err {
 	case nil:
-		return revokeiam.Execute(ctx, r, ent)
+		return revoke.Execute(ctx, values, &revoke.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -81,14 +83,14 @@ func RevokeIAM(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	switch v, err := createsnapshot.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
-		return createsnapshot.Execute(ctx, v, &createsnapshot.Needed{
-			Host:   ent.Host,
-			Logger: ent.Logger,
+		return createsnapshot.Execute(ctx, values, &createsnapshot.Services{
+			Host:   svcs.Host,
+			Logger: svcs.Logger,
 		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -101,11 +103,15 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 //	- roles/storeage.admin to modify buckets.
 //
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	switch r, err := closebucket.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := closebucket.ReadFinding(m.Data); err {
 	case nil:
-		return closebucket.Execute(ctx, r, ent)
+		return closebucket.Execute(ctx, values, &closebucket.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -118,11 +124,16 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.securityAdmin to modify firewall rules.
 //
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
-	switch r, err := openfirewall.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := openfirewall.ReadFinding(m.Data); err {
 	case nil:
-		return openfirewall.Execute(ctx, r, ent)
+		return openfirewall.Execute(ctx, values, &openfirewall.Services{
+			Configuration: svcs.Configuration,
+			Firewall:      svcs.Firewall,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -137,11 +148,14 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 //
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
-	switch r, err := removenonorgmembers.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
 	case nil:
-		return removenonorgmembers.Execute(ctx, r, ent)
+		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -157,11 +171,16 @@ func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	switch r, err := removepublicip.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := removepublicip.ReadFinding(m.Data); err {
 	case nil:
-		return removepublicip.Execute(ctx, r, ent)
+		return removepublicip.Execute(ctx, values, &removepublicip.Services{
+			Configuration: svcs.Configuration,
+			Host:          svcs.Host,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -176,11 +195,15 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/storage.admin to change the Bucket policy mode.
 //
 func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
-	switch r, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
 	case nil:
-		return enablebucketonlypolicy.Execute(ctx, r, ent)
+		return enablebucketonlypolicy.Execute(ctx, values, &enablebucketonlypolicy.Services{
+			Configuration: svcs.Configuration,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -196,11 +219,16 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	switch r, err := removepublic.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := removepublic.ReadFinding(m.Data); err {
 	case nil:
-		return removepublic.Execute(ctx, r, ent)
+		return removepublic.Execute(ctx, values, &removepublic.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -216,11 +244,16 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	switch r, err := requiressl.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
-		return nil
+	switch values, err := requiressl.ReadFinding(m.Data); err {
 	case nil:
-		return requiressl.Execute(ctx, r, ent)
+		return requiressl.Execute(ctx, values, &requiressl.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
 	default:
 		return err
 	}
@@ -236,11 +269,16 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
-	switch r, err := disabledashboard.ReadFinding(m.Data); err {
-	case entities.ErrUnsupportedFinding:
+	switch values, err := disabledashboard.ReadFinding(m.Data); err {
+	case services.ErrUnsupportedFinding:
 		return nil
 	case nil:
-		return disabledashboard.Execute(ctx, r, ent)
+		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
+			Configuration: svcs.Configuration,
+			Container:     svcs.Container,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
 	default:
 		return err
 	}

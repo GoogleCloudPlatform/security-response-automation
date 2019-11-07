@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -29,10 +29,9 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 		datasetID = "test-dataset"
 	)
 	tests := []struct {
-		name             string
-		fakedMetadata    *bigquery.DatasetMetadata
-		expectedMetadata *bigquery.DatasetMetadata
-		expectedError    error
+		name          string
+		fakedMetadata *bigquery.DatasetMetadata
+		expected      []*bigquery.AccessEntry
 	}{
 		{
 			name: "remove bigquery dataset public access",
@@ -41,30 +40,46 @@ func TestRemoveDatasetPublicAccess(t *testing.T) {
 					{Entity: "user@org.com"},
 					{Entity: "allUsers"},
 					{Entity: "allAuthenticatedUsers"},
+					{Entity: "anotheruser@org.com"},
 				},
 			},
-			expectedMetadata: &bigquery.DatasetMetadata{
+			expected: []*bigquery.AccessEntry{
+				{Entity: "user@org.com"},
+				{Entity: "anotheruser@org.com"},
+			},
+		},
+		{
+			name: "remove all public access",
+			fakedMetadata: &bigquery.DatasetMetadata{
 				Access: []*bigquery.AccessEntry{
-					{Entity: "user@org.com"},
+					{Entity: "allUsers"},
+					{Entity: "allAuthenticatedUsers"},
 				},
 			},
-			expectedError: nil,
+			expected: []*bigquery.AccessEntry{},
+		},
+		{
+			name: "no public access",
+			fakedMetadata: &bigquery.DatasetMetadata{
+				Access: []*bigquery.AccessEntry{
+					{Entity: "foo@foo.com"},
+				},
+			},
+			expected: []*bigquery.AccessEntry{
+				{Entity: "foo@foo.com"},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			bqStub := &stubs.BigQueryStub{
-				StubbedMetadata:        tt.fakedMetadata,
-				StubbedUpdatedMetadata: tt.expectedMetadata,
-			}
+			bqStub := &stubs.BigQueryStub{StubbedMetadata: tt.fakedMetadata}
 			ctx := context.Background()
 			bq := NewBigQuery(bqStub)
-			access, err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID)
-			if err != tt.expectedError {
-				t.Errorf("%v failed exp:%v got:%v", tt.name, tt.expectedError, err)
+			if err := bq.RemoveDatasetPublicAccess(ctx, projectID, datasetID); err != nil {
+				t.Errorf("%v failed:%q", tt.name, err)
 			}
-			if diff := cmp.Diff(tt.expectedMetadata.Access, access); diff != "" {
-				t.Errorf("%v failed, difference: %+v", tt.name, diff)
+			if diff := cmp.Diff(bqStub.SavedDatasetMetadata.Access, tt.expected); diff != "" {
+				t.Errorf("%v failed:%+v", tt.name, diff)
 			}
 		})
 	}

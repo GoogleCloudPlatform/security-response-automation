@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -24,7 +24,7 @@ import (
 // allIPs represents a IP network covering all valid IPv4 addresses.
 const allIPs = "0.0.0.0/0"
 
-// CloudSQLClient contains minimum interface required by the Cloud SQL entity.
+// CloudSQLClient contains minimum interface required by the Cloud SQL service.
 type CloudSQLClient interface {
 	PatchInstance(context.Context, string, string, *sqladmin.DatabaseInstance) (*sqladmin.Operation, error)
 	WaitSQL(string, *sqladmin.Operation) []error
@@ -32,12 +32,12 @@ type CloudSQLClient interface {
 	UpdateUser(context.Context, string, string, string, string, *sqladmin.User) (*sqladmin.Operation, error)
 }
 
-// CloudSQL entity.
+// CloudSQL service.
 type CloudSQL struct {
 	client CloudSQLClient
 }
 
-// NewCloudSQL returns a Cloud SQL entity.
+// NewCloudSQL returns a Cloud SQL service.
 func NewCloudSQL(cc CloudSQLClient) *CloudSQL {
 	return &CloudSQL{client: cc}
 }

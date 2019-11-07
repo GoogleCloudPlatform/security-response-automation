@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -14,7 +14,7 @@ package entities
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// LoggerClient contains minimum interface required by the logger entity.
+// LoggerClient contains minimum interface required by the logger service.
 type LoggerClient interface {
 	Info(message string, a ...interface{})
 	Warning(message string, a ...interface{})

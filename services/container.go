@@ -1,4 +1,4 @@
-package entities
+package services
 
 // Copyright 2019 Google LLC
 //
@@ -20,17 +20,17 @@ import (
 	container "google.golang.org/api/container/v1"
 )
 
-// ContainerClient holds the minimum interface required by the Container entity.
+// ContainerClient holds the minimum interface required by the Container service.
 type ContainerClient interface {
 	UpdateAddonsConfig(context.Context, string, string, string, *container.SetAddonsConfigRequest) (*container.Operation, error)
 }
 
-// Container Entity.
+// Container Service.
 type Container struct {
 	client ContainerClient
 }
 
-// NewContainer returns a new Container entity.
+// NewContainer returns a new Container service.
 func NewContainer(client ContainerClient) *Container {
 	return &Container{client: client}
 }

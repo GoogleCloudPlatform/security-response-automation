@@ -24,8 +24,8 @@ import (
 	compute "google.golang.org/api/compute/v1"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/entities"
-	"github.com/googlecloudplatform/threat-automation/entities/helpers"
+	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -103,7 +103,7 @@ func TestReadFinding(t *testing.T) {
 		expectedError error
 	}{
 		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a", instanceID: "4312755253150365851", bytes: []byte(publicIPAddressFinding), expectedError: nil},
-		{name: "wrong category", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(wrongCategoryFinding), expectedError: entities.ErrUnsupportedFinding},
+		{name: "wrong category", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -177,16 +177,21 @@ func TestRemovePublicIP(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			ent, computeStub, crmStub := setupRemovePublicIP(tt.folderIDs)
+			svcs, computeStub, crmStub := setupRemovePublicIP(tt.folderIDs)
 			computeStub.StubbedInstance = tt.instance
 			crmStub.GetAncestryResponse = tt.ancestry
-			required := &Required{
+			values := &Values{
 				ProjectID:    "project-id",
 				InstanceZone: "instance-zone",
 				InstanceID:   "instance-id",
 			}
 
-			if err := Execute(ctx, required, ent); err != nil {
+			if err := Execute(ctx, values, &Services{
+				Configuration: svcs.Configuration,
+				Host:          svcs.Host,
+				Resource:      svcs.Resource,
+				Logger:        svcs.Logger,
+			}); err != nil {
 				t.Errorf("%s failed to remove public ip :%q", tt.name, err)
 			}
 
@@ -197,20 +202,20 @@ func TestRemovePublicIP(t *testing.T) {
 	}
 }
 
-func setupRemovePublicIP(folderIDs []string) (*entities.Entity, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
+func setupRemovePublicIP(folderIDs []string) (*services.Global, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
-	log := entities.NewLogger(loggerStub)
+	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
 	storageStub := &stubs.StorageStub{}
 	crmStub := &stubs.ResourceManagerStub{}
-	res := entities.NewResource(crmStub, storageStub)
-	h := entities.NewHost(computeStub)
-	conf := &entities.Configuration{
-		RemovePublicIP: &entities.RemovePublicIP{
-			Resources: &entities.Resources{
+	res := services.NewResource(crmStub, storageStub)
+	h := services.NewHost(computeStub)
+	conf := &services.Configuration{
+		RemovePublicIP: &services.RemovePublicIP{
+			Resources: &services.Resources{
 				FolderIDs: folderIDs,
 			},
 		},
 	}
-	return &entities.Entity{Logger: log, Host: h, Resource: res, Configuration: conf}, computeStub, crmStub
+	return &services.Global{Logger: log, Host: h, Resource: res, Configuration: conf}, computeStub, crmStub
 }
