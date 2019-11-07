@@ -29,6 +29,7 @@ data "archive_file" "cloud_functions_zip" {
     "google_project_service.logging_api",
     "google_project_service.storage_component_api",
     "google_project_service.pubsub_api",
+    "google_project_service.bigquery_api",
     "google_project_service.sqladmin_api",
     "google_project_service.cloudfunctions_api"
   ]
@@ -131,6 +132,13 @@ resource "google_project_service" "storage_component_api" {
 resource "google_project_service" "pubsub_api" {
   project                    = "${var.automation-project}"
   service                    = "pubsub.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "bigquery_api" {
+  project                    = "${var.automation-project}"
+  service                    = "bigquery.googleapis.com"
   disable_dependent_services = false
   disable_on_destroy         = false
 }
