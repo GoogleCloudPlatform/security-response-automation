@@ -98,12 +98,11 @@ and place into the `folder_ids` array.
 
 Automatically removes non-organization members.
 
-Current implementation consider only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group  `groups:` are not covered yet
+Current implementation considers only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group  `groups:` are not covered yet.
 
 Configuration
 
 - Configured in settings.json under the `remove_non_org_members` key.
-- `enabled` option to enable/disable this execution.
 - `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
 
 
