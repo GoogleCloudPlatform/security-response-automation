@@ -46,6 +46,7 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
+	BigQuery      *services.BigQuery
 	Configuration *services.Configuration
 	Host          *services.Host
 	Logger        *services.Logger

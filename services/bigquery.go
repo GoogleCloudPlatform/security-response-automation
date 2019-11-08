@@ -23,7 +23,6 @@ import (
 
 // BigQueryClient contains minimum interface required by the service.
 type BigQueryClient interface {
-	Init(ctx context.Context, projectID string) error
 	DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error)
 	OverwriteDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error)
 }
@@ -38,11 +37,6 @@ var publicUsers = map[string]bool{"allUsers": true, "allAuthenticatedUsers": tru
 // NewBigQuery returns a BigQuery service.
 func NewBigQuery(cs BigQueryClient) *BigQuery {
 	return &BigQuery{client: cs}
-}
-
-// Init initializes the BigQuery client.
-func (bq *BigQuery) Init(ctx context.Context, projectID string) error {
-	return bq.client.Init(ctx, projectID)
 }
 
 // RemoveDatasetPublicAccess removes public users from a dataset.

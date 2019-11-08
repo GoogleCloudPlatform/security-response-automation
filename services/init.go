@@ -61,11 +61,6 @@ func New(ctx context.Context) (*Global, error) {
 		return nil, err
 	}
 
-	bq, err := initBigQuery(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Global{
 		Configuration: config,
 		Host:          host,
@@ -74,7 +69,6 @@ func New(ctx context.Context) (*Global, error) {
 		Firewall:      fw,
 		Container:     cont,
 		CloudSQL:      sql,
-		BigQuery:      bq,
 	}, nil
 }
 
@@ -138,8 +132,8 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 	return NewCloudSQL(cs), nil
 }
 
-func initBigQuery(ctx context.Context) (*BigQuery, error) {
-	bq, err := clients.NewBigQuery(ctx, authFile)
+func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
+	bq, err := clients.NewBigQuery(ctx, authFile, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize bigquery client: %q", err)
 	}
