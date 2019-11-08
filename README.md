@@ -33,6 +33,15 @@ Configuration
 - Configured in settings.json under the `close_bucket` key.
 - See general [resource list](#resources) options.
 
+#### Enable bucket only policy
+
+Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
+
+Configuration
+
+ - Configured in settings.json under the `enable_bucket_only_policy` key.
+ - See general [resource list](#resources) options.
+
 ### IAM
 
 #### Revoke IAM grants
@@ -44,11 +53,20 @@ Configuration
 This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify.
 Depending on which resources you specify will determine which projects are enforced.
 
-  - Configured in settings.json under the `revoke_iam` key.
-  - See general [resource list](#resources) options.
-  - `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
+- Configured in settings.json under the `revoke_iam` key.
+- See general [resource list](#resources) options.
+- `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
 
 ### Google Compute Engine
+
+#### Create Snapshot
+
+Automatically create a snapshot of all disks associated with a GCE instance.
+
+Configuration
+
+- Configured in settings.json under the `create_snapshot` key.
+- `snapshot_project_id` An optional project ID where disk snapshots will be copied to.
 
 #### Remove public IPs from an instance
 
@@ -58,6 +76,17 @@ Configuration
 
 - Configured in settings.json under the `remove_public_ip` key.
 - See general [resource list](#resources) options.
+
+#### Remediate open firewall
+
+Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
+
+Configuration
+
+- Configured in settings.json under the `disable_firewall` key.
+- See general [resource list](#resources) options.
+- `remediation_action`: one of  `DISABLE`, `DELETE` or `UPDATE_RANGE`
+- `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
 ### Google Kubernetes Engine
 
@@ -70,29 +99,25 @@ Configuration
 - Configured in settings.json under the `disable_dashboard` key.
 - See general [resource list](#resources) options.
 
-**Enable bucket only IAM policy**
+### Google Cloud SQL
 
-This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
-Depending on which resources you specify it will determine which projects are enforced.
+#### Close public Cloud SQL instance
 
-- `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
-- `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
+Close a public cloud SQL instance.
 
-For example, if you want to only enable bucket only IAM policy in the folder **development**
-you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
-and place into the `folder_ids` array.
+Configuration
 
-```json
-{
-  "enable_bucket_only_policy": {
-    "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
-    }
-  }
-}
-```
+- Configured in settings.json under the `close_cloud_sql` key.
+- See general [resource list](#resources) options.
+
+#### Require SSL connection to Cloud SQL
+
+Update Cloud SQL instance to require SSL connections.
+
+Configuration
+
+- Configured in settings.json under the `cloud_sql_require_ssl` key.
+- See general [resource list](#resources) options.
 
 **Remove non-Organization members**
 
@@ -133,12 +158,37 @@ If at any point you want to revert the changes we've made just run `terraform de
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
 ```shell
-$ export PROJECT_ID=ae-threat-detection \
-  SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
+$ export PROJECT_ID=ae-threat-detection
+$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
   ORGANIZATION_ID=154584661726 \
   TOPIC_ID=cscc-notifications-topic
 
-$ ./enable-cscc-notfications.sh
+$ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+  --role='roles/pubsub.admin'
+
+$ go run ./local/cli/main.go \
+  --command create \
+  --org-id=$ORGANIZATION_ID \
+  --topic=projects/$PROJECT_ID/topics/cscc-notifications-topic12w
+
+// Note the output, specifically the generated `service_acount`:
+//
+// 2019/11/07 14:06:00 New NotificationConfig created: \
+// name:"organizations/1037840971520/notificationConfigs/sampleConfigId"
+// description:"Notifies active findings"
+// event_type:FINDING pubsub_topic:"projects/ae-threat-detection/topics/cscc-notifications-topic"
+// service_account:"service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com"
+// streaming_config:<filter:"state = \"ACTIVE\"" >
+//
+// Make sure to replace `SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
+gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
+  --member="serviceAccount:<SERVICE_ACCOUNT_FROM_ABOVE>" \
+  --role="roles/pubsub.publisher"
+
+gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+  --role='roles/pubsub.admin'
 ```
 
 ### Reinstalling a Cloud Function

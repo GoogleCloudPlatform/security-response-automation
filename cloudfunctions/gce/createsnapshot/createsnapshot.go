@@ -46,8 +46,9 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Host   *services.Host
-	Logger *services.Logger
+	Configuration *services.Configuration
+	Host          *services.Host
+	Logger        *services.Logger
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -84,7 +85,8 @@ func ReadFinding(b []byte) (*Values, error) {
 // be changed to support folder and organization level grants.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
-
+	conf := services.Configuration
+	dstProjectID := conf.CreateSnapshot.TargetSnapshotProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
@@ -116,6 +118,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			services.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
 		}
 
+		log.Printf("creating a snapshot %q for %q", snapshotName, disk.Name)
 		if err := services.Host.CreateDiskSnapshot(ctx, values.ProjectID, values.Zone, disk.Name, snapshotName); err != nil {
 			return errors.Wrapf(err, "failed creating snapshot: %q", snapshotName)
 		}
@@ -125,6 +128,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			return errors.Wrapf(err, "failed setting labels: %q", snapshotName)
 		}
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
+
+		if dstProjectID != "" {
+			log.Printf("copying snapshot %q for %q to %q", snapshotName, disk.Name, dstProjectID)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, values.Zone, snapshotName); err != nil {
+				return errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
+			}
+			services.Logger.Info("copied snapshot %q to %q", snapshotName, dstProjectID)
+		}
 	}
 	log.Printf("completed")
 	return nil

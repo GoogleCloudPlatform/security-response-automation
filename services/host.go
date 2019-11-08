@@ -28,6 +28,7 @@ import (
 
 // ComputeClient contains minimum interface required by the host service.
 type ComputeClient interface {
+	DiskInsert(context.Context, string, string, *compute.Disk) (*compute.Operation, error)
 	CreateSnapshot(context.Context, string, string, string, *compute.Snapshot) (*compute.Operation, error)
 	DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error)
 	DeleteDiskSnapshot(context.Context, string, string) (*compute.Operation, error)
@@ -115,6 +116,21 @@ func (h *Host) CreateDiskSnapshot(ctx context.Context, projectID, zone, disk, na
 		return fmt.Errorf("failed to create snapshot: %q", err)
 	}
 	if errs := h.WaitZone(projectID, zone, op); len(errs) > 0 {
+		return errors.Wrap(errs[0], "failed waiting: first error")
+	}
+	return nil
+}
+
+// CopyDiskSnapshot creates a disk from a snapshot and moves it to another project.
+func (h *Host) CopyDiskSnapshot(ctx context.Context, srcProjectID, dstProjectID, zone, name string) error {
+	op, err := h.client.DiskInsert(ctx, dstProjectID, zone, &compute.Disk{
+		Name:           name,
+		SourceSnapshot: fmt.Sprintf("projects/%s/global/snapshots/%s", srcProjectID, name),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to copy snapshot: %q", err)
+	}
+	if errs := h.WaitZone(dstProjectID, zone, op); len(errs) > 0 {
 		return errors.Wrap(errs[0], "failed waiting: first error")
 	}
 	return nil
