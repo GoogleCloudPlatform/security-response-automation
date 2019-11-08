@@ -89,7 +89,7 @@ func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager
 	}
 	var regexDomains []regexp.Regexp
 	for _, d := range allowedDomains {
-		rd, err := regexp.Compile(d)
+		rd, err := regexp.Compile("^.+@" + d + "$")
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to apply domain regex %q. Check settings.json", d)
 		}

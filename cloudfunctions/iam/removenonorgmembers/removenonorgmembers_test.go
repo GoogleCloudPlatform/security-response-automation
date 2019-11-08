@@ -182,7 +182,8 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"domain:aol.com",
 				"user:buddy@prod.google.com"}),
 			allowDomains: []string{
-				"^.+@(prod\\.)*google\\.com$",
+				"google.com",
+				"prod.google.com",
 			},
 		},
 	}
