@@ -54,12 +54,12 @@ func ReadFinding(b []byte) (*Values, error) {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
+	r.Host = host
+	r.UserName = userName
 	switch finding.GetFinding().GetCategory() {
 	case "SQL_NO_ROOT_PASSWORD":
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		r.Host = host
-		r.UserName = userName
 		pw, err := helpers.GeneratePassword()
 		if err != nil {
 			return nil, err
