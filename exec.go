@@ -22,6 +22,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
+	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/updatepassword"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
@@ -277,6 +278,29 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
 			Configuration: svcs.Configuration,
 			Container:     svcs.Container,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	default:
+		return err
+	}
+}
+
+// UpdatePassword updates the root password for a Cloud SQL instance.
+//
+// This Cloud Function will respond to Security Health Analytics **SQL No Root Password** findings
+// from **SQL Scanner**. The root user of the affected instance will be updated with
+// a new password when this function is activated.
+//
+// Permissions required
+//	- roles/cloudsql.admin to update a user password.
+//
+func UpdatePassword(ctx context.Context, m pubsub.Message) error {
+	switch values, err := updatepassword.ReadFinding(m.Data); err {
+	case nil:
+		return updatepassword.Execute(ctx, values, &updatepassword.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
