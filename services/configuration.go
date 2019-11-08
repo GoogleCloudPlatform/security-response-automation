@@ -62,6 +62,11 @@ type CreateSnapshot struct {
 	TargetSnapshotProjectID string `json:"snapshot_project_id"`
 }
 
+// UpdatePassword contains configuration required for the update password function.
+type UpdatePassword struct {
+	Resources *Resources
+}
+
 // Configuration contains the IDs to apply actions to.
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
@@ -73,6 +78,7 @@ type Configuration struct {
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
 	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
+	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 }
 
 // NewConfiguration returns a new configuration.

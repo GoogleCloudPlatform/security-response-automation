@@ -1,4 +1,4 @@
-package removepublic
+package updatepassword
 
 // Copyright 2019 Google LLC
 //
@@ -22,12 +22,13 @@ import (
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
 	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"github.com/pkg/errors"
 )
 
-// Values contains the required values needed for this function.
+// Values contains the values values needed for this function.
 type Values struct {
-	ProjectID, InstanceName string
+	ProjectID, InstanceName, Host, UserName, Password string
 }
 
 // Services contains the services needed for this function.
@@ -38,40 +39,50 @@ type Services struct {
 	Logger        *services.Logger
 }
 
+const (
+	// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
+	hostWildcard = "%"
+	// userName is the MySQL user name that will have their password reset.
+	userName = "root"
+)
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.SqlScanner
-	r := &Values{}
+	password, err := helpers.GeneratePassword()
+	if err != nil {
+		return nil, err
+	}
+	values := &Values{
+		Host:     hostWildcard,
+		UserName: userName,
+		Password: password,
+	}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
-	case "PUBLIC_SQL_INSTANCE":
-		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+	case "SQL_NO_ROOT_PASSWORD":
+		values.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
+		values.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if r.InstanceName == "" || r.ProjectID == "" {
+	if values.InstanceName == "" || values.ProjectID == "" {
 		return nil, services.ErrValueNotFound
 	}
-	return r, nil
+	return values, nil
 }
 
-// Execute will remove any public IPs in SQL instance found within the provided resources.
+// Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.CloseCloudSQL.Resources
+	resources := services.Configuration.UpdatePassword.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		log.Printf("getting details from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-		instance, err := services.CloudSQL.InstanceDetails(ctx, values.ProjectID, values.InstanceName)
-		if err != nil {
+		log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
 			return err
 		}
-		auth := instance.Settings.IpConfiguration.AuthorizedNetworks
-		if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, auth); err != nil {
-			return err
-		}
-		services.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	})
 }
