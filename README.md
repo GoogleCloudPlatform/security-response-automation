@@ -50,6 +50,15 @@ Depending on which resources you specify will determine which projects are enfor
 
 ### Google Compute Engine
 
+#### Create Snapshot
+
+Automatically create a snapshot of all disks associated with a GCE instance.
+
+Configuration
+
+- Configured in settings.json under the `remove_public_ip` key.
+- `snapshot_project_id` An optional project ID where disk snapshots will be copied to.
+
 #### Remove public IPs from an instance
 
 Removes all public IPs from an instance's network interface.
