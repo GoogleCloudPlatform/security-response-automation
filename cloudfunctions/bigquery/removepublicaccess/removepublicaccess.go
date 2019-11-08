@@ -60,19 +60,18 @@ func ReadFinding(b []byte) (*Values, error) {
 // Execute removes public access of a BigQuery dataset.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.RemovePublicAccess.Resources
-	f := remove(ctx, values, services.Logger, services.BigQuery)
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, f)
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, execute(ctx, values, services))
 }
 
-func remove(ctx context.Context, values *Values, logr *services.Logger, service *services.BigQuery) func() error {
+func execute(ctx context.Context, values *Values, services *Services) func() error {
 	return func() error {
-		if err := service.Init(ctx, values.ProjectID); err != nil {
+		if err := services.BigQuery.Init(ctx, values.ProjectID); err != nil {
 			return errors.Wrap(err, "error initializing bigquery service")
 		}
-		if err := service.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
+		if err := services.BigQuery.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
 			return errors.Wrapf(err, "error removing bigquery dataset %q public access in project %q", values.DatasetID, values.ProjectID)
 		}
-		logr.Info("removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
+		services.Logger.Info("removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
 		return nil
 	}
 }
