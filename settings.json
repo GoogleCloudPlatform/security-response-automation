@@ -1,64 +1,48 @@
 {
+  "create_snapshot": {
+    "snapshot_project_id": ""
+  },
   "close_bucket": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     }
   },
   "revoke_grants": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     },
-    "remove_list": [
-      "gmail.com",
-      "test.com"
-    ]
+    "remove_list": ["gmail.com", "test.com"]
   },
   "disable_firewall": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     },
     "remediation_action": "DISABLE",
     "source_ranges": ["127.0.0.0/8"]
   },
   "remove_public_ip": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     }
   },
   "enable_bucket_only_policy": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     }
   },
   "close_cloud_sql": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     }
   },
   "cloud_sql_require_ssl": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     }
   },
   "disable_dashboard": {
     "resources": {
-      "folder_ids": [
-        "593987969559"
-      ]
+      "folder_ids": ["593987969559"]
     }
   }
 }

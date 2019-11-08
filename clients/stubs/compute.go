@@ -38,6 +38,15 @@ type ComputeStub struct {
 	StubbedStopInstance          *compute.Operation
 	StubbedStartInstance         *compute.Operation
 	StubbedInstance              *compute.Instance
+	SavedDiskInsertDst           string
+	DiskInsertCalled             bool
+}
+
+// DiskInsert creates a new disk in the project.
+func (c *ComputeStub) DiskInsert(ctx context.Context, projectID, zone string, disk *compute.Disk) (*compute.Operation, error) {
+	c.SavedDiskInsertDst = projectID
+	c.DiskInsertCalled = true
+	return nil, nil
 }
 
 // NetworkAccessConfigStub tracks deleted AccessConfig's per NetworkInterface.

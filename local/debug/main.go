@@ -14,8 +14,8 @@ const (
 		"jsonPayload": {
 			"properties": {
 				"location": "us-central1",
-				"project_id": "aerial-jigsaw-235219",
-				"instanceDetails": "/zones/us-central1-a/instances/instance-4"
+				"project_id": "dark-shade",
+				"instanceDetails": "/zones/us-central1-c/instances/instance-2"
 			},
 			"detectionCategory": {
 				"ruleName": "bad_ip"
