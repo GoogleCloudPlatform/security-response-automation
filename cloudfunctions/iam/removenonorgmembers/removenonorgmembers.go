@@ -70,7 +70,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policy")
 	}
-	membersToRemove := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
+	membersToRemove, err := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
+	if err != nil {
+		return errors.Wrap(err, "failed to filter non-org members")
+	}
 	if _, err = services.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 		return errors.Wrap(err, "failed to remove organization policy")
 	}
@@ -78,25 +81,37 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	return nil
 }
 
-func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) []string {
-	regex, _ := regexp.Compile("^.+@" + orgDisplayName + "$")
+func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) ([]string, error) {
+	expr := "^.+@" + orgDisplayName + "$"
+	regexOrg, err := regexp.Compile(expr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to apply organization regex %q", expr)
+	}
+	var regexDomains []regexp.Regexp
+	for _, d := range allowedDomains {
+		rd, err := regexp.Compile(d)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to apply domain regex %q. Check settings.json", d)
+		}
+		regexDomains = append(regexDomains, *rd.Copy())
+	}
 	var nonOrgMembers []string
 	for _, b := range bindings {
 		for _, m := range b.Members {
-			inOrg := regex.MatchString(m)
+			inOrg := regexOrg.MatchString(m)
 			isUser := strings.HasPrefix(m, "user:")
-			if isUser && !inOrg && !allowed(m, allowedDomains) {
+			if isUser && !inOrg && !allowed(m, regexDomains) {
 				nonOrgMembers = append(nonOrgMembers, m)
 			}
 		}
 	}
-	return nonOrgMembers
+	return nonOrgMembers, nil
 }
 
 // allowed returns a boolean if the member's email address matches one of the domain regular expressions.
-func allowed(member string, domains []string) bool {
-	for _, d := range domains {
-		if matches, _ := regexp.MatchString(d, member); matches {
+func allowed(member string, regexDomains []regexp.Regexp) bool {
+	for i := 0; i < len(regexDomains); i++ {
+		if regexDomains[i].MatchString(member) {
 			return true
 		}
 	}
