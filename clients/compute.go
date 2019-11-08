@@ -34,6 +34,7 @@ const (
 // Compute client.
 type Compute struct {
 	compute   *compute.Service
+	disks     *compute.DisksService
 	snapshots *compute.SnapshotsService
 	opsZone   *compute.ZoneOperationsService
 	opsGlobal *compute.GlobalOperationsService
@@ -47,10 +48,16 @@ func NewCompute(ctx context.Context, authFile string) (*Compute, error) {
 	}
 	return &Compute{
 		compute:   cc,
+		disks:     compute.NewDisksService(cc),
 		snapshots: compute.NewSnapshotsService(cc),
 		opsZone:   compute.NewZoneOperationsService(cc),
 		opsGlobal: compute.NewGlobalOperationsService(cc),
 	}, nil
+}
+
+// DiskInsert creates a new disk in the project.
+func (c *Compute) DiskInsert(ctx context.Context, projectID, zone string, disk *compute.Disk) (*compute.Operation, error) {
+	return c.disks.Insert(projectID, zone, disk).Context(ctx).Do()
 }
 
 // DeleteDiskSnapshot deletes the given snapshot from the project.

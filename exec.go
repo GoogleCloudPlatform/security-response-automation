@@ -87,8 +87,9 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
 		return createsnapshot.Execute(ctx, values, &createsnapshot.Services{
-			Host:   svcs.Host,
-			Logger: svcs.Logger,
+			Configuration: svcs.Configuration,
+			Host:          svcs.Host,
+			Logger:        svcs.Logger,
 		})
 	case services.ErrUnsupportedFinding:
 		return nil
