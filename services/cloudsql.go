@@ -61,10 +61,15 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 }
 
 // UpdateUserPassword updates a user's password.
-func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, host, name, password string) (*sqladmin.Operation, error) {
-	return s.client.UpdateUser(ctx, projectID, instance, host, name, &sqladmin.User{
-		Password: password,
-	})
+func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, host, name, password string) error {
+	op, err := s.client.UpdateUser(ctx, projectID, instance, host, name, &sqladmin.User{Password: password})
+	if err != nil {
+		return err
+	}
+	if errs := s.Wait(projectID, op); len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
 }
 
 // InstanceDetails get details for an instance.

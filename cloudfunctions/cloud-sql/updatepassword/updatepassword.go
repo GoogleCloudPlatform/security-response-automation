@@ -17,6 +17,7 @@ package updatepassword
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
@@ -39,10 +40,8 @@ type Services struct {
 }
 
 const (
-	// defaultHostName is the host name of the MySQL instance.
-	// The % sign is a wildcard that matches any host. More information
-	// in the official documentation: https://cloud.google.com/sql/docs/mysql/users.
-	host = "%"
+	// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
+	hostWildcard = "%"
 	// userName is the MySQL user name that will have their password reset.
 	userName = "root"
 )
@@ -50,43 +49,40 @@ const (
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.SqlScanner
-	r := &Values{}
+	password, err := helpers.GeneratePassword()
+	if err != nil {
+		return nil, err
+	}
+	values := &Values{
+		Host:     hostWildcard,
+		UserName: userName,
+		Password: password,
+	}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
-	r.Host = host
-	r.UserName = userName
 	switch finding.GetFinding().GetCategory() {
 	case "SQL_NO_ROOT_PASSWORD":
-		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		pw, err := helpers.GeneratePassword()
-		if err != nil {
-			return nil, err
-		}
-		r.Password = pw
+		values.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
+		values.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if r.InstanceName == "" || r.ProjectID == "" {
+	if values.InstanceName == "" || values.ProjectID == "" {
 		return nil, services.ErrValueNotFound
 	}
-	return r, nil
+	return values, nil
 }
 
-// Execute will update the root password in a MySQL instance found within the provided resources.
+// Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.UpdatePassword.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		services.Logger.Info("updating root password for sql instance %q in project %q.", values.InstanceName, values.ProjectID)
-		op, err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password)
-		if err != nil {
+		log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
 			return err
 		}
-		if errs := services.CloudSQL.Wait(values.ProjectID, op); len(errs) > 0 {
-			return errs[0]
-		}
-		services.Logger.Info("updated root password for sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+		services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	})
 }
