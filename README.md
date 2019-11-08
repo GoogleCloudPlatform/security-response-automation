@@ -33,6 +33,15 @@ Configuration
 - Configured in settings.json under the `close_bucket` key.
 - See general [resource list](#resources) options.
 
+#### Enable bucket only policy
+
+Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
+
+Configuration
+
+ - Configured in settings.json under the `enable_bucket_only_policy` key.
+ - See general [resource list](#resources) options.
+
 ### IAM
 
 #### Revoke IAM grants
@@ -56,7 +65,7 @@ Automatically create a snapshot of all disks associated with a GCE instance.
 
 Configuration
 
-- Configured in settings.json under the `remove_public_ip` key.
+- Configured in settings.json under the `create_snapshot` key.
 - `snapshot_project_id` An optional project ID where disk snapshots will be copied to.
 
 #### Remove public IPs from an instance
@@ -67,6 +76,17 @@ Configuration
 
 - Configured in settings.json under the `remove_public_ip` key.
 - See general [resource list](#resources) options.
+
+#### Remediate open firewall
+
+Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
+
+Configuration
+
+- Configured in settings.json under the `disable_firewall` key.
+- See general [resource list](#resources) options.
+- `remediation_action`: one of  `DISABLE`, `DELETE` or `UPDATE_RANGE`
+- `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
 ### Google Kubernetes Engine
 
@@ -79,27 +99,25 @@ Configuration
 - Configured in settings.json under the `disable_dashboard` key.
 - See general [resource list](#resources) options.
 
-**Enable bucket only IAM policy**
+### Google Cloud SQL
 
-This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
-Depending on which resources you specify it will determine which projects are enforced.
+#### Close public Cloud SQL instance
 
-- `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
-- `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
+Close a public cloud SQL instance.
 
-For example, if you want to only enable bucket only IAM policy in the folder **development**
-you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
-and place into the `folder_ids` array.
+Configuration
 
-```json
-{
-  "enable_bucket_only_policy": {
-    "resources": {
-      "folder_ids": ["670032686187"]
-    }
-  }
-}
-```
+- Configured in settings.json under the `close_cloud_sql` key.
+- See general [resource list](#resources) options.
+
+#### Require SSL connection to Cloud SQL
+
+Update Cloud SQL instance to require SSL connections.
+
+Configuration
+
+- Configured in settings.json under the `cloud_sql_require_ssl` key.
+- See general [resource list](#resources) options.
 
 ### Installation
 
