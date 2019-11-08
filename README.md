@@ -44,9 +44,9 @@ Configuration
 This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify.
 Depending on which resources you specify will determine which projects are enforced.
 
-  - Configured in settings.json under the `revoke_iam` key.
-  - See general [resource list](#resources) options.
-  - `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
+- Configured in settings.json under the `revoke_iam` key.
+- See general [resource list](#resources) options.
+- `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
 
 ### Google Compute Engine
 
@@ -86,9 +86,7 @@ and place into the `folder_ids` array.
 {
   "enable_bucket_only_policy": {
     "resources": {
-      "folder_ids": [
-        "670032686187"
-      ]
+      "folder_ids": ["670032686187"]
     }
   }
 }
@@ -121,12 +119,37 @@ If at any point you want to revert the changes we've made just run `terraform de
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
 ```shell
-$ export PROJECT_ID=ae-threat-detection \
-  SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
+$ export PROJECT_ID=ae-threat-detection
+$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
   ORGANIZATION_ID=154584661726 \
   TOPIC_ID=cscc-notifications-topic
 
-$ ./enable-cscc-notfications.sh
+$ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+  --role='roles/pubsub.admin'
+
+$ go run ./local/cli/main.go \
+  --command create \
+  --org-id=$ORGANIZATION_ID \
+  --topic=projects/$PROJECT_ID/topics/cscc-notifications-topic12w
+
+// Note the output, specifically the generated `service_acount`:
+//
+// 2019/11/07 14:06:00 New NotificationConfig created: \
+// name:"organizations/1037840971520/notificationConfigs/sampleConfigId"
+// description:"Notifies active findings"
+// event_type:FINDING pubsub_topic:"projects/ae-threat-detection/topics/cscc-notifications-topic"
+// service_account:"service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com"
+// streaming_config:<filter:"state = \"ACTIVE\"" >
+//
+// Make sure to replace `SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
+gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
+  --member="serviceAccount:<SERVICE_ACCOUNT_FROM_ABOVE>" \
+  --role="roles/pubsub.publisher"
+
+gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
+  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+  --role='roles/pubsub.admin'
 ```
 
 ### Reinstalling a Cloud Function
