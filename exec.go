@@ -31,6 +31,7 @@ import (
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/mode"
 )
 
 var svcs *services.Global
@@ -196,6 +197,9 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/storage.admin to change the Bucket policy mode.
 //
 func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
 	case nil:
 		return enablebucketonlypolicy.Execute(ctx, values, &enablebucketonlypolicy.Services{

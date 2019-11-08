@@ -73,6 +73,7 @@ module "remove_public_ip" {
 module "enable_bucket_only_policy" {
   source = "./terraform/automations/enable-bucket-only-policy"
   setup  = "${module.google-setup}"
+  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]

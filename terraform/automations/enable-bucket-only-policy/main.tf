@@ -30,6 +30,7 @@ resource "google_cloudfunctions_function" "enable-bucket-only-policy" {
 
   environment_variables = {
     folder_ids = "${join(",", var.folder-ids)}"
+    MODE       = var.mode
   }
 }
 

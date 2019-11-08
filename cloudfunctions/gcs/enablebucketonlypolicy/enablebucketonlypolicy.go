@@ -21,6 +21,7 @@ import (
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
 	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/threat-automation/services/mode"
 	"github.com/pkg/errors"
 )
 
@@ -60,6 +61,10 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.EnableBucketOnlyPolicy.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if mode.DryRun() {
+			services.Logger.Info("[DRY_RUN] Bucket only policy enabled on bucket %q in project %q.", values.BucketName, values.ProjectID)
+			return nil
+		}
 		if err := services.Resource.EnableBucketOnlyPolicy(ctx, values.BucketName); err != nil {
 			return err
 		}
