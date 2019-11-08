@@ -42,14 +42,9 @@ func NewCloudSQL(cc CloudSQLClient) *CloudSQL {
 	return &CloudSQL{client: cc}
 }
 
-// Wait will wait for the SQL operation to complete.
-func (s *CloudSQL) Wait(project string, op *sqladmin.Operation) []error {
-	return s.client.WaitSQL(project, op)
-}
-
 // RequireSSL modifies the configuration to require only SSL connections.
-func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance string) (*sqladmin.Operation, error) {
-	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
+func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance string) error {
+	op, err := s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
 		Name:    instance,
 		Project: projectID,
 		Settings: &sqladmin.Settings{
@@ -58,6 +53,13 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 			},
 		},
 	})
+	if err != nil {
+		return err
+	}
+	if err := s.wait(projectID, op); err != nil {
+		return err
+	}
+	return nil
 }
 
 // UpdateUserPassword updates a user's password.
@@ -66,8 +68,8 @@ func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, 
 	if err != nil {
 		return err
 	}
-	if errs := s.Wait(projectID, op); len(errs) > 0 {
-		return errs[0]
+	if err := s.wait(projectID, op); err != nil {
+		return err
 	}
 	return nil
 }
@@ -78,7 +80,7 @@ func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instan
 }
 
 // ClosePublicAccess removes all valid IPs the from the authorized networks for an instance.
-func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance string, acls []*sqladmin.AclEntry) (*sqladmin.Operation, error) {
+func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance string, acls []*sqladmin.AclEntry) error {
 	var authorizedNetworks []*sqladmin.AclEntry
 	found := false
 	for _, ip := range acls {
@@ -89,7 +91,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 		authorizedNetworks = append(authorizedNetworks, ip)
 	}
 	if !found {
-		return nil, fmt.Errorf("instance %q does not have public access enabled", instance)
+		return fmt.Errorf("instance %q does not have public access enabled", instance)
 	}
 	// If there are no authorized networks the field must be explictly declared as null.
 	// Otherwise null fields are removed if not declared as such.
@@ -97,7 +99,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 	if len(authorizedNetworks) == 0 {
 		nullFields = append(nullFields, "AuthorizedNetworks")
 	}
-	return s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
+	op, err := s.client.PatchInstance(ctx, projectID, instance, &sqladmin.DatabaseInstance{
 		Name:    instance,
 		Project: projectID,
 		Settings: &sqladmin.Settings{
@@ -107,4 +109,18 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 			},
 		},
 	})
+	if err != nil {
+		return err
+	}
+	if err := s.wait(projectID, op); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *CloudSQL) wait(project string, op *sqladmin.Operation) error {
+	if errs := s.client.WaitSQL(project, op); len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
 }
