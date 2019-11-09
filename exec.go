@@ -86,7 +86,7 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
-		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
+		pubsub, err := services.InitPubSub(ctx, values.ProjectID)
 		if err != nil {
 			return err
 		}
@@ -95,7 +95,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			Host:          svcs.Host,
 			Logger:        svcs.Logger,
 
-			BigQuery: bigquery,
+			PubSub: pubsub,
 		})
 	case services.ErrUnsupportedFinding:
 		return nil
