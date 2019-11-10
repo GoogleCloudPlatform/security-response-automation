@@ -21,7 +21,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
@@ -133,7 +132,7 @@ func TestUpdatePassword(t *testing.T) {
 		{
 			name:      "update root password",
 			folderIDs: []string{"123"},
-			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &sqladmin.User{
 				Password: "4a542dd833d9f8a7600b13cd281d00cf2b0a5610e825ff931260b2911bef95b5",
 			},
@@ -141,7 +140,7 @@ func TestUpdatePassword(t *testing.T) {
 		{
 			name:            "no valid folder",
 			folderIDs:       []string{"456"},
-			ancestry:        helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:        services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: nil,
 		},
 	}

@@ -22,7 +22,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
@@ -151,14 +150,14 @@ func TestCloseBucket(t *testing.T) {
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
-			ancestry:       helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:       services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:           "no folders",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      nil,
 			expected:       nil,
-			ancestry:       helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:       services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {

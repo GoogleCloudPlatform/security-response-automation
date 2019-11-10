@@ -46,10 +46,15 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub        *services.PubSub
 	Configuration *services.Configuration
 	Host          *services.Host
 	Logger        *services.Logger
+}
+
+// Output contains the output of this function.
+type Output struct {
+	// DiskNames optionally contains the names of the disks copied to a forensic project which is used by Turbinia.
+	DiskNames []string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -84,19 +89,20 @@ func ReadFinding(b []byte) (*Values, error) {
 // In order for the snapshot to be create the service account must be granted the correct
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
-func Execute(ctx context.Context, values *Values, services *Services) error {
+func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 	conf := services.Configuration
+	disksCopied := []string{}
 	dstProjectID := conf.CreateSnapshot.TargetSnapshotProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
-		return errors.Wrap(err, "failed to list disks")
+		return nil, errors.Wrap(err, "failed to list disks")
 	}
 
 	snapshots, err := services.Host.ListProjectSnapshots(ctx, values.ProjectID)
 	if err != nil {
-		return errors.Wrap(err, "failed to list snapshots")
+		return nil, errors.Wrap(err, "failed to list snapshots")
 	}
 	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), values.ProjectID)
 
@@ -104,7 +110,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		snapshotName := createSnapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
 		if err != nil {
-			return errors.Wrapf(err, "failed checking if can create snapshot for %q", disk.Name)
+			return nil, errors.Wrapf(err, "failed checking if can create snapshot for %q", disk.Name)
 		}
 
 		if !create {
@@ -114,32 +120,33 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 
 		for k := range removeExisting {
 			if err := services.Host.DeleteDiskSnapshot(ctx, values.ProjectID, k); err != nil {
-				return errors.Wrapf(err, "failed deleting snapshot: %q", k)
+				return nil, errors.Wrapf(err, "failed deleting snapshot: %q", k)
 			}
 			services.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
 		}
 
 		log.Printf("creating a snapshot %q for %q", snapshotName, disk.Name)
 		if err := services.Host.CreateDiskSnapshot(ctx, values.ProjectID, values.Zone, disk.Name, snapshotName); err != nil {
-			return errors.Wrapf(err, "failed creating snapshot: %q", snapshotName)
+			return nil, errors.Wrapf(err, "failed creating snapshot: %q", snapshotName)
 		}
 		services.Logger.Info("created snapshot for disk %q", disk.Name)
 
 		if err := services.Host.SetSnapshotLabels(ctx, values.ProjectID, snapshotName, disk, labels); err != nil {
-			return errors.Wrapf(err, "failed setting labels: %q", snapshotName)
+			return nil, errors.Wrapf(err, "failed setting labels: %q", snapshotName)
 		}
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
 		if dstProjectID != "" {
-			log.Printf("copying snapshot %q for %q to %q", snapshotName, disk.Name, dstProjectID)
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, values.Zone, snapshotName); err != nil {
-				return errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
+			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
+				return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
 			}
-			services.Logger.Info("copied snapshot %q to %q", snapshotName, dstProjectID)
+			disksCopied = append(disksCopied, snapshotName)
+			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone)
 		}
 	}
 	log.Printf("completed")
-	return nil
+	return &Output{DiskNames: disksCopied}, nil
 }
 
 // canCreateSnapshot checks if we should create a snapshot along with a map of existing snapshots to be removed.

@@ -22,7 +22,6 @@ import (
 	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/threat-automation/providers/sha"
 	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	"github.com/pkg/errors"
 )
 
@@ -49,7 +48,7 @@ const (
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.SqlScanner
-	password, err := helpers.GeneratePassword()
+	password, err := services.GeneratePassword()
 	if err != nil {
 		return nil, err
 	}
