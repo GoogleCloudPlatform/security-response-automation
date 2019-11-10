@@ -61,12 +61,8 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.CloudSQLRequireSSL.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		op, err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName)
-		if err != nil {
+		if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
 			return err
-		}
-		if errs := services.CloudSQL.Wait(values.ProjectID, op); len(errs) > 0 {
-			return errs[0]
 		}
 		services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil

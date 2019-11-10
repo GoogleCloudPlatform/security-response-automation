@@ -254,7 +254,7 @@ func TestCreateSnapshot(t *testing.T) {
 				Instance:  "instance1",
 				Zone:      "test-zone",
 			}
-			if err := Execute(ctx, values, &Services{
+			if _, err := Execute(ctx, values, &Services{
 				Configuration: svcs.Configuration,
 				Host:          svcs.Host,
 				Logger:        svcs.Logger,

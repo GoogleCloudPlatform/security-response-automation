@@ -21,7 +21,6 @@ type Global struct {
 	Firewall      *Firewall
 	Container     *Container
 	CloudSQL      *CloudSQL
-	BigQuery      *BigQuery
 }
 
 // New returns an initialized Global struct.
@@ -61,11 +60,6 @@ func New(ctx context.Context) (*Global, error) {
 		return nil, err
 	}
 
-	bq, err := initBigQuery(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Global{
 		Configuration: config,
 		Host:          host,
@@ -74,8 +68,25 @@ func New(ctx context.Context) (*Global, error) {
 		Firewall:      fw,
 		Container:     cont,
 		CloudSQL:      sql,
-		BigQuery:      bq,
 	}, nil
+}
+
+// InitBigQuery creates and initializes a new instance of BigQuery.
+func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
+	bq, err := clients.NewBigQuery(ctx, authFile, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize bigquery client: %q", err)
+	}
+	return NewBigQuery(bq), nil
+}
+
+// InitPubSub creates and initializes a new instance of PubSub.
+func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
+	pubsub, err := clients.NewPubSub(ctx, authFile, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize pubsub client: %q", err)
+	}
+	return NewPubSub(pubsub), nil
 }
 
 func initConfiguration() (*Configuration, error) {
@@ -136,12 +147,4 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
 	return NewCloudSQL(cs), nil
-}
-
-func initBigQuery(ctx context.Context) (*BigQuery, error) {
-	bq, err := clients.NewBigQuery(ctx, authFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize bigquery client: %q", err)
-	}
-	return NewBigQuery(bq), nil
 }

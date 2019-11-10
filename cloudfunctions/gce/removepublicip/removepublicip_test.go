@@ -25,7 +25,6 @@ import (
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -161,7 +160,7 @@ func TestRemovePublicIP(t *testing.T) {
 				},
 			},
 			folderIDs: []string{"123"},
-			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name: "no valid folder",
@@ -172,7 +171,7 @@ func TestRemovePublicIP(t *testing.T) {
 			},
 			expectedDeletedAccessConfigs: nil,
 			folderIDs:                    []string{"456"},
-			ancestry:                     helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:                     services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {

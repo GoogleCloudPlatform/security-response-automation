@@ -92,6 +92,7 @@ resource "google_project_iam_member" "stackdriver-writer" {
   member  = "serviceAccount:${google_service_account.automation-service-account.email}"
 }
 
+// TODO: Should move all these to where they're used so if someone doesn't want them they're easy to ignore.
 
 resource "google_project_service" "compute_api" {
   project                    = "${var.automation-project}"

@@ -25,7 +25,6 @@ import (
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -133,7 +132,7 @@ func TestCloseCloudSQL(t *testing.T) {
 		{
 			name:      "close public ip on sql instance",
 			folderIDs: []string{"123"},
-			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			instanceDetailsResponse: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",

@@ -21,7 +21,6 @@ import (
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
@@ -264,9 +263,9 @@ func TestProjectInOrg(t *testing.T) {
 		ancestry *crm.GetAncestryResponse
 		inOrg    bool
 	}{
-		{name: "in org", inOrg: true, orgID: "456", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
-		{name: "out org", inOrg: false, orgID: "888", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
-		{name: "no org", inOrg: false, orgID: "", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "in org", inOrg: true, orgID: "456", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "out org", inOrg: false, orgID: "888", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "no org", inOrg: false, orgID: "", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
 	}
 
 	for _, tt := range tests {
