@@ -21,9 +21,9 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/googlecloudplatform/threat-automation/compiled/etd/protos"
-	"github.com/googlecloudplatform/threat-automation/providers/etd"
-	"github.com/googlecloudplatform/threat-automation/services"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/etd"
+	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
 )

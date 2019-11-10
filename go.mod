@@ -1,4 +1,4 @@
-module github.com/googlecloudplatform/threat-automation
+module github.com/googlecloudplatform/security-response-automation
 
 go 1.11
 

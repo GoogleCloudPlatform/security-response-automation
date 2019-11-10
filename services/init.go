@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/googlecloudplatform/threat-automation/clients"
+	"github.com/googlecloudplatform/security-response-automation/clients"
 )
 
 const (

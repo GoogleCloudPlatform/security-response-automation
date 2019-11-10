@@ -30,7 +30,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/api/transport"
 
-	securitycenterpb "github.com/googlecloudplatform/threat-automation/clients/cscc/v1p1alpha1"
+	securitycenterpb "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 	iampb "google.golang.org/genproto/googleapis/iam/v1"
 	longrunningpb "google.golang.org/genproto/googleapis/longrunning"
 	"google.golang.org/grpc"

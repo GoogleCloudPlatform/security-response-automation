@@ -20,7 +20,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 )
 
 func TestPubSub(t *testing.T) {
