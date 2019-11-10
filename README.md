@@ -99,7 +99,7 @@ Configuration
 - Configured in settings.json under the `disable_firewall` key.
 - See general [resource list](#resources) options.
 - `remediation_action`: one of `DISABLE`, `DELETE` or `UPDATE_RANGE`
-- `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+  - `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
 ### Google Kubernetes Engine
 
