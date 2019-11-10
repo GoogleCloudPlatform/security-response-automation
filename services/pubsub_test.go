@@ -16,10 +16,10 @@ package services
 
 import (
 	"context"
-	"log"
 	"testing"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
 )
 
@@ -31,28 +31,24 @@ func TestFoo(t *testing.T) {
 	tests := []struct {
 		name    string
 		message *pubsub.Message
-		topic   *pubsub.Topic
 	}{
 		{
-			name:    "foo",
-			message: &pubsub.Message{Data: []byte("foo-tom")},
-			topic:   &pubsub.Topic{},
+			name:    "publish",
+			message: &pubsub.Message{Data: []byte("pubsub message")},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stub := &stubs.PubSubStub{}
-			stub.StubbedTopic = tt.topic
-			stub.StubbedResult = &pubsub.PublishResult{}
+			stub.StubbedTopic = &pubsub.Topic{}
 			ctx := context.Background()
-			log.Println("2")
 
-			ps := NewPubSub(stub)
-			log.Printf("2: %+v", ps)
-			_, err := ps.Publish(ctx, "topic-id", tt.message)
-			log.Println("2")
-			if err != nil {
+			e := NewPubSub(stub)
+			if _, err := e.Publish(ctx, "topic-id", tt.message); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)
+			}
+			if diff := cmp.Diff(stub.PublishedMessage.Data, tt.message.Data); diff != "" {
+				t.Errorf("%s failed diff:%q", tt.name, diff)
 			}
 		})
 	}

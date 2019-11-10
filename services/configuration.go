@@ -58,8 +58,12 @@ type DisableDashboard struct {
 
 // CreateSnapshot contains configuration required for the create snapshot function.
 type CreateSnapshot struct {
-	// TargetSnapshotProjectID is the project ID where disk snapshots will be copied to.
-	TargetSnapshotProjectID string `json:"snapshot_project_id"`
+	TargetSnapshotProjectID string   `json:"snapshot_project_id"`
+	TargetSnapshotZone      string   `json:"snapshot_zone"`
+	TurbiniaProjectID       string   `json:"turbinia_project_id"`
+	TurbiniaZone            string   `json:"turbinia_zone"`
+	TurbiniaTopicName       string   `json:"turbinia_topic_name"`
+	OutputDestinations      []string `json:"output_destinations"`
 }
 
 // UpdatePassword contains configuration required for the update password function.

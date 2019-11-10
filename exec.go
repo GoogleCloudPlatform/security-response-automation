@@ -76,9 +76,10 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
 //
-// Once a bad IP finding is received this Cloud Function will look for any existing disk snapshots
-// for the affected instance. If there are recent snapshots then no action is taken. If we have not
-// taken a snapshot recently, take a new snapshot for each disk within the instance.
+// Once a supported finding is received this Cloud Function will look for any existing disk snapshots
+// for the affected instance. If there are recent snapshots then no action is taken. This is so we
+// do not overwrite a recent snapshot. If we have not taken a snapshot recently, take a new snapshot
+// for each disk within the instance.
 //
 // Permissions required
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
@@ -86,17 +87,29 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
-		pubsub, err := services.InitPubSub(ctx, values.ProjectID)
-		if err != nil {
-			return err
-		}
-		return createsnapshot.Execute(ctx, values, &createsnapshot.Services{
+		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
 			Logger:        svcs.Logger,
-
-			PubSub: pubsub,
 		})
+		if err != nil {
+			return err
+		}
+		for _, dest := range svcs.Configuration.CreateSnapshot.OutputDestinations {
+			switch dest {
+			case "turbinia":
+				log.Println("turbinia output is enabled, sending each copied disk to turbinia")
+				turbiniaProjectID := svcs.Configuration.CreateSnapshot.TurbiniaProjectID
+				turbiniaTopicName := svcs.Configuration.CreateSnapshot.TurbiniaTopicName
+				turbiniaZone := svcs.Configuration.CreateSnapshot.TurbiniaZone
+				diskNames := output.DiskNames
+				if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskNames); err != nil {
+					return err
+				}
+				svcs.Logger.Info("sent %d disks to turbinia", len(diskNames))
+			}
+		}
+		return nil
 	case services.ErrUnsupportedFinding:
 		return nil
 	default:

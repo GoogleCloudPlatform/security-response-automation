@@ -23,7 +23,6 @@ import (
 // PubSubStub provides a stub for the PubSub client.
 type PubSubStub struct {
 	StubbedTopic     *pubsub.Topic
-	StubbedResult    *pubsub.PublishResult
 	PublishedMessage *pubsub.Message
 }
 
@@ -33,7 +32,7 @@ func (p *PubSubStub) Topic(id string) *pubsub.Topic {
 }
 
 // Publish will publish a message to a PubSub topic.
-func (p *PubSubStub) Publish(ctx context.Context, topic *pubsub.Topic, message *pubsub.Message) *pubsub.PublishResult {
+func (p *PubSubStub) Publish(ctx context.Context, topic *pubsub.Topic, message *pubsub.Message) (string, error) {
 	p.PublishedMessage = message
-	return p.StubbedResult
+	return "", nil
 }

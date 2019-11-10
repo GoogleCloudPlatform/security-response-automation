@@ -42,3 +42,13 @@ resource "google_organization_iam_member" "gce-snapshot-bind-findings-organizati
   role   = "roles/compute.instanceAdmin.v1"
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
+
+# Used to allow the SRA service account to write to the Turbinia PubSub topic.
+resource "google_pubsub_topic_iam_binding" "writer" {
+    project = "${var.turbinia-project-id}"
+    topic = "projects/${var.turbinia-project-id}/topics/${var.turbinia-topic-name}"
+    role = "roles/pubsub.publisher"
+    members = [
+        "serviceAccount:${var.setup.automation-service-account}",
+    ]
+}

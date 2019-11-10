@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"log"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -24,7 +23,7 @@ import (
 // PubSubClient contains minimum interface required by the service.
 type PubSubClient interface {
 	Topic(string) *pubsub.Topic
-	Publish(context.Context, *pubsub.Topic, *pubsub.Message) *pubsub.PublishResult
+	Publish(context.Context, *pubsub.Topic, *pubsub.Message) (string, error)
 }
 
 // PubSub service.
@@ -33,22 +32,13 @@ type PubSub struct {
 }
 
 // NewPubSub returns a PubSub service.
-func NewPubSub(cs PubSubClient) *PubSub {
-	return &PubSub{client: cs}
+func NewPubSub(client PubSubClient) *PubSub {
+	return &PubSub{client: client}
 }
 
 // Publish will publish a message to a PubSub topic.
-func (p *PubSub) Publish(ctx context.Context, topicID string, message *pubsub.Message) (string, error) {
-	topic := p.client.Topic(topicID)
-	log.Println("1")
-	// defer topic.Stop()
-	res := p.client.Publish(ctx, topic, message)
-	log.Println("1")
-	id, err := res.Get(ctx)
-	log.Println("1")
-	if err != nil {
-		return "", nil
-	}
-	log.Println("1")
-	return id, nil
+func (e *PubSub) Publish(ctx context.Context, topicID string, message *pubsub.Message) (string, error) {
+	topic := e.client.Topic(topicID)
+	defer topic.Stop()
+	return e.client.Publish(ctx, topic, message)
 }

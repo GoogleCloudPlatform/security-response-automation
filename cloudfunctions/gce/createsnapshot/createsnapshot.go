@@ -53,31 +53,31 @@ type Services struct {
 
 // Output contains the output of this function.
 type Output struct {
-	// DiskNames optionally contains the names of the disks copied to a forensic project which is used by Turbinia.
+	// DiskNames optionally contains the names of the disks copied to a target project.
 	DiskNames []string
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
 	var finding pb.BadIP
-	r := &Values{}
+	values := &Values{}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	// TODO: Support pb.BadDomain as well.
 	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
 	case "bad_ip":
-		r.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		r.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
-		r.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		r.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
+		values.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
+		values.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
+		values.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
+		values.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if r.RuleName == "" || r.ProjectID == "" || r.Instance == "" || r.Zone == "" {
+	if values.RuleName == "" || values.ProjectID == "" || values.Instance == "" || values.Zone == "" {
 		return nil, services.ErrValueNotFound
 	}
-	return r, nil
+	return values, nil
 }
 
 // Execute creates a snapshot of an instance's disk.

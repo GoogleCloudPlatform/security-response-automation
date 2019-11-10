@@ -24,7 +24,7 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 
 	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"	
+	"github.com/googlecloudplatform/threat-automation/services"
 )
 
 func TestReadFinding(t *testing.T) {

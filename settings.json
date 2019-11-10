@@ -1,6 +1,11 @@
 {
   "create_snapshot": {
-    "snapshot_project_id": ""
+    "snapshot_project_id": "ae-threat-detection",
+    "snapshot_zone": "us-central1-c",
+    "turbinia_project_id": "ae-threat-detection",
+    "turbinia_topic_name": "turbinia",
+    "turbinia_zone": "us-central1-c",
+    "output_destinations": ["turbinia"]
   },
   "close_bucket": {
     "resources": {
