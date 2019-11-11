@@ -85,6 +85,35 @@ func TestReadFinding(t *testing.T) {
 				"createTime": "2019-10-03T17:20:24.331Z"
 			}
 		}`
+
+		inactiveFinding = `{
+			"notificationConfigName": "organizations/1055058813388/notificationConfigs/noticonf-active-001-id",
+			"finding": {
+				"name": "organizations/1055058813388/sources/1986930501971458034/findings/986d52793c4aefc976dd2f35c14b7726",
+				"parent": "organizations/1055058813388/sources/1986930501971458034",
+				"resourceName": "//cloudsql.googleapis.com/projects/threat-auto-tests-07102019/instances/test-no-password",
+				"state": "INACTIVE",
+				"category": "SQL_NO_ROOT_PASSWORD",
+				"externalUri": "https://console.cloud.google.com/sql/instances/test-no-password/users?project=threat-auto-tests-07102019",
+				"sourceProperties": {
+					"ReactivationCount": 0,
+					"AssetSettings": "{\"activationPolicy\":\"ALWAYS\",\"availabilityType\":\"ZONAL\",\"backupConfiguration\":{\"binaryLogEnabled\":true,\"enabled\":true,\"kind\":\"sql#backupConfiguration\",\"startTime\":\"20:00\"},\"dataDiskSizeGb\":\"10\",\"dataDiskType\":\"PD_SSD\",\"ipConfiguration\":{\"ipv4Enabled\":true},\"kind\":\"sql#settings\",\"locationPreference\":{\"kind\":\"sql#locationPreference\",\"zone\":\"us-central1-f\"},\"maintenanceWindow\":{\"day\":0.0,\"hour\":0.0,\"kind\":\"sql#maintenanceWindow\"},\"pricingPlan\":\"PER_USE\",\"replicationType\":\"SYNCHRONOUS\",\"settingsVersion\":\"1\",\"storageAutoResize\":true,\"storageAutoResizeLimit\":\"0\",\"tier\":\"db-n1-standard-1\"}",
+					"ExceptionInstructions": "Add the security mark \"allow_sql_no_root_password\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+					"SeverityLevel": "High",
+					"Recommendation": "Go to https://console.cloud.google.com/sql/instances/test-no-password/users?project=threat-auto-tests-07102019 click the 3 dot icon next to the \"root\" user, select \"Change Password\", specify a new strong password, click \"OK\".",
+					"ProjectId": "threat-auto-tests-07102019",
+					"AssetCreationTime": "2019-10-31T13:13:33.146Z",
+					"ScannerName": "SQL_SCANNER",
+					"ScanRunId": "2019-10-31T15:20:22.425-07:00",
+					"Explanation": "MySql database instances should have a strong password set for the root account."
+				},
+				"securityMarks": {
+					"name": "organizations/1055058813388/sources/1986930501971458034/findings/986d52793c4aefc976dd2f35c14b7726/securityMarks"
+				},
+				"eventTime": "2019-10-31T22:20:22.425Z",
+				"createTime": "2019-10-31T22:52:35.630Z"
+			}
+		}`
 	)
 	for _, tt := range []struct {
 		name, instanceName, projectID, host, userName string
@@ -93,6 +122,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", projectID: "threat-auto-tests-07102019", instanceName: "test-no-password", host: "%", userName: "root", bytes: []byte(noRootPassword), expectedError: nil},
 		{name: "wrong category", projectID: "", instanceName: "", host: "", userName: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
+		{name: "inactive finding", projectID: "", instanceName: "", host: "", userName: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
