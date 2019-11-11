@@ -7,5 +7,5 @@ variable "folder-ids" {
 
 variable "mode" {
   type        = string
-  description = "Operation mode of the cloud fucntion. One of 'ON', 'OFF' or 'DRY-RUN'."
+  description = "Operation mode of the cloud function."
 }
