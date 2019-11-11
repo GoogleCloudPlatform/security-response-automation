@@ -67,7 +67,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policy")
 	}
-	_, membersToRemove, err := services.Resource.RemoveMembersOrganization(ctx, organization.DisplayName, organization.Name, allowedDomains, policy)
+	membersToRemove, err := services.Resource.RemoveMembersOrganization(ctx, organization.DisplayName, organization.Name, allowedDomains, policy)
 	if err != nil {
 		return errors.Wrap(err, "failed to remove organization policy")
 	}

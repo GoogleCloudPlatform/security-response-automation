@@ -207,19 +207,18 @@ func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Pol
 }
 
 // RemoveMembersOrganization removes the given members from the organization.
-func (r *Resource) RemoveMembersOrganization(ctx context.Context, displayName, name string, allowed []string, p *crm.Policy) (*crm.Policy, []string, error) {
+func (r *Resource) RemoveMembersOrganization(ctx context.Context, displayName, name string, allowed []string, p *crm.Policy) ([]string, error) {
 	allowed = append(allowed, displayName)
 	j := strings.Replace(strings.Join(allowed, "|"), ".", `\.`, -1)
 	e, err := regexp.Compile("^.+@" + j + "$")
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to compile regex: %q", err)
+		return nil, fmt.Errorf("failed to compile regex: %q", err)
 	}
 	newPolicy, membersToRemove := r.removeMembersFromOrgPolicy(e, p)
-	s, err := r.crm.SetPolicyOrganization(ctx, name, newPolicy)
-	if err != nil {
-		return nil, membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
+	if _, err := r.crm.SetPolicyOrganization(ctx, name, newPolicy); err != nil {
+		return membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
 	}
-	return s, membersToRemove, nil
+	return membersToRemove, nil
 }
 
 // PolicyOrganization returns the IAM policy for the given resource name.

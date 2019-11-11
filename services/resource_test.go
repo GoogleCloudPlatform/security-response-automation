@@ -245,11 +245,11 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &crm.Policy{Bindings: tt.input}
-			newPolicy, _, err := r.RemoveMembersOrganization(ctx, tt.orgDisplayName, tt.orgID, tt.allowedDomains, p)
+			_, err := r.RemoveMembersOrganization(ctx, tt.orgDisplayName, tt.orgID, tt.allowedDomains, p)
 			if err != nil {
 				t.Errorf("%v failed, err: %+v", tt.name, err)
 			}
-			if diff := cmp.Diff(newPolicy.Bindings, tt.expected); diff != "" {
+			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expected); diff != "" {
 				t.Errorf("%v failed, difference: %v", tt.name, diff)
 			}
 		})
