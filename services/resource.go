@@ -174,6 +174,24 @@ func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) ([]
 	return s, nil
 }
 
+// removeMembersFromOrgPolicy removes Google account (user:) members that doesn't match the given regex.
+func (r *Resource) removeMembersFromOrgPolicy(regex *regexp.Regexp, policy *crm.Policy) (*crm.Policy, []string) {
+	membersToRemove := []string{}
+	for _, b := range policy.Bindings {
+		allowedMembers := []string{}
+		for _, m := range b.Members {
+			isUser := strings.HasPrefix(m, "user:")
+			if !isUser || regex.MatchString(m) {
+				allowedMembers = append(allowedMembers, m)
+			} else {
+				membersToRemove = append(membersToRemove, m)
+			}
+		}
+		b.Members = allowedMembers
+	}
+	return policy, membersToRemove
+}
+
 // removeMembersFromPolicy removes members that match the given regex.
 func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Policy) *crm.Policy {
 	for _, b := range policy.Bindings {
@@ -189,18 +207,19 @@ func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Pol
 }
 
 // RemoveMembersOrganization removes the given members from the organization.
-func (r *Resource) RemoveMembersOrganization(ctx context.Context, name string, remove []string, p *crm.Policy) (*crm.Policy, error) {
-	j := strings.Replace(strings.Join(remove, "|"), ".", `\.`, -1)
-	e, err := regexp.Compile("^" + j + "$")
+func (r *Resource) RemoveMembersOrganization(ctx context.Context, displayName, name string, allowed []string, p *crm.Policy) (*crm.Policy, []string, error) {
+	allowed = append(allowed, displayName)
+	j := strings.Replace(strings.Join(allowed, "|"), ".", `\.`, -1)
+	e, err := regexp.Compile("^.+@" + j + "$")
 	if err != nil {
-		return nil, fmt.Errorf("failed to compile regex: %q", err)
+		return nil, nil, fmt.Errorf("failed to compile regex: %q", err)
 	}
-	newPolicy := r.removeMembersFromPolicy(e, p)
+	newPolicy, membersToRemove := r.removeMembersFromOrgPolicy(e, p)
 	s, err := r.crm.SetPolicyOrganization(ctx, name, newPolicy)
 	if err != nil {
-		return nil, fmt.Errorf("failed to set project policy: %q", err)
+		return nil, membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
 	}
-	return s, nil
+	return s, membersToRemove, nil
 }
 
 // PolicyOrganization returns the IAM policy for the given resource name.

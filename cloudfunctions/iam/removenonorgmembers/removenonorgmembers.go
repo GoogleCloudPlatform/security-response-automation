@@ -18,14 +18,11 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"regexp"
-	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
-	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 // Values contains the required values needed for this function.
@@ -70,50 +67,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policy")
 	}
-	membersToRemove, err := filterNonOrgMembers(organization.DisplayName, policy.Bindings, allowedDomains)
+	_, membersToRemove, err := services.Resource.RemoveMembersOrganization(ctx, organization.DisplayName, organization.Name, allowedDomains, policy)
 	if err != nil {
-		return errors.Wrap(err, "failed to filter non-org members")
-	}
-	if _, err = services.Resource.RemoveMembersOrganization(ctx, organization.Name, membersToRemove, policy); err != nil {
 		return errors.Wrap(err, "failed to remove organization policy")
 	}
 	log.Printf("removed members: %s", membersToRemove)
 	return nil
-}
-
-func filterNonOrgMembers(orgDisplayName string, bindings []*cloudresourcemanager.Binding, allowedDomains []string) ([]string, error) {
-	expr := "^.+@" + orgDisplayName + "$"
-	regexOrg, err := regexp.Compile(expr)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to apply organization regex %q", expr)
-	}
-	var regexDomains []regexp.Regexp
-	for _, d := range allowedDomains {
-		rd, err := regexp.Compile("^.+@" + d + "$")
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to apply domain regex %q. Check settings.json", d)
-		}
-		regexDomains = append(regexDomains, *rd.Copy())
-	}
-	var nonOrgMembers []string
-	for _, b := range bindings {
-		for _, m := range b.Members {
-			inOrg := regexOrg.MatchString(m)
-			isUser := strings.HasPrefix(m, "user:")
-			if isUser && !inOrg && !allowed(m, regexDomains) {
-				nonOrgMembers = append(nonOrgMembers, m)
-			}
-		}
-	}
-	return nonOrgMembers, nil
-}
-
-// allowed returns a boolean if the member's email address matches one of the domain regular expressions.
-func allowed(member string, regexDomains []regexp.Regexp) bool {
-	for i := 0; i < len(regexDomains); i++ {
-		if regexDomains[i].MatchString(member) {
-			return true
-		}
-	}
-	return false
 }
