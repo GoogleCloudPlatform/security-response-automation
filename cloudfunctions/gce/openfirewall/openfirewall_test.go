@@ -23,9 +23,8 @@ import (
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -144,7 +143,7 @@ func TestOpenFirewall(t *testing.T) {
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
 			expFirewallRule:   &compute.Firewall{Name: "default_allow_all", Disabled: true},
 			folderIDs:         []string{"123"},
-			ancestry:          helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:          services.CreateAncestors([]string{"folder/123"}),
 			remediationAction: "DISABLE",
 			sourceRange:       []string{"127.0.0.1/8"},
 		},
@@ -153,7 +152,7 @@ func TestOpenFirewall(t *testing.T) {
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false, SourceRanges: []string{"0.0.0.0/0"}},
 			expFirewallRule:   &compute.Firewall{Name: "default_allow_all", Disabled: false, SourceRanges: []string{"6.6.6.6/24"}},
 			folderIDs:         []string{"123"},
-			ancestry:          helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:          services.CreateAncestors([]string{"folder/123"}),
 			remediationAction: "UPDATE_RANGE",
 			sourceRange:       []string{"6.6.6.6/24"},
 		},
@@ -162,7 +161,7 @@ func TestOpenFirewall(t *testing.T) {
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
 			expFirewallRule:   nil,
 			folderIDs:         []string{"123"},
-			ancestry:          helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:          services.CreateAncestors([]string{"folder/123"}),
 			remediationAction: "DELETE",
 			sourceRange:       []string{"127.0.0.1/8"},
 		},
@@ -171,7 +170,7 @@ func TestOpenFirewall(t *testing.T) {
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
 			expFirewallRule:   nil,
 			folderIDs:         []string{"4242"},
-			ancestry:          helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:          services.CreateAncestors([]string{"folder/123"}),
 			remediationAction: "DISABLE",
 			sourceRange:       []string{"127.0.0.1/8"},
 		},

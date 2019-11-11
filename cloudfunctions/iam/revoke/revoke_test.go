@@ -19,9 +19,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
@@ -50,7 +49,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: nil,
-			ancestry:        helpers.CreateAncestors([]string{}),
+			ancestry:        services.CreateAncestors([]string{}),
 		},
 		{
 			name:            "remove new gmail user folder",
@@ -61,7 +60,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com"},
-			ancestry:        helpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new gmail user project",
@@ -72,7 +71,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{"test-project-id"},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com"},
-			ancestry:        helpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new user only",
@@ -83,7 +82,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
-			ancestry:        helpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "domain not in disallowed list",
@@ -94,7 +93,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@foo.com"},
-			ancestry:        helpers.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "provide multiple folders and remove gmail users",
@@ -105,7 +104,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
-			ancestry:        helpers.CreateAncestors([]string{"project/projectID", "folder/folderID1", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID1", "organization/organizationID"}),
 		},
 		{
 			name:            "cannot revoke in this folder",
@@ -116,7 +115,7 @@ func TestIAMRevoke(t *testing.T) {
 			projectIDs:      []string{},
 			disallowed:      []string{"gmail.com"},
 			expectedMembers: nil,
-			ancestry:        helpers.CreateAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
 		},
 	}
 	for _, tt := range test {

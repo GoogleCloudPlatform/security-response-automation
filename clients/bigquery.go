@@ -24,28 +24,21 @@ import (
 
 // BigQuery client.
 type BigQuery struct {
-	service  *bigquery.Client
-	authFile string
+	client *bigquery.Client
 }
 
 // NewBigQuery returns the BigQuery client.
-func NewBigQuery(ctx context.Context, authFile string) (*BigQuery, error) {
-	return &BigQuery{authFile: authFile}, nil
-}
-
-// Init initializes the bigquery client.
-func (bq *BigQuery) Init(ctx context.Context, projectID string) error {
-	c, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile(bq.authFile))
+func NewBigQuery(ctx context.Context, authFile, projectID string) (*BigQuery, error) {
+	client, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile(authFile))
 	if err != nil {
-		return fmt.Errorf("failed to init bigquery: %q", err)
+		return nil, fmt.Errorf("failed to init bigquery: %q", err)
 	}
-	bq.service = c
-	return nil
+	return &BigQuery{client: client}, nil
 }
 
 // DatasetMetadata fetches the metadata for the dataset.
 func (bq *BigQuery) DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
-	return bq.service.DatasetInProject(projectID, datasetID).Metadata(ctx)
+	return bq.client.DatasetInProject(projectID, datasetID).Metadata(ctx)
 }
 
 // OverwriteDatasetMetadata modifies specific Dataset metadata fields.
@@ -53,5 +46,5 @@ func (bq *BigQuery) DatasetMetadata(ctx context.Context, projectID, datasetID st
 // See https://godoc.org/cloud.google.com/go/bigquery#Dataset.Update for details.
 func (bq *BigQuery) OverwriteDatasetMetadata(ctx context.Context, projectID, datasetID string, dm bigquery.DatasetMetadataToUpdate) (*bigquery.DatasetMetadata, error) {
 	blindWrite := ""
-	return bq.service.DatasetInProject(projectID, datasetID).Update(ctx, dm, blindWrite)
+	return bq.client.DatasetInProject(projectID, datasetID).Update(ctx, dm, blindWrite)
 }

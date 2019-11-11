@@ -23,9 +23,8 @@ import (
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"
-	testhelpers "github.com/googlecloudplatform/threat-automation/services/helpers"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -132,7 +131,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 		{
 			name:      "enforce ssl on sql instance",
 			folderIDs: []string{"123"},
-			ancestry:  testhelpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",

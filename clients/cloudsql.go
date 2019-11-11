@@ -80,7 +80,7 @@ func waitSQL(op *sqladmin.Operation, fn func() (*sqladmin.Operation, error)) []e
 			return nil
 		}
 		if i%4 == 0 {
-			log.Println("Waiting")
+			log.Println("waiting")
 		}
 		time.Sleep(loopSleep)
 	}

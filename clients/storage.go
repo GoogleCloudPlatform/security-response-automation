@@ -20,6 +20,7 @@ import (
 
 	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
+	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	"google.golang.org/api/option"
 )
 
@@ -53,6 +54,9 @@ func (s *Storage) EnableBucketOnlyPolicy(ctx context.Context, bucketName string)
 		BucketPolicyOnly: &storage.BucketPolicyOnly{
 			Enabled: true,
 		},
+	}
+	if mode.DryRun() {
+		return nil
 	}
 	if _, err := s.service.Bucket(bucketName).Update(ctx, enableBucketPolicyOnly); err != nil {
 		return err

@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
@@ -61,8 +61,7 @@ func TestEnforceSSLConnection(t *testing.T) {
 			s := &stubs.CloudSQL{}
 			ctx := context.Background()
 			c := NewCloudSQL(s)
-			_, err := c.RequireSSL(ctx, tt.projectID, instance)
-			if err != nil && !tt.expectedFail {
+			if err := c.RequireSSL(ctx, tt.projectID, instance); err != nil && !tt.expectedFail {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
 
@@ -129,7 +128,7 @@ func TestClosePublicAccess(t *testing.T) {
 			cloudSQLStub := &stubs.CloudSQL{}
 			ctx := context.Background()
 			c := NewCloudSQL(cloudSQLStub)
-			if _, err := c.ClosePublicAccess(ctx, projectID, instance, tt.acls); err != nil && tt.expected != nil {
+			if err := c.ClosePublicAccess(ctx, projectID, instance, tt.acls); err != nil && tt.expected != nil {
 				t.Errorf("%v failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(cloudSQLStub.SavedInstanceUpdated, tt.expected); diff != "" {

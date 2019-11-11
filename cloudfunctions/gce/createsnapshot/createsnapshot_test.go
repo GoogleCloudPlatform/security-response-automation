@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/services"
 	"golang.org/x/xerrors"
 	compute "google.golang.org/api/compute/v1"
 )
@@ -254,7 +254,7 @@ func TestCreateSnapshot(t *testing.T) {
 				Instance:  "instance1",
 				Zone:      "test-zone",
 			}
-			if err := Execute(ctx, values, &Services{
+			if _, err := Execute(ctx, values, &Services{
 				Configuration: svcs.Configuration,
 				Host:          svcs.Host,
 				Logger:        svcs.Logger,

@@ -1,4 +1,4 @@
-module github.com/googlecloudplatform/threat-automation
+module github.com/googlecloudplatform/security-response-automation
 
 go 1.11
 
@@ -20,6 +20,7 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/go-cmp v0.3.0
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/googleapis/gax-go/v2 v2.0.5
 	github.com/haya14busa/goplay v1.0.0 // indirect
 	github.com/josharian/impl v0.0.0-20190715203526-f0d59e96e372 // indirect

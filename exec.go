@@ -20,18 +20,19 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/removepublic"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/cloud-sql/requiressl"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/createsnapshot"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/openfirewall"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gce/removepublicip"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/closebucket"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gcs/enablebucketonlypolicy"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/gke/disabledashboard"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/removenonorgmembers"
-	"github.com/googlecloudplatform/threat-automation/cloudfunctions/iam/revoke"
-	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/mode"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/updatepassword"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/openfirewall"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/removepublicip"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/enablebucketonlypolicy"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gke/disabledashboard"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
+	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/googlecloudplatform/security-response-automation/services/mode"
 )
 
 var svcs *services.Global
@@ -76,9 +77,10 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 
 // SnapshotDisk is the entry point for the auto creation of GCE snapshots Cloud Function.
 //
-// Once a bad IP finding is received this Cloud Function will look for any existing disk snapshots
-// for the affected instance. If there are recent snapshots then no action is taken. If we have not
-// taken a snapshot recently, take a new snapshot for each disk within the instance.
+// Once a supported finding is received this Cloud Function will look for any existing disk snapshots
+// for the affected instance. If there are recent snapshots then no action is taken. This is so we
+// do not overwrite a recent snapshot. If we have not taken a snapshot recently, take a new snapshot
+// for each disk within the instance.
 //
 // Permissions required
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
@@ -86,11 +88,29 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
-		return createsnapshot.Execute(ctx, values, &createsnapshot.Services{
+		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
 			Logger:        svcs.Logger,
 		})
+		if err != nil {
+			return err
+		}
+		for _, dest := range svcs.Configuration.CreateSnapshot.OutputDestinations {
+			switch dest {
+			case "turbinia":
+				log.Println("turbinia output is enabled, sending each copied disk to turbinia")
+				turbiniaProjectID := svcs.Configuration.CreateSnapshot.TurbiniaProjectID
+				turbiniaTopicName := svcs.Configuration.CreateSnapshot.TurbiniaTopicName
+				turbiniaZone := svcs.Configuration.CreateSnapshot.TurbiniaZone
+				diskNames := output.DiskNames
+				if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskNames); err != nil {
+					return err
+				}
+				svcs.Logger.Info("sent %d disks to turbinia", len(diskNames))
+			}
+		}
+		return nil
 	case services.ErrUnsupportedFinding:
 		return nil
 	default:
@@ -281,6 +301,29 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
 			Configuration: svcs.Configuration,
 			Container:     svcs.Container,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	default:
+		return err
+	}
+}
+
+// UpdatePassword updates the root password for a Cloud SQL instance.
+//
+// This Cloud Function will respond to Security Health Analytics **SQL No Root Password** findings
+// from **SQL Scanner**. The root user of the affected instance will be updated with
+// a new password when this function is activated.
+//
+// Permissions required
+//	- roles/cloudsql.admin to update a user password.
+//
+func UpdatePassword(ctx context.Context, m pubsub.Message) error {
+	switch values, err := updatepassword.ReadFinding(m.Data); err {
+	case nil:
+		return updatepassword.Execute(ctx, values, &updatepassword.Services{
+			Configuration: svcs.Configuration,
+			CloudSQL:      svcs.CloudSQL,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})

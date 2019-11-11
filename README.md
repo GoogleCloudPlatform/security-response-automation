@@ -12,7 +12,11 @@ This repository contains Cloud Functions to take automated actions on findings f
 
 ### Configuration
 
-Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs. Each Function that considers resources will support the following resources:
+Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs.
+
+For each resource ID (folder, project, or organization) you configure below you'll also need to modify (main.tf)[/main.tf] so Terraform can grant the required permissions.
+
+Each Function that considers resources will support the following resources:
 
 #### Resources
 
@@ -31,6 +35,15 @@ Removes public access from Google Cloud Storage buckets.
 Configuration
 
 - Configured in settings.json under the `close_bucket` key.
+- See general [resource list](#resources) options.
+
+#### Enable bucket only policy
+
+Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
+
+Configuration
+
+- Configured in settings.json under the `enable_bucket_only_policy` key.
 - See general [resource list](#resources) options.
 
 ### IAM
@@ -56,8 +69,17 @@ Automatically create a snapshot of all disks associated with a GCE instance.
 
 Configuration
 
-- Configured in settings.json under the `remove_public_ip` key.
-- `snapshot_project_id` An optional project ID where disk snapshots will be copied to.
+- Configured in settings.json under the `create_snapshot` key.
+- `snapshot_project_id` Optional project ID where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_project_id`.
+- `snapshot_zone` Optional zone where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_zone`.
+- `output_destinations` Repeated set of optional output destinations after the function has executed.
+  - `turbinia` Will notify Turbinia when a snapshot is created.
+
+Required if output contains `turbinia`:
+
+- `turbinia_project_id` Project ID where Tubinia is installed.
+- `turbinia_topic_name` Pub/Sub topic where we should notify Turbinia.
+- `turbinia_zone` Zone where Turbinia disks are kept.
 
 #### Remove public IPs from an instance
 
@@ -67,6 +89,17 @@ Configuration
 
 - Configured in settings.json under the `remove_public_ip` key.
 - See general [resource list](#resources) options.
+
+#### Remediate open firewall
+
+Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
+
+Configuration
+
+- Configured in settings.json under the `disable_firewall` key.
+- See general [resource list](#resources) options.
+- `remediation_action`: one of `DISABLE`, `DELETE` or `UPDATE_RANGE`
+  - `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
 ### Google Kubernetes Engine
 
@@ -79,27 +112,25 @@ Configuration
 - Configured in settings.json under the `disable_dashboard` key.
 - See general [resource list](#resources) options.
 
-**Enable bucket only IAM policy**
+### Google Cloud SQL
 
-This Cloud Function will automatically enable the [Bucket Only policy](https://cloud.google.com/storage/docs/bucket-policy-only) on the selected bucket.
-Depending on which resources you specify it will determine which projects are enforced.
+#### Close public Cloud SQL instance
 
-- `folder_ids` If the bucket is in a project under a folder within this set the bucket only IAM policy will be enabled.
-- `project_ids` If the bucket is in a project that is within this set the bucket only IAM policy will be enabled.
+Close a public cloud SQL instance.
 
-For example, if you want to only enable bucket only IAM policy in the folder **development**
-you'll want to find that folders ID in [Cloud Resource Manager](https://console.cloud.google.com/cloud-resource-manager)
-and place into the `folder_ids` array.
+Configuration
 
-```json
-{
-  "enable_bucket_only_policy": {
-    "resources": {
-      "folder_ids": ["670032686187"]
-    }
-  }
-}
-```
+- Configured in settings.json under the `close_cloud_sql` key.
+- See general [resource list](#resources) options.
+
+#### Require SSL connection to Cloud SQL
+
+Update Cloud SQL instance to require SSL connections.
+
+Configuration
+
+- Configured in settings.json under the `cloud_sql_require_ssl` key.
+- See general [resource list](#resources) options.
 
 ### Installation
 

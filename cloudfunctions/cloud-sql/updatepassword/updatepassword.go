@@ -1,4 +1,4 @@
-package enablebucketonlypolicy
+package updatepassword
 
 // Copyright 2019 Google LLC
 //
@@ -17,58 +17,71 @@ package enablebucketonlypolicy
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	"github.com/pkg/errors"
 )
 
-// Values contains the required values needed for this function.
+// Values contains the values values needed for this function.
 type Values struct {
-	BucketName, ProjectID string
+	ProjectID, InstanceName, Host, UserName, Password string
 }
 
 // Services contains the services needed for this function.
 type Services struct {
 	Configuration *services.Configuration
+	CloudSQL      *services.CloudSQL
 	Resource      *services.Resource
 	Logger        *services.Logger
 }
 
+const (
+	// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
+	hostWildcard = "%"
+	// userName is the MySQL user name that will have their password reset.
+	userName = "root"
+)
+
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.StorageScanner
-	r := &Values{}
+	var finding pb.SqlScanner
+	password, err := services.GeneratePassword()
+	if err != nil {
+		return nil, err
+	}
+	values := &Values{
+		Host:     hostWildcard,
+		UserName: userName,
+		Password: password,
+	}
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetFinding().GetCategory() {
-	case "BUCKET_POLICY_ONLY_DISABLED":
-		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+	case "SQL_NO_ROOT_PASSWORD":
+		values.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
+		values.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if r.BucketName == "" || r.ProjectID == "" {
+	if values.InstanceName == "" || values.ProjectID == "" {
 		return nil, services.ErrValueNotFound
 	}
-	return r, nil
+	return values, nil
 }
 
-// Execute will enable bucket only policy on buckets found within the provided folders.
+// Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.EnableBucketOnlyPolicy.Resources
+	resources := services.Configuration.UpdatePassword.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if mode.DryRun() {
-			services.Logger.Info("[DRY_RUN] Bucket only policy enabled on bucket %q in project %q.", values.BucketName, values.ProjectID)
-			return nil
-		}
-		if err := services.Resource.EnableBucketOnlyPolicy(ctx, values.BucketName); err != nil {
+		log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
 			return err
 		}
-		services.Logger.Info("Bucket only policy enabled on bucket %q in project %q.", values.BucketName, values.ProjectID)
+		services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	})
 }

@@ -155,7 +155,7 @@ func wait(op *compute.Operation, fn func() (*compute.Operation, error)) []error 
 			return nil
 		}
 		if i%4 == 0 {
-			log.Println("Waiting")
+			log.Println("waiting")
 		}
 		time.Sleep(loopSleep)
 	}

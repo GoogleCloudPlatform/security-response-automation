@@ -20,7 +20,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 )
 
 func TestRemoveDatasetPublicAccess(t *testing.T) {
