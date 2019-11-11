@@ -32,6 +32,7 @@ type crmClient interface {
 	GetPolicyOrganization(context.Context, string) (*crm.Policy, error)
 	SetPolicyOrganization(context.Context, string, *crm.Policy) (*crm.Policy, error)
 	GetOrganization(context.Context, string) (*crm.Organization, error)
+	SetPolicyProjectWithMask(context.Context, string, *crm.Policy, ...string) (*crm.Policy, error)
 }
 
 type storageClient interface {
@@ -128,11 +129,43 @@ func (r *Resource) RemoveMembersFromBucket(ctx context.Context, bucketName strin
 	return r.storage.SetBucketPolicy(ctx, bucketName, p)
 }
 
+// EnableAuditLogs enable audit logs to all services and LogTypes.
+func (r *Resource) EnableAuditLogs(ctx context.Context, projectID string) (*crm.Policy, error) {
+	res, err := r.crm.GetPolicyProject(ctx, projectID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get project policy")
+	}
+	isDefault := false
+	enableAll := &crm.AuditConfig{
+		AuditLogConfigs: []*crm.AuditLogConfig{
+			{LogType: "ADMIN_READ"},
+			{LogType: "DATA_READ"},
+			{LogType: "DATA_WRITE"},
+		},
+		Service: "allServices",
+	}
+	for _, conf := range res.AuditConfigs {
+		if conf.Service == "allServices" {
+			conf.AuditLogConfigs = enableAll.AuditLogConfigs
+			isDefault = true
+		}
+	}
+	if !isDefault {
+		res.AuditConfigs = append(res.AuditConfigs, enableAll)
+	}
+
+	result, err := r.crm.SetPolicyProjectWithMask(ctx, projectID, res, "auditConfigs")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update project policy")
+	}
+	return result, nil
+}
+
 // GetProjectAncestry returns a slice of the project's ancestry.
 func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) ([]string, error) {
 	resp, err := r.crm.GetAncestry(ctx, projectID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to project ancestry: %q", err)
+		return nil, err
 	}
 	s := []string{}
 	for _, a := range resp.Ancestor {

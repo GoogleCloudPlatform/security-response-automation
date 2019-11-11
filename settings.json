@@ -55,6 +55,13 @@
       "folder_ids": ["670032686187"]
     }
   },
+  "enable_audit_logs": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    }
+  },
   "remove_non_org_members": {
     "allow_domains": [
       "ciandt.com",

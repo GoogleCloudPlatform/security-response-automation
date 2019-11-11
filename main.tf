@@ -112,6 +112,14 @@ module "update_password" {
   ]
 }
 
+module "enable_audit_logs" {
+  source = "./terraform/automations/enable-audit-logs"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "593987969559",
+  ]
+}
+
 module "remove_non_org_members" {
   source = "./terraform/automations/remove-non-org-members"
   setup  = "${module.google-setup}"

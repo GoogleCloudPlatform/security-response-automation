@@ -287,3 +287,64 @@ func TestProjectInOrg(t *testing.T) {
 		})
 	}
 }
+
+// TestEnableAuditLogsOnProject tests enable audit logs to project
+func TestEnableAuditLogsOnProject(t *testing.T) {
+	tests := []struct {
+		name           string
+		existingConfig *crm.AuditConfig
+		expectedConfig []*crm.AuditConfig
+	}{
+		{
+			name:           "enable all log types",
+			existingConfig: nil,
+			expectedConfig: []*crm.AuditConfig{
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}, {LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices"},
+			},
+		},
+		{
+			name: "enable all log types doesnt override existent",
+			existingConfig: &crm.AuditConfig{
+				AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}}, Service: "cloudsql.googleapis.com",
+			},
+			expectedConfig: []*crm.AuditConfig{
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}}, Service: "cloudsql.googleapis.com"},
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}, {LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices"},
+			},
+		},
+		{
+			name: "enable all log types",
+			existingConfig: &crm.AuditConfig{
+				AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices",
+			},
+			expectedConfig: []*crm.AuditConfig{
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}, {LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		ctx := context.Background()
+		crmStub := setupResourceManager(tt.existingConfig)
+
+		r := NewResource(crmStub, nil)
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := r.EnableAuditLogs(ctx, "test-project-sra")
+			if err != nil {
+				t.Errorf("%s failed exp:%v got:%q", tt.name, nil, err)
+			}
+
+			if diff := cmp.Diff(tt.expectedConfig, res.AuditConfigs); diff != "" {
+				t.Errorf("%s failed \nexp:%v \ngot:%v", tt.name, tt.expectedConfig, res.AuditConfigs)
+			}
+		})
+	}
+}
+
+func setupResourceManager(auditConfig *crm.AuditConfig) *stubs.ResourceManagerStub {
+	var configs []*crm.AuditConfig
+	if auditConfig != nil {
+		configs = append(configs, auditConfig)
+		return &stubs.ResourceManagerStub{GetPolicyResponse: &crm.Policy{AuditConfigs: configs}}
+	}
+	return &stubs.ResourceManagerStub{GetPolicyResponse: &crm.Policy{}}
+}
