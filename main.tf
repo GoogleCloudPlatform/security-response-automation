@@ -111,3 +111,11 @@ module "update_password" {
     "670032686187",
   ]
 }
+
+module "enable_audit_logs" {
+  source = "./terraform/automations/enable-audit-logs"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "593987969559",
+  ]
+}
