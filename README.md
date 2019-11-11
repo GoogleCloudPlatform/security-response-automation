@@ -12,7 +12,11 @@ This repository contains Cloud Functions to take automated actions on findings f
 
 ### Configuration
 
-Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs. Each Function that considers resources will support the following resources:
+Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs.
+
+For each resource ID (folder, project, or organization) you configure below you'll also need to modify (main.tf)[/main.tf] so Terraform can grant the required permissions.
+
+Each Function that considers resources will support the following resources:
 
 #### Resources
 
@@ -39,8 +43,8 @@ Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-
 
 Configuration
 
- - Configured in settings.json under the `enable_bucket_only_policy` key.
- - See general [resource list](#resources) options.
+- Configured in settings.json under the `enable_bucket_only_policy` key.
+- See general [resource list](#resources) options.
 
 ### IAM
 
@@ -66,7 +70,16 @@ Automatically create a snapshot of all disks associated with a GCE instance.
 Configuration
 
 - Configured in settings.json under the `create_snapshot` key.
-- `snapshot_project_id` An optional project ID where disk snapshots will be copied to.
+- `snapshot_project_id` Optional project ID where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_project_id`.
+- `snapshot_zone` Optional zone where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_zone`.
+- `output_destinations` Repeated set of optional output destinations after the function has executed.
+  - `turbinia` Will notify Turbinia when a snapshot is created.
+
+Required if output contains `turbinia`:
+
+- `turbinia_project_id` Project ID where Tubinia is installed.
+- `turbinia_topic_name` Pub/Sub topic where we should notify Turbinia.
+- `turbinia_zone` Zone where Turbinia disks are kept.
 
 #### Remove public IPs from an instance
 
@@ -85,8 +98,8 @@ Configuration
 
 - Configured in settings.json under the `disable_firewall` key.
 - See general [resource list](#resources) options.
-- `remediation_action`: one of  `DISABLE`, `DELETE` or `UPDATE_RANGE`
-- `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+- `remediation_action`: one of `DISABLE`, `DELETE` or `UPDATE_RANGE`
+  - `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
 ### Google Kubernetes Engine
 

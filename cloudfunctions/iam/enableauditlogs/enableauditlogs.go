@@ -1,4 +1,4 @@
-package removepublicip
+package enableauditlogs
 
 //  Copyright 2019 Google LLC
 //
@@ -18,54 +18,57 @@ import (
 	"context"
 	"encoding/json"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
+
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/pkg/errors"
 )
 
-// Values contains the required values needed for this function.
-type Values struct {
-	ProjectID, InstanceZone, InstanceID string
+// Required contains the required values needed for this function.
+type Required struct {
+	ProjectID string
 }
 
 // Services contains the services needed for this function.
 type Services struct {
 	Configuration *services.Configuration
-	Host          *services.Host
 	Resource      *services.Resource
 	Logger        *services.Logger
 }
 
-// ReadFinding will attempt to deserialize all supported findings for this function.
+// Values contains the required values needed for this function.
+type Values struct {
+	ProjectID string
+}
+
+// ReadFinding will deserialize findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.ComputeInstanceScanner
-	r := &Values{}
+	var finding pb.LoggingScanner
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
+	r := &Values{}
 	switch finding.GetFinding().GetCategory() {
-	case "PUBLIC_IP_ADDRESS":
+	case "AUDIT_LOGGING_DISABLED":
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		r.InstanceZone = sha.Zone(finding.GetFinding().GetResourceName())
-		r.InstanceID = sha.Instance(finding.GetFinding().GetResourceName())
-	default:
-		return nil, services.ErrUnsupportedFinding
 	}
-	if r.ProjectID == "" || r.InstanceZone == "" || r.InstanceID == "" {
+	if r.ProjectID == "" {
 		return nil, services.ErrValueNotFound
 	}
 	return r, nil
 }
 
-// Execute removes the public IP of a GCE instance.
+// Execute is the entry point for the Cloud Function to enable audit logs for a specific project.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.RemovePublicIP.Resources
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if err := services.Host.RemoveExternalIPs(ctx, values.ProjectID, values.InstanceZone, values.InstanceID); err != nil {
-			return errors.Wrap(err, "failed to remove public ip")
+	resources := services.Configuration.EnableAuditLogs.Resources
+	if err := services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if _, err := services.Resource.EnableAuditLogs(ctx, values.ProjectID); err != nil {
+			return err
 		}
-		services.Logger.Info("removed public IP address for instance %q, in zone %q in project %q.", values.InstanceID, values.InstanceZone, values.ProjectID)
+		services.Logger.Info("audit logs was enabled on %q", values.ProjectID)
 		return nil
-	})
+	}); err != nil {
+		return err
+	}
+	return nil
 }

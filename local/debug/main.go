@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	exec "github.com/googlecloudplatform/threat-automation"
+	exec "github.com/googlecloudplatform/security-response-automation"
 )
 
 const (

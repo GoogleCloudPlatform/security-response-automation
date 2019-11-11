@@ -24,6 +24,7 @@ import (
 type CloudSQL struct {
 	SavedInstanceUpdated    *sql.DatabaseInstance
 	InstanceDetailsResponse *sql.DatabaseInstance
+	UpdatedUser             *sql.User
 }
 
 // WaitSQL waits globally.
@@ -39,6 +40,7 @@ func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string
 
 // UpdateUser updates a given user.
 func (s *CloudSQL) UpdateUser(ctx context.Context, projectID, instance, host, name string, user *sql.User) (*sql.Operation, error) {
+	s.UpdatedUser = user
 	return &sql.Operation{}, nil
 }
 

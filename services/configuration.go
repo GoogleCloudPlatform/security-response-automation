@@ -46,6 +46,11 @@ type EnableBucketOnlyPolicy struct {
 	Resources *Resources
 }
 
+// EnableAuditLogs configuration required to enable data access audit logs
+type EnableAuditLogs struct {
+	Resources *Resources
+}
+
 // CloseCloudSQL contains configuration required for the close Cloud SQL function.
 type CloseCloudSQL struct {
 	Resources *Resources
@@ -63,8 +68,17 @@ type DisableDashboard struct {
 
 // CreateSnapshot contains configuration required for the create snapshot function.
 type CreateSnapshot struct {
-	// TargetSnapshotProjectID is the project ID where disk snapshots will be copied to.
-	TargetSnapshotProjectID string `json:"snapshot_project_id"`
+	TargetSnapshotProjectID string   `json:"snapshot_project_id"`
+	TargetSnapshotZone      string   `json:"snapshot_zone"`
+	TurbiniaProjectID       string   `json:"turbinia_project_id"`
+	TurbiniaZone            string   `json:"turbinia_zone"`
+	TurbiniaTopicName       string   `json:"turbinia_topic_name"`
+	OutputDestinations      []string `json:"output_destinations"`
+}
+
+// UpdatePassword contains configuration required for the update password function.
+type UpdatePassword struct {
+	Resources *Resources
 }
 
 // Configuration contains the IDs to apply actions to.
@@ -78,7 +92,9 @@ type Configuration struct {
 	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
+	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
 	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
+	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 }
 
 // NewConfiguration returns a new configuration.

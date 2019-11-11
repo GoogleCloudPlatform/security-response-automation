@@ -1049,6 +1049,147 @@ func (m *ContainerScanner_Finding) GetResourceName() string {
 	return ""
 }
 
+type LoggingScanner struct {
+	NotificationConfigName string                  `protobuf:"bytes,1,opt,name=notificationConfigName,proto3" json:"notificationConfigName,omitempty"`
+	Finding                *LoggingScanner_Finding `protobuf:"bytes,2,opt,name=finding,proto3" json:"finding,omitempty"`
+	XXX_NoUnkeyedLiteral   struct{}                `json:"-"`
+	XXX_unrecognized       []byte                  `json:"-"`
+	XXX_sizecache          int32                   `json:"-"`
+}
+
+func (m *LoggingScanner) Reset()         { *m = LoggingScanner{} }
+func (m *LoggingScanner) String() string { return proto.CompactTextString(m) }
+func (*LoggingScanner) ProtoMessage()    {}
+func (*LoggingScanner) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{6}
+}
+
+func (m *LoggingScanner) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoggingScanner.Unmarshal(m, b)
+}
+func (m *LoggingScanner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoggingScanner.Marshal(b, m, deterministic)
+}
+func (m *LoggingScanner) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoggingScanner.Merge(m, src)
+}
+func (m *LoggingScanner) XXX_Size() int {
+	return xxx_messageInfo_LoggingScanner.Size(m)
+}
+func (m *LoggingScanner) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoggingScanner.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoggingScanner proto.InternalMessageInfo
+
+func (m *LoggingScanner) GetNotificationConfigName() string {
+	if m != nil {
+		return m.NotificationConfigName
+	}
+	return ""
+}
+
+func (m *LoggingScanner) GetFinding() *LoggingScanner_Finding {
+	if m != nil {
+		return m.Finding
+	}
+	return nil
+}
+
+type LoggingScanner_SourceProperties struct {
+	ProjectID            string   `protobuf:"bytes,1,opt,name=projectID,proto3" json:"projectID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LoggingScanner_SourceProperties) Reset()         { *m = LoggingScanner_SourceProperties{} }
+func (m *LoggingScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
+func (*LoggingScanner_SourceProperties) ProtoMessage()    {}
+func (*LoggingScanner_SourceProperties) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{6, 0}
+}
+
+func (m *LoggingScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoggingScanner_SourceProperties.Unmarshal(m, b)
+}
+func (m *LoggingScanner_SourceProperties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoggingScanner_SourceProperties.Marshal(b, m, deterministic)
+}
+func (m *LoggingScanner_SourceProperties) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoggingScanner_SourceProperties.Merge(m, src)
+}
+func (m *LoggingScanner_SourceProperties) XXX_Size() int {
+	return xxx_messageInfo_LoggingScanner_SourceProperties.Size(m)
+}
+func (m *LoggingScanner_SourceProperties) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoggingScanner_SourceProperties.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoggingScanner_SourceProperties proto.InternalMessageInfo
+
+func (m *LoggingScanner_SourceProperties) GetProjectID() string {
+	if m != nil {
+		return m.ProjectID
+	}
+	return ""
+}
+
+type LoggingScanner_Finding struct {
+	SourceProperties     *LoggingScanner_SourceProperties `protobuf:"bytes,1,opt,name=sourceProperties,proto3" json:"sourceProperties,omitempty"`
+	Category             string                           `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
+	ResourceName         string                           `protobuf:"bytes,3,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
+	XXX_unrecognized     []byte                           `json:"-"`
+	XXX_sizecache        int32                            `json:"-"`
+}
+
+func (m *LoggingScanner_Finding) Reset()         { *m = LoggingScanner_Finding{} }
+func (m *LoggingScanner_Finding) String() string { return proto.CompactTextString(m) }
+func (*LoggingScanner_Finding) ProtoMessage()    {}
+func (*LoggingScanner_Finding) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{6, 1}
+}
+
+func (m *LoggingScanner_Finding) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoggingScanner_Finding.Unmarshal(m, b)
+}
+func (m *LoggingScanner_Finding) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoggingScanner_Finding.Marshal(b, m, deterministic)
+}
+func (m *LoggingScanner_Finding) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoggingScanner_Finding.Merge(m, src)
+}
+func (m *LoggingScanner_Finding) XXX_Size() int {
+	return xxx_messageInfo_LoggingScanner_Finding.Size(m)
+}
+func (m *LoggingScanner_Finding) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoggingScanner_Finding.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoggingScanner_Finding proto.InternalMessageInfo
+
+func (m *LoggingScanner_Finding) GetSourceProperties() *LoggingScanner_SourceProperties {
+	if m != nil {
+		return m.SourceProperties
+	}
+	return nil
+}
+
+func (m *LoggingScanner_Finding) GetCategory() string {
+	if m != nil {
+		return m.Category
+	}
+	return ""
+}
+
+func (m *LoggingScanner_Finding) GetResourceName() string {
+	if m != nil {
+		return m.ResourceName
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*StorageScanner)(nil), "StorageScanner")
 	proto.RegisterType((*StorageScanner_SourceProperties)(nil), "StorageScanner.SourceProperties")
@@ -1071,6 +1212,9 @@ func init() {
 	proto.RegisterType((*ContainerScanner)(nil), "ContainerScanner")
 	proto.RegisterType((*ContainerScanner_SourceProperties)(nil), "ContainerScanner.SourceProperties")
 	proto.RegisterType((*ContainerScanner_Finding)(nil), "ContainerScanner.Finding")
+	proto.RegisterType((*LoggingScanner)(nil), "LoggingScanner")
+	proto.RegisterType((*LoggingScanner_SourceProperties)(nil), "LoggingScanner.SourceProperties")
+	proto.RegisterType((*LoggingScanner_Finding)(nil), "LoggingScanner.Finding")
 }
 
 func init() { proto.RegisterFile("sha/protos/sha.proto", fileDescriptor_42ce1b275ac7c5c9) }

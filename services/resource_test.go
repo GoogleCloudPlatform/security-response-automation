@@ -20,8 +20,7 @@ import (
 
 	"cloud.google.com/go/iam"
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
@@ -264,9 +263,9 @@ func TestProjectInOrg(t *testing.T) {
 		ancestry *crm.GetAncestryResponse
 		inOrg    bool
 	}{
-		{name: "in org", inOrg: true, orgID: "456", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
-		{name: "out org", inOrg: false, orgID: "888", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
-		{name: "no org", inOrg: false, orgID: "", ancestry: helpers.CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "in org", inOrg: true, orgID: "456", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "out org", inOrg: false, orgID: "888", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "no org", inOrg: false, orgID: "", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
 	}
 
 	for _, tt := range tests {
@@ -287,4 +286,65 @@ func TestProjectInOrg(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestEnableAuditLogsOnProject tests enable audit logs to project
+func TestEnableAuditLogsOnProject(t *testing.T) {
+	tests := []struct {
+		name           string
+		existingConfig *crm.AuditConfig
+		expectedConfig []*crm.AuditConfig
+	}{
+		{
+			name:           "enable all log types",
+			existingConfig: nil,
+			expectedConfig: []*crm.AuditConfig{
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}, {LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices"},
+			},
+		},
+		{
+			name: "enable all log types doesnt override existent",
+			existingConfig: &crm.AuditConfig{
+				AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}}, Service: "cloudsql.googleapis.com",
+			},
+			expectedConfig: []*crm.AuditConfig{
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}}, Service: "cloudsql.googleapis.com"},
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}, {LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices"},
+			},
+		},
+		{
+			name: "enable all log types",
+			existingConfig: &crm.AuditConfig{
+				AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices",
+			},
+			expectedConfig: []*crm.AuditConfig{
+				{AuditLogConfigs: []*crm.AuditLogConfig{{LogType: "ADMIN_READ"}, {LogType: "DATA_READ"}, {LogType: "DATA_WRITE"}}, Service: "allServices"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		ctx := context.Background()
+		crmStub := setupResourceManager(tt.existingConfig)
+
+		r := NewResource(crmStub, nil)
+		t.Run(tt.name, func(t *testing.T) {
+			res, err := r.EnableAuditLogs(ctx, "test-project-sra")
+			if err != nil {
+				t.Errorf("%s failed exp:%v got:%q", tt.name, nil, err)
+			}
+
+			if diff := cmp.Diff(tt.expectedConfig, res.AuditConfigs); diff != "" {
+				t.Errorf("%s failed \nexp:%v \ngot:%v", tt.name, tt.expectedConfig, res.AuditConfigs)
+			}
+		})
+	}
+}
+
+func setupResourceManager(auditConfig *crm.AuditConfig) *stubs.ResourceManagerStub {
+	var configs []*crm.AuditConfig
+	if auditConfig != nil {
+		configs = append(configs, auditConfig)
+		return &stubs.ResourceManagerStub{GetPolicyResponse: &crm.Policy{AuditConfigs: configs}}
+	}
+	return &stubs.ResourceManagerStub{GetPolicyResponse: &crm.Policy{}}
 }

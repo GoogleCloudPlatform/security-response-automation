@@ -1,6 +1,11 @@
 {
   "create_snapshot": {
-    "snapshot_project_id": ""
+    "snapshot_project_id": "ae-threat-detection",
+    "snapshot_zone": "us-central1-c",
+    "turbinia_project_id": "ae-threat-detection",
+    "turbinia_topic_name": "turbinia",
+    "turbinia_zone": "us-central1-c",
+    "output_destinations": ["turbinia"]
   },
   "close_bucket": {
     "resources": {
@@ -49,7 +54,19 @@
   },
   "disable_dashboard": {
     "resources": {
-      "folder_ids": ["593987969559"]
+      "folder_ids": ["670032686187"]
+    }
+  },
+  "cloud_sql_update_password": {
+    "resources": {
+      "folder_ids": ["670032686187"]
+    }
+  },
+  "enable_audit_logs": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
     }
   }
 }

@@ -52,6 +52,8 @@ module "revoke_iam_grants" {
 module "create_disk_snapshot" {
   source = "./terraform/automations/create-disk-snapshot"
   setup  = "${module.google-setup}"
+  turbinia-project-id = "ae-threat-detection"
+  turbinia-topic-name = "turbinia"
 }
 
 module "open_firewall" {
@@ -107,5 +109,21 @@ module "disable_dashboard" {
   setup  = "${module.google-setup}"
   folder-ids = [
     "670032686187",
+  ]
+}
+
+module "update_password" {
+  source = "./terraform/automations/update-password"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
+
+module "enable_audit_logs" {
+  source = "./terraform/automations/enable-audit-logs"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "593987969559",
   ]
 }

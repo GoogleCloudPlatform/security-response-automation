@@ -42,3 +42,17 @@ resource "google_organization_iam_member" "gce-snapshot-bind-findings-organizati
   role   = "roles/compute.instanceAdmin.v1"
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
+
+# Used to allow the service account to write to the Turbinia PubSub topic.
+resource "google_pubsub_topic_iam_binding" "writer" {
+    # Count trick used to conditionally apply this resource if the variable is defined.
+    # https://github.com/hashicorp/terraform/issues/15281
+    count = "${var.turbinia-topic-name != "" ? 1 : 0}"
+
+    project = "${var.turbinia-project-id}"
+    topic = "projects/${var.turbinia-project-id}/topics/${var.turbinia-topic-name}"
+    role = "roles/pubsub.publisher"
+    members = [
+        "serviceAccount:${var.setup.automation-service-account}",
+    ]
+}

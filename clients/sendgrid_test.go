@@ -17,7 +17,7 @@ package clients
 import (
 	"testing"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/pkg/errors"
 	"github.com/sendgrid/rest"
 )
