@@ -61,6 +61,9 @@ func init() {
 //	- roles/viewer to verify the affected project is within the enforced folder.
 //
 func IAMRevoke(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := revoke.ReadFinding(m.Data); err {
 	case nil:
 		return revoke.Execute(ctx, values, &revoke.Services{
@@ -86,6 +89,9 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
 		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
@@ -125,6 +131,9 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 //	- roles/storeage.admin to modify buckets.
 //
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := closebucket.ReadFinding(m.Data); err {
 	case nil:
 		return closebucket.Execute(ctx, values, &closebucket.Services{
@@ -170,6 +179,9 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 //
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
 	case nil:
 		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
@@ -193,6 +205,9 @@ func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := removepublicip.ReadFinding(m.Data); err {
 	case nil:
 		return removepublicip.Execute(ctx, values, &removepublicip.Services{
@@ -244,6 +259,9 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := removepublic.ReadFinding(m.Data); err {
 	case nil:
 		return removepublic.Execute(ctx, values, &removepublic.Services{
@@ -269,6 +287,9 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := requiressl.ReadFinding(m.Data); err {
 	case nil:
 		return requiressl.Execute(ctx, values, &requiressl.Services{
@@ -294,6 +315,9 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := disabledashboard.ReadFinding(m.Data); err {
 	case services.ErrUnsupportedFinding:
 		return nil
@@ -319,6 +343,9 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.admin to update a user password.
 //
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
+	if mode.OFF() {
+		return nil
+	}
 	switch values, err := updatepassword.ReadFinding(m.Data); err {
 	case nil:
 		return updatepassword.Execute(ctx, values, &updatepassword.Services{
