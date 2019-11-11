@@ -30,6 +30,7 @@ resource "google_cloudfunctions_function" "close-bucket" {
 
   environment_variables = {
     folder_ids = "${join(",", var.folder-ids)}"
+    MODE       = var.mode
   }
 }
 

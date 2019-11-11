@@ -28,6 +28,10 @@ resource "google_cloudfunctions_function" "disable-dashboard" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
   }
+
+  environment_variables = {
+    MODE = var.mode
+  }
 }
 
 # Required to retrieve ancestry for projects within this folder.

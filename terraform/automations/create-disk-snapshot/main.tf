@@ -27,6 +27,10 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.findings-topic}"
   }
+
+  environment_variables = {
+    MODE = var.mode
+  }
 }
 
 # Role "compute.instanceAdmin" required to get disk lists and create snapshots for GCE instances.
@@ -45,14 +49,14 @@ resource "google_organization_iam_member" "gce-snapshot-bind-findings-organizati
 
 # Used to allow the service account to write to the Turbinia PubSub topic.
 resource "google_pubsub_topic_iam_binding" "writer" {
-    # Count trick used to conditionally apply this resource if the variable is defined.
-    # https://github.com/hashicorp/terraform/issues/15281
-    count = "${var.turbinia-topic-name != "" ? 1 : 0}"
+  # Count trick used to conditionally apply this resource if the variable is defined.
+  # https://github.com/hashicorp/terraform/issues/15281
+  count = "${var.turbinia-topic-name != "" ? 1 : 0}"
 
-    project = "${var.turbinia-project-id}"
-    topic = "projects/${var.turbinia-project-id}/topics/${var.turbinia-topic-name}"
-    role = "roles/pubsub.publisher"
-    members = [
-        "serviceAccount:${var.setup.automation-service-account}",
-    ]
+  project = "${var.turbinia-project-id}"
+  topic   = "projects/${var.turbinia-project-id}/topics/${var.turbinia-topic-name}"
+  role    = "roles/pubsub.publisher"
+  members = [
+    "serviceAccount:${var.setup.automation-service-account}",
+  ]
 }
