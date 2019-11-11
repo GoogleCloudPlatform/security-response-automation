@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	pb "github.com/googlecloudplatform/threat-automation/compiled/etd/protos"
-	"github.com/googlecloudplatform/threat-automation/services"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
+	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
 

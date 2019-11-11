@@ -49,8 +49,8 @@ import (
 	"log"
 	"os"
 
-	securitycenter "github.com/googlecloudplatform/threat-automation/clients/cscc/apiv1p1alpha1"
-	securitycenterpb "github.com/googlecloudplatform/threat-automation/clients/cscc/v1p1alpha1"
+	securitycenter "github.com/googlecloudplatform/security-response-automation/clients/cscc/apiv1p1alpha1"
+	securitycenterpb "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )

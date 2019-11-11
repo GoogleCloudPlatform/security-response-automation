@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/api/compute/v1"

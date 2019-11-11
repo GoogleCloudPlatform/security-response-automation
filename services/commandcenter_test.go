@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 
 	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"

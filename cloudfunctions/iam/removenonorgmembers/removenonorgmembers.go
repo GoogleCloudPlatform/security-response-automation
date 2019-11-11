@@ -21,9 +21,9 @@ import (
 	"regexp"
 	"strings"
 
-	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/providers/sha"
-	"github.com/googlecloudplatform/threat-automation/services"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha"
+	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"google.golang.org/api/cloudresourcemanager/v1"
 )

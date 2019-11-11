@@ -23,9 +23,8 @@ import (
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -161,7 +160,7 @@ func TestRemovePublicIP(t *testing.T) {
 				},
 			},
 			folderIDs: []string{"123"},
-			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name: "no valid folder",
@@ -172,7 +171,7 @@ func TestRemovePublicIP(t *testing.T) {
 			},
 			expectedDeletedAccessConfigs: nil,
 			folderIDs:                    []string{"456"},
-			ancestry:                     helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:                     services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {

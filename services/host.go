@@ -124,7 +124,7 @@ func (h *Host) CreateDiskSnapshot(ctx context.Context, projectID, zone, disk, na
 // CopyDiskSnapshot creates a disk from a snapshot and moves it to another project.
 func (h *Host) CopyDiskSnapshot(ctx context.Context, srcProjectID, dstProjectID, zone, name string) error {
 	op, err := h.client.DiskInsert(ctx, dstProjectID, zone, &compute.Disk{
-		Name:           name,
+		Name:           fmt.Sprintf("%s-%d", name, time.Now().Unix()),
 		SourceSnapshot: fmt.Sprintf("projects/%s/global/snapshots/%s", srcProjectID, name),
 	})
 	if err != nil {
