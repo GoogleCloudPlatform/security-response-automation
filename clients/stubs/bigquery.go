@@ -26,11 +26,6 @@ type BigQueryStub struct {
 	SavedDatasetMetadata *bigquery.DatasetMetadataToUpdate
 }
 
-// Init initializes the stub client.
-func (s *BigQueryStub) Init(ctx context.Context, projectID string) error {
-	return nil
-}
-
 // DatasetMetadata fetches the metadata for the dataset.
 func (s *BigQueryStub) DatasetMetadata(ctx context.Context, projectID, datasetID string) (*bigquery.DatasetMetadata, error) {
 	return s.StubbedMetadata, nil

@@ -24,9 +24,8 @@ import (
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 
-	"github.com/googlecloudplatform/threat-automation/clients/stubs"
-	"github.com/googlecloudplatform/threat-automation/services"
-	"github.com/googlecloudplatform/threat-automation/services/helpers"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
 func TestReadFinding(t *testing.T) {
@@ -141,14 +140,14 @@ func TestRemovePublicAccess(t *testing.T) {
 				},
 			},
 			folderIDs: []string{"123"},
-			ancestry:  helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:             "no valid folder",
 			metadata:         &bigquery.DatasetMetadata{},
 			expectedMetadata: nil,
 			folderIDs:        []string{"456"},
-			ancestry:         helpers.CreateAncestors([]string{"folder/123"}),
+			ancestry:         services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
@@ -161,9 +160,10 @@ func TestRemovePublicAccess(t *testing.T) {
 				ProjectID: "project-id",
 				DatasetID: "dataset-id",
 			}
+			bq := services.NewBigQuery(bigqueryStub)
 			if err := Execute(ctx, values, &Services{
 				Configuration: svcs.Configuration,
-				BigQuery:      svcs.BigQuery,
+				BigQuery:      bq,
 				Resource:      svcs.Resource,
 				Logger:        svcs.Logger,
 			}); err != nil {
@@ -184,7 +184,6 @@ func setup(folderIDs []string) (*services.Global, *stubs.BigQueryStub, *stubs.Re
 	crmStub := &stubs.ResourceManagerStub{}
 	res := services.NewResource(crmStub, storageStub)
 	bigqueryStub := &stubs.BigQueryStub{}
-	bq := services.NewBigQuery(bigqueryStub)
 	conf := &services.Configuration{
 		RemovePublicAccess: &services.RemovePublicAccess{
 			Resources: &services.Resources{
@@ -192,5 +191,5 @@ func setup(folderIDs []string) (*services.Global, *stubs.BigQueryStub, *stubs.Re
 			},
 		},
 	}
-	return &services.Global{Logger: log, BigQuery: bq, Resource: res, Configuration: conf}, bigqueryStub, crmStub
+	return &services.Global{Logger: log, Resource: res, Configuration: conf}, bigqueryStub, crmStub
 }

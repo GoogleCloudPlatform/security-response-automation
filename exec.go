@@ -20,6 +20,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/removepublicaccess"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/updatepassword"
@@ -220,9 +221,13 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 func RemovePublicAccess(ctx context.Context, m pubsub.Message) error {
 	switch values, err := removepublicaccess.ReadFinding(m.Data); err {
 	case nil:
+		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
+		if err != nil {
+			return err
+		}
 		return removepublicaccess.Execute(ctx, values, &removepublicaccess.Services{
 			Configuration: svcs.Configuration,
-			BigQuery:      svcs.BigQuery,
+			BigQuery:      bigquery,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})

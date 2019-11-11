@@ -20,6 +20,7 @@ import (
 
 	"cloud.google.com/go/bigquery"
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 )
 

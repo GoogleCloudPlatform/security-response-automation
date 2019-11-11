@@ -18,9 +18,9 @@ import (
 	"context"
 	"encoding/json"
 
-	pb "github.com/googlecloudplatform/threat-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/threat-automation/providers/sha"
-	"github.com/googlecloudplatform/threat-automation/services"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha"
+	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
 
@@ -65,9 +65,6 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 
 func execute(ctx context.Context, values *Values, services *Services) func() error {
 	return func() error {
-		if err := services.BigQuery.Init(ctx, values.ProjectID); err != nil {
-			return errors.Wrap(err, "error initializing bigquery service")
-		}
 		if err := services.BigQuery.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
 			return errors.Wrapf(err, "error removing bigquery dataset %q public access in project %q", values.DatasetID, values.ProjectID)
 		}
