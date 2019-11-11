@@ -17,6 +17,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
@@ -40,6 +41,10 @@ func NewStorage(ctx context.Context, authFile string) (*Storage, error) {
 
 // SetBucketPolicy sets the policy for the given bucket.
 func (s *Storage) SetBucketPolicy(ctx context.Context, bucketName string, policy *iam.Policy) error {
+	if mode.DryRun() {
+		log.Println("[DRY_RUN] set policy ", policy, " on bucket ", bucketName)
+		return nil
+	}
 	return s.service.Bucket(bucketName).IAM().SetPolicy(ctx, policy)
 }
 
@@ -56,6 +61,7 @@ func (s *Storage) EnableBucketOnlyPolicy(ctx context.Context, bucketName string)
 		},
 	}
 	if mode.DryRun() {
+		log.Println("[DRY_RUN] Bucket only policy enabled on bucket ", bucketName)
 		return nil
 	}
 	if _, err := s.service.Bucket(bucketName).Update(ctx, enableBucketPolicyOnly); err != nil {

@@ -16,7 +16,9 @@ package clients
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	"github.com/sendgrid/rest"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -45,6 +47,10 @@ func NewSendGridClient(apiKey string) *SendGrid {
 // Send email SendGrid.
 func (s *SendGrid) Send(subject, from, body string, to []string) (*rest.Response, error) {
 	e := createEmail(subject, from, body, emailSender, to)
+	if mode.DryRun() {
+		log.Println("[DRY_RUN] send email ", e)
+		return nil, nil
+	}
 	r, err := s.Service.Send(e)
 
 	if err != nil {

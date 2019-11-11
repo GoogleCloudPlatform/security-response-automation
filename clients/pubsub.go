@@ -17,8 +17,10 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	"google.golang.org/api/option"
 )
 
@@ -43,5 +45,9 @@ func (p *PubSub) Topic(id string) *pubsub.Topic {
 
 // Publish will publish a message to a PubSub topic.
 func (p *PubSub) Publish(ctx context.Context, topic *pubsub.Topic, message *pubsub.Message) (string, error) {
+	if mode.DryRun() {
+		log.Println("[DRY_RUN] p message ", message, " on topic ", topic)
+		return "", nil
+	}
 	return topic.Publish(ctx, message).Get(ctx)
 }

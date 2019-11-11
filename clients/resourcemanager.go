@@ -17,7 +17,9 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 
+	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/option"
 )
@@ -44,6 +46,10 @@ func (c *CloudResourceManager) GetPolicyProject(ctx context.Context, projectID s
 
 // SetPolicyProject sets an IAM policy for the given project resource.
 func (c *CloudResourceManager) SetPolicyProject(ctx context.Context, projectID string, p *crm.Policy) (*crm.Policy, error) {
+	if mode.DryRun() {
+		log.Println("[DRY_RUN] set policy ", p, " on project ", projectID)
+		return nil, nil
+	}
 	return c.service.Projects.SetIamPolicy(projectID, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
 }
 
@@ -59,6 +65,10 @@ func (c *CloudResourceManager) GetPolicyOrganization(ctx context.Context, organi
 
 // SetPolicyOrganization sets an IAM policy for the given organization resource.
 func (c *CloudResourceManager) SetPolicyOrganization(ctx context.Context, organizationID string, p *crm.Policy) (*crm.Policy, error) {
+	if mode.DryRun() {
+		log.Println("[DRY_RUN] set policy ", p, " on organization ", organizationID)
+		return nil, nil
+	}
 	return c.service.Organizations.SetIamPolicy(organizationID, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
 }
 
