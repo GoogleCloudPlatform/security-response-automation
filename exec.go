@@ -32,7 +32,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 )
 
 var svcs *services.Global
@@ -61,11 +60,11 @@ func init() {
 //	- roles/viewer to verify the affected project is within the enforced folder.
 //
 func IAMRevoke(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := revoke.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.RevokeGrants.Mode == "DISABLED" {
+			return nil
+		}
 		return revoke.Execute(ctx, values, &revoke.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -89,11 +88,11 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.CreateSnapshot.Mode == "DISABLED" {
+			return nil
+		}
 		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
@@ -131,11 +130,11 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 //	- roles/storeage.admin to modify buckets.
 //
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := closebucket.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.CloseBucket.Mode == "DISABLED" {
+			return nil
+		}
 		return closebucket.Execute(ctx, values, &closebucket.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -157,6 +156,9 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 	switch values, err := openfirewall.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.DisableFirewall.Mode == "DISABLED" {
+			return nil
+		}
 		return openfirewall.Execute(ctx, values, &openfirewall.Services{
 			Configuration: svcs.Configuration,
 			Firewall:      svcs.Firewall,
@@ -179,11 +181,11 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 //
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.RemoveNonOrgMember.Mode == "DISABLED" {
+			return nil
+		}
 		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -205,11 +207,11 @@ func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := removepublicip.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.RemovePublicIP.Mode == "DISABLED" {
+			return nil
+		}
 		return removepublicip.Execute(ctx, values, &removepublicip.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
@@ -232,11 +234,11 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/storage.admin to change the Bucket policy mode.
 //
 func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.EnableBucketOnlyPolicy.Mode == "DISABLED" {
+			return nil
+		}
 		return enablebucketonlypolicy.Execute(ctx, values, &enablebucketonlypolicy.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -259,11 +261,11 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := removepublic.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.CloseCloudSQL.Mode == "DISABLED" {
+			return nil
+		}
 		return removepublic.Execute(ctx, values, &removepublic.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
@@ -287,11 +289,11 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := requiressl.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.CloudSQLRequireSSL.Mode == "DISABLED" {
+			return nil
+		}
 		return requiressl.Execute(ctx, values, &requiressl.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
@@ -315,13 +317,13 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := disabledashboard.ReadFinding(m.Data); err {
 	case services.ErrUnsupportedFinding:
 		return nil
 	case nil:
+		if svcs.Configuration.DisableDashboard.Mode == "DISABLED" {
+			return nil
+		}
 		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
 			Configuration: svcs.Configuration,
 			Container:     svcs.Container,
@@ -343,11 +345,11 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.admin to update a user password.
 //
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
-	if mode.OFF() {
-		return nil
-	}
 	switch values, err := updatepassword.ReadFinding(m.Data); err {
 	case nil:
+		if svcs.Configuration.UpdatePassword.Mode == "DISABLED" {
+			return nil
+		}
 		return updatepassword.Execute(ctx, values, &updatepassword.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,

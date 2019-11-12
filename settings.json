@@ -5,54 +5,67 @@
     "turbinia_project_id": "ae-threat-detection",
     "turbinia_topic_name": "turbinia",
     "turbinia_zone": "us-central1-c",
-    "output_destinations": ["turbinia"]
+    "output_destinations": ["turbinia"],
+    "mode": "ENABLED"
   },
   "close_bucket": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
   },
   "revoke_grants": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "remove_list": ["gmail.com", "test.com"]
+    "remove_list": ["gmail.com", "test.com"],
+    "mode": "ENABLED"
   },
   "disable_firewall": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
     "remediation_action": "DISABLE",
-    "source_ranges": ["127.0.0.0/8"]
+    "source_ranges": ["127.0.0.0/8"],
+    "mode": "ENABLED"
   },
   "remove_public_ip": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
   },
   "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
   },
   "close_cloud_sql": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
   },
   "cloud_sql_require_ssl": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
   },
   "disable_dashboard": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
   },
   "cloud_sql_update_password": {
     "resources": {
       "folder_ids": ["670032686187"]
-    }
+    },
+    "mode": "ENABLED"
+  },
+  "remove_non_org_member": {
+    "mode": "ENABLED"
   }
 }
