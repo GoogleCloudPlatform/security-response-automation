@@ -73,7 +73,7 @@ module "remove_public_ip" {
 }
 
 module "close_public_dataset" {
-  source = "terraform/automations/close-public-dataset"
+  source = "./terraform/automations/close-public-dataset"
   setup  = "${module.google-setup}"
   folder-ids = [
     "593987969559",
