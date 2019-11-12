@@ -67,5 +67,13 @@
   },
   "remove_non_org_member": {
     "mode": "ENABLED"
+    },
+  "enable_audit_logs": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    },
+    "mode": "ENABLED"
   }
 }

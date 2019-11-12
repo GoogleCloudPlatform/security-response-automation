@@ -29,6 +29,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/enablebucketonlypolicy"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gke/disabledashboard"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -327,6 +328,30 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
 			Configuration: svcs.Configuration,
 			Container:     svcs.Container,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	default:
+		return err
+	}
+}
+
+// EnableAuditLogs enables the Audit Logs to specific project
+//
+// This Cloud Function will respond to Security Health Analytics **AUDIT_LOGGING_DISABLED** findings
+// from **LOGGING_SCANNER**.
+//
+// Permissions required
+//	- roles/resourcemanager.folderAdmin to get/update resource policy from projects in folder.
+//	- roles/editor to get/update resource policy to specific project.
+//
+func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
+	switch values, err := enableauditlogs.ReadFinding(m.Data); err {
+	case services.ErrUnsupportedFinding:
+		return nil
+	case nil:
+		return enableauditlogs.Execute(ctx, values, &enableauditlogs.Services{
+			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})

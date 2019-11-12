@@ -17,6 +17,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	"google.golang.org/api/option"
@@ -47,6 +48,12 @@ func (c *CloudResourceManager) SetPolicyProject(ctx context.Context, projectID s
 	return c.service.Projects.SetIamPolicy(projectID, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
 }
 
+// SetPolicyProjectWithMask sets an IAM policy for the given project resource.
+func (c *CloudResourceManager) SetPolicyProjectWithMask(ctx context.Context, projectID string, p *crm.Policy, updateField ...string) (*crm.Policy, error) {
+	req := &crm.SetIamPolicyRequest{Policy: p, UpdateMask: createMask(updateField)}
+	return c.service.Projects.SetIamPolicy(projectID, req).Context(ctx).Do()
+}
+
 // GetAncestry returns the ancestry for the given project.
 func (c *CloudResourceManager) GetAncestry(ctx context.Context, projectID string) (*crm.GetAncestryResponse, error) {
 	return c.service.Projects.GetAncestry(projectID, &crm.GetAncestryRequest{}).Context(ctx).Do()
@@ -65,4 +72,11 @@ func (c *CloudResourceManager) SetPolicyOrganization(ctx context.Context, organi
 // GetOrganization returns the organization info.
 func (c *CloudResourceManager) GetOrganization(ctx context.Context, organizationID string) (*crm.Organization, error) {
 	return c.service.Organizations.Get(organizationID).Context(ctx).Do()
+}
+
+// createMask creates a string of comma separated field names to mark which fields to change.
+// https://godoc.org/google.golang.org/api/cloudresourcemanager/v1beta1#SetIamPolicyRequest
+func createMask(values []string) string {
+	mask := append(values, "etag")
+	return strings.Join(mask, ",")
 }
