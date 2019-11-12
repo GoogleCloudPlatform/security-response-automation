@@ -81,6 +81,34 @@ func TestReadFinding(t *testing.T) {
 		  	"createTime": "2019-09-13T22:51:00.516Z"
 		}
 	}`
+
+		inactiveFinding = `{
+		"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
+		"finding": {
+			"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087",
+		  	"parent": "organizations/1050000000008/sources/1986930501000008034",
+		  	"resourceName": "//cloudresourcemanager.googleapis.com/organizations/1050000000008",
+		  	"state": "INACTIVE",
+		  	"category": "NON_ORG_IAM_MEMBER",
+		  	"externalUri": "https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008",
+		  	"sourceProperties": {
+				"ReactivationCount": 0,
+				"ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+				"SeverityLevel": "High",
+				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008 and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+				"ProjectId": "(none)",
+				"AssetCreationTime": "2017-12-26T20:11:38.537Z",
+				"ScannerName": "IAM_SCANNER",
+				"ScanRunId": "2019-10-10T02:30:24.033-07:00",
+				"Explanation": "A user outside of your organization has IAM permissions on a project or organization."
+		  	},
+		  	"securityMarks": {
+				"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087/securityMarks"
+			},
+		  	"eventTime": "2019-10-10T09:30:24.033Z",
+		  	"createTime": "2019-09-13T22:51:00.516Z"
+		}
+	}`
 	)
 	for _, tt := range []struct {
 		name, OrganizationID string
@@ -89,6 +117,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", OrganizationID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
 		{name: "wrong category", OrganizationID: "", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
+		{name: "inactive finding", OrganizationID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

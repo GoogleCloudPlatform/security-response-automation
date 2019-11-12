@@ -44,6 +44,9 @@ func ReadFinding(b []byte) (*Values, error) {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
+	if finding.GetFinding().GetState() != "ACTIVE" {
+		return nil, services.ErrInactiveFinding
+	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
 		r.OrganizationID = sha.OrganizationID(finding.GetFinding().GetParent())
