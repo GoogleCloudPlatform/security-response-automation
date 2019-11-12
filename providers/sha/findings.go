@@ -27,6 +27,8 @@ var (
 	extractZone = regexp.MustCompile(`/zones/(.+)/instances`)
 	// extractInstance is a regex to extract the name of the instance that is on the external uri.
 	extractInstance = regexp.MustCompile(`/instances/(.+)`)
+	// extractDataset is a regex to extract the dataset ID that is on the resource name.
+	extractDataset = regexp.MustCompile(`/datasets/(.+)`)
 	// extractFirewallID is a regex to extract the firewall ID that is on the resource name.
 	extractFirewallID = regexp.MustCompile(`/global/firewalls/(.*)$`)
 	// extractClusterZone is a regex to extract the zone of the cluster that is on the resource name.
@@ -45,6 +47,11 @@ func Zone(resource string) string {
 // Instance returns the name of the instance.
 func Instance(resource string) string {
 	return extractInstance.FindStringSubmatch(resource)[1]
+}
+
+// Dataset returns the ID of the BigQuery dataset.
+func Dataset(resource string) string {
+	return extractDataset.FindStringSubmatch(resource)[1]
 }
 
 // BucketName returns name of the bucket. Resource assumed valid due to prior validate call.
