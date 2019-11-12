@@ -113,7 +113,7 @@ func TestReadFinding(t *testing.T) {
 	}
 }
 
-func TestRemovePublicAccess(t *testing.T) {
+func TestClosePublicDataset(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
