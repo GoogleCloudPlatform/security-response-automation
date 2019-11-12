@@ -36,7 +36,6 @@ module "google-setup" {
 module "close_public_bucket" {
   source = "./terraform/automations/close-public-bucket"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -45,7 +44,6 @@ module "close_public_bucket" {
 module "revoke_iam_grants" {
   source = "./terraform/automations/revoke-iam-grants"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -54,7 +52,6 @@ module "revoke_iam_grants" {
 module "create_disk_snapshot" {
   source              = "./terraform/automations/create-disk-snapshot"
   setup               = "${module.google-setup}"
-  mode                = "DRY-RUN"
   turbinia-project-id = "ae-threat-detection"
   turbinia-topic-name = "turbinia"
 }
@@ -62,7 +59,6 @@ module "create_disk_snapshot" {
 module "open_firewall" {
   source = "./terraform/automations/disable-firewall"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -71,7 +67,6 @@ module "open_firewall" {
 module "remove_public_ip" {
   source = "./terraform/automations/remove-public-ip"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -80,7 +75,6 @@ module "remove_public_ip" {
 module "enable_bucket_only_policy" {
   source = "./terraform/automations/enable-bucket-only-policy"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -89,7 +83,6 @@ module "enable_bucket_only_policy" {
 module "close_public_cloud_sql" {
   source = "./terraform/automations/close-public-cloud-sql"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -98,7 +91,6 @@ module "close_public_cloud_sql" {
 module "cloud-sql-require-ssl" {
   source = "./terraform/automations/cloud-sql-require-ssl"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -107,7 +99,6 @@ module "cloud-sql-require-ssl" {
 module "disable_dashboard" {
   source = "./terraform/automations/disable-dashboard"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]
@@ -116,7 +107,6 @@ module "disable_dashboard" {
 module "update_password" {
   source = "./terraform/automations/update-password"
   setup  = "${module.google-setup}"
-  mode   = "DRY-RUN"
   folder-ids = [
     "670032686187",
   ]

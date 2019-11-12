@@ -20,7 +20,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 )
@@ -58,37 +57,21 @@ func NewCompute(ctx context.Context, authFile string) (*Compute, error) {
 
 // DiskInsert creates a new disk in the project.
 func (c *Compute) DiskInsert(ctx context.Context, projectID, zone string, disk *compute.Disk) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] insert disk ", disk, " in zone ", zone, " of project ", projectID)
-		return nil, nil
-	}
 	return c.disks.Insert(projectID, zone, disk).Context(ctx).Do()
 }
 
 // DeleteDiskSnapshot deletes the given snapshot from the project.
 func (c *Compute) DeleteDiskSnapshot(ctx context.Context, project, snapshot string) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] delete snapshot ", snapshot, " in project ", projectID)
-		return nil, nil
-	}
 	return c.snapshots.Delete(project, snapshot).Context(ctx).Do()
 }
 
 // PatchFirewallRule updates the firewall rule for the given project.
 func (c *Compute) PatchFirewallRule(ctx context.Context, projectID string, rule string, rb *compute.Firewall) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] patch firewall ", rule, " in project ", projectID, " with ", rb)
-		return nil, nil
-	}
 	return c.compute.Firewalls.Patch(projectID, rule, rb).Context(ctx).Do()
 }
 
 // DeleteFirewallRule deletes the firewall rule for the given project.
 func (c *Compute) DeleteFirewallRule(ctx context.Context, projectID string, rule string) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] delete firewall ", rule, " in project ", projectID)
-		return nil, nil
-	}
 	return c.compute.Firewalls.Delete(projectID, rule).Context(ctx).Do()
 }
 
@@ -99,10 +82,6 @@ func (c *Compute) GetInstance(ctx context.Context, project, zone, instance strin
 
 // DeleteAccessConfig deletes an access config from an instance's network interface.
 func (c *Compute) DeleteAccessConfig(ctx context.Context, project, zone, instance, accessConfig, networkInterface string) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] delete access config ", accessConfig, " in project ", projectID, " zone  ", zone, " instance ", instance, " network interface", networkInterface)
-		return nil, nil
-	}
 	return c.compute.Instances.DeleteAccessConfig(project, zone, instance, accessConfig, networkInterface).Context(ctx).Do()
 }
 
@@ -113,10 +92,6 @@ func (c *Compute) FirewallRule(ctx context.Context, projectID string, ruleID str
 
 // CreateSnapshot creates a snapshot of a specified persistent disk.
 func (c *Compute) CreateSnapshot(ctx context.Context, projectID, zone, disk string, rb *compute.Snapshot) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] create snapshot ", rb, " in project ", projectID, " in zone ", zone, " from disk ", disk)
-		return nil, nil
-	}
 	return c.compute.Disks.CreateSnapshot(projectID, zone, disk, rb).Context(ctx).Do()
 }
 
@@ -132,10 +107,6 @@ func (c *Compute) ListProjectSnapshots(ctx context.Context, projectID string) (*
 
 // SetLabels sets labels on a snapshot.
 func (c *Compute) SetLabels(ctx context.Context, projectID, resource string, rb *compute.GlobalSetLabelsRequest) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] set labels ", rb, " in project ", projectID, " in resource ", resource)
-		return nil, nil
-	}
 	return c.compute.Snapshots.SetLabels(projectID, resource, rb).Context(ctx).Do()
 }
 
@@ -155,28 +126,16 @@ func (c *Compute) WaitGlobal(project string, op *compute.Operation) []error {
 
 // StopInstance instance command to some instance/zone
 func (c *Compute) StopInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] stop instance ", instance, "in project ", projectID, " in zone ", zone)
-		return nil, nil
-	}
 	return c.compute.Instances.Stop(projectID, zone, instance).Context(ctx).Do()
 }
 
 // StartInstance starts a given instance in given zone.
 func (c *Compute) StartInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] start instance ", instance, "in project ", projectID, " in zone ", zone)
-		return nil, nil
-	}
 	return c.compute.Instances.Start(projectID, zone, instance).Context(ctx).Do()
 }
 
 // DeleteInstance deletes a given instance in given zone.
 func (c *Compute) DeleteInstance(ctx context.Context, projectID, zone, instance string) (*compute.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] delete instance ", instance, "in project ", projectID, " in zone ", zone)
-		return nil, nil
-	}
 	return c.compute.Instances.Delete(projectID, zone, instance).Context(ctx).Do()
 }
 

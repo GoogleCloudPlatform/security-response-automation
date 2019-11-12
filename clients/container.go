@@ -17,9 +17,7 @@ package clients
 import (
 	"context"
 	"fmt"
-	"log"
 
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	container "google.golang.org/api/container/v1"
 	"google.golang.org/api/option"
 )
@@ -40,9 +38,5 @@ func NewContainer(ctx context.Context, authFile string) (*Container, error) {
 
 // UpdateAddonsConfig updates the addons configuration of a given cluster.
 func (c *Container) UpdateAddonsConfig(ctx context.Context, projectID, zone, clusterID string, conf *container.SetAddonsConfigRequest) (*container.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] update addons on ", projectID, " zone ", zone, " cluster ", clusterID, " with configuration ", conf)
-		return nil, nil
-	}
 	return c.container.Projects.Zones.Clusters.Addons(projectID, zone, clusterID, conf).Context(ctx).Do()
 }

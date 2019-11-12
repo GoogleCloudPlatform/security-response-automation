@@ -18,10 +18,8 @@ package clients
 import (
 	"context"
 	"fmt"
-	"log"
 
 	commandcenter "cloud.google.com/go/securitycenter/apiv1beta1"
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	"google.golang.org/api/option"
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
@@ -42,18 +40,10 @@ func NewSecurityCommandCenter(ctx context.Context, authFile string) (*SecurityCo
 
 // UpdateFinding updates a finding in SCC.
 func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccpb.UpdateFindingRequest) (*sccpb.Finding, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] update finding ", request)
-		return nil, nil
-	}
 	return s.service.UpdateFinding(ctx, request)
 }
 
 // AddSecurityMarks adds security mark to a finding or asset.
 func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] add security marks ", request)
-		return nil, nil
-	}
 	return s.service.UpdateSecurityMarks(ctx, request)
 }

@@ -1,10 +1,7 @@
 package clients
 
 import (
-	"log"
-
 	pagerduty "github.com/PagerDuty/go-pagerduty"
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 )
 
 // PagerDuty client.
@@ -35,7 +32,7 @@ func (p *PagerDuty) SetServiceID(serviceID string) { p.serviceID = serviceID }
 
 // CreateIncident will create a new incident.
 func (p *PagerDuty) CreateIncident(title, body string) (*pagerduty.Incident, error) {
-	incident := &pagerduty.CreateIncidentOptions{
+	return p.client.CreateIncident(p.from, &pagerduty.CreateIncidentOptions{
 		Type:  "",
 		Title: title,
 		Service: &pagerduty.APIReference{
@@ -47,10 +44,5 @@ func (p *PagerDuty) CreateIncident(title, body string) (*pagerduty.Incident, err
 			Type:    "incident_body",
 			Details: body,
 		},
-	}
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] create incident ", incident)
-		return nil, nil
-	}
-	return p.client.CreateIncident(p.from, incident)
+	})
 }

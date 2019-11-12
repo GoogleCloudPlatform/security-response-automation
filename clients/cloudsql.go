@@ -20,7 +20,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/googlecloudplatform/security-response-automation/services/mode"
 	"google.golang.org/api/option"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
@@ -45,19 +44,11 @@ func NewCloudSQL(ctx context.Context, authFile string) (*CloudSQL, error) {
 
 // UpdateUser updates a given user.
 func (s *CloudSQL) UpdateUser(ctx context.Context, projectID, instance, host, name string, user *sqladmin.User) (*sqladmin.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] update user ", user, " in instance ", instance, " in host ", host, " in project ", projectID)
-		return nil, nil
-	}
 	return s.service.Users.Update(projectID, instance, name, user).Host(host).Context(ctx).Do()
 }
 
 // PatchInstance updates partialy a Cloud SQL instance.
 func (s *CloudSQL) PatchInstance(ctx context.Context, projectID, instance string, databaseInstance *sqladmin.DatabaseInstance) (*sqladmin.Operation, error) {
-	if mode.DryRun() {
-		log.Println("[DRY_RUN] patchy instance ", instance, " in project ", projectID, " with ", databaseInstance)
-		return nil, nil
-	}
 	return s.service.Instances.Patch(projectID, instance, databaseInstance).Do()
 }
 
