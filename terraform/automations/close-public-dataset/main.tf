@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-resource "google_cloudfunctions_function" "remove-public-access" {
-  name                  = "RemovePublicAccess"
+resource "google_cloudfunctions_function" "close-public-dataset" {
+  name                  = "ClosePublicDataset"
   description           = "Removes public access of a BigQuery dataset."
   runtime               = "go111"
   available_memory_mb   = 128
@@ -21,7 +21,7 @@ resource "google_cloudfunctions_function" "remove-public-access" {
   timeout               = 60
   project               = "${var.setup.automation-project}"
   region                = "${var.setup.region}"
-  entry_point           = "RemovePublicAccess"
+  entry_point           = "ClosePublicDataset"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"

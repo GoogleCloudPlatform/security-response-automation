@@ -72,8 +72,8 @@ module "remove_public_ip" {
   ]
 }
 
-module "remove_public_access" {
-  source = "./terraform/automations/remove-public-access"
+module "close_public_dataset" {
+  source = "terraform/automations/close-public-dataset"
   setup  = "${module.google-setup}"
   folder-ids = [
     "593987969559",

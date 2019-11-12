@@ -36,8 +36,8 @@ type RemovePublicIP struct {
 	Resources *Resources
 }
 
-// RemovePublicAccess contains configuration required for the remove public access function.
-type RemovePublicAccess struct {
+// ClosePublicDataset contains configuration required for the close public dataset function.
+type ClosePublicDataset struct {
 	Resources *Resources
 }
 
@@ -87,7 +87,7 @@ type Configuration struct {
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
 	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
-	RemovePublicAccess     *RemovePublicAccess     `json:"remove_public_access"`
+	ClosePublicDataset     *ClosePublicDataset     `json:"close_public_dataset"`
 	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`
 	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`

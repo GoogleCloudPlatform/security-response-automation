@@ -1,4 +1,4 @@
-package removepublicaccess
+package closepublicdataset
 
 //  Copyright 2019 Google LLC
 //
@@ -59,7 +59,7 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute removes public access of a BigQuery dataset.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.RemovePublicAccess.Resources
+	resources := services.Configuration.ClosePublicDataset.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, execute(ctx, values, services))
 }
 

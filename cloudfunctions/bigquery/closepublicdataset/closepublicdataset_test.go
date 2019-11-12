@@ -1,4 +1,4 @@
-package removepublicaccess
+package closepublicdataset
 
 // Copyright 2019 Google LLC
 //
@@ -185,7 +185,7 @@ func setup(folderIDs []string) (*services.Global, *stubs.BigQueryStub, *stubs.Re
 	res := services.NewResource(crmStub, storageStub)
 	bigqueryStub := &stubs.BigQueryStub{}
 	conf := &services.Configuration{
-		RemovePublicAccess: &services.RemovePublicAccess{
+		ClosePublicDataset: &services.ClosePublicDataset{
 			Resources: &services.Resources{
 				FolderIDs: folderIDs,
 			},
