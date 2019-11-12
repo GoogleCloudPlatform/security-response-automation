@@ -50,8 +50,8 @@ module "revoke_iam_grants" {
 }
 
 module "create_disk_snapshot" {
-  source = "./terraform/automations/create-disk-snapshot"
-  setup  = "${module.google-setup}"
+  source              = "./terraform/automations/create-disk-snapshot"
+  setup               = "${module.google-setup}"
   turbinia-project-id = "ae-threat-detection"
   turbinia-topic-name = "turbinia"
 }
