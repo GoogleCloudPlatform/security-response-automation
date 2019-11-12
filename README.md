@@ -209,18 +209,6 @@ Then visit Cloud Console, Cloud Functions, click the Function name then edit. Fi
 $ go test ./...
 ```
 
-## CSCC notifications setup
-
-- Need to grant automation account the proper permissions. Below example shown if adding via the
-  config service account. Note the granting account must have organization admin to grant this
-  role.
-- Make sure to edit `enable-cscc-notifications.sh` and fill in your variables to match your
-  environment.
-
-```shell
-./enable-cscc-notifications.sh
-```
-
 ### Logging
 
 Each Cloud Function logs its actions to the below log location. This can be accessed by visiting
