@@ -35,6 +35,7 @@ type Values struct {
 type Services struct {
 	Configuration *services.Configuration
 	Resource      *services.Resource
+	Logger        *services.Logger
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -58,6 +59,10 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute removes non-organization members.
 func Execute(ctx context.Context, values *Values, services *Services) error {
+	if services.Configuration.RemoveNonOrgMember.Mode == "DRY_RUN" {
+		services.Logger.Info("dry_run on, would have removed non org members from organization %q", values.OrganizationID)
+		return nil
+	}
 	organization, err := services.Resource.Organization(ctx, values.OrganizationID)
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization")
