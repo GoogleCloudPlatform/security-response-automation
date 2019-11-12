@@ -75,9 +75,14 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
+	conf := services.Configuration
 	resources := services.Configuration.UpdatePassword.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
 		log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		if conf.UpdatePassword.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+			return nil
+		}
 		if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
 			return err
 		}

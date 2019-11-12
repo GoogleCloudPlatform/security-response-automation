@@ -60,6 +60,7 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute will remove any public IPs in SQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
+	conf := services.Configuration
 	resources := services.Configuration.CloseCloudSQL.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
 		log.Printf("getting details from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
@@ -68,6 +69,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			return err
 		}
 		auth := instance.Settings.IpConfiguration.AuthorizedNetworks
+		if conf.CloseCloudSQL.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+			return nil
+		}
 		if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, auth); err != nil {
 			return err
 		}

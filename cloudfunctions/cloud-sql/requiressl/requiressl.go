@@ -59,8 +59,13 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, values *Values, services *Services) error {
+	conf := services.Configuration
 	resources := services.Configuration.CloudSQLRequireSSL.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if conf.CloudSQLRequireSSL.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+			return nil
+		}
 		if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
 			return err
 		}

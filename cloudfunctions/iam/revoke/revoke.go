@@ -72,6 +72,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.RevokeGrants.Resources
 	members := toRemove(values.ExternalMembers, conf.RevokeGrants.Removelist)
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if conf.RevokeGrants.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
+			return nil
+		}
 		if _, err := services.Resource.RemoveMembersProject(ctx, values.ProjectID, members); err != nil {
 			return err
 		}
