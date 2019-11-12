@@ -350,6 +350,9 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 	case services.ErrUnsupportedFinding:
 		return nil
 	case nil:
+		if svcs.Configuration.EnableAuditLogs.Mode == "DISABLED" {
+			return nil
+		}
 		return enableauditlogs.Execute(ctx, values, &enableauditlogs.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,

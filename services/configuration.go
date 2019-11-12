@@ -49,6 +49,7 @@ type EnableBucketOnlyPolicy struct {
 // EnableAuditLogs configuration required to enable data access audit logs
 type EnableAuditLogs struct {
 	Resources *Resources
+	Mode      string
 }
 
 // CloseCloudSQL contains configuration required for the close Cloud SQL function.
