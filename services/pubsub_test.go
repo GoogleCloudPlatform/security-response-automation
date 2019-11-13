@@ -24,10 +24,6 @@ import (
 )
 
 func TestPubSub(t *testing.T) {
-	const (
-		projectID = "test-project"
-		datasetID = "test-dataset"
-	)
 	tests := []struct {
 		name    string
 		message *pubsub.Message

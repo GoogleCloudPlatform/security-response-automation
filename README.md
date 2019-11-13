@@ -132,6 +132,17 @@ Configuration
 - Configured in settings.json under the `cloud_sql_require_ssl` key.
 - See general [resource list](#resources) options.
 
+### BigQuery
+
+#### Close access to a public BigQuery dataset
+
+Close access to a public BigQuery dataset.
+
+Configuration
+
+- Configured in settings.json under the `close_public_dataset` key.
+- See general [resource list](#resources) options.
+
 **Remove non-Organization members**
 
 Automatically removes non-organization members.
@@ -219,18 +230,6 @@ Then visit Cloud Console, Cloud Functions, click the Function name then edit. Fi
 
 ```shell
 $ go test ./...
-```
-
-## CSCC notifications setup
-
-- Need to grant automation account the proper permissions. Below example shown if adding via the
-  config service account. Note the granting account must have organization admin to grant this
-  role.
-- Make sure to edit `enable-cscc-notifications.sh` and fill in your variables to match your
-  environment.
-
-```shell
-./enable-cscc-notifications.sh
 ```
 
 ### Logging

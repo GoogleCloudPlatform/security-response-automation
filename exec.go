@@ -20,6 +20,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/updatepassword"
@@ -198,6 +199,35 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 		return removepublicip.Execute(ctx, values, &removepublicip.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
+			Resource:      svcs.Resource,
+			Logger:        svcs.Logger,
+		})
+	case services.ErrUnsupportedFinding:
+		return nil
+	default:
+		return err
+	}
+}
+
+// ClosePublicDataset removes public access of a BigQuery dataset.
+//
+// This Cloud Function will respond to Security Health Analytics **Public Dataset** findings
+// from **Dataset Scanner**. All public access of the affected dataset will be
+// removed when this function is activated.
+//
+// Permissions required
+//	- roles/bigquery.dataOwner to get and update dataset metadata.
+//
+func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
+	switch values, err := closepublicdataset.ReadFinding(m.Data); err {
+	case nil:
+		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
+		if err != nil {
+			return err
+		}
+		return closepublicdataset.Execute(ctx, values, &closepublicdataset.Services{
+			Configuration: svcs.Configuration,
+			BigQuery:      bigquery,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
