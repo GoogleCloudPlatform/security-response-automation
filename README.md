@@ -132,6 +132,17 @@ Configuration
 - Configured in settings.json under the `cloud_sql_require_ssl` key.
 - See general [resource list](#resources) options.
 
+### BigQuery
+
+#### Close access to a public BigQuery dataset
+
+Close access to a public BigQuery dataset.
+
+Configuration
+
+- Configured in settings.json under the `close_public_dataset` key.
+- See general [resource list](#resources) options.
+
 ### Installation
 
 Following these instructions will deploy all SRA Cloud Functions. Before you get started be sure
