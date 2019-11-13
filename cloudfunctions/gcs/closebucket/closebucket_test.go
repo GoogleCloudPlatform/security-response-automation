@@ -109,7 +109,7 @@ func TestReadFinding(t *testing.T) {
 		}`
 
 		inactiveFinding = `{
-		"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
