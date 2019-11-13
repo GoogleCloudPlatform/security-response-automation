@@ -51,7 +51,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	case "OPEN_SSH_PORT":
 		fallthrough
 	case "OPEN_RDP_PORT":
-		if finding.GetFinding().GetState() != "ACTIVE" {
+		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		r.FirewallID = sha.FirewallID(finding.GetFinding().GetResourceName())

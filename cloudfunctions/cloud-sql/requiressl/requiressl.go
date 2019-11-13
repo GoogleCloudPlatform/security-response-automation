@@ -46,7 +46,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "SSL_NOT_ENFORCED":
-		if finding.GetFinding().GetState() != "ACTIVE" {
+		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())

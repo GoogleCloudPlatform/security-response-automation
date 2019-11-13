@@ -46,7 +46,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "PUBLIC_IP_ADDRESS":
-		if finding.GetFinding().GetState() != "ACTIVE" {
+		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()

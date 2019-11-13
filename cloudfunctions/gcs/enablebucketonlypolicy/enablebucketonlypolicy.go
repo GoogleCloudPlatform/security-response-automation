@@ -45,7 +45,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "BUCKET_POLICY_ONLY_DISABLED":
-		if finding.GetFinding().GetState() != "ACTIVE" {
+		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
