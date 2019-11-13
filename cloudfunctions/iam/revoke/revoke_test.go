@@ -92,7 +92,7 @@ func TestIAMRevoke(t *testing.T) {
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			allowed:         []string{"mail.com"},
-			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
+d			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
