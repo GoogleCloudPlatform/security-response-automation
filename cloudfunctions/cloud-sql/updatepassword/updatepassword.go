@@ -60,11 +60,11 @@ func ReadFinding(b []byte) (*Values, error) {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
-	if finding.GetFinding().GetState() != "ACTIVE" {
-		return nil, services.ErrInactiveFinding
-	}
 	switch finding.GetFinding().GetCategory() {
 	case "SQL_NO_ROOT_PASSWORD":
+		if finding.GetFinding().GetState() != "ACTIVE" {
+			return nil, services.ErrUnsupportedFinding
+		}
 		values.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		values.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	default:

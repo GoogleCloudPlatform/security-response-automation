@@ -122,7 +122,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", projectID: "threat-auto-tests-07102019", instanceName: "test-no-password", host: "%", userName: "root", bytes: []byte(noRootPassword), expectedError: nil},
 		{name: "wrong category", projectID: "", instanceName: "", host: "", userName: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", projectID: "", instanceName: "", host: "", userName: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
+		{name: "inactive finding", projectID: "", instanceName: "", host: "", userName: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -132,19 +132,19 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.InstanceName != tt.instanceName {
+			if err == nil && r != nil && r.InstanceName != tt.instanceName {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.InstanceName, tt.instanceName)
 			}
-			if err == nil && r.ProjectID != tt.projectID {
+			if err == nil && r != nil && r.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
 			}
-			if err == nil && r.Host != tt.host {
+			if err == nil && r != nil && r.Host != tt.host {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Host, tt.host)
 			}
-			if err == nil && r.UserName != tt.userName {
+			if err == nil && r != nil && r.UserName != tt.userName {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.UserName, tt.userName)
 			}
-			if err == nil && r.Password == "" {
+			if err == nil && r != nil && r.Password == "" {
 				t.Errorf("%s failed: got:%q", tt.name, r.Password)
 			}
 		})

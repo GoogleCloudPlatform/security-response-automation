@@ -147,7 +147,7 @@ func TestReadFinding(t *testing.T) {
 		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219", bytes: []byte(storageScanner), expectedError: nil},
 		{name: "missing properties", bucket: "", projectID: "", bytes: []byte(missingProperties), expectedError: services.ErrValueNotFound},
 		{name: "wrong category", bucket: "", projectID: "", bytes: []byte(somethingElse), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", bucket: "", projectID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
+		{name: "inactive finding", bucket: "", projectID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

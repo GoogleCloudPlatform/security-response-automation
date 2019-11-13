@@ -117,7 +117,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", OrganizationID: "1050000000008", bytes: []byte(findingRemoveNonOrgMember), expectedError: nil},
 		{name: "wrong category", OrganizationID: "", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", OrganizationID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
+		{name: "inactive finding", OrganizationID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -127,7 +127,7 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.OrganizationID != tt.OrganizationID {
+			if err == nil && r != nil && r.OrganizationID != tt.OrganizationID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.OrganizationID, tt.OrganizationID)
 			}
 		})

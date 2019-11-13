@@ -113,7 +113,7 @@ func TestReadFinding(t *testing.T) {
 		{name: "test enable audit logs with empty projectID", message: []byte(unknownProjectIDScanner), expectedResult: nil, expectedError: services.ErrValueNotFound},
 		{name: "test enable audit logs invalid message json", message: []byte(`{{"elem": 1}, {"elem": 2}}`), expectedResult: nil, expectedError: services.ErrUnmarshal},
 		{name: "test enable audit logs unknown category", message: []byte(unknownCategoryScanner), expectedResult: nil, expectedError: services.ErrValueNotFound},
-		{name: "test enable audit logs inactive finding", message: []byte(inactiveFinding), expectedResult: nil, expectedError: services.ErrInactiveFinding},
+		{name: "test enable audit logs inactive finding", message: []byte(inactiveFinding), expectedResult: nil, expectedError: services.ErrUnsupportedFinding},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

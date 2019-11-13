@@ -130,7 +130,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance", bytes: []byte(enforceSSL), expectedError: nil},
 		{name: "wrong category", projectID: "", InstanceName: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", projectID: "", InstanceName: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
+		{name: "inactive finding", projectID: "", InstanceName: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -140,10 +140,10 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.InstanceName != tt.InstanceName {
+			if err == nil && r != nil && r.InstanceName != tt.InstanceName {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.InstanceName, tt.InstanceName)
 			}
-			if err == nil && r.ProjectID != tt.projectID {
+			if err == nil && r != nil && r.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
 			}
 		})

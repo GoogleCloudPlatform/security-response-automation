@@ -135,7 +135,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a", instanceID: "4312755253150365851", bytes: []byte(publicIPAddressFinding), expectedError: nil},
 		{name: "wrong category", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
+		{name: "inactive finding", projectID: "", instanceZone: "", instanceID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
@@ -145,13 +145,13 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.ProjectID != tt.projectID {
+			if err == nil && r != nil && r.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
 			}
-			if err == nil && r.InstanceZone != tt.instanceZone {
+			if err == nil && r != nil && r.InstanceZone != tt.instanceZone {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.InstanceZone, tt.instanceZone)
 			}
-			if err == nil && r.InstanceID != tt.instanceID {
+			if err == nil && r != nil && r.InstanceID != tt.instanceID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.InstanceID, tt.instanceID)
 			}
 		})

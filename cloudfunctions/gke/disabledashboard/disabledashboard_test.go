@@ -118,7 +118,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", projectID: "test-cat-findings-clseclab", zone: "us-central1-a", clusterID: "ex-abuse-cluster-3", bytes: []byte(webUIFinding), expectedError: nil},
 		{name: "wrong category", projectID: "", zone: "", clusterID: "", bytes: []byte(wrongCategory), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", projectID: "", zone: "", clusterID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrInactiveFinding},
+		{name: "inactive finding", projectID: "", zone: "", clusterID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
