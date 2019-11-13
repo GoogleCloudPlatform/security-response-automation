@@ -101,6 +101,7 @@ message IamScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string parent = 3;
+      string resourceName = 4;
     }
 
     string notificationConfigName = 1;

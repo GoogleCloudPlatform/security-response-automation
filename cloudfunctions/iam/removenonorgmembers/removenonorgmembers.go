@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
@@ -27,7 +28,7 @@ import (
 
 // Values contains the required values needed for this function.
 type Values struct {
-	orgID string
+	orgID, projectID string
 }
 
 // Services contains the services needed for this function.
@@ -45,11 +46,16 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+		if fromOrg(finding.GetFinding().GetResourceName()) {
+			v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+		}
+		if fromProject(finding.GetFinding().GetResourceName()) {
+			v.projectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+		}
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if v.orgID == "" {
+	if v.orgID == "" && v.projectID == "" {
 		return nil, services.ErrValueNotFound
 	}
 	return v, nil
@@ -73,4 +79,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	}
 	log.Printf("removed members: %s", membersToRemove)
 	return nil
+}
+
+func fromProject(resourceName string) bool {
+	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/projects")
+}
+
+func fromOrg(resourceName string) bool {
+	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/organizations")
 }
