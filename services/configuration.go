@@ -27,8 +27,10 @@ type DisableFirewall struct {
 
 // RevokeGrants contains configuration required for the Revoke Grants function.
 type RevokeGrants struct {
-	Resources  *Resources
-	Removelist []string `json:"remove_list"`
+	Resources *Resources
+	// A slice of domain names that will be evaluated against incoming added members. If the user
+	// matches a domain in this list they will not be removed.
+	AllowList []string `json:"allow_list"`
 }
 
 // RemovePublicIP contains configuration required for the remove public IP function.

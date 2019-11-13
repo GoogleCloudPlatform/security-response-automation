@@ -18,6 +18,8 @@ package revoke
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"regexp"
 	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
@@ -60,19 +62,20 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute is the entry point for the IAM revoker Cloud Function.
 //
-// This Cloud Function will read the incoming finding, if it's a supported type of finding that
-// indicates an external member was invited to a policy check to see if the external member
-// is in a list of disallowed domains.
+// This automation will remove users from a project's policy if:
+// - The users are believed to be external as reported from the finding provider.
+// - The project where the external users were found are within the set configured resources.
+// - The users do not match the list of allowed domains.
 //
-// Additionally, check to see if the affected project is within the configured resources. If the grant
-// was to a domain explicitly disallowed and within the parent resource then remove the member from
-// the IAM policy for the affected resource.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration
+	conf := services.Configuration.RevokeGrants
 	resources := services.Configuration.RevokeGrants.Resources
-	members := toRemove(values.ExternalMembers, conf.RevokeGrants.Removelist)
+	members, err := toRemove(values.ExternalMembers, conf.AllowList)
+	if err != nil {
+		return err
+	}
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if _, err := services.Resource.RemoveMembersProject(ctx, values.ProjectID, members); err != nil {
+		if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
 			return err
 		}
 		services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
@@ -81,15 +84,21 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 }
 
 // toRemove returns a slice containing only external members that are disallowed.
-func toRemove(members []string, disallowed []string) []string {
-	r := []string{}
-	for _, mm := range members {
-		for _, d := range disallowed {
-			if !strings.HasSuffix(mm, d) {
-				continue
-			}
-			r = append(r, mm)
-		}
+// This check is done to ensure we only consider removing members that came from the finding and not
+// just any members that aren't part of the configured allow list.
+func toRemove(members []string, allowed []string) ([]string, error) {
+	allowedList := strings.Replace(strings.Join(allowed, "|"), ".", `\.`, -1)
+	allowedRegExp, err := regexp.Compile("^.+@" + allowedList + "$")
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile regex: %q", err)
 	}
-	return r
+	remove := []string{}
+	for _, user := range members {
+		if allowedRegExp.MatchString(user) {
+			continue
+		}
+		remove = append(remove, user)
+
+	}
+	return remove, nil
 }
