@@ -133,10 +133,10 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r.ProjectID != tt.projectID {
+			if err == nil && r != nil && r.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
 			}
-			if err == nil && r.DatasetID != tt.datasetID {
+			if err == nil && r != nil && r.DatasetID != tt.datasetID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, r.DatasetID, tt.datasetID)
 			}
 		})
