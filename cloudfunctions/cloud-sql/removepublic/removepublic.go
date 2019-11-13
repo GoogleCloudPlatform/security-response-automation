@@ -47,6 +47,9 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "PUBLIC_SQL_INSTANCE":
+		if finding.GetFinding().GetState() != "ACTIVE" {
+			return nil, services.ErrUnsupportedFinding
+		}
 		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	default:

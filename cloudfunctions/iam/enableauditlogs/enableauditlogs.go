@@ -50,6 +50,9 @@ func ReadFinding(b []byte) (*Values, error) {
 	r := &Values{}
 	switch finding.GetFinding().GetCategory() {
 	case "AUDIT_LOGGING_DISABLED":
+		if finding.GetFinding().GetState() != "ACTIVE" {
+			return nil, services.ErrUnsupportedFinding
+		}
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	}
 	if r.ProjectID == "" {
