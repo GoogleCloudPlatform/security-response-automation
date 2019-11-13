@@ -63,9 +63,6 @@ func init() {
 func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 	switch values, err := revoke.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.RevokeGrants.Mode == "DISABLED" {
-			return nil
-		}
 		return revoke.Execute(ctx, values, &revoke.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -91,9 +88,6 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	switch values, err := createsnapshot.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.CreateSnapshot.Mode == "DISABLED" {
-			return nil
-		}
 		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
@@ -133,9 +127,6 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	switch values, err := closebucket.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.CloseBucket.Mode == "DISABLED" {
-			return nil
-		}
 		return closebucket.Execute(ctx, values, &closebucket.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -157,9 +148,6 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 	switch values, err := openfirewall.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.DisableFirewall.Mode == "DISABLED" {
-			return nil
-		}
 		return openfirewall.Execute(ctx, values, &openfirewall.Services{
 			Configuration: svcs.Configuration,
 			Firewall:      svcs.Firewall,
@@ -184,9 +172,6 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.RemoveNonOrgMember.Mode == "DISABLED" {
-			return nil
-		}
 		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -210,9 +195,6 @@ func RemoveNonOrganizationMember(ctx context.Context, m pubsub.Message) error {
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 	switch values, err := removepublicip.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.RemovePublicIP.Mode == "DISABLED" {
-			return nil
-		}
 		return removepublicip.Execute(ctx, values, &removepublicip.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
@@ -237,9 +219,6 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 	switch values, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.EnableBucketOnlyPolicy.Mode == "DISABLED" {
-			return nil
-		}
 		return enablebucketonlypolicy.Execute(ctx, values, &enablebucketonlypolicy.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -264,9 +243,6 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 	switch values, err := removepublic.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.CloseCloudSQL.Mode == "DISABLED" {
-			return nil
-		}
 		return removepublic.Execute(ctx, values, &removepublic.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
@@ -292,9 +268,6 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 	switch values, err := requiressl.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.CloudSQLRequireSSL.Mode == "DISABLED" {
-			return nil
-		}
 		return requiressl.Execute(ctx, values, &requiressl.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
@@ -322,9 +295,6 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 	case services.ErrUnsupportedFinding:
 		return nil
 	case nil:
-		if svcs.Configuration.DisableDashboard.Mode == "DISABLED" {
-			return nil
-		}
 		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
 			Configuration: svcs.Configuration,
 			Container:     svcs.Container,
@@ -350,9 +320,6 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 	case services.ErrUnsupportedFinding:
 		return nil
 	case nil:
-		if svcs.Configuration.EnableAuditLogs.Mode == "DISABLED" {
-			return nil
-		}
 		return enableauditlogs.Execute(ctx, values, &enableauditlogs.Services{
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
@@ -375,9 +342,6 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	switch values, err := updatepassword.ReadFinding(m.Data); err {
 	case nil:
-		if svcs.Configuration.UpdatePassword.Mode == "DISABLED" {
-			return nil
-		}
 		return updatepassword.Execute(ctx, values, &updatepassword.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,

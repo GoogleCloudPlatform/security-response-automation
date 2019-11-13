@@ -6,20 +6,20 @@
     "turbinia_topic_name": "turbinia",
     "turbinia_zone": "us-central1-c",
     "output_destinations": ["turbinia"],
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "close_bucket": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "revoke_grants": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
     "remove_list": ["gmail.com", "test.com"],
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "disable_firewall": {
     "resources": {
@@ -27,46 +27,46 @@
     },
     "remediation_action": "DISABLE",
     "source_ranges": ["127.0.0.0/8"],
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "remove_public_ip": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "close_cloud_sql": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "cloud_sql_require_ssl": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "disable_dashboard": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "cloud_sql_update_password": {
     "resources": {
       "folder_ids": ["670032686187"]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   },
   "remove_non_org_member": {
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
     },
   "enable_audit_logs": {
     "resources": {
@@ -74,6 +74,6 @@
         "593987969559"
       ]
     },
-    "mode": "ENABLED"
+    "mode": "DRY_RUN"
   }
 }

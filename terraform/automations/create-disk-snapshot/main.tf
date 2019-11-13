@@ -27,10 +27,6 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.findings-topic}"
   }
-
-  environment_variables = {
-    MODE = var.mode
-  }
 }
 
 # Role "compute.instanceAdmin" required to get disk lists and create snapshots for GCE instances.

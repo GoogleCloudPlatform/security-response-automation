@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
@@ -66,29 +65,29 @@ func ReadFinding(b []byte) (*Values, error) {
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources
+	if services.Configuration.DisableFirewall.Mode == "DRY_RUN" {
+		services.Logger.Info("dry_run on, would have remediated firewall %q in project  %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
+		return nil
+	}
 	var fn func() error
 	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
 	case "DISABLE":
-		fn = disable(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID, services.Configuration)
+		fn = disable(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "DELETE":
-		fn = delete(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID, services.Configuration)
+		fn = delete(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "UPDATE_RANGE":
-		fn = updateRange(ctx, services.Logger, services.Configuration.DisableFirewall.SourceRanges, services.Firewall, values.ProjectID, values.FirewallID, services.Configuration)
+		fn = updateRange(ctx, services.Logger, services.Configuration.DisableFirewall.SourceRanges, services.Firewall, values.ProjectID, values.FirewallID)
 	default:
 		return fmt.Errorf("unknown open firewall remediation action` %q", action)
 	}
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, fn)
 }
 
-func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string, conf *services.Configuration) func() error {
+func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, projectID, firewallID)
 		if err != nil {
 			return err
-		}
-		if conf.DisableFirewall.Mode == "DRY_RUN" {
-			logr.Info("dry_run on, would have disabled firewall %q in project  %q", r.Name, projectID)
-			return nil
 		}
 		op, err := fw.DisableFirewallRule(ctx, projectID, firewallID, r.Name)
 		if err != nil {
@@ -102,15 +101,11 @@ func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, 
 	}
 }
 
-func delete(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string, conf *services.Configuration) func() error {
+func delete(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, projectID, firewallID)
 		if err != nil {
 			return err
-		}
-		if conf.DisableFirewall.Mode == "DRY_RUN" {
-			logr.Info("dry_run on, would have deleted firewall %q in project  %q", r.Name, projectID)
-			return nil
 		}
 		op, err := fw.DeleteFirewallRule(ctx, projectID, firewallID)
 		if err != nil {
@@ -124,15 +119,11 @@ func delete(ctx context.Context, logr *services.Logger, fw *services.Firewall, p
 	}
 }
 
-func updateRange(ctx context.Context, logr *services.Logger, newRanges []string, fw *services.Firewall, projectID, firewallID string, conf *services.Configuration) func() error {
+func updateRange(ctx context.Context, logr *services.Logger, newRanges []string, fw *services.Firewall, projectID, firewallID string) func() error {
 	return func() error {
 		r, err := fw.FirewallRule(ctx, projectID, firewallID)
 		if err != nil {
 			return err
-		}
-		if conf.DisableFirewall.Mode == "DRY_RUN" {
-			logr.Info("dry_run on, would have updated source ranges to %q in firewall %q from %q", strings.Join(newRanges, ","), r.Name, projectID)
-			return nil
 		}
 		op, err := fw.UpdateFirewallRuleSourceRange(ctx, projectID, firewallID, r.Name, newRanges)
 		if err != nil {

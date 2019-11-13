@@ -32,7 +32,6 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
 
   environment_variables = {
     folder_ids = "${join(",", var.folder-ids)}"
-    MODE       = var.mode
   }
 }
 

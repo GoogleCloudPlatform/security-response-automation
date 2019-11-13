@@ -27,10 +27,6 @@ resource "google_cloudfunctions_function" "remove-public-ip" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
   }
-
-  environment_variables = {
-    MODE = var.mode
-  }
 }
 
 # Required to retrieve ancestry for projects within this folder.

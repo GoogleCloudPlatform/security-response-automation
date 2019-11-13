@@ -92,16 +92,21 @@ func ReadFinding(b []byte) (*Values, error) {
 // be changed to support folder and organization level grants.
 func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
-	conf := services.Configuration
 	disksCopied := []string{}
-	dstProjectID := conf.CreateSnapshot.TargetSnapshotProjectID
+	dstProjectID := services.Configuration.CreateSnapshot.TargetSnapshotProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
-	disks, snapshots, err := listExisting(ctx, services, values)
+	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to list disks")
 	}
 
-	if conf.CreateSnapshot.Mode == "DRY_RUN" {
+	snapshots, err := services.Host.ListProjectSnapshots(ctx, values.ProjectID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list snapshots")
+	}
+	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), values.ProjectID)
+
+	if services.Configuration.CreateSnapshot.Mode == "DRY_RUN" {
 		services.Logger.Info("dry_run on, would created snapshots from disks %q from %q", fmt.Sprintf("%#v", disks), values.ProjectID)
 		return nil, nil
 	}
@@ -118,8 +123,11 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 			continue
 		}
 
-		if err := removeExistingSnapshots(ctx, removeExisting, services, values, disk); err != nil {
-			return nil, err
+		for k := range removeExisting {
+			if err := services.Host.DeleteDiskSnapshot(ctx, values.ProjectID, k); err != nil {
+				return nil, errors.Wrapf(err, "failed deleting snapshot: %q", k)
+			}
+			services.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
 		}
 
 		log.Printf("creating a snapshot %q for %q", snapshotName, disk.Name)
@@ -133,49 +141,17 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		}
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
-		disksCopied2, err := copySnapshot(ctx, dstProjectID, snapshotName, disk, conf, services, values, disksCopied)
-		disksCopied = disksCopied2
-		if err != nil {
-			return nil, err
+		if dstProjectID != "" {
+			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
+				return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
+			}
+			disksCopied = append(disksCopied, snapshotName)
+			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
 		}
 	}
 	log.Printf("completed")
 	return &Output{DiskNames: disksCopied}, nil
-}
-
-func listExisting(ctx context.Context, services2 *Services, values *Values) ([]*compute.Disk, *compute.SnapshotList, error) {
-	disks, err := services2.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to list disks")
-	}
-	snapshots, err := services2.Host.ListProjectSnapshots(ctx, values.ProjectID)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to list snapshots")
-	}
-	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), values.ProjectID)
-	return disks, snapshots, nil
-}
-
-func copySnapshot(ctx context.Context, dstProjectID string, snapshotName string, disk *compute.Disk, conf *services.Configuration, services2 *Services, values *Values, disksCopied []string) ([]string, error) {
-	if dstProjectID != "" {
-		log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone)
-		if err := services2.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
-			return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
-		}
-		disksCopied = append(disksCopied, snapshotName)
-		services2.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone)
-	}
-	return disksCopied, nil
-}
-
-func removeExistingSnapshots(ctx context.Context, removeExisting map[string]bool, services2 *Services, values *Values, disk *compute.Disk) error {
-	for k := range removeExisting {
-		if err := services2.Host.DeleteDiskSnapshot(ctx, values.ProjectID, k); err != nil {
-			return errors.Wrapf(err, "failed deleting snapshot: %q", k)
-		}
-		services2.Logger.Info("removed existing snapshot %q from disk %q", k, disk.Name)
-	}
-	return nil
 }
 
 // canCreateSnapshot checks if we should create a snapshot along with a map of existing snapshots to be removed.
