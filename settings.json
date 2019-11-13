@@ -30,6 +30,13 @@
       "folder_ids": ["670032686187"]
     }
   },
+  "close_public_dataset": {
+    "resources": {
+      "folder_ids": [
+        "593987969559"
+      ]
+    }
+  },
   "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": ["670032686187"]
