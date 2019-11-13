@@ -57,6 +57,7 @@ func TestReadFinding(t *testing.T) {
 			"createTime": "2019-10-03T18:40:23.445Z"
 		  }
 		}`
+
 		wrongCategoryFinding = `{
 		  "notificationConfigName": "organizations/119612413569/notificationConfigs/active-findings",
 		  "finding": {
@@ -84,6 +85,34 @@ func TestReadFinding(t *testing.T) {
 			"createTime": "2019-10-03T18:40:23.445Z"
 		  }
 		}`
+
+		inactiveFinding = `{
+			"notificationConfigName": "organizations/119612413569/notificationConfigs/active-findings",
+			"finding": {
+			  "name": "organizations/119612413569/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7",
+			  "parent": "organizations/119612413569/sources/7086426792249889955",
+			  "resourceName": "//bigquery.googleapis.com/projects/sha-resources-20191002/datasets/public_dataset",
+			  "state": "INACTIVE",
+			  "category": "PUBLIC_DATASET",
+			  "externalUri": "https://console.cloud.google.com/bigquery?project=sha-resources-20191002&folder&organizationId=119612413569&p=sha-resources-20191002&d=public_dataset&page=dataset",
+			  "sourceProperties": {
+				"ReactivationCount": 0,
+				"ExceptionInstructions": "Add the security mark \"allow_public_dataset\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+				"SeverityLevel": "High",
+				"Recommendation": "Go to https://console.cloud.google.com/bigquery?project=sha-resources-20191002&folder&organizationId=119612413569&p=sha-resources-20191002&d=public_dataset&page=dataset, click \"SHARE DATASET\", search members for \"allUsers\" and \"allAuthenticatedUsers\",  and remove access for those members.",
+				"ProjectId": "sha-resources-20191002",
+				"AssetCreationTime": "2019-10-02T18:28:42.182Z",
+				"ScannerName": "DATASET_SCANNER",
+				"ScanRunId": "2019-10-03T11:40:22.538-07:00",
+				"Explanation": "This dataset is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
+			  },
+			  "securityMarks": {
+				"name": "organizations/119612413569/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7/securityMarks"
+			  },
+			  "eventTime": "2019-10-03T18:40:22.538Z",
+			  "createTime": "2019-10-03T18:40:23.445Z"
+			}
+		  }`
 	)
 	for _, tt := range []struct {
 		name          string
@@ -94,6 +123,7 @@ func TestReadFinding(t *testing.T) {
 	}{
 		{name: "read", projectID: "sha-resources-20191002", datasetID: "public_dataset", bytes: []byte(publicDatasetFinding), expectedError: nil},
 		{name: "wrong category", projectID: "", datasetID: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
+		{name: "inactive finding", projectID: "", datasetID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)

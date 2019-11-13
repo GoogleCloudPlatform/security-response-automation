@@ -87,6 +87,7 @@ message DatasetScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string resourceName = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
