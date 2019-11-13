@@ -40,7 +40,8 @@
       "folder_ids": [
         "593987969559"
       ]
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "enable_bucket_only_policy": {
     "resources": {

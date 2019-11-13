@@ -43,6 +43,7 @@ type RemovePublicIP struct {
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
 	Resources *Resources
+	Mode      string
 }
 
 // EnableBucketOnlyPolicy contains configuration required for the enable bucket only policy function.
