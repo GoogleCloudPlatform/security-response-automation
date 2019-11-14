@@ -106,7 +106,7 @@ type RemoveNonOrgMembers struct {
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
-	DisableFirewall        *DisableFirewall        `json:"disable_firewall"`
+	DisableFirewall        *DisableFirewall        `json:"open_firewall"`
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
 	ClosePublicDataset     *ClosePublicDataset     `json:"close_public_dataset"`
 	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`

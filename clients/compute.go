@@ -65,6 +65,11 @@ func (c *Compute) DeleteDiskSnapshot(ctx context.Context, project, snapshot stri
 	return c.snapshots.Delete(project, snapshot).Context(ctx).Do()
 }
 
+// InsertFirewallRule inserts a new firewall rule.
+func (c *Compute) InsertFirewallRule(ctx context.Context, projectID string, fw *compute.Firewall) (*compute.Operation, error) {
+	return c.compute.Firewalls.Insert(projectID, fw).Context(ctx).Do()
+}
+
 // PatchFirewallRule updates the firewall rule for the given project.
 func (c *Compute) PatchFirewallRule(ctx context.Context, projectID string, rule string, rb *compute.Firewall) (*compute.Operation, error) {
 	return c.compute.Firewalls.Patch(projectID, rule, rb).Context(ctx).Do()

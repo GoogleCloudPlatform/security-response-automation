@@ -18,16 +18,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
+	etdPb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
+	compute "google.golang.org/api/compute/v1"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID, FirewallID string
+	// ProjectId is a required field identifying which project ID to modify.
+	ProjectID string
+	// FirewallID is an optional field used if a, b or c.
+	FirewallID string
+	// SourceRanges is a set of IPs of the orignating activity. This field is optional and used
+	// only when blocking SSH.
+	SourceRanges []string
 }
 
 // Services contains the services needed for this function.
@@ -40,40 +49,58 @@ type Services struct {
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.FirewallScanner
-	r := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
+	var shaFinding pb.FirewallScanner
+	values := &Values{}
+	if err := json.Unmarshal(b, &shaFinding); err != nil {
 		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
-	switch finding.GetFinding().GetCategory() {
-	case "OPEN_FIREWALL":
-		fallthrough
-	case "OPEN_SSH_PORT":
-		fallthrough
-	case "OPEN_RDP_PORT":
-		if sha.IgnoreFinding(finding.GetFinding()) {
+	log.Println("openfirewall read finding")
+	if shaFinding.GetFinding().GetCategory() != "" {
+		switch shaFinding.GetFinding().GetCategory() {
+		case "OPEN_FIREWALL":
+			fallthrough
+		case "OPEN_SSH_PORT":
+			fallthrough
+		case "OPEN_RDP_PORT":
+			if sha.IgnoreFinding(shaFinding.GetFinding()) {
+				return nil, services.ErrUnsupportedFinding
+			}
+			values.FirewallID = sha.FirewallID(shaFinding.GetFinding().GetResourceName())
+			values.ProjectID = shaFinding.GetFinding().GetSourceProperties().GetProjectId()
+		default:
 			return nil, services.ErrUnsupportedFinding
 		}
-		r.FirewallID = sha.FirewallID(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
-	default:
-		return nil, services.ErrUnsupportedFinding
+		if values.FirewallID == "" || values.ProjectID == "" {
+			return nil, services.ErrValueNotFound
+		}
+	} else {
+		log.Println("openfirewall assume is an etd finding")
+		var etdFinding etdPb.SshBruteForce
+		if err := json.Unmarshal(b, &etdFinding); err != nil {
+			return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+		}
+		log.Printf("finding: %q", etdFinding.GetJsonPayload().GetDetectionCategory().GetRuleName())
+		switch etdFinding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
+		case "ssh_brute_force":
+			values.ProjectID = etdFinding.GetJsonPayload().GetProperties().GetProjectId()
+		default:
+			return nil, services.ErrUnsupportedFinding
+		}
+		log.Printf("returning values: %+v\n", values)
 	}
-	if r.FirewallID == "" || r.ProjectID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return r, nil
+	log.Printf("returning values: %+v\n", values)
+	return values, nil
 }
+
+// rename DisableFirwall to FirewallEnforcer.
 
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources
-	if services.Configuration.DisableFirewall.Mode == "DRY_RUN" {
-		services.Logger.Info("dry_run on, would have remediated firewall %q in project  %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
-		return nil
-	}
 	var fn func() error
 	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
+	case "BLOCK_SSH":
+		fn = blockSSH(ctx, services.Configuration, services.Logger, services.Firewall, values.ProjectID)
 	case "DISABLE":
 		fn = disable(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "DELETE":
@@ -83,7 +110,36 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	default:
 		return fmt.Errorf("unknown open firewall remediation action` %q", action)
 	}
+	log.Printf("remediation action: %q", services.Configuration.DisableFirewall.RemediationAction)
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, fn)
+}
+
+// blockSSH will automatically create a deny firewall rule for TCP port 22 against the offending source IPs.
+// https://console.cloud.google.com/networking/firewalls/list?project=aerial-jigsaw-235219&organizationId=154584661726&firewallTablesize=50
+// https://godoc.org/google.golang.org/api/compute/v1#Firewall
+func blockSSH(ctx context.Context, conf *services.Configuration, logr *services.Logger, fw *services.Firewall, projectID string) func() error {
+	return func() error {
+		log.Println("blockSSH mode: %q", conf.DisableFirewall.Mode)
+		if conf.DisableFirewall.Mode == "DRY_RUN" {
+			logr.Info("dry_run on, would have blocked ssh in project %q", projectID)
+			return nil
+		}
+		if err := fw.AddFirewallRule(ctx, projectID, &compute.Firewall{
+			Denied: []*compute.FirewallDenied{
+				{
+					IPProtocol: "tcp",
+					Ports:      []string{"22"},
+				},
+			},
+			Description:  "Block SSH TCP port 22 by Security Response Automation",
+			Name:         "automatic-ssh-block",
+			SourceRanges: []string{},
+		}); err != nil {
+			return errors.Wrapf(err, "failed to add firweall rule to %q", projectID)
+		}
+		logr.Info("adding a firewall rule to block tcp port 22 in project %q.", projectID)
+		return nil
+	}
 }
 
 func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {
