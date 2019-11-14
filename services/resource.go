@@ -55,6 +55,24 @@ func NewResource(crm crmClient, s storageClient) *Resource {
 	}
 }
 
+// ProjectOnlyKeepUsersFromDomains removes users from the policy if they do not match the domain. (Non-users are not affected.)
+func (r *Resource) ProjectOnlyKeepUsersFromDomains(ctx context.Context, projectID string, allowDomains []string) ([]string, error) {
+	existingPolicy, err := r.crm.GetPolicyProject(ctx, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get project policy: %q", err)
+	}
+	removed, policy, err := r.keepUsersFromPolicy(existingPolicy, allowDomains)
+	fmt.Printf("foo: %q\n", allowDomains)
+	fmt.Printf("removed: %q\n", removed)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := r.crm.SetPolicyProject(ctx, projectID, policy); err != nil {
+		return nil, fmt.Errorf("failed to set project policy: %q", err)
+	}
+	return removed, nil
+}
+
 // RemoveUsersProject removes users from the project.
 func (r *Resource) RemoveUsersProject(ctx context.Context, projectID string, remove []string) error {
 	existingPolicy, err := r.crm.GetPolicyProject(ctx, projectID)
@@ -142,6 +160,36 @@ func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) ([]
 		s = append(s, a.ResourceId.Type+"s/"+a.ResourceId.Id)
 	}
 	return s, nil
+}
+
+// keepUsersFromPolicy keeps users if they match the given domain.
+func (r *Resource) keepUsersFromPolicy(policy *crm.Policy, allowedDomains []string) ([]string, *crm.Policy, error) {
+	allowed := strings.Replace(strings.Join(allowedDomains, "|"), ".", `\.`, -1)
+	allowedRegExp, err := regexp.Compile("^.+@" + allowed + "$")
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to compile regex: %q", err)
+	}
+	removed := []string{}
+	for _, b := range policy.Bindings {
+		members := []string{}
+		for _, member := range b.Members {
+			isUser := strings.HasPrefix(member, "user:")
+			found := false
+			if allowedRegExp.MatchString(member) {
+				found = true
+				break
+			}
+			if !isUser || found {
+				members = append(members, member)
+				continue
+			}
+			if isUser && !found {
+				removed = append(removed, member)
+			}
+		}
+		b.Members = members
+	}
+	return removed, policy, nil
 }
 
 // removeUsersFromPolicy removes a slice of users from a policy
