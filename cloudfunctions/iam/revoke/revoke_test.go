@@ -36,73 +36,106 @@ func TestIAMRevoke(t *testing.T) {
 		initialMembers  []string
 		folderIDs       []string
 		projectIDs      []string
-		disallowed      []string
+		allowed         []string
 		expectedMembers []string
 		ancestry        *crm.GetAncestryResponse
 	}{
 		{
 			name:            "no folder provided and doesn't remove members",
 			expectedError:   nil,
-			externalMembers: []string{"user:tom@gmail.com"},
-			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderIDs:       []string{""},
 			projectIDs:      []string{},
-			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			externalMembers: []string{"user:tom@gmail.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
+			allowed:         []string{""},
 			expectedMembers: nil,
 			ancestry:        services.CreateAncestors([]string{}),
 		},
 		{
 			name:            "remove new gmail user folder",
 			expectedError:   nil,
-			externalMembers: []string{"user:tom@gmail.com"},
-			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderIDs:       []string{"folderID"},
 			projectIDs:      []string{},
-			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			externalMembers: []string{"user:tom@gmail.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
+			allowed:         []string{},
 			expectedMembers: []string{"user:test@test.com"},
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new gmail user project",
 			expectedError:   nil,
-			externalMembers: []string{"user:tom@gmail.com"},
-			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			folderIDs:       []string{},
 			projectIDs:      []string{"test-project-id"},
-			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			externalMembers: []string{"user:tom@gmail.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
+			allowed:         []string{},
 			expectedMembers: []string{"user:test@test.com"},
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new user only",
 			expectedError:   nil,
-			externalMembers: []string{"user:tom@gmail.com"},
-			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderIDs:       []string{"folderID"},
 			projectIDs:      []string{},
-			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			externalMembers: []string{"user:tom@gmail.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
+			allowed:         []string{},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
-			name:            "domain not in disallowed list",
+			name:            "allowed domain containing a substring of the domain to remove",
 			expectedError:   nil,
-			externalMembers: []string{"user:tom@foo.com"},
-			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com"},
 			folderIDs:       []string{"folderID"},
 			projectIDs:      []string{},
-			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			externalMembers: []string{"user:tom@gmail.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
+			allowed:         []string{"mail.com"},
+			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+		},
+		{
+			name:            "domains in allowed list",
+			expectedError:   nil,
+			folderIDs:       []string{"folderID"},
+			projectIDs:      []string{},
+			externalMembers: []string{"user:tom@foo.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com"},
+			allowed:         []string{"test.com", "foo.com"},
 			expectedMembers: []string{"user:test@test.com", "user:tom@foo.com"},
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+		},
+		{
+			name:            "ignore non-users",
+			expectedError:   nil,
+			folderIDs:       []string{"folderID"},
+			projectIDs:      []string{},
+			externalMembers: []string{"user:tom@foo.com", "serviceAccount:bob@foo.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com", "serviceAccount:bob@foo.com"},
+			allowed:         []string{"test.com", "foo.com"},
+			expectedMembers: []string{"user:test@test.com", "user:tom@foo.com", "serviceAccount:bob@foo.com"},
+			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+		},
+		{
+			name:            "remove users but leave non-users",
+			expectedError:   nil,
+			folderIDs:       []string{"folderID"},
+			projectIDs:      []string{},
+			externalMembers: []string{"user:tom@foo.com", "serviceAccount:bob@foo.com"},
+			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com", "serviceAccount:bob@foo.com"},
+			allowed:         []string{},
+			expectedMembers: []string{"user:test@test.com", "serviceAccount:bob@foo.com"},
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "provide multiple folders and remove gmail users",
 			expectedError:   nil,
 			externalMembers: []string{"user:tom@gmail.com"},
-			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderIDs:       []string{"folderID", "folderID1"},
 			projectIDs:      []string{},
-			disallowed:      []string{"andrew.cmu.edu", "gmail.com"},
+			initialMembers:  []string{"user:test@test.com", "user:existing@gmail.com", "user:tom@gmail.com"},
+			allowed:         []string{},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID1", "organization/organizationID"}),
 		},
@@ -113,14 +146,14 @@ func TestIAMRevoke(t *testing.T) {
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			folderIDs:       []string{"folderID", "folderID1"},
 			projectIDs:      []string{},
-			disallowed:      []string{"gmail.com"},
+			allowed:         []string{},
 			expectedMembers: nil,
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub := revokeGrantsSetup(tt.folderIDs, tt.projectIDs, tt.disallowed)
+			svcs, crmStub := revokeGrantsSetup(tt.folderIDs, tt.projectIDs, tt.allowed)
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
@@ -133,7 +166,7 @@ func TestIAMRevoke(t *testing.T) {
 				Logger:        svcs.Logger,
 			}); err != nil {
 				if !xerrors.Is(errors.Cause(err), tt.expectedError) {
-					t.Errorf("%q failed want:%q got:%q", tt.name, tt.expectedError, errors.Cause(err))
+					t.Errorf("%q failed\nwant:%qngot:%q", tt.name, tt.expectedError, errors.Cause(err))
 				}
 			}
 			// Nothing to save if we expected nothing.
@@ -156,7 +189,7 @@ func createPolicy(members []string) []*crm.Binding {
 	}
 }
 
-func revokeGrantsSetup(folderIDs, projectIDs, disallowed []string) (*services.Global, *stubs.ResourceManagerStub) {
+func revokeGrantsSetup(folderIDs, projectIDs, allowed []string) (*services.Global, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	l := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
@@ -168,7 +201,7 @@ func revokeGrantsSetup(folderIDs, projectIDs, disallowed []string) (*services.Gl
 				FolderIDs:  folderIDs,
 				ProjectIDs: projectIDs,
 			},
-			Removelist: disallowed,
+			AllowList: allowed,
 		},
 	}
 	return &services.Global{Logger: l, Resource: r, Configuration: conf}, crmStub
