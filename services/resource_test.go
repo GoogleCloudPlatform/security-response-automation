@@ -131,59 +131,54 @@ func TestRemoveMembersFromBucket(t *testing.T) {
 	}
 }
 
-// TestRemoveNonOrganizationMembers tests the removal of members from a policy at organization level.
 func TestRemoveNonOrganizationMembers(t *testing.T) {
 	ctx := context.Background()
+	const orgID = "10000111100"
 	tests := []struct {
 		name           string
-		orgID          string
-		orgDisplayName string
 		allowedDomains []string
 		input          []*crm.Binding
 		expected       []*crm.Binding
+		shouldFail     bool
 	}{
 		{
 			name:           "remove one member",
-			orgID:          "organizations/10000111100",
-			orgDisplayName: "cloudorg.com",
-			allowedDomains: []string{"thegmail.com"},
-			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-			expected:       createBindings([]string{"user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-		},
-		{
-			name:           "remove more than one member",
-			orgID:          "organizations/10000111100",
-			orgDisplayName: "cloudorg.com",
-			allowedDomains: []string{},
-			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			allowedDomains: []string{"cloudorg.com"},
+			input:          createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com", "user:tim@thegmail.com"}),
 			expected:       createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			shouldFail:     false,
 		},
 		{
-			name:           "remove all",
-			orgID:          "organizations/10000111100",
-			orgDisplayName: "multicloudorg.com",
+			name:           "remove several members",
+			allowedDomains: []string{"cloudorg.com"},
+			input:          createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com", "user:tim@thegmail.com", "user:foo@thegmail.com"}),
+			expected:       createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			shouldFail:     false,
+		},
+		{
+			name:           "allowed domains cannot be empty",
 			allowedDomains: []string{},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 			expected:       createBindings([]string{}),
+			shouldFail:     true,
 		},
-		// {
-		// 	name:           "none passed",
-		// 	orgID:          "organizations/10000111100",
-		// 	orgDisplayName: "cloudorg.com",
-		// 	allowedDomains: []string{"gmail.com", "thegmail.com"},
-		// 	input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-		// 	expected:       createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
-		// },
+		{
+			name:           "none removed",
+			allowedDomains: []string{"gmail.com", "thegmail.com", "cloudorg.com"},
+			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+			expected:       createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resource, crmStub := setupOrgTest(tt.input)
-			_, err := resource.OrganizationOnlyKeepUsersFromDomains(ctx, tt.orgID, tt.allowedDomains)
-			if err != nil {
+			if _, err := resource.OrganizationOnlyKeepUsersFromDomains(ctx, orgID, tt.allowedDomains); err != nil && !tt.shouldFail {
 				t.Errorf("%v failed, err: %+v", tt.name, err)
 			}
-			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expected); diff != "" {
-				t.Errorf("%v failed, difference: %v", tt.name, diff)
+			if !tt.shouldFail {
+				if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expected); diff != "" {
+					t.Errorf("%v failed, difference: %v", tt.name, diff)
+				}
 			}
 		})
 	}
@@ -194,9 +189,7 @@ func setupOrgTest(binding []*crm.Binding) (*Resource, *stubs.ResourceManagerStub
 	crmStub := &stubs.ResourceManagerStub{}
 	resource := NewResource(crmStub, storageStub)
 	crmStub.GetPolicyResponse = &crm.Policy{Bindings: binding}
-	return resource, &stubs.ResourceManagerStub{
-		GetPolicyResponse: &crm.Policy{Bindings: binding},
-	}
+	return resource, crmStub
 }
 
 func TestProjectInOrg(t *testing.T) {
