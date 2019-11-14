@@ -201,7 +201,7 @@ func revokeGrantsSetup(folderIDs, projectIDs, allowed []string) (*services.Globa
 				FolderIDs:  folderIDs,
 				ProjectIDs: projectIDs,
 			},
-			AllowList: allowed,
+			AllowDomains: allowed,
 		},
 	}
 	return &services.Global{Logger: l, Resource: r, Configuration: conf}, crmStub

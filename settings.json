@@ -16,7 +16,7 @@
     "resources": {
       "folder_ids": []
     },
-    "remove_list": []
+    "allow_domains": []
   },
   "disable_firewall": {
     "resources": {
