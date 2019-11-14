@@ -65,23 +65,16 @@ func ReadFinding(b []byte) (*Values, error) {
 	return v, nil
 }
 
-// Execute removes non-organization members.
+// Execute is the entry point for remove non-organization members Cloud Function.
+//
+// This automation will remove users from a project's/organization's policy if:
+// - The users domain are not the same as the current organization.
+// - The project where the external users were found are within the set configured resources.
+// - The users do not match the list of allowed domains.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration
-	allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
+	allowedDomains := services.Configuration.RemoveNonOrgMembers.AllowDomains
 	resources := services.Configuration.RemoveNonOrgMembers.Resources
 	var membersToRemove []string
-	if values.OrgID != "" {
-		organization, err := services.Resource.Organization(ctx, values.OrgID)
-		if err != nil {
-			return errors.Wrapf(err, "failed to get organization: %s", values.OrgID)
-		}
-		allowedDomains = append(allowedDomains, organization.DisplayName)
-		membersToRemove, err = services.Resource.RemoveMembersOrganization(ctx, organization.Name, allowedDomains)
-		if err != nil {
-			return errors.Wrap(err, "failed to remove organization policy")
-		}
-	}
 	if values.ProjectID != "" && values.OrgID != "" {
 		return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
 			organization, err := services.Resource.Organization(ctx, values.OrgID)
@@ -95,6 +88,16 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			}
 			return nil
 		})
+	} else if values.OrgID != "" {
+		organization, err := services.Resource.Organization(ctx, values.OrgID)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get organization: %s", values.OrgID)
+		}
+		allowedDomains = append(allowedDomains, organization.DisplayName)
+		membersToRemove, err = services.Resource.RemoveUsersOrganization(ctx, organization.Name, allowedDomains)
+		if err != nil {
+			return errors.Wrap(err, "failed to remove organization policy")
+		}
 	}
 	services.Logger.Info("removed members: %s", membersToRemove)
 	return nil

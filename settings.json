@@ -66,6 +66,9 @@
     }
   },
   "remove_non_org_members": {
+    "resources": {
+      "folder_ids": []
+    },
     "allow_domains": []
   }
 }

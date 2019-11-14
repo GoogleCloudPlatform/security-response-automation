@@ -167,40 +167,22 @@ func (r *Resource) removeUsersFromPolicy(policy *crm.Policy, users []string) *cr
 	return policy
 }
 
-// removeMembersFromOrgPolicy removes Google account (user:) members that doesn't match the given regex.
-func (r *Resource) removeMembersFromOrgPolicy(regex *regexp.Regexp, policy *crm.Policy) (*crm.Policy, []string) {
+// getUsersToRemove returns the users to remove from policy when regex is not matched.
+func (r *Resource) getUsersToRemove(regex *regexp.Regexp, policy *crm.Policy) []string {
 	membersToRemove := []string{}
 	for _, b := range policy.Bindings {
-		allowedMembers := []string{}
 		for _, m := range b.Members {
 			isUser := strings.HasPrefix(m, "user:")
-			if !isUser || regex.MatchString(m) {
-				allowedMembers = append(allowedMembers, m)
-			} else {
+			if isUser && !regex.MatchString(m) {
 				membersToRemove = append(membersToRemove, m)
 			}
 		}
-		b.Members = allowedMembers
 	}
-	return policy, membersToRemove
+	return membersToRemove
 }
 
-// removeMembersFromPolicy removes members that match the given regex.
-func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Policy) *crm.Policy {
-	for _, b := range policy.Bindings {
-		members := []string{}
-		for _, m := range b.Members {
-			if !regex.MatchString(m) {
-				members = append(members, m)
-			}
-		}
-		b.Members = members
-	}
-	return policy
-}
-
-// RemoveMembersOrganization removes non-org and domain not allowed members from the organization.
-func (r *Resource) RemoveMembersOrganization(ctx context.Context, name string, allowed []string) ([]string, error) {
+// RemoveUsersOrganization removes non-org and domain not allowed members from the organization.
+func (r *Resource) RemoveUsersOrganization(ctx context.Context, name string, allowed []string) ([]string, error) {
 	j := strings.Replace(strings.Join(allowed, "|"), ".", `\.`, -1)
 	e, err := regexp.Compile("^.+@" + j + "$")
 	if err != nil {
@@ -210,7 +192,8 @@ func (r *Resource) RemoveMembersOrganization(ctx context.Context, name string, a
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to retrieve organization policy")
 	}
-	newPolicy, membersToRemove := r.removeMembersFromOrgPolicy(e, p)
+	membersToRemove := r.getUsersToRemove(e, p)
+	newPolicy := r.removeUsersFromPolicy(p, membersToRemove)
 	if _, err := r.crm.SetPolicyOrganization(ctx, name, newPolicy); err != nil {
 		return membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
 	}
@@ -228,7 +211,8 @@ func (r *Resource) RemoveMembersProjectNotAllowed(ctx context.Context, projectID
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to retrieve project policy")
 	}
-	newPolicy, membersToRemove := r.removeMembersFromOrgPolicy(e, p)
+	membersToRemove := r.getUsersToRemove(e, p)
+	newPolicy := r.removeUsersFromPolicy(p, membersToRemove)
 	if _, err := r.crm.SetPolicyProject(ctx, projectID, newPolicy); err != nil {
 		return membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
 	}

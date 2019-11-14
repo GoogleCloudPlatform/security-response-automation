@@ -177,7 +177,7 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.input}
-			_, err := r.RemoveMembersOrganization(ctx, tt.orgID, tt.allowedDomains)
+			_, err := r.RemoveUsersOrganization(ctx, tt.orgID, tt.allowedDomains)
 			if err != nil {
 				t.Errorf("%v failed, err: %+v", tt.name, err)
 			}
