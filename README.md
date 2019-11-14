@@ -61,6 +61,18 @@ Depending on which resources you specify will determine which projects are enfor
 - See general [resource list](#resources) options.
 - `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
 
+#### Remove non-Organization members
+
+Removes non-organization members and members that are not from the allowed domain list.
+
+Current implementation considers only Google account (`user:`) members. Members such as service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google groups `groups:` are not covered yet.
+
+Configuration
+
+- Configured in settings.json under the `remove_non_org_members` key.
+- See general [resource list](#resources) options.
+- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
+
 ### Google Compute Engine
 
 #### Create Snapshot
@@ -142,17 +154,6 @@ Configuration
 
 - Configured in settings.json under the `close_public_dataset` key.
 - See general [resource list](#resources) options.
-
-**Remove non-Organization members**
-
-Automatically removes non-organization members.
-
-Current implementation considers only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group  `groups:` are not covered yet.
-
-Configuration
-
-- Configured in settings.json under the `remove_non_org_members` key.
-- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
 
 
 ### Installation
