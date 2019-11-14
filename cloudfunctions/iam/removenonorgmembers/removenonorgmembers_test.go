@@ -195,7 +195,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		allowDomains    []string
 	}{
 		{
-			name: "remove non-org user",
+			name: "only remove users not in the allowed domain",
 			policyInput: createBindings([]string{
 				"user:anyone@google.com",
 				"user:bob@gmail.com",
@@ -215,68 +215,51 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 				"cloudorg.com",
 			},
 		},
-		// {
-		// 	name: "no non-org user to remove",
-		// 	policyInput: createBindings([]string{
-		// 		"user:ddgo@cloudorg.com",
-		// 		"user:mans@cloudorg.com",
-		// 		"user:anyone@google.com",
-		// 		"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-		// 		"group:admins@example.com",
-		// 		"domain:google.com"}),
-		// 	expectedBinding: createBindings([]string{
-		// 		"user:ddgo@cloudorg.com",
-		// 		"user:mans@cloudorg.com",
-		// 		"user:anyone@google.com",
-		// 		"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-		// 		"group:admins@example.com",
-		// 		"domain:google.com"}),
-		// 	allowDomains: []string{
-		// 		"google.com",
-		// 	},
-		// },
-		// {
-		// 	name: "remove non-org and non-whitelisted user",
-		// 	policyInput: createBindings([]string{
-		// 		"user:bob@gmail.com",
-		// 		"user:ddgo@cloudorg.com",
-		// 		"user:mans@cloudorg.com",
-		// 		"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-		// 		"user:tim@thegmail.com",
-		// 		"user:anyone@google.com",
-		// 		"group:admins@example.com",
-		// 		"domain:aol.com",
-		// 		"user:guy@evilgoogle.com",
-		// 		"user:guy@google.evil.com",
-		// 		"user:mls@cloudorgevil.com",
-		// 		"user:mls@cloudorg.com.ev",
-		// 		"user:buddy@prod.google.com"}),
-		// 	expectedBinding: createBindings([]string{
-		// 		"user:ddgo@cloudorg.com",
-		// 		"user:mans@cloudorg.com",
-		// 		"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
-		// 		"user:anyone@google.com",
-		// 		"group:admins@example.com",
-		// 		"domain:aol.com",
-		// 		"user:buddy@prod.google.com"}),
-		// 	allowDomains: []string{
-		// 		"cloudorg.com",
-		// 		"google.com",
-		// 		"prod.google.com",
-		// 	},
-		// },
+		{
+			name: "several allowed domains",
+			policyInput: createBindings([]string{
+				"user:bob@gmail.com",
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"user:tim@thegmail.com",
+				"user:anyone@google.com",
+				"group:admins@example.com",
+				"domain:aol.com",
+				"user:guy@evilgoogle.com",
+				"user:guy@google.evil.com",
+				"user:mls@cloudorgevil.com",
+				"user:mls@cloudorg.com.ev",
+				"user:buddy@prod.google.com",
+			}),
+			expectedBinding: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"user:anyone@google.com",
+				"group:admins@example.com",
+				"domain:aol.com",
+				"user:buddy@prod.google.com",
+			}),
+			allowDomains: []string{
+				"cloudorg.com",
+				"google.com",
+				"prod.google.com",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			policy := &crm.Policy{Bindings: tt.policyInput}
 			entity, crmStub := setupNonOrgTest(policy, tt.allowDomains)
 			values := &Values{ProjectID: "project-id"}
-			if err := Execute(context.Background(), values, &Services{
+			err := Execute(context.Background(), values, &Services{
 				Resource:      entity.Resource,
 				Configuration: entity.Configuration,
 				Logger:        entity.Logger,
-			}); err != nil {
-				t.Errorf("%s failed: %q", tt.name, err)
+			})
+			if err != nil {
+				t.Fatalf("%s failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)

@@ -64,6 +64,7 @@ func (r *Resource) ProjectOnlyKeepUsersFromDomains(ctx context.Context, projectI
 	removed, policy, err := r.keepUsersFromPolicy(existingPolicy, allowDomains)
 	fmt.Printf("foo: %q\n", allowDomains)
 	fmt.Printf("removed: %q\n", removed)
+	fmt.Printf("err: %q\n", err)
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +165,12 @@ func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) ([]
 
 // keepUsersFromPolicy keeps users if they match the given domain.
 func (r *Resource) keepUsersFromPolicy(policy *crm.Policy, allowedDomains []string) ([]string, *crm.Policy, error) {
+	// Throw an error if no allowed domains are passed. Otherwise all users would be removed.
+	if len(allowedDomains) == 0 {
+		return nil, nil, errors.New("must provide at least one domain to allow")
+	}
 	allowed := strings.Replace(strings.Join(allowedDomains, "|"), ".", `\.`, -1)
-	allowedRegExp, err := regexp.Compile("^.+@" + allowed + "$")
+	allowedRegExp, err := regexp.Compile("^.+@(?:" + allowed + ")$")
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to compile regex: %q", err)
 	}
@@ -177,7 +182,6 @@ func (r *Resource) keepUsersFromPolicy(policy *crm.Policy, allowedDomains []stri
 			found := false
 			if allowedRegExp.MatchString(member) {
 				found = true
-				break
 			}
 			if !isUser || found {
 				members = append(members, member)

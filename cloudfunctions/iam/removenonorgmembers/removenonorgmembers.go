@@ -49,13 +49,9 @@ func ReadFinding(b []byte) (*Values, error) {
 		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
-		//if fromOrg(finding.GetFinding().GetResourceName()) {
-		//	v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
-		//}
 		if fromProject(finding.GetFinding().GetResourceName()) {
 			v.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 		}
-		// v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
@@ -81,8 +77,3 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 func fromProject(resourceName string) bool {
 	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/projects")
 }
-
-//
-//func fromOrg(resourceName string) bool {
-//	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/organizations")
-//}
