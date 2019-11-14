@@ -29,9 +29,11 @@ type DisableFirewall struct {
 
 // RevokeGrants contains configuration required for the Revoke Grants function.
 type RevokeGrants struct {
-	Resources  *Resources
-	Removelist []string `json:"remove_list"`
-	Mode       string
+	Resources *Resources
+	// A slice of domain names that will be evaluated against incoming added members. If the user
+	// matches a domain in this list they will not be removed.
+	AllowList []string `json:"allow_list"`
+	Mode      string
 }
 
 // RemovePublicIP contains configuration required for the remove public IP function.
@@ -93,12 +95,14 @@ type UpdatePassword struct {
 	Mode      string
 }
 
-// RemoveNonOrgMember contains configuration required for the remove nonorg member function.
-type RemoveNonOrgMember struct {
-	Mode string
+// RemoveNonOrgMembers contains configuration required for remove non-org members function.
+type RemoveNonOrgMembers struct {
+	Resources    *Resources
+	AllowDomains []string `json:"allow_domains"`
+	Mode         string
 }
 
-// Configuration contains the IDs to apply actions to.
+// Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
@@ -112,7 +116,7 @@ type Configuration struct {
 	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
 	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
 	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
-	RemoveNonOrgMember     *RemoveNonOrgMember     `json:"remove_non_org_member"`
+	RemoveNonOrgMembers    *RemoveNonOrgMembers    `json:"remove_non_org_members"`
 }
 
 // NewConfiguration returns a new configuration.

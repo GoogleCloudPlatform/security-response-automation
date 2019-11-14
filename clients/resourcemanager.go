@@ -60,18 +60,18 @@ func (c *CloudResourceManager) GetAncestry(ctx context.Context, projectID string
 }
 
 // GetPolicyOrganization returns the IAM policy for the given organization resource.
-func (c *CloudResourceManager) GetPolicyOrganization(ctx context.Context, organizationID string) (*crm.Policy, error) {
-	return c.service.Organizations.GetIamPolicy(organizationID, &crm.GetIamPolicyRequest{}).Context(ctx).Do()
+func (c *CloudResourceManager) GetPolicyOrganization(ctx context.Context, name string) (*crm.Policy, error) {
+	return c.service.Organizations.GetIamPolicy(name, &crm.GetIamPolicyRequest{}).Context(ctx).Do()
 }
 
 // SetPolicyOrganization sets an IAM policy for the given organization resource.
-func (c *CloudResourceManager) SetPolicyOrganization(ctx context.Context, organizationID string, p *crm.Policy) (*crm.Policy, error) {
-	return c.service.Organizations.SetIamPolicy(organizationID, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
+func (c *CloudResourceManager) SetPolicyOrganization(ctx context.Context, name string, p *crm.Policy) (*crm.Policy, error) {
+	return c.service.Organizations.SetIamPolicy(name, &crm.SetIamPolicyRequest{Policy: p}).Context(ctx).Do()
 }
 
-// GetOrganization returns the organization info.
-func (c *CloudResourceManager) GetOrganization(ctx context.Context, organizationID string) (*crm.Organization, error) {
-	return c.service.Organizations.Get(organizationID).Context(ctx).Do()
+// GetOrganization returns the organization info by resource name.
+func (c *CloudResourceManager) GetOrganization(ctx context.Context, name string) (*crm.Organization, error) {
+	return c.service.Organizations.Get(name).Context(ctx).Do()
 }
 
 // createMask creates a string of comma separated field names to mark which fields to change.

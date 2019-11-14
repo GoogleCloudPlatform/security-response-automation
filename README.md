@@ -143,6 +143,18 @@ Configuration
 - Configured in settings.json under the `close_public_dataset` key.
 - See general [resource list](#resources) options.
 
+**Remove non-Organization members**
+
+Automatically removes non-organization members.
+
+Current implementation considers only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group  `groups:` are not covered yet.
+
+Configuration
+
+- Configured in settings.json under the `remove_non_org_members` key.
+- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
+
+
 ### Installation
 
 Following these instructions will deploy all SRA Cloud Functions. Before you get started be sure

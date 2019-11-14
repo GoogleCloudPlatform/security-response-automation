@@ -46,6 +46,9 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "PUBLIC_DATASET":
+		if sha.IgnoreFinding(finding.GetFinding()) {
+			return nil, services.ErrUnsupportedFinding
+		}
 		v.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 		v.DatasetID = sha.Dataset(finding.GetFinding().GetResourceName())
 	default:

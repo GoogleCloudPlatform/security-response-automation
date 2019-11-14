@@ -60,6 +60,7 @@ func TestReadFinding(t *testing.T) {
 		unknownCategoryScanner = `{
 		"finding": {
 				"resourceName": "//cloudresourcemanager.googleapis.com/projects/108906606255",
+				"state": "ACTIVE",
 				"category": "UNK",
 				"sourceProperties": {"ProjectId": "fake-project"}
 			}
@@ -67,9 +68,39 @@ func TestReadFinding(t *testing.T) {
 		unknownProjectIDScanner = `{
 		"finding": {
 				"resourceName": "//cloudresourcemanager.googleapis.com/projects/108906606255",
+				"state": "ACTIVE",
 				"category": "AUDIT_LOGGING_DISABLED",
 				"sourceProperties": {"ProjectId": ""}
 			}
+		}`
+
+		inactiveFinding = `{
+		"finding": {
+			"name": "organizations/1055058813388/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074",
+			"parent": "organizations/1055058813388/sources/1986930501971458034",
+			"resourceName": "//cloudresourcemanager.googleapis.com/projects/108906606255",
+			"state": "INACTIVE",
+			"category": "AUDIT_LOGGING_DISABLED",
+			"externalUri": "https://console.cloud.google.com/iam-admin/audit/allservices?project=fake-project",
+			"sourceProperties": {
+				"ReactivationCount": 0,
+				"ExceptionInstructions": "Add the security mark \"allow_audit_logging_disabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+				"SeverityLevel": "Low",
+				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/audit/allservices?project=fake-project and under \"LOG TYPE\" select \"Admin read\", \"Data read\", and \"Data write\", and then click \"SAVE\". Make sure there are no exempted users configured.",
+				"ProjectId": "fake-project",
+				"AssetCreationTime": "2019-10-22T15:13:39.305Z",
+				"ScannerName": "LOGGING_SCANNER",
+				"ScanRunId": "2019-10-22T14:01:08.832-07:00",
+				"Explanation": "You should enable Cloud Audit Logging for all services, to track all Admin activities including read and write access to user data."
+			},
+			"securityMarks": {
+				"name": "organizations/1055058813388/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074/securityMarks"
+			},
+			"eventTime": "2019-10-22T21:01:08.832Z",
+			"createTime": "2019-10-22T21:01:39.098Z",
+			"assetId": "organizations/1055058813388/assets/11190834741917282179",
+			"assetDisplayName": "fake-project"
+		   }
 		}`
 	)
 	tests := []struct {
@@ -82,6 +113,7 @@ func TestReadFinding(t *testing.T) {
 		{name: "test enable audit logs with empty projectID", message: []byte(unknownProjectIDScanner), expectedResult: nil, expectedError: services.ErrValueNotFound},
 		{name: "test enable audit logs invalid message json", message: []byte(`{{"elem": 1}, {"elem": 2}}`), expectedResult: nil, expectedError: services.ErrUnmarshal},
 		{name: "test enable audit logs unknown category", message: []byte(unknownCategoryScanner), expectedResult: nil, expectedError: services.ErrValueNotFound},
+		{name: "test enable audit logs inactive finding", message: []byte(inactiveFinding), expectedResult: nil, expectedError: services.ErrUnsupportedFinding},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
