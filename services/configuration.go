@@ -16,6 +16,7 @@ type Resources struct {
 // CloseBucket contains configuration required for the Cloud Bucket function.
 type CloseBucket struct {
 	Resources *Resources
+	Mode      string
 }
 
 // DisableFirewall contains configuration required for the disable firewall function.
@@ -23,6 +24,7 @@ type DisableFirewall struct {
 	Resources         *Resources
 	RemediationAction string   `json:"remediation_action"`
 	SourceRanges      []string `json:"source_ranges"`
+	Mode              string
 }
 
 // RevokeGrants contains configuration required for the Revoke Grants function.
@@ -31,41 +33,49 @@ type RevokeGrants struct {
 	// A slice of domain names that will be evaluated against incoming added members. If the user
 	// matches a domain in this list they will not be removed.
 	AllowDomains []string `json:"allow_domains"`
+	Mode         string
 }
 
 // RemovePublicIP contains configuration required for the remove public IP function.
 type RemovePublicIP struct {
 	Resources *Resources
+	Mode      string
 }
 
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
 	Resources *Resources
+	Mode      string
 }
 
 // EnableBucketOnlyPolicy contains configuration required for the enable bucket only policy function.
 type EnableBucketOnlyPolicy struct {
 	Resources *Resources
+	Mode      string
 }
 
 // EnableAuditLogs configuration required to enable data access audit logs
 type EnableAuditLogs struct {
 	Resources *Resources
+	Mode      string
 }
 
 // CloseCloudSQL contains configuration required for the close Cloud SQL function.
 type CloseCloudSQL struct {
 	Resources *Resources
+	Mode      string
 }
 
 // CloudSQLRequireSSL contains configuration required for the Cloud SQL require SSL function.
 type CloudSQLRequireSSL struct {
 	Resources *Resources
+	Mode      string
 }
 
 // DisableDashboard contains configuration required for the disable dashboard function.
 type DisableDashboard struct {
 	Resources *Resources
+	Mode      string
 }
 
 // CreateSnapshot contains configuration required for the create snapshot function.
@@ -76,17 +86,20 @@ type CreateSnapshot struct {
 	TurbiniaZone            string   `json:"turbinia_zone"`
 	TurbiniaTopicName       string   `json:"turbinia_topic_name"`
 	OutputDestinations      []string `json:"output_destinations"`
+	Mode                    string
 }
 
 // UpdatePassword contains configuration required for the update password function.
 type UpdatePassword struct {
 	Resources *Resources
+	Mode      string
 }
 
 // RemoveNonOrgMembers contains configuration required for remove non-org members function.
 type RemoveNonOrgMembers struct {
 	Resources    *Resources
 	AllowDomains []string `json:"allow_domains"`
+	Mode         string
 }
 
 // Configuration contains the ID(s) to apply actions to.

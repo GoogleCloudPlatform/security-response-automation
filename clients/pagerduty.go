@@ -1,6 +1,8 @@
 package clients
 
-import pagerduty "github.com/PagerDuty/go-pagerduty"
+import (
+	pagerduty "github.com/PagerDuty/go-pagerduty"
+)
 
 // PagerDuty client.
 type PagerDuty struct {

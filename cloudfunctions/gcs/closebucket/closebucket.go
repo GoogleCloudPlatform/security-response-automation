@@ -66,6 +66,10 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.CloseBucket.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if services.Configuration.CloseBucket.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have removed public members from bucket %q in project %q", values.BucketName, values.ProjectID)
+			return nil
+		}
 		if err := services.Resource.RemoveMembersFromBucket(ctx, values.BucketName, publicUsers); err != nil {
 			return err
 		}

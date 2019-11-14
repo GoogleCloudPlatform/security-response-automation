@@ -132,7 +132,6 @@ func TestExecuteEnableDataAccessAuditLogs(t *testing.T) {
 	ctx := context.Background()
 	tests := []struct {
 		name           string
-		message        []byte
 		expectedResult []*crm.AuditConfig
 	}{
 		{

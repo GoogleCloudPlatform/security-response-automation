@@ -37,6 +37,7 @@ type Services struct {
 	Configuration *services.Configuration
 	Logger        *services.Logger
 	Resource      *services.Resource
+	Logger        *services.Logger
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -67,6 +68,10 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.RemoveNonOrgMembers
 	return services.Resource.IfProjectWithinResources(ctx, conf.Resources, values.ProjectID, func() error {
+		if conf.Mode == "DRY_RUN" {
+			services.Logger.Info("dry run, would have removed users not from %q in %q", conf.AllowDomains, values.ProjectID)
+			return nil
+		}
 		removed, err := services.Resource.ProjectOnlyKeepUsersFromDomains(ctx, values.ProjectID, conf.AllowDomains)
 		if err != nil {
 			return err
