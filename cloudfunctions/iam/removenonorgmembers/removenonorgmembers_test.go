@@ -81,8 +81,7 @@ func TestReadFinding(t *testing.T) {
 		  	"createTime": "2019-09-13T22:51:00.516Z"
 		}
 	}`
-		/*
-		   		inactiveFinding = `{
+		inactiveFinding = `{
 		   		"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
 		   		"finding": {
 		   			"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087",
@@ -109,7 +108,7 @@ func TestReadFinding(t *testing.T) {
 		   		  	"createTime": "2019-09-13T22:51:00.516Z"
 		   		}
 		   	}`
-		   		projectFindingRemoveNonOrgMembers = `{
+		projectFindingRemoveNonOrgMembers = `{
 		   			"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
 		               "finding": {
 		                 "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
@@ -136,7 +135,7 @@ func TestReadFinding(t *testing.T) {
 		                 "createTime": "2019-10-18T15:31:58.487Z"
 		   		}
 		   	}`
-		   		findingInvalidResourceName = `{
+		findingInvalidResourceName = `{
 		   			"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
 		   			"finding": {
 		   				"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087",
@@ -162,7 +161,7 @@ func TestReadFinding(t *testing.T) {
 		   				"eventTime": "2019-10-10T09:30:24.033Z",
 		   				"createTime": "2019-09-13T22:51:00.516Z"
 		   		}
-		   	}`*/
+		   	}`
 	)
 	for _, tt := range []struct {
 		name, OrgID, ProjectID string
@@ -170,9 +169,10 @@ func TestReadFinding(t *testing.T) {
 		expectedError          error
 	}{
 		{name: "read", OrgID: "1050000000008", ProjectID: "", bytes: []byte(organizationFindingRemoveNonOrgMembers), expectedError: nil},
-		//{name: "read", OrgID: "", ProjectID: "next19-demo", bytes: []byte(projectFindingRemoveNonOrgMembers), expectedError: nil},
+		{name: "read", OrgID: "1050000000008", ProjectID: "next19-demo", bytes: []byte(projectFindingRemoveNonOrgMembers), expectedError: nil},
 		{name: "wrong category", OrgID: "1050000000008", ProjectID: "", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
-		//{name: "incompatible resourceName", OrgID: "", ProjectID: "", bytes: []byte(findingInvalidResourceName), expectedError: services.ErrValueNotFound},
+		{name: "incompatible resourceName", OrgID: "", ProjectID: "", bytes: []byte(findingInvalidResourceName), expectedError: services.ErrValueNotFound},
+		{name: "inactive finding", OrgID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := ReadFinding(tt.bytes)
@@ -182,8 +182,13 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && v.orgID != tt.OrgID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, v.orgID, tt.OrgID)
+			if err == nil && v != nil {
+				if v.orgID != tt.OrgID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, v.orgID, tt.OrgID)
+				}
+				if v.projectID != tt.ProjectID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, v.projectID, tt.ProjectID)
+				}
 			}
 		})
 	}

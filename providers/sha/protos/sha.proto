@@ -106,6 +106,7 @@ message IamScanner {
       string category = 2;
       string parent = 3;
       string state = 4;
+      string resourceName = 5;
     }
 
     string notificationConfigName = 1;
