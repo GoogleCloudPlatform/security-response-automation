@@ -81,60 +81,88 @@ func TestReadFinding(t *testing.T) {
 		  	"createTime": "2019-09-13T22:51:00.516Z"
 		}
 	}`
-		projectFindingRemoveNonOrgMembers = `{
-			"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
-            "finding": {
-              "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
-              "parent": "organizations/1050000000008/sources/1986930501000008034",
-              "resourceName": "//cloudresourcemanager.googleapis.com/projects/72300000536",
-              "state": "ACTIVE",
-              "category": "NON_ORG_IAM_MEMBER",
-              "externalUri": "https://console.cloud.google.com/iam-admin/iam?project=next19-demo",
-              "sourceProperties": {
-                "ReactivationCount": 0,
-                "ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
-                "SeverityLevel": "High",
-                "Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?project=next19-demo and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
-                "ProjectId": "next19-demo",
-                "AssetCreationTime": "2019-02-26T15:41:40.726Z",
-                "ScannerName": "IAM_SCANNER",
-                "ScanRunId": "2019-10-18T08:30:22.082-07:00",
-                "Explanation": "A user outside of your organization has IAM permissions on a project or organization."
-              },
-              "securityMarks": {
-                "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a/securityMarks"
-              },
-              "eventTime": "2019-10-18T15:30:22.082Z",
-              "createTime": "2019-10-18T15:31:58.487Z"
-		}
-	}`
-		findingInvalidResourceName = `{
-			"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
-			"finding": {
-				"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087",
-				"parent": "organizations/1050000000008/sources/1986930501000008034",
-				"state": "ACTIVE",
-				"category": "NON_ORG_IAM_MEMBER",
-				"resourceName": "//cloudresourcemanager.googleapis.com/",
-				"externalUri": "https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008",
-				"sourceProperties": {
-					"ReactivationCount": 0,
-					"ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
-					"SeverityLevel": "High",
-					"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008 and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
-					"ProjectId": "(none)",
-					"AssetCreationTime": "2017-12-26T20:11:38.537Z",
-					"ScannerName": "IAM_SCANNER",
-					"ScanRunId": "2019-10-10T02:30:24.033-07:00",
-					"Explanation": "A user outside of your organization has IAM permissions on a project or organization."
-				},
-				"securityMarks": {
-					"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087/securityMarks"
-				},
-				"eventTime": "2019-10-10T09:30:24.033Z",
-				"createTime": "2019-09-13T22:51:00.516Z"
-		}
-	}`
+		/*
+		   		inactiveFinding = `{
+		   		"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
+		   		"finding": {
+		   			"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087",
+		   		  	"parent": "organizations/1050000000008/sources/1986930501000008034",
+		   		  	"resourceName": "//cloudresourcemanager.googleapis.com/organizations/1050000000008",
+		   		  	"state": "INACTIVE",
+		   		  	"category": "NON_ORG_IAM_MEMBER",
+		   		  	"externalUri": "https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008",
+		   		  	"sourceProperties": {
+		   				"ReactivationCount": 0,
+		   				"ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+		   				"SeverityLevel": "High",
+		   				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008 and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+		   				"ProjectId": "(none)",
+		   				"AssetCreationTime": "2017-12-26T20:11:38.537Z",
+		   				"ScannerName": "IAM_SCANNER",
+		   				"ScanRunId": "2019-10-10T02:30:24.033-07:00",
+		   				"Explanation": "A user outside of your organization has IAM permissions on a project or organization."
+		   		  	},
+		   		  	"securityMarks": {
+		   				"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087/securityMarks"
+		   			},
+		   		  	"eventTime": "2019-10-10T09:30:24.033Z",
+		   		  	"createTime": "2019-09-13T22:51:00.516Z"
+		   		}
+		   	}`
+		   		projectFindingRemoveNonOrgMembers = `{
+		   			"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
+		               "finding": {
+		                 "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
+		                 "parent": "organizations/1050000000008/sources/1986930501000008034",
+		                 "resourceName": "//cloudresourcemanager.googleapis.com/projects/72300000536",
+		                 "state": "ACTIVE",
+		                 "category": "NON_ORG_IAM_MEMBER",
+		                 "externalUri": "https://console.cloud.google.com/iam-admin/iam?project=next19-demo",
+		                 "sourceProperties": {
+		                   "ReactivationCount": 0,
+		                   "ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+		                   "SeverityLevel": "High",
+		                   "Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?project=next19-demo and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+		                   "ProjectId": "next19-demo",
+		                   "AssetCreationTime": "2019-02-26T15:41:40.726Z",
+		                   "ScannerName": "IAM_SCANNER",
+		                   "ScanRunId": "2019-10-18T08:30:22.082-07:00",
+		                   "Explanation": "A user outside of your organization has IAM permissions on a project or organization."
+		                 },
+		                 "securityMarks": {
+		                   "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a/securityMarks"
+		                 },
+		                 "eventTime": "2019-10-18T15:30:22.082Z",
+		                 "createTime": "2019-10-18T15:31:58.487Z"
+		   		}
+		   	}`
+		   		findingInvalidResourceName = `{
+		   			"notificationConfigName": "organizations/1050000000008/notificationConfigs/noticonf-active-001-id",
+		   			"finding": {
+		   				"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087",
+		   				"parent": "organizations/1050000000008/sources/1986930501000008034",
+		   				"state": "ACTIVE",
+		   				"category": "NON_ORG_IAM_MEMBER",
+		   				"resourceName": "//cloudresourcemanager.googleapis.com/",
+		   				"externalUri": "https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008",
+		   				"sourceProperties": {
+		   					"ReactivationCount": 0,
+		   					"ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+		   					"SeverityLevel": "High",
+		   					"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?organizationId=1050000000008 and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+		   					"ProjectId": "(none)",
+		   					"AssetCreationTime": "2017-12-26T20:11:38.537Z",
+		   					"ScannerName": "IAM_SCANNER",
+		   					"ScanRunId": "2019-10-10T02:30:24.033-07:00",
+		   					"Explanation": "A user outside of your organization has IAM permissions on a project or organization."
+		   				},
+		   				"securityMarks": {
+		   					"name": "organizations/1050000000008/sources/1986930501000008034/findings/29f4085b953299805367b2dd86e3c087/securityMarks"
+		   				},
+		   				"eventTime": "2019-10-10T09:30:24.033Z",
+		   				"createTime": "2019-09-13T22:51:00.516Z"
+		   		}
+		   	}`*/
 	)
 	for _, tt := range []struct {
 		name, OrgID, ProjectID string
@@ -142,9 +170,9 @@ func TestReadFinding(t *testing.T) {
 		expectedError          error
 	}{
 		{name: "read", OrgID: "1050000000008", ProjectID: "", bytes: []byte(organizationFindingRemoveNonOrgMembers), expectedError: nil},
-		{name: "read", OrgID: "", ProjectID: "next19-demo", bytes: []byte(projectFindingRemoveNonOrgMembers), expectedError: nil},
+		//{name: "read", OrgID: "", ProjectID: "next19-demo", bytes: []byte(projectFindingRemoveNonOrgMembers), expectedError: nil},
 		{name: "wrong category", OrgID: "1050000000008", ProjectID: "", bytes: []byte(findingOtherCategory), expectedError: services.ErrUnsupportedFinding},
-		{name: "incompatible resourceName", OrgID: "", ProjectID: "", bytes: []byte(findingInvalidResourceName), expectedError: services.ErrValueNotFound},
+		//{name: "incompatible resourceName", OrgID: "", ProjectID: "", bytes: []byte(findingInvalidResourceName), expectedError: services.ErrValueNotFound},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			v, err := ReadFinding(tt.bytes)
@@ -154,7 +182,7 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && (v.orgID != tt.OrgID || v.projectID != tt.ProjectID) {
+			if err == nil && v.orgID != tt.OrgID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, v.orgID, tt.OrgID)
 			}
 		})

@@ -32,6 +32,7 @@ message StorageScanner {
       SourceProperties sourceProperties = 1;
       string resourceName = 2;
       string category = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -52,6 +53,7 @@ message FirewallScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string resourceName = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -68,6 +70,7 @@ message ComputeInstanceScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string resourceName = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -84,6 +87,7 @@ message DatasetScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string resourceName = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -101,7 +105,7 @@ message IamScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string parent = 3;
-      string resourceName = 4;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -118,6 +122,7 @@ message SqlScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string resourceName = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -134,6 +139,7 @@ message ContainerScanner {
       SourceProperties sourceProperties = 1;
       string category = 2;
       string resourceName = 3;
+      string state = 4;
     }
 
     string notificationConfigName = 1;
@@ -150,6 +156,7 @@ message LoggingScanner {
         SourceProperties sourceProperties = 1;
         string category = 2;
         string resourceName = 3;
+        string state = 4;
     }
 
     string notificationConfigName = 1;

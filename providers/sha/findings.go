@@ -39,6 +39,16 @@ var (
 	extractOrganizationID = regexp.MustCompile(`organizations/(.+)/sources`)
 )
 
+// GenericFindingState is a finding that exposes its state.
+type GenericFindingState interface {
+	GetState() string
+}
+
+// IgnoreFinding returns if this finding should be ignored or not.
+func IgnoreFinding(finding GenericFindingState) bool {
+	return finding.GetState() != "ACTIVE"
+}
+
 // Zone returns the zone of the instance.
 func Zone(resource string) string {
 	return extractZone.FindStringSubmatch(resource)[1]

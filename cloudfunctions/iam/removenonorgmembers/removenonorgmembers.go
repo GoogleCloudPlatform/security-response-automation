@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
@@ -46,12 +45,16 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		if fromOrg(finding.GetFinding().GetResourceName()) {
-			v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+		if sha.IgnoreFinding(finding.GetFinding()) {
+			return nil, services.ErrUnsupportedFinding
 		}
-		if fromProject(finding.GetFinding().GetResourceName()) {
-			v.projectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		}
+		//if fromOrg(finding.GetFinding().GetResourceName()) {
+		//	v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+		//}
+		//if fromProject(finding.GetFinding().GetResourceName()) {
+		//	v.projectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+		//}
+		v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
@@ -81,10 +84,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	return nil
 }
 
-func fromProject(resourceName string) bool {
-	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/projects")
-}
-
-func fromOrg(resourceName string) bool {
-	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/organizations")
-}
+//func fromProject(resourceName string) bool {
+//	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/projects")
+//}
+//
+//func fromOrg(resourceName string) bool {
+//	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/organizations")
+//}
