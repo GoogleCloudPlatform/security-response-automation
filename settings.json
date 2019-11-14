@@ -1,79 +1,71 @@
 {
   "create_snapshot": {
-    "snapshot_project_id": "ae-threat-detection",
-    "snapshot_zone": "us-central1-c",
-    "turbinia_project_id": "ae-threat-detection",
-    "turbinia_topic_name": "turbinia",
-    "turbinia_zone": "us-central1-c",
-    "output_destinations": ["turbinia"]
+    "snapshot_project_id": "",
+    "snapshot_zone": "",
+    "turbinia_project_id": "",
+    "turbinia_topic_name": "",
+    "turbinia_zone": "",
+    "output_destinations": [""]
   },
   "close_bucket": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "revoke_grants": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     },
-    "remove_list": ["gmail.com", "test.com"]
+    "remove_list": []
   },
   "disable_firewall": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     },
     "remediation_action": "DISABLE",
-    "source_ranges": ["127.0.0.0/8"]
+    "source_ranges": []
   },
   "remove_public_ip": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "close_public_dataset": {
     "resources": {
-      "folder_ids": [
-        "593987969559"
-      ]
+      "folder_ids": []
     }
   },
   "enable_bucket_only_policy": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "close_cloud_sql": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "cloud_sql_require_ssl": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "disable_dashboard": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "cloud_sql_update_password": {
     "resources": {
-      "folder_ids": ["670032686187"]
+      "folder_ids": []
     }
   },
   "enable_audit_logs": {
     "resources": {
-      "folder_ids": [
-        "593987969559"
-      ]
+      "folder_ids": []
     }
   },
   "remove_non_org_members": {
-    "allow_domains": [
-      "ciandt.com",
-      "google.com",
-      "prod.google.com"
-    ]
+    "allow_domains": []
   }
 }
