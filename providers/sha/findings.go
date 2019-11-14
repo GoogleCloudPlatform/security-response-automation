@@ -84,7 +84,7 @@ func ClusterID(resource string) string {
 	return extractClusterID.FindStringSubmatch(resource)[1]
 }
 
-// OrganizationID returns the organization ID.
+// OrganizationID returns the organization name.
 func OrganizationID(resource string) string {
 	return extractOrganizationID.FindStringSubmatch(resource)[1]
 }
