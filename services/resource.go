@@ -55,47 +55,17 @@ func NewResource(crm crmClient, s storageClient) *Resource {
 	}
 }
 
-// RemoveDomainsProject removes all members from the given project that end with the disallowed domains.
-func (r *Resource) RemoveDomainsProject(ctx context.Context, projectID string, disallowedDomains []string) (*crm.Policy, error) {
-	domains := strings.Replace(strings.Join(disallowedDomains, "|"), ".", `\.`, -1)
-	regex, err := regexp.Compile(fmt.Sprintf(`@(%s)$`, domains))
+// RemoveUsersProject removes users from the project.
+func (r *Resource) RemoveUsersProject(ctx context.Context, projectID string, remove []string) error {
+	existingPolicy, err := r.crm.GetPolicyProject(ctx, projectID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to compile regex: %q", err)
+		return fmt.Errorf("failed to get project policy: %q", err)
 	}
-
-	resp, err := r.crm.GetPolicyProject(ctx, projectID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get project policy: %q", err)
+	policy := r.removeUsersFromPolicy(existingPolicy, remove)
+	if _, err := r.crm.SetPolicyProject(ctx, projectID, policy); err != nil {
+		return fmt.Errorf("failed to set project policy: %q", err)
 	}
-
-	p := r.removeMembersFromPolicy(regex, resp)
-
-	setp, err := r.crm.SetPolicyProject(ctx, projectID, p)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set project policy: %q", err)
-	}
-	return setp, nil
-}
-
-// RemoveMembersProject removes the given members from the project.
-func (r *Resource) RemoveMembersProject(ctx context.Context, projectID string, remove []string) (*crm.Policy, error) {
-	j := strings.Replace(strings.Join(remove, "|"), ".", `\.`, -1)
-	e, err := regexp.Compile("^" + j + "$")
-	if err != nil {
-		return nil, fmt.Errorf("failed to compile regex: %q", err)
-	}
-	resp, err := r.crm.GetPolicyProject(ctx, projectID)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get project policy: %q", err)
-	}
-
-	p := r.removeMembersFromPolicy(e, resp)
-	s, err := r.crm.SetPolicyProject(ctx, projectID, p)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set project policy: %q", err)
-	}
-	return s, nil
+	return nil
 }
 
 // RemoveMembersFromBucket removes members from the bucket.
@@ -172,6 +142,29 @@ func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) ([]
 		s = append(s, a.ResourceId.Type+"s/"+a.ResourceId.Id)
 	}
 	return s, nil
+}
+
+// removeUsersFromPolicy removes a slice of users from a policy
+func (r *Resource) removeUsersFromPolicy(policy *crm.Policy, users []string) *crm.Policy {
+	for _, b := range policy.Bindings {
+		members := []string{}
+		for _, member := range b.Members {
+			isUser := strings.HasPrefix(member, "user:")
+			found := false
+			for _, user := range users {
+				if user == member {
+					found = true
+					break
+				}
+			}
+			if !isUser || !found {
+				members = append(members, member)
+				continue
+			}
+		}
+		b.Members = members
+	}
+	return policy
 }
 
 // removeMembersFromOrgPolicy removes Google account (user:) members that doesn't match the given regex.

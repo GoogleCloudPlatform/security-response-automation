@@ -36,40 +36,32 @@ module "google-setup" {
 module "close_public_bucket" {
   source = "./terraform/automations/close-public-bucket"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "revoke_iam_grants" {
   source = "./terraform/automations/revoke-iam-grants"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "create_disk_snapshot" {
   source              = "./terraform/automations/create-disk-snapshot"
   setup               = "${module.google-setup}"
-  turbinia-project-id = "ae-threat-detection"
-  turbinia-topic-name = "turbinia"
+  turbinia-project-id = ""
+  turbinia-topic-name = ""
 }
 
 module "open_firewall" {
   source = "./terraform/automations/disable-firewall"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "remove_public_ip" {
   source = "./terraform/automations/remove-public-ip"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "close_public_dataset" {
@@ -83,49 +75,37 @@ module "close_public_dataset" {
 module "enable_bucket_only_policy" {
   source = "./terraform/automations/enable-bucket-only-policy"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "close_public_cloud_sql" {
   source = "./terraform/automations/close-public-cloud-sql"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "cloud-sql-require-ssl" {
   source = "./terraform/automations/cloud-sql-require-ssl"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "disable_dashboard" {
   source = "./terraform/automations/disable-dashboard"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "update_password" {
   source = "./terraform/automations/update-password"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "670032686187",
-  ]
+  folder-ids = []
 }
 
 module "enable_audit_logs" {
   source = "./terraform/automations/enable-audit-logs"
   setup  = "${module.google-setup}"
-  folder-ids = [
-    "593987969559",
-  ]
+  folder-ids = []
 }
 
 // TODO: enable again and fix IAM roles
