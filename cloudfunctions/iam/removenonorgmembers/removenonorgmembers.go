@@ -25,6 +25,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const projectPrefix = "//cloudresourcemanager.googleapis.com/projects/"
+
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID string
@@ -61,7 +63,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	return v, nil
 }
 
-// Execute removes non-organization users from projects.
+// Execute removes all users from a specific project not in allowed domain list.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.RemoveNonOrgMembers
 	return services.Resource.IfProjectWithinResources(ctx, conf.Resources, values.ProjectID, func() error {
@@ -75,5 +77,5 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 }
 
 func fromProject(resourceName string) bool {
-	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/projects")
+	return strings.HasPrefix(resourceName, projectPrefix)
 }

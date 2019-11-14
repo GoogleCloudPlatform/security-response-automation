@@ -133,6 +133,44 @@ func TestReadFinding(t *testing.T) {
 	}
 }
 
+func TestErrors(t *testing.T) {
+	tests := []struct {
+		name            string
+		policyInput     []*crm.Binding
+		expectedBinding []*crm.Binding
+		allowDomains    []string
+		expectedFail    bool
+	}{
+		{
+			name: "empty list should fail",
+			policyInput: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+			}),
+			expectedBinding: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+			}),
+			allowDomains: []string{},
+			expectedFail: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			policy := &crm.Policy{Bindings: tt.policyInput}
+			entity, _ := setupNonOrgTest(policy, tt.allowDomains)
+			values := &Values{ProjectID: "project-id"}
+			err := Execute(context.Background(), values, &Services{
+				Resource:      entity.Resource,
+				Configuration: entity.Configuration,
+				Logger:        entity.Logger,
+			})
+			if tt.expectedFail && err == nil {
+				t.Errorf("%s failed: %q", tt.name, err)
+			}
+		})
+
+	}
+}
+
 func TestRemoveNonOrgMembers(t *testing.T) {
 	tests := []struct {
 		name            string
