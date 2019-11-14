@@ -37,7 +37,6 @@ type Services struct {
 	Configuration *services.Configuration
 	Logger        *services.Logger
 	Resource      *services.Resource
-	Logger        *services.Logger
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
