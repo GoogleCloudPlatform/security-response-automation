@@ -17,7 +17,6 @@ package removenonorgmembers
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
@@ -28,13 +27,14 @@ import (
 
 // Values contains the required values needed for this function.
 type Values struct {
-	orgID, projectID string
+	OrgID, ProjectID string
 }
 
 // Services contains the services needed for this function.
 type Services struct {
 	Configuration *services.Configuration
 	Resource      *services.Resource
+	Logger        *services.Logger
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -50,16 +50,16 @@ func ReadFinding(b []byte) (*Values, error) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		if fromOrg(finding.GetFinding().GetResourceName()) {
-			v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+			v.OrgID = sha.OrganizationID(finding.GetFinding().GetParent())
 		}
 		if fromProject(finding.GetFinding().GetResourceName()) {
-			v.projectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-			v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+			v.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+			v.OrgID = sha.OrganizationID(finding.GetFinding().GetParent())
 		}
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if v.orgID == "" && v.projectID == "" {
+	if v.OrgID == "" && v.ProjectID == "" {
 		return nil, services.ErrValueNotFound
 	}
 	return v, nil
@@ -69,19 +69,34 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration
 	allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
-	organization, err := services.Resource.Organization(ctx, values.orgID)
-	if err != nil {
-		return errors.Wrapf(err, "failed to get organization: %s", values.orgID)
+	resources := services.Configuration.RemoveNonOrgMembers.Resources
+	var membersToRemove []string
+	if values.OrgID != "" {
+		organization, err := services.Resource.Organization(ctx, values.OrgID)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get organization: %s", values.OrgID)
+		}
+		allowedDomains = append(allowedDomains, organization.DisplayName)
+		membersToRemove, err = services.Resource.RemoveMembersOrganization(ctx, organization.Name, allowedDomains)
+		if err != nil {
+			return errors.Wrap(err, "failed to remove organization policy")
+		}
 	}
-	policy, err := services.Resource.PolicyOrganization(ctx, organization.Name)
-	if err != nil {
-		return errors.Wrap(err, "failed to retrieve organization policy")
+	if values.ProjectID != "" && values.OrgID != "" {
+		return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+			organization, err := services.Resource.Organization(ctx, values.OrgID)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get organization: %s", values.OrgID)
+			}
+			allowedDomains = append(allowedDomains, organization.DisplayName)
+			membersToRemove, err = services.Resource.RemoveMembersProjectNotAllowed(ctx, values.ProjectID, allowedDomains)
+			if err != nil {
+				return errors.Wrap(err, "failed to remove project policy")
+			}
+			return nil
+		})
 	}
-	membersToRemove, err := services.Resource.RemoveMembersOrganization(ctx, organization.DisplayName, organization.Name, allowedDomains, policy)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove organization policy")
-	}
-	log.Printf("removed members: %s", membersToRemove)
+	services.Logger.Info("removed members: %s", membersToRemove)
 	return nil
 }
 

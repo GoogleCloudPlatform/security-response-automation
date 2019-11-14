@@ -183,18 +183,18 @@ func TestReadFinding(t *testing.T) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
 			if err == nil && v != nil {
-				if v.orgID != tt.OrgID {
-					t.Errorf("%s failed: got:%q want:%q", tt.name, v.orgID, tt.OrgID)
+				if v.OrgID != tt.OrgID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, v.OrgID, tt.OrgID)
 				}
-				if v.projectID != tt.ProjectID {
-					t.Errorf("%s failed: got:%q want:%q", tt.name, v.projectID, tt.ProjectID)
+				if v.ProjectID != tt.ProjectID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, v.ProjectID, tt.ProjectID)
 				}
 			}
 		})
 	}
 }
 
-func TestRemoveNonOrgMembers(t *testing.T) {
+func TestRemoveNonOrgMembersFromOrgFinding(t *testing.T) {
 	orgDisplayName := "cloudorg.com"
 	orgID := "1050000000008"
 
@@ -280,9 +280,10 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
+			loggerStub := &stubs.LoggerStub{}
 			res := services.NewResource(crmStub, storageStub)
 			values := &Values{
-				orgID: orgID,
+				OrgID: orgID,
 			}
 			conf := &services.Configuration{
 				RemoveNonOrgMembers: &services.RemoveNonOrgMembers{
@@ -290,7 +291,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 					AllowDomains: tt.allowDomains,
 				},
 			}
-			if err := Execute(context.Background(), values, &Services{Resource: res, Configuration: conf}); err != nil {
+			if err := Execute(context.Background(), values, &Services{Resource: res, Configuration: conf, Logger: services.NewLogger(loggerStub)}); err != nil {
 				t.Errorf("%s failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {
@@ -298,6 +299,102 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 			}
 		})
 
+	}
+}
+
+func TestRemoveNonOrgMembersFromProjectFinding(t *testing.T) {
+	orgID := "1050000000008"
+	orgDisplayName := "cloudorg.com"
+	projectID := "next19-demo"
+	folderID := "123456"
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+
+	tests := []struct {
+		name            string
+		policyInput     []*crm.Binding
+		expectedBinding []*crm.Binding
+		folderIDs       []string
+		allowDomains    []string
+		ancestry        *crm.GetAncestryResponse
+	}{
+		{
+			name: "remove non-org user",
+			policyInput: createBindings([]string{
+				"user:anyone@google.com",
+				"user:bob@gmail.com",
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"user:tim@thegmail.com",
+				"group:admins@example.com",
+				"domain:google.com"}),
+			expectedBinding: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"group:admins@example.com",
+				"domain:google.com"}),
+			allowDomains: []string{},
+			folderIDs:    []string{folderID},
+			ancestry:     services.CreateAncestors([]string{"folder/" + folderID}),
+		},
+		{
+			name: "remove non-org and non-whitelisted user",
+			policyInput: createBindings([]string{
+				"user:bob@gmail.com",
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"user:tim@thegmail.com",
+				"user:anyone@google.com",
+				"group:admins@example.com",
+				"domain:aol.com",
+				"user:guy@evilgoogle.com",
+				"user:guy@google.evil.com",
+				"user:mls@cloudorgevil.com",
+				"user:mls@cloudorg.com.ev",
+				"user:buddy@prod.google.com"}),
+			expectedBinding: createBindings([]string{
+				"user:ddgo@cloudorg.com",
+				"user:mans@cloudorg.com",
+				"serviceAccount:473000000749@cloudbuild.gserviceaccount.com",
+				"user:anyone@google.com",
+				"group:admins@example.com",
+				"domain:aol.com",
+				"user:buddy@prod.google.com"}),
+			allowDomains: []string{
+				"google.com",
+				"prod.google.com",
+			},
+			folderIDs: []string{"123456"},
+			ancestry:  services.CreateAncestors([]string{"folder/123456"}),
+		},
+	}
+	for _, tt := range tests {
+		crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
+		crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
+		crmStub.GetAncestryResponse = tt.ancestry
+		loggerStub := &stubs.LoggerStub{}
+		res := services.NewResource(crmStub, storageStub)
+		values := &Values{
+			ProjectID: projectID,
+			OrgID:     orgID,
+		}
+		conf := &services.Configuration{
+			RemoveNonOrgMembers: &services.RemoveNonOrgMembers{
+				Resources: &services.Resources{
+					FolderIDs: tt.folderIDs,
+				},
+				AllowDomains: tt.allowDomains,
+			},
+		}
+		if err := Execute(context.Background(), values, &Services{Resource: res, Configuration: conf, Logger: services.NewLogger(loggerStub)}); err != nil {
+			t.Errorf("%s failed: %q", tt.name, err)
+		}
+		if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {
+			t.Errorf("%v failed, difference: %+v", tt.name, diff)
+		}
 	}
 }
 

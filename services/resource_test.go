@@ -204,7 +204,6 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 	tests := []struct {
 		name           string
 		orgID          string
-		orgDisplayName string
 		allowedDomains []string
 		input          []*crm.Binding
 		expected       []*crm.Binding
@@ -212,23 +211,20 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 		{
 			name:           "remove one member",
 			orgID:          "organizations/10000111100",
-			orgDisplayName: "cloudorg.com",
-			allowedDomains: []string{"thegmail.com"},
+			allowedDomains: []string{"cloudorg.com", "thegmail.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 			expected:       createBindings([]string{"user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 		{
 			name:           "remove more than one member",
 			orgID:          "organizations/10000111100",
-			orgDisplayName: "cloudorg.com",
-			allowedDomains: []string{},
+			allowedDomains: []string{"cloudorg.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 			expected:       createBindings([]string{"user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 		{
 			name:           "remove all",
 			orgID:          "organizations/10000111100",
-			orgDisplayName: "multicloudorg.com",
 			allowedDomains: []string{},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 			expected:       createBindings([]string{}),
@@ -236,16 +232,15 @@ func TestRemoveNonOrganizationMembers(t *testing.T) {
 		{
 			name:           "none passed",
 			orgID:          "organizations/10000111100",
-			orgDisplayName: "cloudorg.com",
-			allowedDomains: []string{"gmail.com", "thegmail.com"},
+			allowedDomains: []string{"cloudorg.com", "gmail.com", "thegmail.com"},
 			input:          createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 			expected:       createBindings([]string{"user:bob@gmail.com", "user:tim@thegmail.com", "user:ddgo@cloudorg.com", "user:mans@cloudorg.com"}),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &crm.Policy{Bindings: tt.input}
-			_, err := r.RemoveMembersOrganization(ctx, tt.orgDisplayName, tt.orgID, tt.allowedDomains, p)
+			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.input}
+			_, err := r.RemoveMembersOrganization(ctx, tt.orgID, tt.allowedDomains)
 			if err != nil {
 				t.Errorf("%v failed, err: %+v", tt.name, err)
 			}

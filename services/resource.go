@@ -206,19 +206,45 @@ func (r *Resource) removeMembersFromPolicy(regex *regexp.Regexp, policy *crm.Pol
 	return policy
 }
 
-// RemoveMembersOrganization removes the given members from the organization.
-func (r *Resource) RemoveMembersOrganization(ctx context.Context, displayName, name string, allowed []string, p *crm.Policy) ([]string, error) {
-	allowed = append(allowed, displayName)
+// RemoveMembersOrganization removes non-org and domain not allowed members from the organization.
+func (r *Resource) RemoveMembersOrganization(ctx context.Context, name string, allowed []string) ([]string, error) {
 	j := strings.Replace(strings.Join(allowed, "|"), ".", `\.`, -1)
 	e, err := regexp.Compile("^.+@" + j + "$")
 	if err != nil {
 		return nil, fmt.Errorf("failed to compile regex: %q", err)
+	}
+	p, err := r.PolicyOrganization(ctx, name)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve organization policy")
 	}
 	newPolicy, membersToRemove := r.removeMembersFromOrgPolicy(e, p)
 	if _, err := r.crm.SetPolicyOrganization(ctx, name, newPolicy); err != nil {
 		return membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
 	}
 	return membersToRemove, nil
+}
+
+//RemoveMembersProjectNotAllowed removes non-org and domain not allowed members from the project.
+func (r *Resource) RemoveMembersProjectNotAllowed(ctx context.Context, projectID string, allowed []string) ([]string, error) {
+	j := strings.Replace(strings.Join(allowed, "|"), ".", `\.`, -1)
+	e, err := regexp.Compile("^.+@" + j + "$")
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile regex: %q", err)
+	}
+	p, err := r.PolicyProject(ctx, projectID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve project policy")
+	}
+	newPolicy, membersToRemove := r.removeMembersFromOrgPolicy(e, p)
+	if _, err := r.crm.SetPolicyProject(ctx, projectID, newPolicy); err != nil {
+		return membersToRemove, fmt.Errorf("failed to set project policy: %q", err)
+	}
+	return membersToRemove, nil
+}
+
+//PolicyProject returns the IAM policy for the given project.
+func (r *Resource) PolicyProject(ctx context.Context, projectID string) (*crm.Policy, error) {
+	return r.crm.GetPolicyProject(ctx, projectID)
 }
 
 // PolicyOrganization returns the IAM policy for the given resource name.
