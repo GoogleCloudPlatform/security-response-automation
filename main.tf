@@ -34,14 +34,14 @@ module "google-setup" {
 }
 
 module "close_public_bucket" {
-  source = "./terraform/automations/close-public-bucket"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/close-public-bucket"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "revoke_iam_grants" {
-  source = "./terraform/automations/revoke-iam-grants"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/revoke-iam-grants"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
@@ -53,14 +53,14 @@ module "create_disk_snapshot" {
 }
 
 module "open_firewall" {
-  source = "./terraform/automations/disable-firewall"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/disable-firewall"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "remove_public_ip" {
-  source = "./terraform/automations/remove-public-ip"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/remove-public-ip"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
@@ -73,38 +73,38 @@ module "close_public_dataset" {
 }
 
 module "enable_bucket_only_policy" {
-  source = "./terraform/automations/enable-bucket-only-policy"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/enable-bucket-only-policy"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "close_public_cloud_sql" {
-  source = "./terraform/automations/close-public-cloud-sql"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/close-public-cloud-sql"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "cloud-sql-require-ssl" {
-  source = "./terraform/automations/cloud-sql-require-ssl"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/cloud-sql-require-ssl"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "disable_dashboard" {
-  source = "./terraform/automations/disable-dashboard"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/disable-dashboard"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "update_password" {
-  source = "./terraform/automations/update-password"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/update-password"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 
 module "enable_audit_logs" {
-  source = "./terraform/automations/enable-audit-logs"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/enable-audit-logs"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 

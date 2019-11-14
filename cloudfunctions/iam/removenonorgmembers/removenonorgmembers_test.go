@@ -195,6 +195,7 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
+	loggerStub := &stubs.LoggerStub{}
 
 	tests := []struct {
 		name            string
@@ -273,19 +274,12 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
-			crmStub.GetPolicyResponse = &crm.Policy{Bindings: tt.policyInput}
-			res := services.NewResource(crmStub, storageStub)
+			mockServices := setupNonOrgMember(crmStub, tt.allowDomains, orgDisplayName, orgID, tt.policyInput, loggerStub, storageStub)
 			values := &Values{
 				orgID: orgID,
 			}
-			conf := &services.Configuration{
-				RemoveNonOrgMembers: &services.RemoveNonOrgMembers{
-					Resources:    nil,
-					AllowDomains: tt.allowDomains,
-				},
-			}
-			if err := Execute(context.Background(), values, &Services{Resource: res, Configuration: conf}); err != nil {
+			if err := Execute(context.Background(), values, mockServices); err != nil {
+
 				t.Errorf("%s failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(crmStub.SavedSetPolicy.Bindings, tt.expectedBinding); diff != "" {
@@ -294,6 +288,21 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 		})
 
 	}
+}
+
+func setupNonOrgMember(crmStub *stubs.ResourceManagerStub, allowDomains []string, orgDisplayName, orgID string, policyInput []*crm.Binding, loggerStub *stubs.LoggerStub, storageStub *stubs.StorageStub) *Services {
+	crmStub.GetOrganizationResponse = &crm.Organization{DisplayName: orgDisplayName, Name: "organizations/" + orgID}
+	crmStub.GetPolicyResponse = &crm.Policy{Bindings: policyInput}
+	log := services.NewLogger(loggerStub)
+	res := services.NewResource(crmStub, storageStub)
+	conf := &services.Configuration{
+		RemoveNonOrgMembers: &services.RemoveNonOrgMembers{
+			Resources:    nil,
+			AllowDomains: allowDomains,
+			Mode:         "ENABLED",
+		},
+	}
+	return &Services{Resource: res, Configuration: conf, Logger: log}
 }
 
 func createBindings(members []string) []*crm.Binding {

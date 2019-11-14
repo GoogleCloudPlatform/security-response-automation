@@ -68,6 +68,10 @@ func ReadFinding(b []byte) (*Values, error) {
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources
+	if services.Configuration.DisableFirewall.Mode == "DRY_RUN" {
+		services.Logger.Info("dry_run on, would have remediated firewall %q in project  %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
+		return nil
+	}
 	var fn func() error
 	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
 	case "DISABLE":

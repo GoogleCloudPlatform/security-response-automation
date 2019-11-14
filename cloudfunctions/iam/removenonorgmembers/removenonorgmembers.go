@@ -34,6 +34,7 @@ type Values struct {
 type Services struct {
 	Configuration *services.Configuration
 	Resource      *services.Resource
+	Logger        *services.Logger
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -69,6 +70,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration
 	allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
 	organization, err := services.Resource.Organization(ctx, values.orgID)
+	if services.Configuration.RemoveNonOrgMembers.Mode == "DRY_RUN" {
+		services.Logger.Info("dry_run on, would have removed non org members from organization %q", organization.Name)
+		return nil
+	}
 	if err != nil {
 		return errors.Wrapf(err, "failed to get organization: %s", values.orgID)
 	}
@@ -76,6 +81,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to retrieve organization policy")
 	}
+
 	membersToRemove, err := services.Resource.RemoveMembersOrganization(ctx, organization.DisplayName, organization.Name, allowedDomains, policy)
 	if err != nil {
 		return errors.Wrap(err, "failed to remove organization policy")

@@ -17,6 +17,7 @@ package createsnapshot
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -91,9 +92,8 @@ func ReadFinding(b []byte) (*Values, error) {
 // be changed to support folder and organization level grants.
 func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
-	conf := services.Configuration
 	disksCopied := []string{}
-	dstProjectID := conf.CreateSnapshot.TargetSnapshotProjectID
+	dstProjectID := services.Configuration.CreateSnapshot.TargetSnapshotProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
@@ -105,6 +105,11 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		return nil, errors.Wrap(err, "failed to list snapshots")
 	}
 	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), values.ProjectID)
+
+	if services.Configuration.CreateSnapshot.Mode == "DRY_RUN" {
+		services.Logger.Info("dry_run on, would created snapshots from disks %q from %q", fmt.Sprintf("%#v", disks), values.ProjectID)
+		return nil, nil
+	}
 
 	for _, disk := range disks {
 		snapshotName := createSnapshotName(rule, disk.Name)
@@ -137,12 +142,12 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
 		if dstProjectID != "" {
-			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone)
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
+			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
 				return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
 			}
 			disksCopied = append(disksCopied, snapshotName)
-			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, conf.CreateSnapshot.TargetSnapshotZone)
+			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
 		}
 	}
 	log.Printf("completed")

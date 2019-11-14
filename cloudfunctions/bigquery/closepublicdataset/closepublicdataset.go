@@ -64,6 +64,10 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.ClosePublicDataset.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if services.Configuration.ClosePublicDataset.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
+			return nil
+		}
 		if err := services.BigQuery.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
 			return errors.Wrapf(err, "error removing bigquery dataset %q public access in project %q", values.DatasetID, values.ProjectID)
 		}
