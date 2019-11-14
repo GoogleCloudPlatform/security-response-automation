@@ -127,3 +127,9 @@ module "enable_audit_logs" {
     "593987969559",
   ]
 }
+
+// TODO: enable again and fix IAM roles
+//module "remove_non_org_members" {
+//  source = "./terraform/automations/remove-non-org-members"
+//  setup  = "${module.google-setup}"
+//}

@@ -46,6 +46,9 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "WEB_UI_ENABLED":
+		if sha.IgnoreFinding(finding.GetFinding()) {
+			return nil, services.ErrUnsupportedFinding
+		}
 		r.ProjectID = finding.Finding.SourceProperties.GetProjectID()
 		r.Zone = sha.ClusterZone(finding.GetFinding().GetResourceName())
 		r.ClusterID = sha.ClusterID(finding.GetFinding().GetResourceName())

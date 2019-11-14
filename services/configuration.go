@@ -83,7 +83,13 @@ type UpdatePassword struct {
 	Resources *Resources
 }
 
-// Configuration contains the IDs to apply actions to.
+// RemoveNonOrgMembers contains configuration required for remove non-org members function.
+type RemoveNonOrgMembers struct {
+	Resources    *Resources
+	AllowDomains []string `json:"allow_domains"`
+}
+
+// Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
@@ -97,6 +103,7 @@ type Configuration struct {
 	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
 	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
 	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
+	RemoveNonOrgMembers    *RemoveNonOrgMembers    `json:"remove_non_org_members"`
 }
 
 // NewConfiguration returns a new configuration.

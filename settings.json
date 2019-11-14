@@ -68,5 +68,12 @@
         "593987969559"
       ]
     }
+  },
+  "remove_non_org_members": {
+    "allow_domains": [
+      "ciandt.com",
+      "google.com",
+      "prod.google.com"
+    ]
   }
 }
