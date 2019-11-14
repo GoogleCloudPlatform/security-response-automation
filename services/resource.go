@@ -165,6 +165,7 @@ func (r *Resource) removeUsersFromPolicy(policy *crm.Policy, users []string) *cr
 		b.Members = members
 	}
 	return policy
+}
 
 // removeMembersFromOrgPolicy removes Google account (user:) members that doesn't match the given regex.
 func (r *Resource) removeMembersFromOrgPolicy(regex *regexp.Regexp, policy *crm.Policy) (*crm.Policy, []string) {
