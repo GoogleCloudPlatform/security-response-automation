@@ -20,7 +20,7 @@ This repository contains Cloud Functions to take automated actions on findings f
 
 Before installation we'll configure our automations in `settings.json`. Within this file we'll restrict our automations to only take actions if the affected resource are within a set of resource IDs we declare. For example, you may want to revoke IAM grants in your development environment but in your prod environment you may want to monitor only.
 
-- For a full list of automations and their individual configurations see [automations](/automations.tf).
+- For a full list of automations and their individual configurations see [automations](/automations.md).
 - For each resource ID (folder, project, or organization) you configure below you'll also need to modify (main.tf)[/main.tf] so Terraform can grant the required permissions.
 
 Each automation that considers resources will support the following resources:
