@@ -5,7 +5,7 @@
     "turbinia_project_id": "",
     "turbinia_topic_name": "",
     "turbinia_zone": "",
-    "output_destinations": [],
+    "output_destinations": [""],
     "mode": "DRY_RUN"
   },
   "close_bucket": {
@@ -21,16 +21,13 @@
     "remove_list": [],
     "mode": "DRY_RUN"
   },
-  "open_firewall": {
+  "disable_firewall": {
     "resources": {
-      "folder_ids": [],
-      "project_ids": [
-        "aerial-jigsaw-235219"
-      ]
+      "folder_ids": []
     },
-    "remediation_action": "BLOCK_SSH",
+    "remediation_action": "DISABLE",
     "source_ranges": [],
-    "mode": ""
+    "mode": "DRY_RUN"
   },
   "remove_public_ip": {
     "resources": {
