@@ -21,10 +21,11 @@ type CloseBucket struct {
 
 // DisableFirewall contains configuration required for the disable firewall function.
 type DisableFirewall struct {
-	Resources         *Resources
-	RemediationAction string   `json:"remediation_action"`
-	SourceRanges      []string `json:"source_ranges"`
-	Mode              string
+	Resources          *Resources
+	RemediationAction  string   `json:"remediation_action"`
+	SourceRanges       []string `json:"source_ranges"`
+	Mode               string
+	OutputDestinations []string `json:"output_destinations"`
 }
 
 // RevokeGrants contains configuration required for the Revoke Grants function.
@@ -102,8 +103,16 @@ type RemoveNonOrgMembers struct {
 	Mode         string
 }
 
+// PagerDutyConfiguration contains configuration for the PagerDuty client.
+type PagerDutyConfiguration struct {
+	APIKey    string `json:"api_key"`
+	Enabled   bool   `json:"enabled"`
+	ServiceID string `json:"service_id"`
+}
+
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
+	PagerDuty              *PagerDutyConfiguration `json:"pager_duty"`
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
 	DisableFirewall        *DisableFirewall        `json:"open_firewall"`

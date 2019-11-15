@@ -149,12 +149,32 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 	switch values, err := openfirewall.ReadFinding(m.Data); err {
 	case nil:
-		return openfirewall.Execute(ctx, values, &openfirewall.Services{
+		err := openfirewall.Execute(ctx, values, &openfirewall.Services{
 			Configuration: svcs.Configuration,
 			Firewall:      svcs.Firewall,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
+		if err != nil {
+			return err
+		}
+		// - report first
+		for _, dest := range svcs.Configuration.DisableFirewall.OutputDestinations {
+			switch dest {
+			case "pagerduty":
+				log.Println("will attempt to output to PagerDuty")
+				conf := svcs.Configuration.PagerDuty
+				if !conf.Enabled {
+					log.Println("attempting to output to PagerDuty however the service is not enabled in the configuration.")
+					continue
+				}
+				pd := services.InitPagerDuty(conf.APIKey)
+				if err := pd.CreateIncident(ctx, "tom3fitzgerald@gmail.com", conf.ServiceID, "i", "foo"); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	case services.ErrUnsupportedFinding:
 		return nil
 	default:

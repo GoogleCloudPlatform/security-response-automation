@@ -1,4 +1,9 @@
 {
+  "pager_duty": {
+    "api_key": "J6LuP8xbMyPqGHFFyuUQ",
+    "enabled": true,
+    "service_id": "P6CIURN"
+  },
   "create_snapshot": {
     "snapshot_project_id": "",
     "snapshot_zone": "",
@@ -23,11 +28,15 @@
   },
   "open_firewall": {
     "resources": {
-      "folder_ids": []
+      "folder_ids": [],
+      "project_ids": [
+        "aerial-jigsaw-235219"
+      ]
     },
-    "remediation_action": "DISABLE",
+    "output_destinations": ["pagerduty"],
+    "remediation_action": "BLOCK_SSH",
     "source_ranges": [],
-    "mode": "DRY_RUN"
+    "mode": ""
   },
   "remove_public_ip": {
     "resources": {

@@ -71,6 +71,12 @@ func New(ctx context.Context) (*Global, error) {
 	}, nil
 }
 
+// InitPagerDuty creates and initializes a new instance of PagerDuty.
+func InitPagerDuty(apiKey string) *PagerDuty {
+	pd := clients.NewPagerDuty(apiKey)
+	return NewPagerDuty(pd)
+}
+
 // InitBigQuery creates and initializes a new instance of BigQuery.
 func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
 	bq, err := clients.NewBigQuery(ctx, authFile, projectID)
