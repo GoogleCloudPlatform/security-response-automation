@@ -31,7 +31,7 @@ import (
 type Values struct {
 	// ProjectId is a required field identifying which project ID to modify.
 	ProjectID string
-	// FirewallID is an optional field used if a, b or c.
+	// FirewallID is an optional field used with SHA findings only.
 	FirewallID string
 	// SourceRanges is a set of IPs of the orignating activity. This field is optional and used
 	// only when blocking SSH.
@@ -137,6 +137,10 @@ func readSHAFinding(b []byte, values *Values) error {
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources
+	if services.Configuration.DisableFirewall.Mode == "DRY_RUN" {
+		services.Logger.Info("dry_run on, would have remediated firewall %q in project %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
+		return nil
+	}
 	var fn func() error
 	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
 	case "BLOCK_SSH":

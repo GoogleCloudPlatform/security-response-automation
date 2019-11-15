@@ -198,23 +198,30 @@ func TestBlockSSH(t *testing.T) {
 		name          string
 		ranges        []string
 		bytes         []byte
+		sourceRanges  []string
+		expected      *compute.Firewall
 		expectedError error
 	}{
 		{
 			name:          "read etd",
+			sourceRanges:  []string{"10.0.0.1/32"},
+			expected:      &compute.Firewall{SourceRanges: []string{"10.0.0.1/32"}},
 			expectedError: nil,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
 			folderIDs := []string{"123"}
-			svcs, _, crmStub := openFirewallSetup(folderIDs, "", []string{})
+			svcs, computeStub, crmStub := openFirewallSetup(folderIDs, "BLOCK_SSH", []string{})
+			computeStub.StubbedFirewall = &compute.Firewall{
+				Id:           123,
+				SourceRanges: []string{},
+			}
 			crmStub.GetAncestryResponse = services.CreateAncestors([]string{"folder/123"})
 			svcs.Configuration.DisableFirewall.RemediationAction = "BLOCK_SSH"
-			svcs.Configuration.DisableFirewall.SourceRanges = []string{"1.2.3.4/24"}
 			values := &Values{
 				ProjectID:    "test-project",
-				SourceRanges: []string{"10.0.0.1/24"},
+				SourceRanges: tt.sourceRanges,
 			}
 			if err := Execute(ctx, values, &Services{
 				Configuration: svcs.Configuration,
@@ -223,6 +230,9 @@ func TestBlockSSH(t *testing.T) {
 				Logger:        svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
+			}
+			if diff := cmp.Diff(computeStub.SavedFirewallRule, tt.expected); diff != "" {
+				t.Errorf("%s failed diff:%s", tt.name, diff)
 			}
 		})
 	}
@@ -278,6 +288,7 @@ func TestOpenFirewall(t *testing.T) {
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			svcs, computeStub, crmStub := openFirewallSetup(tt.folderIDs, tt.remediationAction, tt.sourceRange)
+			tt.firewallRule.SourceRanges = []string{}
 			computeStub.StubbedFirewall = tt.firewallRule
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
