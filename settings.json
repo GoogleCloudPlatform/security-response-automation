@@ -21,7 +21,7 @@
     "allow_domains": [],
     "mode": "DRY_RUN"
   },
-  "disable_firewall": {
+  "open_firewall": {
     "resources": {
       "folder_ids": []
     },
