@@ -1,6 +1,12 @@
 # Security Response Automation
 
-Cloud Functions to take automated actions on threat and vulnerability findings.
+Setup automated actions to run on your security findings. You can use our predefined functions to auto-remediate findings as they come in or write and customize your own.
+
+- Automatically create a disk snapshot to enable future forensic investigations.
+- Revoke IAM grants that violate your desired policy.
+- Notify other systems such as Turbinia, PagerDuty, Slack or just send an email.
+
+You can selectively control which resources are enforced by each function. Every action is logged and you can also run in **dry_run** mode where changes are not saved.
 
 ## Note
 
@@ -8,156 +14,57 @@ This project is currently under development and is not yet ready for users. Stay
 
 ## Getting Started
 
-This repository contains Cloud Functions to take automated actions on findings from Event Threat Detection and Security Health Analytics (SHA). For example, if SHA alerts you that a Google Cloud Storage bucket is open you may want to close it, or perhaps leave it alone if its meant to be public. The logic and the framework to express such automation is the purpose of SRA!
+This repository contains Cloud Functions to take automated actions on findings from Event Threat Detection and Security Health Analytics (SHA). For example, if SHA alerts you that a Google Cloud Storage bucket is open you may want to close it, or perhaps leave it alone if its meant to be public.
 
 ### Configuration
 
-Before installation we'll configure our Cloud Functions in `settings.json`. Within this file we'll restrict our Functions to only take actions if the affected resource is within a set of resource IDs.
+Before installation we'll configure our automations in `settings.json`. Within this file we'll restrict our automations to only take actions if the affected resource are within a set of resource IDs we declare. For example, you may want to revoke IAM grants in your development environment but in your prod environment you may want to monitor only.
 
-For each resource ID (folder, project, or organization) you configure below you'll also need to modify (main.tf)[/main.tf] so Terraform can grant the required permissions.
+- For a full list of automations and their individual configurations see [automations](/automations.md).
+- For each resource ID (folder, project, or organization) you configure below you'll also need to modify (main.tf)[/main.tf] so Terraform can grant the required permissions.
 
-Each Function that considers resources will support the following resources:
+Each automation that considers resources will support the following resources:
 
 #### Resources
 
-- Project IDs `folder_ids`: The Function will execute if the affected project ID is within this set.
+- Project IDs `folder_ids`: Take the action if the affected project ID is within this set.
 - Folder IDs `project_ids`: Take the action if the affected project ID has an ancestor of a folder ID within this set.
 - Organization ID `organization_id`: Take the action if the affected project ID is within this organization ID.
 
-Each function will check if it's affected project is within the configured resources and only take an action if there's a match. Setting an `organization_id` in a Function's configuration will allow every project within the organization to affected by that Function.
+Each automation will check if it's affected project is within the configured resources and only take an action if there's a match. Setting an `organization_id` in a automation's configuration will allow every project within the organization to affected by that automation.
 
-### Google Cloud Storage
+### Example
 
-#### Remove public access
+In the [automations](/automations.md) documentation we see that this automation is configured in [settings.json](settings.json) under the `revoke_iam` key. Within this key we'll fill out which projects will be enforced, in this example we'll specify a folder along with an allow list of expected domains.
 
-Removes public access from Google Cloud Storage buckets.
+```json
+{
+  "revoke_grants": {
+    "resources": {
+      "folder_ids": ["670032686187"],
+      "organization_id": "",
+      "project_ids": []
+    },
+    "allow_domains": ["google.com", "googleplex.com"]
+  }
+}
+```
 
-Configuration
+Since we're using folders we'll also want to modify [main.tf](/main.tf) to inform Terraform which folders we're enforcing so the required roles are automatically granted. If you choose you can leave out this step but you must authorize the SRA service account to have the necessary roles to revoke the IAM grants. You could grant the account `Project IAM Admin` role on each project ID you want enforced then add the project IDs to the above `project_ids` key. You could also grant the role at the organization level and enter your organzation ID in the `organization_id`.
 
-- Configured in settings.json under the `close_bucket` key.
-- See general [resource list](#resources) options.
-
-#### Enable bucket only policy
-
-Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
-
-Configuration
-
-- Configured in settings.json under the `enable_bucket_only_policy` key.
-- See general [resource list](#resources) options.
-
-### IAM
-
-#### Revoke IAM grants
-
-Removes members from an IAM policy.
-
-Configuration
-
-This Cloud Function will automatically remove public IPs found by Security Health Analytics that match the criteria you specify.
-Depending on which resources you specify will determine which projects are enforced.
-
-- Configured in settings.json under the `revoke_iam` key.
-- See general [resource list](#resources) options.
-- `remove_list` An array of strings containing domain names to be matched against the members added. This is an additional check made before removing a user, after a resource is matched the member's domain but must be in this list to be removed.
-
-### Google Compute Engine
-
-#### Create Snapshot
-
-Automatically create a snapshot of all disks associated with a GCE instance.
-
-Configuration
-
-- Configured in settings.json under the `create_snapshot` key.
-- `snapshot_project_id` Optional project ID where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_project_id`.
-- `snapshot_zone` Optional zone where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_zone`.
-- `output_destinations` Repeated set of optional output destinations after the function has executed.
-  - `turbinia` Will notify Turbinia when a snapshot is created.
-
-Required if output contains `turbinia`:
-
-- `turbinia_project_id` Project ID where Tubinia is installed.
-- `turbinia_topic_name` Pub/Sub topic where we should notify Turbinia.
-- `turbinia_zone` Zone where Turbinia disks are kept.
-
-#### Remove public IPs from an instance
-
-Removes all public IPs from an instance's network interface.
-
-Configuration
-
-- Configured in settings.json under the `remove_public_ip` key.
-- See general [resource list](#resources) options.
-
-#### Remediate open firewall
-
-Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
-
-Configuration
-
-- Configured in settings.json under the `open_firewall` key.
-- See general [resource list](#resources) options.
-- `remediation_action`: one of `DISABLE`, `DELETE` or `UPDATE_RANGE`
-  - `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
-
-### Google Kubernetes Engine
-
-#### Disable Kubernetes Dashboard addon
-
-Automatically disable the Kubernetes Dashboard addon.
-
-Configuration
-
-- Configured in settings.json under the `disable_dashboard` key.
-- See general [resource list](#resources) options.
-
-### Google Cloud SQL
-
-#### Close public Cloud SQL instance
-
-Close a public cloud SQL instance.
-
-Configuration
-
-- Configured in settings.json under the `close_cloud_sql` key.
-- See general [resource list](#resources) options.
-
-#### Require SSL connection to Cloud SQL
-
-Update Cloud SQL instance to require SSL connections.
-
-Configuration
-
-- Configured in settings.json under the `cloud_sql_require_ssl` key.
-- See general [resource list](#resources) options.
-
-### BigQuery
-
-#### Close access to a public BigQuery dataset
-
-Close access to a public BigQuery dataset.
-
-Configuration
-
-- Configured in settings.json under the `close_public_dataset` key.
-- See general [resource list](#resources) options.
-
-**Remove non-Organization members**
-
-Automatically removes non-organization members.
-
-Current implementation considers only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group  `groups:` are not covered yet.
-
-Configuration
-
-- Configured in settings.json under the `remove_non_org_members` key.
-- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
-
+```terraform
+module "revoke_iam_grants" {
+  source = "./terraform/automations/revoke-iam-grants"
+  setup  = "${module.google-setup}"
+  folder-ids = [
+    "670032686187",
+  ]
+}
+```
 
 ### Installation
 
-Following these instructions will deploy all SRA Cloud Functions. Before you get started be sure
+Following these instructions will deploy all automations. Before you get started be sure
 you have (at least) **Go version 1.11 installed**.
 
 ```shell
@@ -182,9 +89,9 @@ If at any point you want to revert the changes we've made just run `terraform de
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
 ```shell
-$ export PROJECT_ID=ae-threat-detection
+$ export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
 $ export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
-  ORGANIZATION_ID=154584661726 \
+  ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
   TOPIC_ID=cscc-notifications-topic
 
 $ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
@@ -224,7 +131,7 @@ $ zip -r ./deploy/functions.zip . -x *deploy* -x *.git* -x *.terraform*
 $ terraform apply .
 ```
 
-Then visit Cloud Console, Cloud Functions, click the Function name then edit. Finally hit deploy.
+Then visit Cloud Console, Cloud Functions, click the Function name, edit then deploy.
 
 ### Test
 
