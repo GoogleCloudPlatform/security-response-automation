@@ -158,7 +158,6 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		// - report first
 		for _, dest := range svcs.Configuration.DisableFirewall.OutputDestinations {
 			switch dest {
 			case "pagerduty":
@@ -169,7 +168,9 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 					continue
 				}
 				pd := services.InitPagerDuty(conf.APIKey)
-				if err := pd.CreateIncident(ctx, "tom3fitzgerald@gmail.com", conf.ServiceID, "i", "foo"); err != nil {
+				title := "title"
+				body := "body"
+				if err := pd.CreateIncident(ctx, "tom3fitzgerald@gmail.com", conf.ServiceID, title, body); err != nil {
 					return err
 				}
 			}
