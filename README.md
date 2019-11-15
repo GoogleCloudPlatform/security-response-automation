@@ -1,12 +1,12 @@
 # Security Response Automation
 
-Take automated actions against security findings. With Security Response Automation you can use our predefined functions to remediate findings as they come in or write and customize your own. For example you can:
+Setup automated actions to run on your security findings. You can use our predefined functions to auto-remediate findings as they come in or write and customize your own.
 
 - Automatically create a disk snapshot to enable future forensic investigations.
-- When anomalous IAM grants are found automatically revoke them if they fail to match the conditions you set.
+- Revoke IAM grants that violate your desired policy.
 - Notify other systems such as Turbinia, PagerDuty, Slack or just send an email.
 
-You can selectively declare which resources are enforced by each function to be sure you control how your environment is modified. Every action is logged and you can also run in **dry_run** mode where changes are not saved.
+You can selectively control which resources are enforced by each function. Every action is logged and you can also run in **dry_run** mode where changes are not saved.
 
 ## Note
 
@@ -45,7 +45,7 @@ In the [automations](/automations.md) documentation we see that this automation 
       "organization_id": "",
       "project_ids": []
     },
-    "allow_list": ["google.com", "googleplex.com"]
+    "allow_domains": ["google.com", "googleplex.com"]
   }
 }
 ```
