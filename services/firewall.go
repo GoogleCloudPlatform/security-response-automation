@@ -16,9 +16,16 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"log"
 
+	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
+	"google.golang.org/api/googleapi"
 )
+
+// sshBlockName is the firewall rule name created when blocking SSH.
+const sshBlockName = "automatic-ssh-block"
 
 // FirewallClient holds the minimum interface required by the firewall service.
 type FirewallClient interface {
@@ -39,8 +46,54 @@ func NewFirewall(client FirewallClient) *Firewall {
 	return &Firewall{client: client}
 }
 
-// AddFirewallRule will add a firewall rule. If one already exists it will replace the existing rule.
-func (f *Firewall) AddFirewallRule(ctx context.Context, projectID string, fw *compute.Firewall) error {
+// BlockSSH will add a firewall rule that blocks SSH for the given project.
+// TODO:
+// - Check for an existing rule first. If there is one, add to it.
+// https://console.cloud.google.com/networking/firewalls/list?project=aerial-jigsaw-235219&organizationId=154584661726&firewallTablesize=50
+// https://godoc.org/google.golang.org/api/compute/v1#Firewall
+func (f *Firewall) BlockSSH(ctx context.Context, projectID string, sourceRanges []string) error {
+	add := func(innerRanges []string) error {
+		log.Println("adding a new firewall rule to block ssh")
+		return f.addFirewallRule(ctx, projectID, &compute.Firewall{
+			Denied: []*compute.FirewallDenied{
+				{
+					IPProtocol: "tcp",
+					Ports:      []string{"22"},
+				},
+			},
+			Description:  "Block SSH TCP port 22 by Security Response Automation",
+			Name:         sshBlockName,
+			SourceRanges: innerRanges,
+		})
+	}
+
+	fw, err := f.FirewallRule(ctx, projectID, sshBlockName)
+	if err != nil {
+		switch err.(*googleapi.Error).Code {
+		case 200:
+			log.Printf("existing rule found, combine source ranges and update")
+			sourceRanges = append(sourceRanges, fw.SourceRanges...)
+			ruleID := fmt.Sprintf("%d", fw.Id)
+
+			if err := f.UpdateFirewallRuleSourceRange(ctx, projectID, ruleID, fw.Name, sourceRanges); err != nil {
+				return errors.Wrapf(err, "failed to update source ranges for: %q %q %q", projectID, ruleID, fw.Name)
+			}
+			log.Printf("%q rule updated in %q", fw.Name, projectID)
+		case 404:
+			log.Printf("adding rule to block ssh")
+			return add(sourceRanges)
+		default:
+			return err
+		}
+	}
+
+	log.Printf("rule exists, get current source ranges and add %q to them", sourceRanges)
+
+	return nil
+}
+
+// addFirewallRule will add a firewall rule.
+func (f *Firewall) addFirewallRule(ctx context.Context, projectID string, fw *compute.Firewall) error {
 	op, err := f.client.InsertFirewallRule(ctx, projectID, fw)
 	if err != nil {
 		return err
@@ -62,8 +115,15 @@ func (f *Firewall) DisableFirewallRule(ctx context.Context, projectID string, ru
 }
 
 // UpdateFirewallRuleSourceRange updates the firewall source ranges
-func (f *Firewall) UpdateFirewallRuleSourceRange(ctx context.Context, projectID string, ruleID string, name string, sourceRanges []string) (*compute.Operation, error) {
-	return f.client.PatchFirewallRule(ctx, projectID, ruleID, &compute.Firewall{Name: name, SourceRanges: sourceRanges})
+func (f *Firewall) UpdateFirewallRuleSourceRange(ctx context.Context, projectID string, ruleID string, name string, sourceRanges []string) error {
+	op, err := f.client.PatchFirewallRule(ctx, projectID, ruleID, &compute.Firewall{Name: name, SourceRanges: sourceRanges})
+	if err != nil {
+		return err
+	}
+	if errs := f.WaitGlobal(projectID, op); len(errs) > 0 {
+		return errs[0]
+	}
+	return nil
 }
 
 // DeleteFirewallRule delete the firewall rule.

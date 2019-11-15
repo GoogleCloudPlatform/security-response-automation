@@ -85,18 +85,18 @@ message BadIP {
 
 message SshBruteForce {
 
-    message LoginAttempts {
-        string auth_result = 1;
-        string source_ip = 2;
-        string user_name = 3;
-        string vm_name = 4;
+    message LoginAttempt {
+        string authResult = 1;
+        string sourceIp = 2;
+        string userName = 3;
+        string vmName = 4;
     }
 
     message Properties {
         string instance_id = 1;
         string project_id = 2;
         string zone = 3;
-        repeated LoginAttempts login_attempts = 4;
+        repeated LoginAttempt LoginAttempts = 4;
     }
 
     message AffectedResource {

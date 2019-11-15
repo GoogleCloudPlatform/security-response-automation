@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"cloud.google.com/go/pubsub"
@@ -56,7 +55,6 @@ func main() {
 	// if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(finding)}); err != nil {
 	// 	log.Fatal(err)
 	// }
-	fmt.Println(finding)
 	if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(finding)}); err != nil {
 		log.Fatal(err)
 	}

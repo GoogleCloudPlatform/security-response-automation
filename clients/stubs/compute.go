@@ -55,6 +55,12 @@ type NetworkAccessConfigStub struct {
 	AccessConfigName     string
 }
 
+// InsertFirewallRule inserts a new firewall rule.
+func (c *ComputeStub) InsertFirewallRule(ctx context.Context, projectID string, fw *compute.Firewall) (*compute.Operation, error) {
+	c.SavedFirewallRule = fw
+	return nil, nil
+}
+
 // PatchFirewallRule updates the firewall rule for the given project.
 func (c *ComputeStub) PatchFirewallRule(ctx context.Context, projectID string, rule string, rb *compute.Firewall) (*compute.Operation, error) {
 	c.SavedFirewallRule = rb
