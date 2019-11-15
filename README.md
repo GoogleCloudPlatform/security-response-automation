@@ -35,8 +35,6 @@ Each automation will check if it's affected project is within the configured res
 
 ### Example
 
-Event Threat Detection (ETD) has a detector that looks for Anomalous IAM Grants. Within this detector is a rule that looks for external grants containing a sensitive permission. We want to configure Security Response Automation (SRA) to automatically revoke any of these grants found from that ETD finding. However we want to control which resources are enforced and additionally control which domains are allowed and not to be removed.
-
 In the [automations](/automations.md) documentation we see that this automation is configured in [settings.json](settings.json) under the `revoke_iam` key. Within this key we'll fill out which projects will be enforced, in this example we'll specify a folder along with an allow list of expected domains.
 
 ```json
@@ -63,17 +61,6 @@ module "revoke_iam_grants" {
   ]
 }
 ```
-
-**Remove non-Organization members**
-
-Automatically removes non-organization members.
-
-Current implementation considers only Google account (`user:`) members, i.e. service account (`serviceAccount:`), GSuite or Cloud identity domain (`domain:`) and Google group `groups:` are not covered yet.
-
-Configuration
-
-- Configured in settings.json under the `remove_non_org_members` key.
-- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
 
 ### Installation
 

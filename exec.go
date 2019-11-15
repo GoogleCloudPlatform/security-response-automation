@@ -174,6 +174,7 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
 	case nil:
 		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
+			Logger:        svcs.Logger,
 			Configuration: svcs.Configuration,
 			Resource:      svcs.Resource,
 		})

@@ -5,67 +5,80 @@
     "turbinia_project_id": "",
     "turbinia_topic_name": "",
     "turbinia_zone": "",
-    "output_destinations": [""]
+    "output_destinations": [""],
+    "mode": "DRY_RUN"
   },
   "close_bucket": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "revoke_grants": {
     "resources": {
       "folder_ids": []
     },
-    "remove_list": []
+    "allow_domains": [],
+    "mode": "DRY_RUN"
   },
-  "disable_firewall": {
+  "open_firewall": {
     "resources": {
       "folder_ids": []
     },
     "remediation_action": "DISABLE",
-    "source_ranges": []
+    "source_ranges": [],
+    "mode": "DRY_RUN"
   },
   "remove_public_ip": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "close_public_dataset": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "close_cloud_sql": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "cloud_sql_require_ssl": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "disable_dashboard": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "cloud_sql_update_password": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "enable_audit_logs": {
     "resources": {
       "folder_ids": []
-    }
+    },
+    "mode": "DRY_RUN"
   },
   "remove_non_org_members": {
-    "allow_domains": []
+    "allow_domains": [],
+    "mode": "DRY_RUN"
   }
 }

@@ -71,6 +71,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			return err
 		}
 		auth := instance.Settings.IpConfiguration.AuthorizedNetworks
+		if services.Configuration.CloseCloudSQL.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+			return nil
+		}
 		if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, auth); err != nil {
 			return err
 		}

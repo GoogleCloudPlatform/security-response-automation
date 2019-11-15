@@ -28,6 +28,8 @@ var (
 	ErrValueNotFound = errors.New("value not found")
 	// ErrUnsupportedFinding thrown when a finding is not supported by a function.
 	ErrUnsupportedFinding = errors.New("unsupported finding")
+	// ErrSkipFinding thrown when a finding is not supported by a function.
+	ErrSkipFinding = errors.New("unsupported finding")
 )
 
 // Life of a finding

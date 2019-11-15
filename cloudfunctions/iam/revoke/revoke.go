@@ -70,11 +70,15 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.RevokeGrants
 	resources := services.Configuration.RevokeGrants.Resources
-	members, err := toRemove(values.ExternalMembers, conf.AllowList)
+	members, err := toRemove(values.ExternalMembers, conf.AllowDomains)
 	if err != nil {
 		return err
 	}
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if conf.Mode == "DRY_RUN" {
+			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
+			return nil
+		}
 		if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
 			return err
 		}

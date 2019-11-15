@@ -82,3 +82,38 @@ message BadIP {
     JSONPayload jsonPayload = 3;
 
 }
+
+message SshBruteForce {
+
+    message LoginAttempt {
+        string authResult = 1;
+        string sourceIp = 2;
+        string userName = 3;
+        string vmName = 4;
+    }
+
+    message Properties {
+        string instance_id = 1;
+        string project_id = 2;
+        string zone = 3;
+        repeated LoginAttempt LoginAttempts = 4;
+    }
+
+    message AffectedResource {
+        string gcpResourceName = 1;
+    }
+
+    message DetectionCategory {
+        string ruleName = 1;
+    }
+
+    message JSONPayload {
+        repeated AffectedResource affectedResources = 1;
+        Properties properties = 2;
+        DetectionCategory detectionCategory = 3;
+    }
+
+    string insertId = 1;
+    string logName = 2;
+    JSONPayload jsonPayload = 3;
+}
