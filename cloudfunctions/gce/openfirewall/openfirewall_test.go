@@ -195,18 +195,26 @@ func TestReadFinding(t *testing.T) {
 
 func TestBlockSSH(t *testing.T) {
 	for _, tt := range []struct {
-		name          string
-		ranges        []string
-		bytes         []byte
-		sourceRanges  []string
-		expected      *compute.Firewall
-		expectedError error
+		name         string
+		ranges       []string
+		bytes        []byte
+		sourceRanges []string
+		expected     *compute.Firewall
 	}{
 		{
-			name:          "read etd",
-			sourceRanges:  []string{"10.0.0.1/32"},
-			expected:      &compute.Firewall{SourceRanges: []string{"10.0.0.1/32"}},
-			expectedError: nil,
+			name:         "simple block",
+			sourceRanges: []string{"10.0.0.1/32"},
+			expected:     &compute.Firewall{SourceRanges: []string{"10.0.0.1/32"}},
+		},
+		{
+			name:         "no source ranges",
+			sourceRanges: nil,
+			expected:     &compute.Firewall{},
+		},
+		{
+			name:         "several source ranges",
+			sourceRanges: []string{"10.0.0.1/32", "10.0.0.0/8", "192.168.0.0/24"},
+			expected:     &compute.Firewall{SourceRanges: []string{"10.0.0.1/32", "10.0.0.0/8", "192.168.0.0/24"}},
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
