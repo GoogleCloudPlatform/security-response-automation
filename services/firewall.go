@@ -47,48 +47,37 @@ func NewFirewall(client FirewallClient) *Firewall {
 }
 
 // BlockSSH will add a firewall rule that blocks SSH for the given project.
-// TODO:
-// - Check for an existing rule first. If there is one, add to it.
-// https://console.cloud.google.com/networking/firewalls/list?project=aerial-jigsaw-235219&organizationId=154584661726&firewallTablesize=50
-// https://godoc.org/google.golang.org/api/compute/v1#Firewall
 func (f *Firewall) BlockSSH(ctx context.Context, projectID string, sourceRanges []string) error {
-	add := func(innerRanges []string) error {
-		log.Println("adding a new firewall rule to block ssh")
-		return f.addFirewallRule(ctx, projectID, &compute.Firewall{
-			Denied: []*compute.FirewallDenied{
-				{
-					IPProtocol: "tcp",
-					Ports:      []string{"22"},
-				},
-			},
-			Description:  "Block SSH TCP port 22 by Security Response Automation",
-			Name:         sshBlockName,
-			SourceRanges: innerRanges,
-		})
-	}
-
+	log.Printf("will attempt to block ssh for %q in %q", sourceRanges, projectID)
 	fw, err := f.FirewallRule(ctx, projectID, sshBlockName)
 	if err != nil {
 		switch err.(*googleapi.Error).Code {
-		case 200:
-			log.Printf("existing rule found, combine source ranges and update")
-			sourceRanges = append(sourceRanges, fw.SourceRanges...)
-			ruleID := fmt.Sprintf("%d", fw.Id)
-
-			if err := f.UpdateFirewallRuleSourceRange(ctx, projectID, ruleID, fw.Name, sourceRanges); err != nil {
-				return errors.Wrapf(err, "failed to update source ranges for: %q %q %q", projectID, ruleID, fw.Name)
-			}
-			log.Printf("%q rule updated in %q", fw.Name, projectID)
 		case 404:
-			log.Printf("adding rule to block ssh")
-			return add(sourceRanges)
+			log.Println("adding a new firewall rule to block ssh")
+			return f.addFirewallRule(ctx, projectID, &compute.Firewall{
+				Denied: []*compute.FirewallDenied{
+					{
+						IPProtocol: "tcp",
+						Ports:      []string{"22"},
+					},
+				},
+				Description:  "Block SSH TCP port 22 by Security Response Automation",
+				Name:         sshBlockName,
+				SourceRanges: sourceRanges,
+			})
 		default:
-			return err
+			return errors.Wrapf(err, "failed getting firewall rule: %q", sshBlockName)
 		}
 	}
 
-	log.Printf("rule exists, get current source ranges and add %q to them", sourceRanges)
-
+	log.Printf("existing rule found, combine incoming source ranges %q with existing %q", sourceRanges, fw.SourceRanges)
+	// Consider deduping. Currently this is done by the API.
+	sourceRanges = append(sourceRanges, fw.SourceRanges...)
+	ruleID := fmt.Sprintf("%d", fw.Id)
+	if err := f.UpdateFirewallRuleSourceRange(ctx, projectID, ruleID, fw.Name, sourceRanges); err != nil {
+		return errors.Wrapf(err, "failed to update source ranges for: %q %q %q", projectID, ruleID, fw.Name)
+	}
+	log.Printf("firewall rule %q updated in %q", fw.Name, projectID)
 	return nil
 }
 
