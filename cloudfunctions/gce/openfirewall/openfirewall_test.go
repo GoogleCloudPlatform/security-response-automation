@@ -29,6 +29,28 @@ import (
 
 func TestReadFinding(t *testing.T) {
 	const (
+		etdSSHBruteForceFinding = `{
+		"jsonPayload": {
+			"properties": {
+				"project_id": "onboarding-project",
+				"loginAttempts": [{
+					"authResult": "FAIL",
+					"sourceIp": "10.200.0.2",
+					"userName": "okokok",
+					"vmName": "ssh-password-auth-debian-9"
+					}, {
+					"authResult": "SUCCESS",
+					"sourceIp": "10.200.0.3",
+					"userName": "okokok",
+					"vmName": "ssh-password-auth-debian-9"
+					}]
+		  },
+		  "detectionCategory": {
+			"ruleName": "ssh_brute_force"
+		  }
+		},
+		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+	}`
 		openFirewallFinding = `{
 			"notificationConfigName": "organizations/1055058813388/notificationConfigs/noticonf-active-001-id",
 			"finding": {
@@ -139,31 +161,90 @@ func TestReadFinding(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, firewallID, projectID string
+		ranges                      []string
 		bytes                       []byte
 		expectedError               error
 	}{
-		{name: "read", projectID: "onboarding-project", firewallID: "6190685430815455733", bytes: []byte(openFirewallFinding), expectedError: nil},
-		{name: "wrong category", projectID: "", firewallID: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", projectID: "", firewallID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
+		{name: "read sha", ranges: nil, projectID: "onboarding-project", firewallID: "6190685430815455733", bytes: []byte(openFirewallFinding), expectedError: nil},
+		{name: "read etd", ranges: []string{"10.200.0.2/32", "10.200.0.3/32"}, projectID: "onboarding-project", firewallID: "", bytes: []byte(etdSSHBruteForceFinding), expectedError: nil},
+		{name: "wrong category", ranges: nil, projectID: "", firewallID: "", bytes: []byte(wrongCategoryFinding), expectedError: services.ErrUnsupportedFinding},
+		{name: "inactive finding", ranges: nil, projectID: "", firewallID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := ReadFinding(tt.bytes)
 			if tt.expectedError == nil && err != nil {
-				t.Errorf("%s failed: %q", tt.name, err)
+				t.Fatalf("%s failed: %q", tt.name, err)
 			}
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if err == nil && r != nil && r.FirewallID != tt.firewallID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.FirewallID, tt.firewallID)
-			}
-			if err == nil && r != nil && r.ProjectID != tt.projectID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
+			if err == nil && r != nil {
+				if diff := cmp.Diff(r.SourceRanges, tt.ranges); diff != "" {
+					t.Errorf("%s failed: diff:%s", tt.name, diff)
+				}
+				if r.FirewallID != tt.firewallID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, r.FirewallID, tt.firewallID)
+				}
+				if r.ProjectID != tt.projectID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
+				}
 			}
 		})
 	}
 }
 
+func TestBlockSSH(t *testing.T) {
+	for _, tt := range []struct {
+		name         string
+		ranges       []string
+		bytes        []byte
+		sourceRanges []string
+		expected     *compute.Firewall
+	}{
+		{
+			name:         "simple block",
+			sourceRanges: []string{"10.0.0.1/32"},
+			expected:     &compute.Firewall{SourceRanges: []string{"10.0.0.1/32"}},
+		},
+		{
+			name:         "no source ranges",
+			sourceRanges: nil,
+			expected:     &compute.Firewall{},
+		},
+		{
+			name:         "several source ranges",
+			sourceRanges: []string{"10.0.0.1/32", "10.0.0.0/8", "192.168.0.0/24"},
+			expected:     &compute.Firewall{SourceRanges: []string{"10.0.0.1/32", "10.0.0.0/8", "192.168.0.0/24"}},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			folderIDs := []string{"123"}
+			svcs, computeStub, crmStub := openFirewallSetup(folderIDs, "BLOCK_SSH", []string{})
+			computeStub.StubbedFirewall = &compute.Firewall{
+				Id:           123,
+				SourceRanges: []string{},
+			}
+			crmStub.GetAncestryResponse = services.CreateAncestors([]string{"folder/123"})
+			svcs.Configuration.DisableFirewall.RemediationAction = "BLOCK_SSH"
+			values := &Values{
+				ProjectID:    "test-project",
+				SourceRanges: tt.sourceRanges,
+			}
+			if err := Execute(ctx, values, &Services{
+				Configuration: svcs.Configuration,
+				Firewall:      svcs.Firewall,
+				Resource:      svcs.Resource,
+				Logger:        svcs.Logger,
+			}); err != nil {
+				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
+			}
+			if diff := cmp.Diff(computeStub.SavedFirewallRule, tt.expected); diff != "" {
+				t.Errorf("%s failed diff:%s", tt.name, diff)
+			}
+		})
+	}
+}
 func TestOpenFirewall(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
@@ -215,6 +296,7 @@ func TestOpenFirewall(t *testing.T) {
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			svcs, computeStub, crmStub := openFirewallSetup(tt.folderIDs, tt.remediationAction, tt.sourceRange)
+			tt.firewallRule.SourceRanges = []string{}
 			computeStub.StubbedFirewall = tt.firewallRule
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{

@@ -18,7 +18,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
+	etdPb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -27,7 +29,13 @@ import (
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID, FirewallID string
+	// ProjectId is a required field identifying which project ID to modify.
+	ProjectID string
+	// FirewallID is an optional field used with SHA findings only.
+	FirewallID string
+	// SourceRanges is a set of IPs of the orignating activity. This field is optional and used
+	// only when blocking SSH.
+	SourceRanges []string
 }
 
 // Services contains the services needed for this function.
@@ -40,40 +48,109 @@ type Services struct {
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.FirewallScanner
-	r := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+	var values Values
+
+	switch err := readETDFinding(b, &values); err {
+	case services.ErrUnmarshal:
+		fallthrough
+	case services.ErrValueNotFound:
+		fallthrough
+	case services.ErrUnsupportedFinding:
+		return nil, err
+	case services.ErrSkipFinding:
+		// Incoming finding not from ETD, pass to next.
+	case nil:
+		return &values, nil
 	}
-	switch finding.GetFinding().GetCategory() {
+
+	switch err := readSHAFinding(b, &values); err {
+	case services.ErrUnmarshal:
+		fallthrough
+	case services.ErrValueNotFound:
+		fallthrough
+	case services.ErrUnsupportedFinding:
+		return nil, err
+	case services.ErrSkipFinding:
+		// Incoming finding not from SHA, pass to next.
+	case nil:
+		return &values, nil
+	}
+
+	return nil, errors.New("failed to read finding")
+}
+
+func readETDFinding(b []byte, values *Values) error {
+	var etdFinding etdPb.SshBruteForce
+	if err := json.Unmarshal(b, &etdFinding); err != nil {
+		return errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	if etdFinding.GetJsonPayload() == nil {
+		return services.ErrSkipFinding
+	}
+	switch etdFinding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
+	case "ssh_brute_force":
+		values.ProjectID = etdFinding.GetJsonPayload().GetProperties().GetProjectId()
+		values.SourceRanges = sourceIPRanges(&etdFinding)
+	default:
+		return services.ErrUnsupportedFinding
+	}
+	return nil
+}
+
+// sourceIPRanges will return a slice of IP ranges from an SSH brute force.
+func sourceIPRanges(finding *etdPb.SshBruteForce) []string {
+	ranges := []string{}
+	attempts := finding.GetJsonPayload().GetProperties().GetLoginAttempts()
+	for _, attempt := range attempts {
+		ranges = append(ranges, attempt.GetSourceIp()+"/32")
+	}
+	return ranges
+}
+
+func readSHAFinding(b []byte, values *Values) error {
+	var shaFinding pb.FirewallScanner
+	if err := json.Unmarshal(b, &shaFinding); err != nil {
+		return errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	switch shaFinding.GetFinding().GetCategory() {
 	case "OPEN_FIREWALL":
 		fallthrough
 	case "OPEN_SSH_PORT":
 		fallthrough
 	case "OPEN_RDP_PORT":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
+		if sha.IgnoreFinding(shaFinding.GetFinding()) {
+			return services.ErrUnsupportedFinding
 		}
-		r.FirewallID = sha.FirewallID(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
+		values.FirewallID = sha.FirewallID(shaFinding.GetFinding().GetResourceName())
+		values.ProjectID = shaFinding.GetFinding().GetSourceProperties().GetProjectId()
 	default:
-		return nil, services.ErrUnsupportedFinding
+		return services.ErrUnsupportedFinding
 	}
-	if r.FirewallID == "" || r.ProjectID == "" {
-		return nil, services.ErrValueNotFound
+	if values.FirewallID == "" || values.ProjectID == "" {
+		return services.ErrValueNotFound
 	}
-	return r, nil
+	return nil
 }
+
+// rename DisableFirwall to FirewallEnforcer.
 
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources
 	if services.Configuration.DisableFirewall.Mode == "DRY_RUN" {
-		services.Logger.Info("dry_run on, would have remediated firewall %q in project  %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
+		services.Logger.Info("dry_run on, would have remediated firewall %q in project %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
 		return nil
 	}
 	var fn func() error
 	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
+	case "BLOCK_SSH":
+		fn = func() error {
+			if err := services.Firewall.BlockSSH(ctx, values.ProjectID, values.SourceRanges); err != nil {
+				return errors.Wrapf(err, "failed to block ssh on %q from %q", values.ProjectID, values.SourceRanges)
+			}
+			services.Logger.Info("blocked ssh on %q from %q", values.ProjectID, values.SourceRanges)
+			return nil
+		}
 	case "DISABLE":
 		fn = disable(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "DELETE":
@@ -81,8 +158,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	case "UPDATE_RANGE":
 		fn = updateRange(ctx, services.Logger, services.Configuration.DisableFirewall.SourceRanges, services.Firewall, values.ProjectID, values.FirewallID)
 	default:
-		return fmt.Errorf("unknown open firewall remediation action` %q", action)
+		return fmt.Errorf("unknown open firewall remediation action: %q", action)
 	}
+	log.Printf("remediation action: %q", services.Configuration.DisableFirewall.RemediationAction)
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, fn)
 }
 
@@ -128,12 +206,8 @@ func updateRange(ctx context.Context, logr *services.Logger, newRanges []string,
 		if err != nil {
 			return err
 		}
-		op, err := fw.UpdateFirewallRuleSourceRange(ctx, projectID, firewallID, r.Name, newRanges)
-		if err != nil {
+		if err := fw.UpdateFirewallRuleSourceRange(ctx, projectID, firewallID, r.Name, newRanges); err != nil {
 			return err
-		}
-		if errs := fw.WaitGlobal(projectID, op); len(errs) > 0 {
-			return errs[0]
 		}
 		logr.Info("updated source range firewall %q in project %q.", r.Name, projectID)
 		return nil

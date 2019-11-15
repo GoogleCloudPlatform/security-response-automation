@@ -92,7 +92,7 @@ func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
 func initConfiguration() (*Configuration, error) {
 	conf, err := NewConfiguration(settingsFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read configuration: %q", err)
 	}
 	return conf, nil
 }
