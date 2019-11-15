@@ -32,8 +32,8 @@ type RevokeGrants struct {
 	Resources *Resources
 	// A slice of domain names that will be evaluated against incoming added members. If the user
 	// matches a domain in this list they will not be removed.
-	AllowList []string `json:"allow_list"`
-	Mode      string
+	AllowDomains []string `json:"allow_domains"`
+	Mode         string
 }
 
 // RemovePublicIP contains configuration required for the remove public IP function.

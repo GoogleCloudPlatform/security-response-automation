@@ -70,7 +70,7 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.RevokeGrants
 	resources := services.Configuration.RevokeGrants.Resources
-	members, err := toRemove(values.ExternalMembers, conf.AllowList)
+	members, err := toRemove(values.ExternalMembers, conf.AllowDomains)
 	if err != nil {
 		return err
 	}

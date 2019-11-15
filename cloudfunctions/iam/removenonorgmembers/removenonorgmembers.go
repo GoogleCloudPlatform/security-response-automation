@@ -17,7 +17,7 @@ package removenonorgmembers
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"strings"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
@@ -25,16 +25,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+const projectPrefix = "//cloudresourcemanager.googleapis.com/projects/"
+
 // Values contains the required values needed for this function.
 type Values struct {
-	orgID, projectID string
+	ProjectID string
 }
 
 // Services contains the services needed for this function.
 type Services struct {
 	Configuration *services.Configuration
-	Resource      *services.Resource
 	Logger        *services.Logger
+	Resource      *services.Resource
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -49,51 +51,35 @@ func ReadFinding(b []byte) (*Values, error) {
 		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
-		//if fromOrg(finding.GetFinding().GetResourceName()) {
-		//	v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
-		//}
-		//if fromProject(finding.GetFinding().GetResourceName()) {
-		//	v.projectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		//}
-		v.orgID = sha.OrganizationID(finding.GetFinding().GetParent())
+		if fromProject(finding.GetFinding().GetResourceName()) {
+			v.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
+		}
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
-	if v.orgID == "" && v.projectID == "" {
+	if v.ProjectID == "" {
 		return nil, services.ErrValueNotFound
 	}
 	return v, nil
 }
 
-// Execute removes non-organization members.
+// Execute removes all users from a specific project not in allowed domain list.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration
-	allowedDomains := conf.RemoveNonOrgMembers.AllowDomains
-	organization, err := services.Resource.Organization(ctx, values.orgID)
-	if services.Configuration.RemoveNonOrgMembers.Mode == "DRY_RUN" {
-		services.Logger.Info("dry_run on, would have removed non org members from organization %q", organization.Name)
+	conf := services.Configuration.RemoveNonOrgMembers
+	return services.Resource.IfProjectWithinResources(ctx, conf.Resources, values.ProjectID, func() error {
+		if conf.Mode == "DRY_RUN" {
+			services.Logger.Info("dry run, would have removed users not from %q in %q", conf.AllowDomains, values.ProjectID)
+			return nil
+		}
+		removed, err := services.Resource.ProjectOnlyKeepUsersFromDomains(ctx, values.ProjectID, conf.AllowDomains)
+		if err != nil {
+			return err
+		}
+		services.Logger.Info("successfully removed %q from %s", removed, values.ProjectID)
 		return nil
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to get organization: %s", values.orgID)
-	}
-	policy, err := services.Resource.PolicyOrganization(ctx, organization.Name)
-	if err != nil {
-		return errors.Wrap(err, "failed to retrieve organization policy")
-	}
-
-	membersToRemove, err := services.Resource.RemoveMembersOrganization(ctx, organization.DisplayName, organization.Name, allowedDomains, policy)
-	if err != nil {
-		return errors.Wrap(err, "failed to remove organization policy")
-	}
-	log.Printf("removed members: %s", membersToRemove)
-	return nil
+	})
 }
 
-//func fromProject(resourceName string) bool {
-//	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/projects")
-//}
-//
-//func fromOrg(resourceName string) bool {
-//	return strings.Contains(resourceName, "cloudresourcemanager.googleapis.com/organizations")
-//}
+func fromProject(resourceName string) bool {
+	return strings.HasPrefix(resourceName, projectPrefix)
+}
