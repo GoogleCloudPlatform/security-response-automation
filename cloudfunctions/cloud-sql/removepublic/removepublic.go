@@ -76,6 +76,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			return nil
 		}
 		if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, auth); err != nil {
+			if err.Error() == "instance \"" + values.InstanceName + "\" does not have public access enabled" {
+				services.Logger.Info(err.Error())
+				return nil
+			}
 			return err
 		}
 		services.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)

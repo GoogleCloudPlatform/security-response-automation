@@ -16,7 +16,7 @@ package services
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
@@ -91,8 +91,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 		authorizedNetworks = append(authorizedNetworks, ip)
 	}
 	if !found {
-		log.Printf("instance %q does not have public access enabled", instance)
-		return nil
+		return fmt.Errorf("instance %q does not have public access enabled", instance)
 	}
 	// If there are no authorized networks the field must be explictly declared as null.
 	// Otherwise null fields are removed if not declared as such.
