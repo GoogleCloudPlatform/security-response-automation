@@ -28,10 +28,7 @@
   },
   "open_firewall": {
     "resources": {
-      "folder_ids": [],
-      "project_ids": [
-        "aerial-jigsaw-235219"
-      ]
+      "folder_ids": ["160215082069"]
     },
     "output_destinations": ["pagerduty"],
     "remediation_action": "BLOCK_SSH",
