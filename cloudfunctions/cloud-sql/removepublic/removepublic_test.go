@@ -193,6 +193,25 @@ func TestCloseCloudSQL(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:      "tries to close instance already closed",
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
+			instanceDetailsResponse: &sqladmin.DatabaseInstance{
+				Name:    "non-public-sql-instance",
+				Project: "sha-resources-20191002",
+				Settings: &sqladmin.Settings{
+					IpConfiguration: &sqladmin.IpConfiguration{
+						AuthorizedNetworks: []*sqladmin.AclEntry{
+							{
+								Value: "199.27.199.0/24",
+							},
+						},
+					},
+				},
+			},
+			expectedRequest: nil,
+		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
