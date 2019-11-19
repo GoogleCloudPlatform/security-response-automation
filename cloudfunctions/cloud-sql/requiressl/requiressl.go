@@ -64,7 +64,7 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.CloudSQLRequireSSL.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if services.Configuration.CloudSQLRequireSSL.Mode == "DRY_RUN" {
+		if services.Configuration.CloudSQLRequireSSL.DryRun {
 			services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
 			return nil
 		}

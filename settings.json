@@ -1,9 +1,9 @@
 {
   "pager_duty": {
-    "api_key": "J6LuP8xbMyPqGHFFyuUQ",
-    "enabled": true,
+    "api_key": "",
+    "enabled": false,
     "from": "",
-    "service_id": "P6CIURN"
+    "service_id": ""
   },
   "create_snapshot": {
     "snapshot_project_id": "",
@@ -12,20 +12,20 @@
     "turbinia_topic_name": "",
     "turbinia_zone": "",
     "output_destinations": [""],
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "close_bucket": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "revoke_grants": {
     "resources": {
       "folder_ids": []
     },
     "allow_domains": [],
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "open_firewall": {
     "resources": {
@@ -34,58 +34,58 @@
     "output_destinations": [],
     "remediation_action": "",
     "source_ranges": [],
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "remove_public_ip": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "close_public_dataset": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "close_cloud_sql": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "cloud_sql_require_ssl": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "disable_dashboard": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "cloud_sql_update_password": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "enable_audit_logs": {
     "resources": {
       "folder_ids": []
     },
-    "mode": "DRY_RUN"
+    "dry_run": true
   },
   "remove_non_org_members": {
     "allow_domains": [],
-    "mode": "DRY_RUN"
+    "dry_run": true
   }
 }

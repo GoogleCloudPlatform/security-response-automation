@@ -75,7 +75,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return err
 	}
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if conf.Mode == "DRY_RUN" {
+		if conf.DryRun {
 			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 			return nil
 		}

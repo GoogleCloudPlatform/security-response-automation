@@ -65,7 +65,7 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.RemovePublicIP.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if services.Configuration.RemovePublicIP.Mode == "DRY_RUN" {
+		if services.Configuration.RemovePublicIP.DryRun {
 			services.Logger.Info("dry_run on, would have removed public IP address for instance %q, in zone %q in project %q.", values.InstanceID, values.ProjectID)
 			return nil
 		}

@@ -81,7 +81,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.UpdatePassword.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
 		log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-		if services.Configuration.UpdatePassword.Mode == "DRY_RUN" {
+		if services.Configuration.UpdatePassword.DryRun {
 			services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 			return nil
 		}
