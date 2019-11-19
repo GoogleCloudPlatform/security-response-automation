@@ -132,8 +132,6 @@ func readSHAFinding(b []byte, values *Values) error {
 	return nil
 }
 
-// rename DisableFirwall to FirewallEnforcer.
-
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources

@@ -1,4 +1,10 @@
 {
+  "pager_duty": {
+    "api_key": "J6LuP8xbMyPqGHFFyuUQ",
+    "enabled": true,
+    "from": "",
+    "service_id": "P6CIURN"
+  },
   "create_snapshot": {
     "snapshot_project_id": "",
     "snapshot_zone": "",
@@ -25,7 +31,8 @@
     "resources": {
       "folder_ids": []
     },
-    "remediation_action": "DISABLE",
+    "output_destinations": [],
+    "remediation_action": "",
     "source_ranges": [],
     "mode": "DRY_RUN"
   },
