@@ -16,7 +16,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
@@ -82,17 +81,12 @@ func (s *CloudSQL) InstanceDetails(ctx context.Context, projectID string, instan
 // ClosePublicAccess removes all valid IPs the from the authorized networks for an instance.
 func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance string, acls []*sqladmin.AclEntry) error {
 	var authorizedNetworks []*sqladmin.AclEntry
-	found := false
 	for _, ip := range acls {
-		if ip.Value == allIPs {
-			found = true
-			continue
+		if ip.Value != allIPs {
+			authorizedNetworks = append(authorizedNetworks, ip)
 		}
-		authorizedNetworks = append(authorizedNetworks, ip)
 	}
-	if !found {
-		return fmt.Errorf("instance %q does not have public access enabled", instance)
-	}
+
 	// If there are no authorized networks the field must be explictly declared as null.
 	// Otherwise null fields are removed if not declared as such.
 	var nullFields []string
@@ -116,6 +110,18 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 		return err
 	}
 	return nil
+}
+
+// IsCloudSQLPublic checks if Cloud SQL instance contains public ip authorized
+func (s *CloudSQL) IsCloudSQLPublic(acls []*sqladmin.AclEntry) bool{
+	found := false
+	for _, ip := range acls {
+		if ip.Value == allIPs {
+			found = true
+			continue
+		}
+	}
+	return found
 }
 
 func (s *CloudSQL) wait(project string, op *sqladmin.Operation) error {

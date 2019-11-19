@@ -75,11 +75,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 			return nil
 		}
+		if !services.CloudSQL.IsCloudSQLPublic(auth) {
+			services.Logger.Info("instance %q does not have public access enabled", values.InstanceName)
+			return nil
+		}
+
 		if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, auth); err != nil {
-			if err.Error() == "instance \"" + values.InstanceName + "\" does not have public access enabled" {
-				services.Logger.Info(err.Error())
-				return nil
-			}
 			return err
 		}
 		services.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
