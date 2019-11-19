@@ -7,36 +7,20 @@ import (
 // PagerDuty client.
 type PagerDuty struct {
 	client *pagerduty.Client
-
-	// from is the email address of the user creating the incident.
-	from string
-	// serviceID is the ID of the affected PagerDuty service.
-	// - https://support.pagerduty.com/docs/services-and-integrations
-	serviceID string
 }
 
 // NewPagerDuty returns a PagerDuty client initialized.
-func NewPagerDuty(apiKey, serviceID, from string) *PagerDuty {
-	return &PagerDuty{
-		client:    pagerduty.NewClient(apiKey),
-		from:      from,
-		serviceID: serviceID,
-	}
+func NewPagerDuty(apiKey string) *PagerDuty {
+	return &PagerDuty{client: pagerduty.NewClient(apiKey)}
 }
 
-// SetFrom sets the from email address.
-func (p *PagerDuty) SetFrom(from string) { p.from = from }
-
-// SetServiceID sets the affected service ID.
-func (p *PagerDuty) SetServiceID(serviceID string) { p.serviceID = serviceID }
-
 // CreateIncident will create a new incident.
-func (p *PagerDuty) CreateIncident(title, body string) (*pagerduty.Incident, error) {
-	return p.client.CreateIncident(p.from, &pagerduty.CreateIncidentOptions{
+func (p *PagerDuty) CreateIncident(from, serviceID, title, body string) (*pagerduty.Incident, error) {
+	return p.client.CreateIncident(from, &pagerduty.CreateIncidentOptions{
 		Type:  "",
 		Title: title,
 		Service: &pagerduty.APIReference{
-			ID:   p.serviceID,
+			ID:   serviceID,
 			Type: "service_reference",
 		},
 		IncidentKey: "",

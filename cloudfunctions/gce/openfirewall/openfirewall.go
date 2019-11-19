@@ -132,12 +132,10 @@ func readSHAFinding(b []byte, values *Values) error {
 	return nil
 }
 
-// rename DisableFirwall to FirewallEnforcer.
-
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.DisableFirewall.Resources
-	if services.Configuration.DisableFirewall.Mode == "DRY_RUN" {
+	if services.Configuration.DisableFirewall.DryRun {
 		services.Logger.Info("dry_run on, would have remediated firewall %q in project %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
 		return nil
 	}

@@ -67,7 +67,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration
 	resources := services.Configuration.EnableAuditLogs.Resources
 	if err := services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if conf.EnableAuditLogs.Mode == "DRY_RUN" {
+		if conf.EnableAuditLogs.DryRun {
 			services.Logger.Info("dry_run on, would have enabled data access audit logs in project %q", values.ProjectID)
 			return nil
 		}

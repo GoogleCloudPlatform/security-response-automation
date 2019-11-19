@@ -70,11 +70,13 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+
 		acls := instance.Settings.IpConfiguration.AuthorizedNetworks
-		if services.Configuration.CloseCloudSQL.Mode == "DRY_RUN" {
+		if services.Configuration.CloseCloudSQL.DryRun {
 			services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 			return nil
 		}
+
 		if !services.CloudSQL.IsCloudSQLPublic(acls) {
 			services.Logger.Info("instance %q does not have public access enabled", values.InstanceName)
 			return nil

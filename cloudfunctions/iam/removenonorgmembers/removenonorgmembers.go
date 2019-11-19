@@ -67,7 +67,7 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.RemoveNonOrgMembers
 	return services.Resource.IfProjectWithinResources(ctx, conf.Resources, values.ProjectID, func() error {
-		if conf.Mode == "DRY_RUN" {
+		if conf.DryRun {
 			services.Logger.Info("dry run, would have removed users not from %q in %q", conf.AllowDomains, values.ProjectID)
 			return nil
 		}

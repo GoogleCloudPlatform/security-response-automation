@@ -17,7 +17,6 @@ package createsnapshot
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -93,7 +92,8 @@ func ReadFinding(b []byte) (*Values, error) {
 func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 	disksCopied := []string{}
-	dstProjectID := services.Configuration.CreateSnapshot.TargetSnapshotProjectID
+	conf := services.Configuration.CreateSnapshot
+	dstProjectID := conf.TargetSnapshotProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
@@ -106,11 +106,6 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 	}
 	log.Printf("got %d existing snapshots for project %q", len(snapshots.Items), values.ProjectID)
 
-	if services.Configuration.CreateSnapshot.Mode == "DRY_RUN" {
-		services.Logger.Info("dry_run on, would created snapshots from disks %q from %q", fmt.Sprintf("%#v", disks), values.ProjectID)
-		return nil, nil
-	}
-
 	for _, disk := range disks {
 		snapshotName := createSnapshotName(rule, disk.Name)
 		create, removeExisting, err := canCreateSnapshot(snapshots, disk, rule)
@@ -121,6 +116,10 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		if !create {
 			log.Printf("snapshot %q for disk %q will be skipped (not old enough or from another finding)", snapshotName, disk.Name)
 			continue
+		}
+
+		if conf.DryRun {
+			services.Logger.Info("dry_run on, would created a snapshot of %q from %q", disk.Name, values.ProjectID)
 		}
 
 		for k := range removeExisting {
