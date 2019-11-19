@@ -108,6 +108,7 @@ type PagerDutyConfiguration struct {
 	APIKey    string `json:"api_key"`
 	Enabled   bool   `json:"enabled"`
 	ServiceID string `json:"service_id"`
+	From string `json:"from"`
 }
 
 // Configuration contains the ID(s) to apply actions to.
