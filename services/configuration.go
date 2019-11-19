@@ -105,9 +105,11 @@ type RemoveNonOrgMembers struct {
 
 // PagerDutyConfiguration contains configuration for the PagerDuty client.
 type PagerDutyConfiguration struct {
-	APIKey    string `json:"api_key"`
-	Enabled   bool   `json:"enabled"`
+	APIKey  string `json:"api_key"`
+	Enabled bool   `json:"enabled"`
+	// ServiceID of the affected service within PagerDuty.
 	ServiceID string `json:"service_id"`
+	// From is the email address that sends the incident. This must be a valid user within PagerDuty.
 	From string `json:"from"`
 }
 

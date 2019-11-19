@@ -2,6 +2,7 @@
   "pager_duty": {
     "api_key": "J6LuP8xbMyPqGHFFyuUQ",
     "enabled": true,
+    "from": "",
     "service_id": "P6CIURN"
   },
   "create_snapshot": {

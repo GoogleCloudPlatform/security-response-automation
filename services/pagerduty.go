@@ -16,7 +16,6 @@ package services
 
 import (
 	"context"
-	"log"
 
 	"github.com/PagerDuty/go-pagerduty"
 )
@@ -26,6 +25,7 @@ type PagerDuty struct {
 	client PagerDutyClient
 }
 
+// PagerDutyClient contains methods used by the PagerDuty service.
 type PagerDutyClient interface {
 	CreateIncident(from, serviceID, title, body string) (*pagerduty.Incident, error)
 }
@@ -37,10 +37,8 @@ func NewPagerDuty(cs PagerDutyClient) *PagerDuty {
 
 // CreateIncident will create an incident within PagerDuty.
 func (p *PagerDuty) CreateIncident(ctx context.Context, from, serviceID, title, body string) error {
-	in, err := p.client.CreateIncident(from, serviceID, title, body)
-	if err != nil {
+	if _, err := p.client.CreateIncident(from, serviceID, title, body); err != nil {
 		return err
 	}
-	log.Printf("created %+v", in)
 	return nil
 }
