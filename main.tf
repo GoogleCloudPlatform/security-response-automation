@@ -55,7 +55,7 @@ module "create_disk_snapshot" {
 module "open_firewall" {
   source     = "./terraform/automations/disable-firewall"
   setup      = "${module.google-setup}"
-  folder-ids = ["160215082069"]
+  folder-ids = []
 }
 
 module "remove_public_ip" {
@@ -65,8 +65,8 @@ module "remove_public_ip" {
 }
 
 module "close_public_dataset" {
-  source = "./terraform/automations/close-public-dataset"
-  setup  = "${module.google-setup}"
+  source     = "./terraform/automations/close-public-dataset"
+  setup      = "${module.google-setup}"
   folder-ids = []
 }
 

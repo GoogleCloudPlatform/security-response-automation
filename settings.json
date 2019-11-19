@@ -28,12 +28,12 @@
   },
   "open_firewall": {
     "resources": {
-      "folder_ids": ["160215082069"]
+      "folder_ids": []
     },
-    "output_destinations": ["pagerduty"],
-    "remediation_action": "BLOCK_SSH",
+    "output_destinations": [],
+    "remediation_action": "",
     "source_ranges": [],
-    "mode": ""
+    "mode": "DRY_RUN"
   },
   "remove_public_ip": {
     "resources": {
