@@ -31,6 +31,17 @@ resource "google_cloudfunctions_function" "enforce-ssl-cloud-sql" {
   environment_variables = {
     folder_ids = "${join(",", var.folder-ids)}"
   }
+
+  depends_on = [
+    "google_project_service.sqladmin_api",
+  ]
+}
+
+resource "google_project_service" "sqladmin_api" {
+  project                    = "${var.automation-project}"
+  service                    = "sqladmin.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }
 
 # Required to retrieve ancestry for projects within this folder.

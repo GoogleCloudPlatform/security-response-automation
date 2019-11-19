@@ -31,7 +31,19 @@ resource "google_cloudfunctions_function" "close-bucket" {
   environment_variables = {
     folder_ids = "${join(",", var.folder-ids)}"
   }
+
+  depends_on = [
+    "google_project_service.close_public_bucket_storage_api",
+  ]
 }
+
+resource "google_project_service" "close_public_bucket_storage_api" {
+  project                    = "${var.setup.automation-project}"
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
 
 # Required to retrieve ancestry for projects within this folder.
 resource "google_folder_iam_member" "roles-viewer" {

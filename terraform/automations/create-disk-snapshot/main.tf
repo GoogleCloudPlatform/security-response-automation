@@ -27,7 +27,27 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.findings-topic}"
   }
+
+  depends_on = [
+    "google_project_service.create_snapshot_storage_api",
+    "google_project_service.create_snapshot_compute_api",
+  ]
 }
+
+resource "google_project_service" "create_snapshot_compute_api" {
+  project                    = "${var.setup.automation-project}"
+  service                    = "compute.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "create_snapshot_storage_api" {
+  project                    = "${var.setup.automation-project}"
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
 
 # Role "compute.instanceAdmin" required to get disk lists and create snapshots for GCE instances.
 # This role can be applied on individual projects, folders or at the organization level.

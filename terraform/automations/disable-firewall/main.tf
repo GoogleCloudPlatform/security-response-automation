@@ -27,6 +27,17 @@ resource "google_cloudfunctions_function" "open-firewall" {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
   }
+
+  depends_on = [
+    "google_project_service.open_firewall_compute_api",
+  ]
+}
+
+resource "google_project_service" "open_firewall_compute_api" {
+  project                    = "${var.automation-project}"
+  service                    = "compute.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }
 
 # Required to retrieve ancestry for projects within this folder.
