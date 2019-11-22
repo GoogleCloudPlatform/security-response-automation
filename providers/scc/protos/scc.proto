@@ -166,13 +166,8 @@ message LoggingScanner {
 
 message AnomalousIAMGrant {
 
-    message SourceProperties {
-        string properties_project_id = 1;
-        string properties_externalMembers_0 = 2;
-    }
-
     message Finding {
-      SourceProperties sourceProperties = 1;
+      map<string, string> sourceProperties = 1;
       string resourceName = 2;
       string category = 3;
       string state = 4;

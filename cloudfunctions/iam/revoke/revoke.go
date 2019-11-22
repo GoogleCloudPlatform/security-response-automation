@@ -22,7 +22,8 @@ import (
 	"regexp"
 	"strings"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
+	sccPb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
+	sdPb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -42,22 +43,76 @@ type Services struct {
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.AnomalousIAMGrant
-	v := &Values{}
+	var values Values
+
+	switch err := readSDFinding(b, &values); err {
+	case services.ErrUnmarshal:
+		fallthrough
+	case services.ErrValueNotFound:
+		fallthrough
+	case services.ErrUnsupportedFinding:
+		return nil, err
+	case services.ErrSkipFinding:
+		// Incoming finding not from ETD, pass to next.
+	case nil:
+		return &values, nil
+	}
+
+	switch err := readSCCFinding(b, &values); err {
+	case services.ErrUnmarshal:
+		fallthrough
+	case services.ErrValueNotFound:
+		fallthrough
+	case services.ErrUnsupportedFinding:
+		return nil, err
+	case services.ErrSkipFinding:
+		// Incoming finding not from SHA, pass to next.
+	case nil:
+		return &values, nil
+	}
+
+	return nil, errors.New("failed to read finding")
+}
+
+func readSDFinding(b []byte, values *Values) error {
+	var finding sdPb.AnomalousIAMGrant
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+		return errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
 	switch finding.GetJsonPayload().GetDetectionCategory().GetSubRuleName() {
 	case "external_member_added_to_policy":
-		v.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		v.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
+		values.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
+		values.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
 	default:
-		return nil, services.ErrUnsupportedFinding
+		return services.ErrUnsupportedFinding
 	}
-	if v.ProjectID == "" || len(v.ExternalMembers) == 0 {
-		return nil, services.ErrValueNotFound
+	if values.ProjectID == "" || len(values.ExternalMembers) == 0 {
+		return services.ErrValueNotFound
 	}
-	return v, nil
+	return nil
+}
+
+func readSCCFinding(b []byte, values *Values) error {
+	var finding sccPb.AnomalousIAMGrant
+	if err := json.Unmarshal(b, &finding); err != nil {
+		return errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	switch finding.GetFinding().GetCategory() {
+	case "Persistence: IAM Anomalous Grant":
+		values.ProjectID = finding.GetFinding().GetSourceProperties()["properties_project_id"]
+		values.ExternalMembers = []string{}
+		for k, v := range finding.GetFinding().GetSourceProperties() {
+			if strings.HasPrefix(k, "properties_externalMembers_") {
+				values.ExternalMembers = append(values.ExternalMembers, v)
+			}
+		}
+	default:
+		return services.ErrUnsupportedFinding
+	}
+	if values.ProjectID == "" || len(values.ExternalMembers) == 0 {
+		return services.ErrValueNotFound
+	}
+	return nil
 }
 
 // Execute is the entry point for the IAM revoker Cloud Function.
