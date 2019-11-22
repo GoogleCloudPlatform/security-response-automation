@@ -1,5 +1,5 @@
-// Package sha holds Security Health Analytics finding entities and functions
-package sha
+// Package scc holds Security Command Center finding entities and functions
+package scc
 
 // Copyright 2019 Google LLC
 //

@@ -1,4 +1,4 @@
-package etd
+package stackdriver
 
 import "regexp"
 

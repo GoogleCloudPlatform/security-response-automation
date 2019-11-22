@@ -22,7 +22,7 @@ import (
 	"regexp"
 	"strings"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )

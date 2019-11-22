@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/scc"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -48,7 +48,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "NON_ORG_IAM_MEMBER":
-		if sha.IgnoreFinding(finding.GetFinding()) {
+		if scc.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		if fromProject(finding.GetFinding().GetResourceName()) {

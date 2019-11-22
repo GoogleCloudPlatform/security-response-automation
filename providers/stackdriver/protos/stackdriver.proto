@@ -18,7 +18,7 @@
 // using protcol buffers instead of reinventing it ourselves in Go. These protos are not
 // complete, many fields are missing.
 //
-// Generate by running: protoc -I=providers --go_out=compiled providers/etd/protos/*
+// Generate by running: protoc -I=providers --go_out=compiled providers/stackdriver/protos/*
 
 syntax = "proto3";
 

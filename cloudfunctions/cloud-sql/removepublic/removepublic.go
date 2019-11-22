@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"log"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/scc"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -47,10 +47,10 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "PUBLIC_SQL_INSTANCE":
-		if sha.IgnoreFinding(finding.GetFinding()) {
+		if scc.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
-		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
+		r.InstanceName = scc.Instance(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
 	default:
 		return nil, services.ErrUnsupportedFinding

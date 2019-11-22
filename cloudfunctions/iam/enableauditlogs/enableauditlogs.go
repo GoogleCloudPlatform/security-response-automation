@@ -18,10 +18,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
+	"github.com/googlecloudplatform/security-response-automation/providers/scc"
 	"github.com/googlecloudplatform/security-response-automation/services"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
 	"github.com/pkg/errors"
 )
 
@@ -51,7 +51,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	r := &Values{}
 	switch finding.GetFinding().GetCategory() {
 	case "AUDIT_LOGGING_DISABLED":
-		if sha.IgnoreFinding(finding.GetFinding()) {
+		if scc.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
