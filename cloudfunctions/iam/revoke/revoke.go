@@ -79,6 +79,9 @@ func readSDFinding(b []byte, values *Values) error {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
+	if finding.GetJsonPayload() == nil {
+		return services.ErrSkipFinding
+	}
 	switch finding.GetJsonPayload().GetDetectionCategory().GetSubRuleName() {
 	case "external_member_added_to_policy":
 		values.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
@@ -96,6 +99,9 @@ func readSCCFinding(b []byte, values *Values) error {
 	var finding sccPb.AnomalousIAMGrant
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	if finding.GetFinding() == nil {
+		return services.ErrSkipFinding
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "Persistence: IAM Anomalous Grant":
