@@ -53,7 +53,7 @@ func ReadFinding(b []byte) (*Values, error) {
 	case services.ErrUnsupportedFinding:
 		return nil, err
 	case services.ErrSkipFinding:
-		// Incoming finding not from ETD, pass to next.
+		// Incoming finding not from Stackdriver, pass to next.
 	case nil:
 		return &values, nil
 	}
@@ -65,8 +65,6 @@ func ReadFinding(b []byte) (*Values, error) {
 		fallthrough
 	case services.ErrUnsupportedFinding:
 		return nil, err
-	case services.ErrSkipFinding:
-		// Incoming finding not from SHA, pass to next.
 	case nil:
 		return &values, nil
 	}
@@ -99,9 +97,6 @@ func readSCCFinding(b []byte, values *Values) error {
 	var finding sccPb.AnomalousIAMGrantSCC
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	if finding.GetFinding() == nil {
-		return services.ErrSkipFinding
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "Persistence: IAM Anomalous Grant":

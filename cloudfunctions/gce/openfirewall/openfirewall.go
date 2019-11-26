@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"log"
 
-	etdPb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
+	etdPb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/scc"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
@@ -70,8 +70,6 @@ func ReadFinding(b []byte) (*Values, error) {
 		fallthrough
 	case services.ErrUnsupportedFinding:
 		return nil, err
-	case services.ErrSkipFinding:
-		// Incoming finding not from SHA, pass to next.
 	case nil:
 		return &values, nil
 	}
