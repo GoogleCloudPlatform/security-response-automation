@@ -75,7 +75,7 @@ func ReadFinding(b []byte) (*Values, error) {
 }
 
 func readSDFinding(b []byte, values *Values) error {
-	var finding sdPb.AnomalousIAMGrant
+	var finding sdPb.AnomalousIAMGrantSD
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
@@ -96,7 +96,7 @@ func readSDFinding(b []byte, values *Values) error {
 }
 
 func readSCCFinding(b []byte, values *Values) error {
-	var finding sccPb.AnomalousIAMGrant
+	var finding sccPb.AnomalousIAMGrantSCC
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
 	}

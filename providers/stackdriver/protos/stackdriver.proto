@@ -28,7 +28,7 @@ message BadDomain {
     string ip_address = 1;
 }
 
-message AnomalousIAMGrant {
+message AnomalousIAMGrantSD {
     message Properties {
         string project_id = 1;
         repeated string externalMembers = 2;

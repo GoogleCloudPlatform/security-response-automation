@@ -164,7 +164,7 @@ message LoggingScanner {
     Finding finding = 2;
 }
 
-message AnomalousIAMGrant {
+message AnomalousIAMGrantSCC {
 
     message Finding {
       map<string, string> sourceProperties = 1;

@@ -60,62 +60,62 @@ func (m *BadDomain) GetIpAddress() string {
 	return ""
 }
 
-type AnomalousIAMGrant struct {
-	InsertId             string                         `protobuf:"bytes,1,opt,name=insertId,proto3" json:"insertId,omitempty"`
-	LogName              string                         `protobuf:"bytes,2,opt,name=logName,proto3" json:"logName,omitempty"`
-	JsonPayload          *AnomalousIAMGrant_JSONPayload `protobuf:"bytes,3,opt,name=jsonPayload,proto3" json:"jsonPayload,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
-	XXX_unrecognized     []byte                         `json:"-"`
-	XXX_sizecache        int32                          `json:"-"`
+type AnomalousIAMGrantSD struct {
+	InsertId             string                           `protobuf:"bytes,1,opt,name=insertId,proto3" json:"insertId,omitempty"`
+	LogName              string                           `protobuf:"bytes,2,opt,name=logName,proto3" json:"logName,omitempty"`
+	JsonPayload          *AnomalousIAMGrantSD_JSONPayload `protobuf:"bytes,3,opt,name=jsonPayload,proto3" json:"jsonPayload,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
+	XXX_unrecognized     []byte                           `json:"-"`
+	XXX_sizecache        int32                            `json:"-"`
 }
 
-func (m *AnomalousIAMGrant) Reset()         { *m = AnomalousIAMGrant{} }
-func (m *AnomalousIAMGrant) String() string { return proto.CompactTextString(m) }
-func (*AnomalousIAMGrant) ProtoMessage()    {}
-func (*AnomalousIAMGrant) Descriptor() ([]byte, []int) {
+func (m *AnomalousIAMGrantSD) Reset()         { *m = AnomalousIAMGrantSD{} }
+func (m *AnomalousIAMGrantSD) String() string { return proto.CompactTextString(m) }
+func (*AnomalousIAMGrantSD) ProtoMessage()    {}
+func (*AnomalousIAMGrantSD) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8a2e507346a389c4, []int{1}
 }
 
-func (m *AnomalousIAMGrant) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AnomalousIAMGrant.Unmarshal(m, b)
+func (m *AnomalousIAMGrantSD) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AnomalousIAMGrantSD.Unmarshal(m, b)
 }
-func (m *AnomalousIAMGrant) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AnomalousIAMGrant.Marshal(b, m, deterministic)
+func (m *AnomalousIAMGrantSD) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AnomalousIAMGrantSD.Marshal(b, m, deterministic)
 }
-func (m *AnomalousIAMGrant) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnomalousIAMGrant.Merge(m, src)
+func (m *AnomalousIAMGrantSD) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AnomalousIAMGrantSD.Merge(m, src)
 }
-func (m *AnomalousIAMGrant) XXX_Size() int {
-	return xxx_messageInfo_AnomalousIAMGrant.Size(m)
+func (m *AnomalousIAMGrantSD) XXX_Size() int {
+	return xxx_messageInfo_AnomalousIAMGrantSD.Size(m)
 }
-func (m *AnomalousIAMGrant) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnomalousIAMGrant.DiscardUnknown(m)
+func (m *AnomalousIAMGrantSD) XXX_DiscardUnknown() {
+	xxx_messageInfo_AnomalousIAMGrantSD.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnomalousIAMGrant proto.InternalMessageInfo
+var xxx_messageInfo_AnomalousIAMGrantSD proto.InternalMessageInfo
 
-func (m *AnomalousIAMGrant) GetInsertId() string {
+func (m *AnomalousIAMGrantSD) GetInsertId() string {
 	if m != nil {
 		return m.InsertId
 	}
 	return ""
 }
 
-func (m *AnomalousIAMGrant) GetLogName() string {
+func (m *AnomalousIAMGrantSD) GetLogName() string {
 	if m != nil {
 		return m.LogName
 	}
 	return ""
 }
 
-func (m *AnomalousIAMGrant) GetJsonPayload() *AnomalousIAMGrant_JSONPayload {
+func (m *AnomalousIAMGrantSD) GetJsonPayload() *AnomalousIAMGrantSD_JSONPayload {
 	if m != nil {
 		return m.JsonPayload
 	}
 	return nil
 }
 
-type AnomalousIAMGrant_Properties struct {
+type AnomalousIAMGrantSD_Properties struct {
 	ProjectId            string   `protobuf:"bytes,1,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
 	ExternalMembers      []string `protobuf:"bytes,2,rep,name=externalMembers,proto3" json:"externalMembers,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -123,85 +123,85 @@ type AnomalousIAMGrant_Properties struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AnomalousIAMGrant_Properties) Reset()         { *m = AnomalousIAMGrant_Properties{} }
-func (m *AnomalousIAMGrant_Properties) String() string { return proto.CompactTextString(m) }
-func (*AnomalousIAMGrant_Properties) ProtoMessage()    {}
-func (*AnomalousIAMGrant_Properties) Descriptor() ([]byte, []int) {
+func (m *AnomalousIAMGrantSD_Properties) Reset()         { *m = AnomalousIAMGrantSD_Properties{} }
+func (m *AnomalousIAMGrantSD_Properties) String() string { return proto.CompactTextString(m) }
+func (*AnomalousIAMGrantSD_Properties) ProtoMessage()    {}
+func (*AnomalousIAMGrantSD_Properties) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8a2e507346a389c4, []int{1, 0}
 }
 
-func (m *AnomalousIAMGrant_Properties) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AnomalousIAMGrant_Properties.Unmarshal(m, b)
+func (m *AnomalousIAMGrantSD_Properties) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AnomalousIAMGrantSD_Properties.Unmarshal(m, b)
 }
-func (m *AnomalousIAMGrant_Properties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AnomalousIAMGrant_Properties.Marshal(b, m, deterministic)
+func (m *AnomalousIAMGrantSD_Properties) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AnomalousIAMGrantSD_Properties.Marshal(b, m, deterministic)
 }
-func (m *AnomalousIAMGrant_Properties) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnomalousIAMGrant_Properties.Merge(m, src)
+func (m *AnomalousIAMGrantSD_Properties) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AnomalousIAMGrantSD_Properties.Merge(m, src)
 }
-func (m *AnomalousIAMGrant_Properties) XXX_Size() int {
-	return xxx_messageInfo_AnomalousIAMGrant_Properties.Size(m)
+func (m *AnomalousIAMGrantSD_Properties) XXX_Size() int {
+	return xxx_messageInfo_AnomalousIAMGrantSD_Properties.Size(m)
 }
-func (m *AnomalousIAMGrant_Properties) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnomalousIAMGrant_Properties.DiscardUnknown(m)
+func (m *AnomalousIAMGrantSD_Properties) XXX_DiscardUnknown() {
+	xxx_messageInfo_AnomalousIAMGrantSD_Properties.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnomalousIAMGrant_Properties proto.InternalMessageInfo
+var xxx_messageInfo_AnomalousIAMGrantSD_Properties proto.InternalMessageInfo
 
-func (m *AnomalousIAMGrant_Properties) GetProjectId() string {
+func (m *AnomalousIAMGrantSD_Properties) GetProjectId() string {
 	if m != nil {
 		return m.ProjectId
 	}
 	return ""
 }
 
-func (m *AnomalousIAMGrant_Properties) GetExternalMembers() []string {
+func (m *AnomalousIAMGrantSD_Properties) GetExternalMembers() []string {
 	if m != nil {
 		return m.ExternalMembers
 	}
 	return nil
 }
 
-type AnomalousIAMGrant_AffectedResource struct {
+type AnomalousIAMGrantSD_AffectedResource struct {
 	GcpResourceName      string   `protobuf:"bytes,1,opt,name=gcpResourceName,proto3" json:"gcpResourceName,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AnomalousIAMGrant_AffectedResource) Reset()         { *m = AnomalousIAMGrant_AffectedResource{} }
-func (m *AnomalousIAMGrant_AffectedResource) String() string { return proto.CompactTextString(m) }
-func (*AnomalousIAMGrant_AffectedResource) ProtoMessage()    {}
-func (*AnomalousIAMGrant_AffectedResource) Descriptor() ([]byte, []int) {
+func (m *AnomalousIAMGrantSD_AffectedResource) Reset()         { *m = AnomalousIAMGrantSD_AffectedResource{} }
+func (m *AnomalousIAMGrantSD_AffectedResource) String() string { return proto.CompactTextString(m) }
+func (*AnomalousIAMGrantSD_AffectedResource) ProtoMessage()    {}
+func (*AnomalousIAMGrantSD_AffectedResource) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8a2e507346a389c4, []int{1, 1}
 }
 
-func (m *AnomalousIAMGrant_AffectedResource) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AnomalousIAMGrant_AffectedResource.Unmarshal(m, b)
+func (m *AnomalousIAMGrantSD_AffectedResource) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AnomalousIAMGrantSD_AffectedResource.Unmarshal(m, b)
 }
-func (m *AnomalousIAMGrant_AffectedResource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AnomalousIAMGrant_AffectedResource.Marshal(b, m, deterministic)
+func (m *AnomalousIAMGrantSD_AffectedResource) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AnomalousIAMGrantSD_AffectedResource.Marshal(b, m, deterministic)
 }
-func (m *AnomalousIAMGrant_AffectedResource) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnomalousIAMGrant_AffectedResource.Merge(m, src)
+func (m *AnomalousIAMGrantSD_AffectedResource) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AnomalousIAMGrantSD_AffectedResource.Merge(m, src)
 }
-func (m *AnomalousIAMGrant_AffectedResource) XXX_Size() int {
-	return xxx_messageInfo_AnomalousIAMGrant_AffectedResource.Size(m)
+func (m *AnomalousIAMGrantSD_AffectedResource) XXX_Size() int {
+	return xxx_messageInfo_AnomalousIAMGrantSD_AffectedResource.Size(m)
 }
-func (m *AnomalousIAMGrant_AffectedResource) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnomalousIAMGrant_AffectedResource.DiscardUnknown(m)
+func (m *AnomalousIAMGrantSD_AffectedResource) XXX_DiscardUnknown() {
+	xxx_messageInfo_AnomalousIAMGrantSD_AffectedResource.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnomalousIAMGrant_AffectedResource proto.InternalMessageInfo
+var xxx_messageInfo_AnomalousIAMGrantSD_AffectedResource proto.InternalMessageInfo
 
-func (m *AnomalousIAMGrant_AffectedResource) GetGcpResourceName() string {
+func (m *AnomalousIAMGrantSD_AffectedResource) GetGcpResourceName() string {
 	if m != nil {
 		return m.GcpResourceName
 	}
 	return ""
 }
 
-type AnomalousIAMGrant_DetectionCategory struct {
+type AnomalousIAMGrantSD_DetectionCategory struct {
 	RuleName             string   `protobuf:"bytes,1,opt,name=ruleName,proto3" json:"ruleName,omitempty"`
 	SubRuleName          string   `protobuf:"bytes,2,opt,name=subRuleName,proto3" json:"subRuleName,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -209,94 +209,94 @@ type AnomalousIAMGrant_DetectionCategory struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AnomalousIAMGrant_DetectionCategory) Reset()         { *m = AnomalousIAMGrant_DetectionCategory{} }
-func (m *AnomalousIAMGrant_DetectionCategory) String() string { return proto.CompactTextString(m) }
-func (*AnomalousIAMGrant_DetectionCategory) ProtoMessage()    {}
-func (*AnomalousIAMGrant_DetectionCategory) Descriptor() ([]byte, []int) {
+func (m *AnomalousIAMGrantSD_DetectionCategory) Reset()         { *m = AnomalousIAMGrantSD_DetectionCategory{} }
+func (m *AnomalousIAMGrantSD_DetectionCategory) String() string { return proto.CompactTextString(m) }
+func (*AnomalousIAMGrantSD_DetectionCategory) ProtoMessage()    {}
+func (*AnomalousIAMGrantSD_DetectionCategory) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8a2e507346a389c4, []int{1, 2}
 }
 
-func (m *AnomalousIAMGrant_DetectionCategory) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AnomalousIAMGrant_DetectionCategory.Unmarshal(m, b)
+func (m *AnomalousIAMGrantSD_DetectionCategory) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AnomalousIAMGrantSD_DetectionCategory.Unmarshal(m, b)
 }
-func (m *AnomalousIAMGrant_DetectionCategory) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AnomalousIAMGrant_DetectionCategory.Marshal(b, m, deterministic)
+func (m *AnomalousIAMGrantSD_DetectionCategory) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AnomalousIAMGrantSD_DetectionCategory.Marshal(b, m, deterministic)
 }
-func (m *AnomalousIAMGrant_DetectionCategory) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnomalousIAMGrant_DetectionCategory.Merge(m, src)
+func (m *AnomalousIAMGrantSD_DetectionCategory) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AnomalousIAMGrantSD_DetectionCategory.Merge(m, src)
 }
-func (m *AnomalousIAMGrant_DetectionCategory) XXX_Size() int {
-	return xxx_messageInfo_AnomalousIAMGrant_DetectionCategory.Size(m)
+func (m *AnomalousIAMGrantSD_DetectionCategory) XXX_Size() int {
+	return xxx_messageInfo_AnomalousIAMGrantSD_DetectionCategory.Size(m)
 }
-func (m *AnomalousIAMGrant_DetectionCategory) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnomalousIAMGrant_DetectionCategory.DiscardUnknown(m)
+func (m *AnomalousIAMGrantSD_DetectionCategory) XXX_DiscardUnknown() {
+	xxx_messageInfo_AnomalousIAMGrantSD_DetectionCategory.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnomalousIAMGrant_DetectionCategory proto.InternalMessageInfo
+var xxx_messageInfo_AnomalousIAMGrantSD_DetectionCategory proto.InternalMessageInfo
 
-func (m *AnomalousIAMGrant_DetectionCategory) GetRuleName() string {
+func (m *AnomalousIAMGrantSD_DetectionCategory) GetRuleName() string {
 	if m != nil {
 		return m.RuleName
 	}
 	return ""
 }
 
-func (m *AnomalousIAMGrant_DetectionCategory) GetSubRuleName() string {
+func (m *AnomalousIAMGrantSD_DetectionCategory) GetSubRuleName() string {
 	if m != nil {
 		return m.SubRuleName
 	}
 	return ""
 }
 
-type AnomalousIAMGrant_JSONPayload struct {
-	AffectedResources    []*AnomalousIAMGrant_AffectedResource `protobuf:"bytes,1,rep,name=affectedResources,proto3" json:"affectedResources,omitempty"`
-	Properties           *AnomalousIAMGrant_Properties         `protobuf:"bytes,2,opt,name=properties,proto3" json:"properties,omitempty"`
-	DetectionCategory    *AnomalousIAMGrant_DetectionCategory  `protobuf:"bytes,3,opt,name=detectionCategory,proto3" json:"detectionCategory,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                              `json:"-"`
-	XXX_unrecognized     []byte                                `json:"-"`
-	XXX_sizecache        int32                                 `json:"-"`
+type AnomalousIAMGrantSD_JSONPayload struct {
+	AffectedResources    []*AnomalousIAMGrantSD_AffectedResource `protobuf:"bytes,1,rep,name=affectedResources,proto3" json:"affectedResources,omitempty"`
+	Properties           *AnomalousIAMGrantSD_Properties         `protobuf:"bytes,2,opt,name=properties,proto3" json:"properties,omitempty"`
+	DetectionCategory    *AnomalousIAMGrantSD_DetectionCategory  `protobuf:"bytes,3,opt,name=detectionCategory,proto3" json:"detectionCategory,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                                `json:"-"`
+	XXX_unrecognized     []byte                                  `json:"-"`
+	XXX_sizecache        int32                                   `json:"-"`
 }
 
-func (m *AnomalousIAMGrant_JSONPayload) Reset()         { *m = AnomalousIAMGrant_JSONPayload{} }
-func (m *AnomalousIAMGrant_JSONPayload) String() string { return proto.CompactTextString(m) }
-func (*AnomalousIAMGrant_JSONPayload) ProtoMessage()    {}
-func (*AnomalousIAMGrant_JSONPayload) Descriptor() ([]byte, []int) {
+func (m *AnomalousIAMGrantSD_JSONPayload) Reset()         { *m = AnomalousIAMGrantSD_JSONPayload{} }
+func (m *AnomalousIAMGrantSD_JSONPayload) String() string { return proto.CompactTextString(m) }
+func (*AnomalousIAMGrantSD_JSONPayload) ProtoMessage()    {}
+func (*AnomalousIAMGrantSD_JSONPayload) Descriptor() ([]byte, []int) {
 	return fileDescriptor_8a2e507346a389c4, []int{1, 3}
 }
 
-func (m *AnomalousIAMGrant_JSONPayload) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AnomalousIAMGrant_JSONPayload.Unmarshal(m, b)
+func (m *AnomalousIAMGrantSD_JSONPayload) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AnomalousIAMGrantSD_JSONPayload.Unmarshal(m, b)
 }
-func (m *AnomalousIAMGrant_JSONPayload) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AnomalousIAMGrant_JSONPayload.Marshal(b, m, deterministic)
+func (m *AnomalousIAMGrantSD_JSONPayload) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AnomalousIAMGrantSD_JSONPayload.Marshal(b, m, deterministic)
 }
-func (m *AnomalousIAMGrant_JSONPayload) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnomalousIAMGrant_JSONPayload.Merge(m, src)
+func (m *AnomalousIAMGrantSD_JSONPayload) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AnomalousIAMGrantSD_JSONPayload.Merge(m, src)
 }
-func (m *AnomalousIAMGrant_JSONPayload) XXX_Size() int {
-	return xxx_messageInfo_AnomalousIAMGrant_JSONPayload.Size(m)
+func (m *AnomalousIAMGrantSD_JSONPayload) XXX_Size() int {
+	return xxx_messageInfo_AnomalousIAMGrantSD_JSONPayload.Size(m)
 }
-func (m *AnomalousIAMGrant_JSONPayload) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnomalousIAMGrant_JSONPayload.DiscardUnknown(m)
+func (m *AnomalousIAMGrantSD_JSONPayload) XXX_DiscardUnknown() {
+	xxx_messageInfo_AnomalousIAMGrantSD_JSONPayload.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnomalousIAMGrant_JSONPayload proto.InternalMessageInfo
+var xxx_messageInfo_AnomalousIAMGrantSD_JSONPayload proto.InternalMessageInfo
 
-func (m *AnomalousIAMGrant_JSONPayload) GetAffectedResources() []*AnomalousIAMGrant_AffectedResource {
+func (m *AnomalousIAMGrantSD_JSONPayload) GetAffectedResources() []*AnomalousIAMGrantSD_AffectedResource {
 	if m != nil {
 		return m.AffectedResources
 	}
 	return nil
 }
 
-func (m *AnomalousIAMGrant_JSONPayload) GetProperties() *AnomalousIAMGrant_Properties {
+func (m *AnomalousIAMGrantSD_JSONPayload) GetProperties() *AnomalousIAMGrantSD_Properties {
 	if m != nil {
 		return m.Properties
 	}
 	return nil
 }
 
-func (m *AnomalousIAMGrant_JSONPayload) GetDetectionCategory() *AnomalousIAMGrant_DetectionCategory {
+func (m *AnomalousIAMGrantSD_JSONPayload) GetDetectionCategory() *AnomalousIAMGrantSD_DetectionCategory {
 	if m != nil {
 		return m.DetectionCategory
 	}
@@ -870,11 +870,11 @@ func (m *SshBruteForce_JSONPayload) GetDetectionCategory() *SshBruteForce_Detect
 
 func init() {
 	proto.RegisterType((*BadDomain)(nil), "BadDomain")
-	proto.RegisterType((*AnomalousIAMGrant)(nil), "AnomalousIAMGrant")
-	proto.RegisterType((*AnomalousIAMGrant_Properties)(nil), "AnomalousIAMGrant.Properties")
-	proto.RegisterType((*AnomalousIAMGrant_AffectedResource)(nil), "AnomalousIAMGrant.AffectedResource")
-	proto.RegisterType((*AnomalousIAMGrant_DetectionCategory)(nil), "AnomalousIAMGrant.DetectionCategory")
-	proto.RegisterType((*AnomalousIAMGrant_JSONPayload)(nil), "AnomalousIAMGrant.JSONPayload")
+	proto.RegisterType((*AnomalousIAMGrantSD)(nil), "AnomalousIAMGrantSD")
+	proto.RegisterType((*AnomalousIAMGrantSD_Properties)(nil), "AnomalousIAMGrantSD.Properties")
+	proto.RegisterType((*AnomalousIAMGrantSD_AffectedResource)(nil), "AnomalousIAMGrantSD.AffectedResource")
+	proto.RegisterType((*AnomalousIAMGrantSD_DetectionCategory)(nil), "AnomalousIAMGrantSD.DetectionCategory")
+	proto.RegisterType((*AnomalousIAMGrantSD_JSONPayload)(nil), "AnomalousIAMGrantSD.JSONPayload")
 	proto.RegisterType((*BadIP)(nil), "BadIP")
 	proto.RegisterType((*BadIP_Properties)(nil), "BadIP.Properties")
 	proto.RegisterType((*BadIP_AffectedResource)(nil), "BadIP.AffectedResource")
@@ -893,46 +893,46 @@ func init() {
 }
 
 var fileDescriptor_8a2e507346a389c4 = []byte{
-	// 648 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x95, 0xc1, 0x4e, 0xd4, 0x5e,
-	0x14, 0xc6, 0x33, 0xcc, 0xfc, 0xf9, 0x33, 0xa7, 0x12, 0x9d, 0xbb, 0xd0, 0x5a, 0x03, 0x4c, 0x90,
-	0xc5, 0xc4, 0xc5, 0x10, 0xd1, 0x8d, 0x09, 0x26, 0x0e, 0x22, 0xa6, 0x46, 0x10, 0x2e, 0x71, 0x4d,
-	0x2e, 0xed, 0x61, 0x28, 0xb6, 0xbd, 0xcd, 0xbd, 0xb7, 0x44, 0x5c, 0xb8, 0x30, 0xf1, 0x49, 0x7c,
-	0x0d, 0xdf, 0xc1, 0xc7, 0x30, 0xae, 0x7d, 0x01, 0xd3, 0xdb, 0x76, 0x28, 0x77, 0xda, 0x64, 0xc0,
-	0xc4, 0x1d, 0xe7, 0x3b, 0xfd, 0x4e, 0xcf, 0xf9, 0xfa, 0x23, 0x03, 0x6b, 0x52, 0x31, 0xef, 0x83,
-	0x2f, 0x82, 0x73, 0x14, 0xeb, 0x89, 0xe0, 0x8a, 0xcb, 0xf5, 0x8a, 0x34, 0xd4, 0xd2, 0xea, 0x23,
-	0xe8, 0x6e, 0x31, 0x7f, 0x9b, 0x47, 0x2c, 0x88, 0xc9, 0x12, 0x40, 0x90, 0x1c, 0x31, 0xdf, 0x17,
-	0x28, 0xa5, 0xdd, 0xea, 0xb7, 0x06, 0x5d, 0xda, 0x0d, 0x92, 0x51, 0x2e, 0xac, 0xfe, 0xea, 0x40,
-	0x6f, 0x14, 0xf3, 0x88, 0x85, 0x3c, 0x95, 0xee, 0x68, 0xf7, 0xb5, 0x60, 0xb1, 0x22, 0x0e, 0x2c,
-	0x04, 0xb1, 0x44, 0xa1, 0x5c, 0xbf, 0xb0, 0x4c, 0x6a, 0x62, 0xc3, 0xff, 0x21, 0x1f, 0xef, 0xb1,
-	0x08, 0xed, 0x39, 0xdd, 0x2a, 0x4b, 0xf2, 0x02, 0xac, 0x33, 0xc9, 0xe3, 0x7d, 0x76, 0x11, 0x72,
-	0xe6, 0xdb, 0xed, 0x7e, 0x6b, 0x60, 0x6d, 0x2c, 0x0f, 0xa7, 0xc6, 0x0f, 0xdf, 0x1c, 0xbe, 0xdb,
-	0x2b, 0x9e, 0xa2, 0x55, 0x8b, 0xf3, 0x1e, 0x60, 0x5f, 0xf0, 0x04, 0x85, 0x0a, 0x50, 0x66, 0xab,
-	0x27, 0x82, 0x9f, 0xa1, 0xa7, 0x8e, 0x82, 0x72, 0x8f, 0x6e, 0xa1, 0xb8, 0x3e, 0x19, 0xc0, 0x6d,
-	0xfc, 0xa8, 0x50, 0xc4, 0x2c, 0xdc, 0xc5, 0xe8, 0x18, 0x85, 0xb4, 0xe7, 0xfa, 0xed, 0x41, 0x97,
-	0x9a, 0xb2, 0xb3, 0x09, 0x77, 0x46, 0x27, 0x27, 0xe8, 0x29, 0xf4, 0x29, 0x4a, 0x9e, 0x0a, 0x0f,
-	0x33, 0xf7, 0xd8, 0x4b, 0xca, 0x52, 0x9f, 0x93, 0xbf, 0xc1, 0x94, 0x9d, 0x03, 0xe8, 0x6d, 0xa3,
-	0x42, 0x4f, 0x05, 0x3c, 0x7e, 0xc9, 0x14, 0x8e, 0xb9, 0xb8, 0xc8, 0x12, 0x12, 0x69, 0x58, 0xf5,
-	0x4d, 0x6a, 0xd2, 0x07, 0x4b, 0xa6, 0xc7, 0xb4, 0x6c, 0xe7, 0x29, 0x55, 0x25, 0xe7, 0x77, 0x0b,
-	0xac, 0x4a, 0x08, 0xe4, 0x00, 0x7a, 0xcc, 0x58, 0x30, 0xfb, 0x56, 0xed, 0x81, 0xb5, 0xf1, 0xb0,
-	0x26, 0x3f, 0xf3, 0x18, 0x3a, 0xed, 0x26, 0xcf, 0x75, 0x78, 0x45, 0x94, 0x7a, 0x07, 0x6b, 0x63,
-	0xa9, 0x66, 0xd6, 0x65, 0xde, 0xb4, 0x62, 0x20, 0x14, 0x7a, 0xbe, 0x79, 0x74, 0xf1, 0x45, 0xd7,
-	0x6a, 0xa6, 0x4c, 0x05, 0x44, 0xa7, 0xed, 0xab, 0xdf, 0x3b, 0xf0, 0xdf, 0x16, 0xf3, 0xdd, 0xfd,
-	0x1b, 0xf2, 0xf5, 0xb4, 0x8e, 0x2f, 0x32, 0xd4, 0x23, 0x9b, 0x99, 0xfa, 0xda, 0xba, 0x0e, 0x54,
-	0x0e, 0x2c, 0x84, 0xdc, 0x63, 0xd9, 0xde, 0xc5, 0xeb, 0x27, 0x75, 0x86, 0x4c, 0x10, 0x4b, 0xc5,
-	0x62, 0x0f, 0xb7, 0x51, 0xb1, 0x20, 0x94, 0x7a, 0x87, 0x2e, 0x35, 0x65, 0x42, 0xa0, 0xf3, 0x89,
-	0xc7, 0x68, 0x77, 0x74, 0x5b, 0xff, 0xfd, 0x97, 0x10, 0xae, 0x5f, 0x13, 0x42, 0xe7, 0x87, 0x81,
-	0xd8, 0xab, 0x66, 0xc4, 0xee, 0x15, 0x11, 0xce, 0x82, 0xd5, 0xe3, 0x1a, 0xac, 0x7a, 0x85, 0xbf,
-	0x01, 0xa5, 0x9d, 0x66, 0x94, 0xec, 0xc2, 0x39, 0x13, 0x3e, 0x5f, 0xe6, 0x61, 0xf1, 0x50, 0x9e,
-	0x6e, 0x89, 0x54, 0xe1, 0x0e, 0xcf, 0xe2, 0xbb, 0x19, 0x46, 0x9b, 0x75, 0x18, 0x39, 0xc3, 0x2b,
-	0xa3, 0x9b, 0x71, 0xfa, 0x0c, 0xb7, 0xde, 0xf2, 0x71, 0x10, 0x8f, 0x94, 0xc2, 0x28, 0x51, 0x64,
-	0x19, 0x80, 0xa5, 0xea, 0x94, 0xa2, 0x4c, 0x43, 0x55, 0x6c, 0x51, 0x51, 0xb2, 0x1d, 0xf3, 0xec,
-	0xdc, 0xa4, 0x04, 0xaa, 0xac, 0xb3, 0x5e, 0x2a, 0x51, 0xe8, 0x25, 0x73, 0x92, 0x26, 0x35, 0xb9,
-	0x0b, 0xf3, 0xe7, 0x91, 0xee, 0xe4, 0x10, 0x15, 0x95, 0xf3, 0xed, 0x2a, 0xce, 0x2b, 0x60, 0x95,
-	0xf0, 0x5d, 0xf2, 0x0c, 0xa5, 0xe4, 0xfa, 0x06, 0xef, 0x73, 0x26, 0xef, 0x25, 0xa9, 0xed, 0x4b,
-	0x52, 0xc9, 0x08, 0x16, 0xab, 0x27, 0x4a, 0xbb, 0xa3, 0x31, 0x79, 0x60, 0x44, 0x54, 0x7d, 0x86,
-	0x2e, 0x86, 0x55, 0xc7, 0xbf, 0x86, 0xfd, 0xa7, 0x01, 0xfb, 0x6e, 0x33, 0xec, 0x2b, 0xc6, 0x15,
-	0xb3, 0x40, 0xff, 0xac, 0x06, 0xfa, 0xfb, 0xc6, 0x9c, 0x06, 0xf8, 0xf7, 0x9a, 0xe1, 0xef, 0x1b,
-	0x13, 0x66, 0xf9, 0x27, 0x38, 0x9e, 0xd7, 0x3f, 0xf1, 0x4f, 0xfe, 0x04, 0x00, 0x00, 0xff, 0xff,
-	0x34, 0xda, 0xaa, 0x86, 0x0a, 0x08, 0x00, 0x00,
+	// 651 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x95, 0xc1, 0x6e, 0xd3, 0x4e,
+	0x10, 0xc6, 0x95, 0x26, 0xff, 0xfe, 0x9b, 0x31, 0x15, 0x64, 0x91, 0xc0, 0x18, 0x41, 0xa3, 0x0a,
+	0x50, 0xc4, 0x21, 0x15, 0x85, 0x0b, 0x52, 0x25, 0xe4, 0x10, 0x8a, 0x8c, 0x68, 0x29, 0x0e, 0x9c,
+	0xab, 0xad, 0x3d, 0x4d, 0x5d, 0x6c, 0xaf, 0xb5, 0xbb, 0xae, 0x28, 0x07, 0x0e, 0x48, 0x3c, 0x09,
+	0xaf, 0xc1, 0x3b, 0xf0, 0x18, 0x3c, 0x00, 0x27, 0x6e, 0xc8, 0x6b, 0x3b, 0x75, 0x37, 0xb6, 0x94,
+	0x16, 0x89, 0x5b, 0xe6, 0x5b, 0xcf, 0xec, 0x37, 0x9f, 0x7f, 0x91, 0xe1, 0x9e, 0x90, 0xd4, 0xfb,
+	0xe0, 0xf3, 0xe0, 0x04, 0xf9, 0x46, 0xc2, 0x99, 0x64, 0x62, 0xa3, 0x22, 0x0d, 0x95, 0xb4, 0xfe,
+	0x10, 0xba, 0x23, 0xea, 0x8f, 0x59, 0x44, 0x83, 0x98, 0xdc, 0x01, 0x08, 0x92, 0x7d, 0xea, 0xfb,
+	0x1c, 0x85, 0x30, 0x5b, 0xfd, 0xd6, 0xa0, 0xeb, 0x76, 0x83, 0xc4, 0xce, 0x85, 0xf5, 0x5f, 0x1d,
+	0xb8, 0x6e, 0xc7, 0x2c, 0xa2, 0x21, 0x4b, 0x85, 0x63, 0xef, 0xbc, 0xe4, 0x34, 0x96, 0x93, 0x31,
+	0xb1, 0x60, 0x25, 0x88, 0x05, 0x72, 0xe9, 0xf8, 0x45, 0xd3, 0xac, 0x26, 0x26, 0xfc, 0x1f, 0xb2,
+	0xe9, 0x2e, 0x8d, 0xd0, 0x5c, 0x52, 0x47, 0x65, 0x49, 0x46, 0x60, 0x1c, 0x0b, 0x16, 0xef, 0xd1,
+	0xd3, 0x90, 0x51, 0xdf, 0x6c, 0xf7, 0x5b, 0x03, 0x63, 0xb3, 0x3f, 0xac, 0xb9, 0x60, 0xf8, 0x6a,
+	0xf2, 0x66, 0xb7, 0x78, 0xce, 0xad, 0x36, 0x59, 0xef, 0x01, 0xf6, 0x38, 0x4b, 0x90, 0xcb, 0x00,
+	0x45, 0x66, 0x3f, 0xe1, 0xec, 0x18, 0x3d, 0xb9, 0x1f, 0x94, 0x4e, 0xba, 0x85, 0xe2, 0xf8, 0x64,
+	0x00, 0x57, 0xf1, 0xa3, 0x44, 0x1e, 0xd3, 0x70, 0x07, 0xa3, 0x03, 0xe4, 0xc2, 0x5c, 0xea, 0xb7,
+	0x07, 0x5d, 0x57, 0x97, 0xad, 0x2d, 0xb8, 0x66, 0x1f, 0x1e, 0xa2, 0x27, 0xd1, 0x77, 0x51, 0xb0,
+	0x94, 0x7b, 0x98, 0x75, 0x4f, 0xbd, 0xa4, 0x2c, 0xd5, 0x42, 0xf9, 0x0d, 0xba, 0x6c, 0xbd, 0x85,
+	0xde, 0x18, 0x25, 0x7a, 0x32, 0x60, 0xf1, 0x73, 0x2a, 0x71, 0xca, 0xf8, 0x69, 0x96, 0x11, 0x4f,
+	0xc3, 0x6a, 0xdf, 0xac, 0x26, 0x7d, 0x30, 0x44, 0x7a, 0xe0, 0x96, 0xc7, 0x79, 0x4e, 0x55, 0xc9,
+	0xfa, 0xdd, 0x02, 0xa3, 0x12, 0x02, 0x99, 0x40, 0x8f, 0x6a, 0x06, 0xb3, 0xf7, 0xd5, 0x1e, 0x18,
+	0x9b, 0xf7, 0x6b, 0x13, 0xd4, 0xd7, 0x71, 0xe7, 0xfb, 0xc9, 0x33, 0x15, 0x5f, 0x11, 0xa6, 0x72,
+	0x61, 0x6c, 0xae, 0xd5, 0x4e, 0x3b, 0xcb, 0xdc, 0xad, 0xb4, 0x90, 0x77, 0xd0, 0xf3, 0xf5, 0xc5,
+	0x8b, 0xf7, 0xfa, 0xa0, 0x76, 0xce, 0x5c, 0x4c, 0xee, 0xfc, 0x80, 0xf5, 0xef, 0x1d, 0xf8, 0x6f,
+	0x44, 0x7d, 0x67, 0xef, 0x92, 0x9c, 0x3d, 0xa9, 0xe3, 0x8c, 0x0c, 0xd5, 0xc8, 0x66, 0xb2, 0xbe,
+	0xb6, 0x2e, 0x82, 0x96, 0x05, 0x2b, 0x21, 0xf3, 0x68, 0xe6, 0xbb, 0xb8, 0x7e, 0x56, 0x67, 0xe0,
+	0x04, 0xb1, 0x90, 0x34, 0xf6, 0x70, 0x8c, 0x92, 0x06, 0xa1, 0x50, 0x1e, 0xba, 0xae, 0x2e, 0x13,
+	0x02, 0x9d, 0x4f, 0x2c, 0x46, 0xb3, 0xa3, 0x8e, 0xd5, 0xef, 0xbf, 0x44, 0x71, 0xe3, 0x82, 0x28,
+	0x5a, 0x3f, 0x34, 0xd0, 0x5e, 0x34, 0x83, 0x76, 0xb3, 0x88, 0x70, 0x11, 0xb4, 0x1e, 0xd5, 0xa0,
+	0xd5, 0x2b, 0xfa, 0x1b, 0x60, 0xda, 0x6e, 0x86, 0xc9, 0x2c, 0x3a, 0x17, 0xc2, 0xe7, 0xcb, 0x32,
+	0xac, 0x4e, 0xc4, 0xd1, 0x88, 0xa7, 0x12, 0xb7, 0x59, 0x16, 0xdf, 0xe5, 0x30, 0xda, 0xaa, 0xc3,
+	0xc8, 0x1a, 0x9e, 0x1b, 0xdd, 0x8c, 0xd3, 0x67, 0xb8, 0xf2, 0x9a, 0x4d, 0x83, 0xd8, 0x96, 0x12,
+	0xa3, 0x44, 0x92, 0xbb, 0x00, 0x34, 0x95, 0x47, 0x2e, 0x8a, 0x34, 0x94, 0x85, 0x8b, 0x8a, 0x92,
+	0x79, 0xcc, 0xb3, 0x73, 0x92, 0x12, 0xa8, 0xb2, 0xce, 0xce, 0x52, 0x81, 0x5c, 0x99, 0xcc, 0x49,
+	0x9a, 0xd5, 0xe4, 0x06, 0x2c, 0x9f, 0x44, 0xea, 0x24, 0x87, 0xa8, 0xa8, 0xac, 0x6f, 0xe7, 0x71,
+	0x5e, 0x03, 0xa3, 0x84, 0xef, 0x8c, 0x67, 0x28, 0x25, 0xc7, 0xd7, 0x78, 0x5f, 0xd2, 0x79, 0x2f,
+	0x49, 0x6d, 0x9f, 0x91, 0x4a, 0x6c, 0x58, 0xad, 0xae, 0x28, 0xcc, 0x8e, 0xc2, 0xe4, 0xb6, 0x16,
+	0x51, 0xf5, 0x19, 0x77, 0x35, 0xac, 0x76, 0xfc, 0x6b, 0xd8, 0x7f, 0x6a, 0xb0, 0xef, 0x34, 0xc3,
+	0xbe, 0xa6, 0x6d, 0xb1, 0x08, 0xf4, 0x4f, 0x6b, 0xa0, 0xbf, 0xa5, 0xcd, 0x69, 0x80, 0x7f, 0xb7,
+	0x19, 0xfe, 0xbe, 0x36, 0x61, 0x91, 0x3f, 0xc1, 0xc1, 0xb2, 0xfa, 0xd8, 0x3f, 0xfe, 0x13, 0x00,
+	0x00, 0xff, 0xff, 0xc0, 0x54, 0x02, 0x0a, 0x14, 0x08, 0x00, 0x00,
 }
