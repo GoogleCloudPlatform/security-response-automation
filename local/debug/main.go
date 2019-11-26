@@ -48,7 +48,7 @@ const (
 		},
 		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 	}`
-	sccAnoumalousIAMGrant = `{
+	sccAnomalousIAMGrant = `{
 		  "notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
 		  "finding": {
 			"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
@@ -86,7 +86,7 @@ const (
 			"createTime": "2019-11-22T18:34:36.688Z"
 	  	}
 	}`
-	sdAnoumalousIAMGrant = `{
+	sdAnomalousIAMGrant = `{
 		"jsonPayload": {
 			"properties": {
 				"project_id": "test-project-15511551515",
@@ -113,10 +113,10 @@ func main() {
 	if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
 		log.Fatal(err)
 	}
-	if err := exec.IAMRevoke(ctx, pubsub.Message{Data: []byte(sccAnoumalousIAMGrant)}); err != nil {
+	if err := exec.IAMRevoke(ctx, pubsub.Message{Data: []byte(sccAnomalousIAMGrant)}); err != nil {
 		log.Fatal(err)
 	}
-	if err := exec.IAMRevoke(ctx, pubsub.Message{Data: []byte(sdAnoumalousIAMGrant)}); err != nil {
+	if err := exec.IAMRevoke(ctx, pubsub.Message{Data: []byte(sdAnomalousIAMGrant)}); err != nil {
 		log.Fatal(err)
 	}
 }
