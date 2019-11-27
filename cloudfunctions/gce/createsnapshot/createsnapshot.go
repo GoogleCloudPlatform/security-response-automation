@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/stackdriver"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
@@ -69,8 +69,8 @@ func ReadFinding(b []byte) (*Values, error) {
 	case "bad_ip":
 		values.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
 		values.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
-		values.Instance = stackdriver.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		values.Zone = stackdriver.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
+		values.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
+		values.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}

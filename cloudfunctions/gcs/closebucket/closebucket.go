@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/scc"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -48,10 +48,10 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "PUBLIC_BUCKET_ACL":
-		if scc.IgnoreFinding(finding.GetFinding()) {
+		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
-		r.BucketName = scc.BucketName(finding.GetFinding().GetResourceName())
+		r.BucketName = sha.BucketName(finding.GetFinding().GetResourceName())
 		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectId()
 	default:
 		return nil, services.ErrUnsupportedFinding

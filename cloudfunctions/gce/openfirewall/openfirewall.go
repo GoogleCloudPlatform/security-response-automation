@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"log"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
-	etdPb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/scc"
+	etdPb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -116,10 +116,10 @@ func readSHAFinding(b []byte, values *Values) error {
 	case "OPEN_SSH_PORT":
 		fallthrough
 	case "OPEN_RDP_PORT":
-		if scc.IgnoreFinding(shaFinding.GetFinding()) {
+		if sha.IgnoreFinding(shaFinding.GetFinding()) {
 			return services.ErrUnsupportedFinding
 		}
-		values.FirewallID = scc.FirewallID(shaFinding.GetFinding().GetResourceName())
+		values.FirewallID = sha.FirewallID(shaFinding.GetFinding().GetResourceName())
 		values.ProjectID = shaFinding.GetFinding().GetSourceProperties().GetProjectId()
 	default:
 		return services.ErrUnsupportedFinding

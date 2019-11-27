@@ -22,8 +22,7 @@ import (
 	"regexp"
 	"strings"
 
-	sccPb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
-	sdPb "github.com/googlecloudplatform/security-response-automation/compiled/stackdriver/protos"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -73,7 +72,7 @@ func ReadFinding(b []byte) (*Values, error) {
 }
 
 func readSDFinding(b []byte, values *Values) error {
-	var finding sdPb.AnomalousIAMGrantSD
+	var finding pb.AnomalousIAMGrantSD
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
 	}
@@ -94,7 +93,7 @@ func readSDFinding(b []byte, values *Values) error {
 }
 
 func readSCCFinding(b []byte, values *Values) error {
-	var finding sccPb.AnomalousIAMGrantSCC
+	var finding pb.AnomalousIAMGrantSCC
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return errors.Wrap(services.ErrUnmarshal, err.Error())
 	}

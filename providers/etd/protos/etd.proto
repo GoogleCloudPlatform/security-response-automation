@@ -18,7 +18,7 @@
 // using protcol buffers instead of reinventing it ourselves in Go. These protos are not
 // complete, many fields are missing.
 //
-// Generate by running: protoc -I=providers --go_out=compiled providers/stackdriver/protos/*
+// Generate by running: protoc -I=providers --go_out=compiled providers/etd/protos/*
 
 syntax = "proto3";
 
@@ -26,6 +26,19 @@ syntax = "proto3";
 // TODO: Finish.
 message BadDomain {
     string ip_address = 1;
+}
+
+message AnomalousIAMGrantSCC {
+
+    message Finding {
+      map<string, string> sourceProperties = 1;
+      string resourceName = 2;
+      string category = 3;
+      string state = 4;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
 }
 
 message AnomalousIAMGrantSD {

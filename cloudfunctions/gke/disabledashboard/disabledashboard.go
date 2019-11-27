@@ -18,8 +18,8 @@ import (
 	"context"
 	"encoding/json"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/scc/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/scc"
+	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -46,12 +46,12 @@ func ReadFinding(b []byte) (*Values, error) {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "WEB_UI_ENABLED":
-		if scc.IgnoreFinding(finding.GetFinding()) {
+		if sha.IgnoreFinding(finding.GetFinding()) {
 			return nil, services.ErrUnsupportedFinding
 		}
 		r.ProjectID = finding.Finding.SourceProperties.GetProjectID()
-		r.Zone = scc.ClusterZone(finding.GetFinding().GetResourceName())
-		r.ClusterID = scc.ClusterID(finding.GetFinding().GetResourceName())
+		r.Zone = sha.ClusterZone(finding.GetFinding().GetResourceName())
+		r.ClusterID = sha.ClusterID(finding.GetFinding().GetResourceName())
 	default:
 		return nil, services.ErrUnsupportedFinding
 	}
