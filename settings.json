@@ -5,6 +5,9 @@
     "from": "",
     "service_id": ""
   },
+  "stack_driver": {
+    "enabled": true
+  },
   "create_snapshot": {
     "snapshot_project_id": "",
     "snapshot_zone": "",
