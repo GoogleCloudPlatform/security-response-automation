@@ -1,35 +1,52 @@
 package services
 
-// Audit service.
+import (
+	"time"
+)
+
+// Audit structure.
 type Audit struct {
-	client AuditClient
+	finding string
+	events []Event
 }
 
-// AuditClient contains methods used by the Audit service.
-type AuditClient interface {
-	AddsEvent(message string, severity string)
+// Event structure
+type Event struct {
+	date string
+	text string
+	severity string
 }
 
-// NewAudit returns a Audit service.
-func NewAudit(cs AuditClient) *Audit {
-	return &Audit{client: cs}
+// NewAudit returns a Audit client initialized.
+func NewAudit(finding string) *Audit {
+	return &Audit{finding:finding}
 }
+
+// addsEvent will create a new event on audit object.
+func (p *Audit) addsEvent(text string, severity string) {
+	p.events = append(p.events, Event{
+		date: time.Now().String(),
+		text: text,
+		severity: severity,
+	})
+}
+
 // AddsInfoEvent will create a new event on audit object with severity INFO.
 func (p *Audit) AddsInfoEvent(message string) {
-	p.client.AddsEvent(message, "INFO")
+	p.addsEvent(message, "INFO")
 }
 
 // AddsDebugEvent will create a new event on audit object with severity DEBUG.
 func (p *Audit) AddsDebugEvent(message string) {
-	p.client.AddsEvent(message, "DEBUG")
+	p.addsEvent(message, "DEBUG")
 }
 
 // AddsErrorEvent will create a new event on audit object with severity ERROR.
 func (p *Audit) AddsErrorEvent(message string) {
-	p.client.AddsEvent(message, "ERROR")
+	p.addsEvent(message, "ERROR")
 }
 
 // AddsWarningEvent will create a new event on audit object with severity WARNING.
 func (p *Audit) AddsWarningEvent(message string) {
-	p.client.AddsEvent(message, "WARNING")
+	p.addsEvent(message, "WARNING")
 }

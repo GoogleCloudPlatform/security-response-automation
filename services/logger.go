@@ -57,3 +57,22 @@ func (l *Logger) Debug(message string, a ...interface{}) {
 func (l *Logger) Close() {
 	l.client.Close()
 }
+
+// LogAudit writes all audited events to stackdriver
+func (l *Logger) LogAudit(audit *Audit){
+	for _, event := range audit.events{
+		if event.severity == "INFO"{
+			l.Info(event.text)
+		}
+		if event.severity == "DEBUG" {
+			l.Debug(event.text)
+		}
+		if event.severity == "WARNING" {
+			l.Warning(event.text)
+		}
+		if event.severity == "ERROR" {
+			l.Error(event.text)
+		}
+	}
+	l.Close()
+}
