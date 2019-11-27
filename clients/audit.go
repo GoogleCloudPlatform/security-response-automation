@@ -1,8 +1,14 @@
 package clients
+
 // Audit client.
 type Audit struct {
 	finding string
-	messages []string
+	events []Event
+}
+
+type Event struct {
+	text string
+	severity string
 }
 
 // NewAudit returns a Audit client initialized.
@@ -11,6 +17,9 @@ func NewAudit(finding string) *Audit {
 }
 
 // AddsEvent will create a new event on audit object.
-func (p *Audit) AddsEvent(message string) {
-	p.messages = append(p.messages, message)
+func (p *Audit) AddsEvent(text string, severity string) {
+	p.events = append(p.events, Event{
+		text: text,
+		severity: severity,
+	})
 }
