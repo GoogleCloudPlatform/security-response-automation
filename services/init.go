@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/googlecloudplatform/security-response-automation/clients"
+	"github.com/googlecloudplatform/security-response-automation/clients/dryrun"
 )
 
 const (
@@ -23,14 +24,57 @@ type Global struct {
 	CloudSQL      *CloudSQL
 }
 
+func DryRun(ctx context.Context, original *Global) (*Global, error) {
+
+	host, err := initDryRunHost(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	fw, err := initDryRunFirewall(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := initDryRunResource(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	cont, err := initDryRunContainer(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sql, err := initDryRunCloudSQL(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Global{
+		Configuration: original.Configuration,
+		Host:          host,
+		Logger:        original.Logger,
+		Resource:      res,
+		Firewall:      fw,
+		Container:     cont,
+		CloudSQL:      sql,
+	}, nil
+}
+
 // New returns an initialized Global struct.
 func New(ctx context.Context) (*Global, error) {
-	host, err := initHost(ctx)
+	config, err := initConfiguration()
 	if err != nil {
 		return nil, err
 	}
 
 	log, err := initLog(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	host, err := initHost(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +85,6 @@ func New(ctx context.Context) (*Global, error) {
 	}
 
 	fw, err := initFirewall(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := initConfiguration()
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +142,14 @@ func initConfiguration() (*Configuration, error) {
 	return conf, nil
 }
 
+func initLog(ctx context.Context) (*Logger, error) {
+	logClient, err := clients.NewLogger(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize logger client: %q", err)
+	}
+	return NewLogger(logClient), nil
+}
+
 func initHost(ctx context.Context) (*Host, error) {
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
@@ -111,12 +158,13 @@ func initHost(ctx context.Context) (*Host, error) {
 	return NewHost(cs), nil
 }
 
-func initLog(ctx context.Context) (*Logger, error) {
-	logClient, err := clients.NewLogger(ctx, authFile)
+func initDryRunHost(ctx context.Context) (*Host, error) {
+	csReal, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize logger client: %q", err)
+		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
-	return NewLogger(logClient), nil
+	cs, _ := dryrun.NewDryRunCompute(csReal)
+	return NewHost(cs), nil
 }
 
 func initResource(ctx context.Context) (*Resource, error) {
@@ -131,11 +179,37 @@ func initResource(ctx context.Context) (*Resource, error) {
 	return NewResource(crm, stg), nil
 }
 
+func initDryRunResource(ctx context.Context) (*Resource, error) {
+	crmReal, err := clients.NewCloudResourceManager(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
+	}
+	stgReal, err := clients.NewStorage(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize storage client: %q", err)
+	}
+
+	crm, _ := dryrun.NewDryRunCloudResourceManager(crmReal)
+
+	stg, _ := dryrun.NewDryRunStorage(stgReal)
+
+	return NewResource(crm, stg), nil
+}
+
 func initFirewall(ctx context.Context) (*Firewall, error) {
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
+	return NewFirewall(cs), nil
+}
+
+func initDryRunFirewall(ctx context.Context) (*Firewall, error) {
+	csReal, err := clients.NewCompute(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
+	}
+	cs, _ := dryrun.NewDryRunCompute(csReal)
 	return NewFirewall(cs), nil
 }
 
@@ -147,10 +221,28 @@ func initContainer(ctx context.Context) (*Container, error) {
 	return NewContainer(cc), nil
 }
 
+func initDryRunContainer(ctx context.Context) (*Container, error) {
+	ccReal, err := clients.NewContainer(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to initialize container client: %q", err)
+	}
+	cc, _ := dryrun.NewDryRunContainer(ccReal)
+	return NewContainer(cc), nil
+}
+
 func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 	cs, err := clients.NewCloudSQL(ctx, authFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
+	return NewCloudSQL(cs), nil
+}
+
+func initDryRunCloudSQL(ctx context.Context) (*CloudSQL, error) {
+	csReal, err := clients.NewCloudSQL(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
+	}
+	cs, _ := dryrun.NewDryRunCloudSQL(csReal)
 	return NewCloudSQL(cs), nil
 }

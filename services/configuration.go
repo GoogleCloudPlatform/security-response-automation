@@ -115,6 +115,7 @@ type PagerDutyConfiguration struct {
 
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
+	DryRun                 bool                    `json:"dry_run"`
 	PagerDuty              *PagerDutyConfiguration `json:"pager_duty"`
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`

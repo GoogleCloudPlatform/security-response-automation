@@ -46,6 +46,12 @@ func init() {
 	if err != nil {
 		log.Fatalf("failed to initialize services: %q", err)
 	}
+	if svcs.Configuration.DryRun {
+		svcs, err = services.DryRun(ctx, svcs)
+		if err != nil {
+			log.Fatalf("failed to initialize services: %q", err)
+		}
+	}
 }
 
 // IAMRevoke is the entry point for the IAM revoker Cloud Function.
