@@ -14,8 +14,22 @@ type AuditClient interface {
 func NewAudit(cs AuditClient) *Audit {
 	return &Audit{client: cs}
 }
+// AddsInfoEvent will create a new event on audit object with severity INFO.
+func (p *Audit) AddsInfoEvent(message string) {
+	p.client.AddsEvent(message, "INFO")
+}
 
-// AddsEvent will create a new event on audit object.
-func (p *Audit) AddsEvent(message string, severity string) {
-	p.client.AddsEvent(message, severity)
+// AddsDebugEvent will create a new event on audit object with severity DEBUG.
+func (p *Audit) AddsDebugEvent(message string) {
+	p.client.AddsEvent(message, "DEBUG")
+}
+
+// AddsErrorEvent will create a new event on audit object with severity ERROR.
+func (p *Audit) AddsErrorEvent(message string) {
+	p.client.AddsEvent(message, "ERROR")
+}
+
+// AddsWarningEvent will create a new event on audit object with severity WARNING.
+func (p *Audit) AddsWarningEvent(message string) {
+	p.client.AddsEvent(message, "WARNING")
 }
