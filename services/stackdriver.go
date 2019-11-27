@@ -10,7 +10,7 @@ func (l *StackDriver) LogAudit(audit *Journal){
 	for _, event := range audit.events{
 		if event.isError{
 			l.logger.Info(event.text)
-		}else {
+		} else {
 			l.logger.Error(event.text)
 		}
 	}
