@@ -176,6 +176,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			svcs, sqlStub, crmStub := cloudSQLRequireSSL(tt.folderIDs)
+			audit := services.NewAuditLog("test")
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
 				ProjectID:    "sha-resources-20191002",
@@ -186,6 +187,8 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 				CloudSQL:      svcs.CloudSQL,
 				Resource:      svcs.Resource,
 				Logger:        svcs.Logger,
+				AuditLog:      audit,
+				Notification:  svcs.Notification,
 			}); err != nil {
 				t.Errorf("%s failed to enforce ssl in the instance :%q", tt.name, err)
 			}
@@ -211,6 +214,7 @@ func cloudSQLRequireSSL(folderIDs []string) (*services.Global, *stubs.CloudSQL, 
 				FolderIDs: folderIDs,
 			},
 		},
+		StackDriver: &services.StackDriverConfiguration{Enabled: true},
 	}
 
 	sd := services.NewStackDriver(log)
