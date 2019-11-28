@@ -54,7 +54,7 @@ message AnomalousIAMGrant {
     JSONPayload jsonPayload = 3;
 }
 
-message BadIP {
+message BadIPSD {
 
     message Properties {
         string project_id = 1;
@@ -81,6 +81,26 @@ message BadIP {
     string logName = 2;
     JSONPayload jsonPayload = 3;
 
+}
+
+message BadIPSCC {
+
+        message SourceProperties {
+            string properties_project_id = 1;
+            string properties_location = 2;
+            string properties_instanceDetails = 3;
+            string detectionCategory_ruleName = 4;
+        }
+
+        message Finding {
+            SourceProperties sourceProperties = 1;
+            string category = 2;
+            string resourceName = 3;
+            string state = 4;
+        }
+
+        string notificationConfigName = 1;
+        Finding finding = 2;
 }
 
 message SshBruteForce {

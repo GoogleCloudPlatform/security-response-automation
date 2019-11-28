@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	badIP = `{
+	badIPSD = `{
 		"jsonPayload": {
 			"properties": {
 				"location": "us-central1",
@@ -22,6 +22,26 @@ const (
 			}
 		},
 		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+	}`
+	badIPSCC = `{
+		  "notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
+		  "finding": {
+			"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+			"parent": "organizations/0000000000000/sources/0000000000000000000",
+			"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
+			"state": "ACTIVE",
+			"category": "C2: Bad IP",
+			"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
+			"sourceProperties": {
+			  	"detectionCategory_ruleName": "bad_ip",
+				"properties_project_id": "test-project-15511551515",
+				"properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+				"properties_location": "us-central1-a"
+			},
+			"securityMarks": {},
+			"eventTime": "2019-11-22T18:34:36.153Z",
+			"createTime": "2019-11-22T18:34:36.688Z"
+	  	}
 	}`
 	sshBruteForce = `{
 		"jsonPayload": {
@@ -52,7 +72,10 @@ const (
 
 func main() {
 	ctx := context.Background()
-	if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
+	if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIPSD)}); err != nil {
+		log.Fatal(err)
+	}
+	if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIPSCC)}); err != nil {
 		log.Fatal(err)
 	}
 	if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {

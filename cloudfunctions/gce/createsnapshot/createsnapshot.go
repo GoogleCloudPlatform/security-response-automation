@@ -59,10 +59,42 @@ type Output struct {
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
 func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.BadIP
-	values := &Values{}
+	var values Values
+
+	switch err := readSDFinding(b, &values); err {
+	case services.ErrUnmarshal:
+		fallthrough
+	case services.ErrValueNotFound:
+		fallthrough
+	case services.ErrUnsupportedFinding:
+		return nil, err
+	case services.ErrSkipFinding:
+		// Incoming finding not from Stackdriver, pass to next.
+	case nil:
+		return &values, nil
+	}
+
+	switch err := readSCCFinding(b, &values); err {
+	case services.ErrUnmarshal:
+		fallthrough
+	case services.ErrValueNotFound:
+		fallthrough
+	case services.ErrUnsupportedFinding:
+		return nil, err
+	case nil:
+		return &values, nil
+	}
+
+	return nil, errors.New("failed to read finding")
+}
+
+func readSDFinding(b []byte, values *Values) error {
+	var finding pb.BadIPSD
 	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+		return errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	if finding.GetJsonPayload() == nil {
+		return services.ErrSkipFinding
 	}
 	// TODO: Support pb.BadDomain as well.
 	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
@@ -72,12 +104,32 @@ func ReadFinding(b []byte) (*Values, error) {
 		values.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 		values.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
 	default:
-		return nil, services.ErrUnsupportedFinding
+		return services.ErrUnsupportedFinding
 	}
 	if values.RuleName == "" || values.ProjectID == "" || values.Instance == "" || values.Zone == "" {
-		return nil, services.ErrValueNotFound
+		return services.ErrValueNotFound
 	}
-	return values, nil
+	return nil
+}
+
+func readSCCFinding(b []byte, values *Values) error {
+	var finding pb.BadIPSCC
+	if err := json.Unmarshal(b, &finding); err != nil {
+		return errors.Wrap(services.ErrUnmarshal, err.Error())
+	}
+	switch finding.GetFinding().GetCategory() {
+	case "C2: Bad IP":
+		values.ProjectID = finding.GetFinding().GetSourceProperties().GetPropertiesProjectId()
+		values.RuleName = finding.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+		values.Instance = etd.Instance(finding.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails())
+		values.Zone = etd.Zone(finding.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails())
+	default:
+		return services.ErrUnsupportedFinding
+	}
+	if values.RuleName == "" || values.ProjectID == "" || values.Instance == "" || values.Zone == "" {
+		return services.ErrValueNotFound
+	}
+	return nil
 }
 
 // Execute creates a snapshot of an instance's disk.
