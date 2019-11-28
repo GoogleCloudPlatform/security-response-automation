@@ -24,7 +24,8 @@ import (
 
 // Compute dry run client.
 type Compute struct {
-	computeClient *clients.Compute
+	computeClient       *clients.Compute
+	lastSnapShotCreated *compute.Snapshot
 }
 
 // NewDryRunCompute returns and initializes a Compute client.
@@ -34,7 +35,7 @@ func NewDryRunCompute(original *clients.Compute) (*Compute, error) {
 
 // DiskInsert creates a new disk in the project.
 func (c *Compute) DiskInsert(ctx context.Context, projectID, zone string, disk *compute.Disk) (*compute.Operation, error) {
-	log.Printf("dry_run on, would call 'DiskInsert' with params projectID: %q, zone: %q, disk: %q", projectID, zone, disk)
+	log.Printf("dry_run on, would call 'DiskInsert' with params projectID: %q, zone: %q, disk: %+v", projectID, zone, disk)
 	return &compute.Operation{}, nil
 }
 
@@ -81,6 +82,11 @@ func (c *Compute) FirewallRule(ctx context.Context, projectID string, ruleID str
 // CreateSnapshot creates a snapshot of a specified persistent disk.
 func (c *Compute) CreateSnapshot(ctx context.Context, projectID, zone, disk string, rb *compute.Snapshot) (*compute.Operation, error) {
 	log.Printf("dry_run on, would call 'CreateSnapshot' with params projectID: %q, zone: %q, disk: %q, Snapshot: %+v", projectID, zone, disk, rb)
+	c.lastSnapShotCreated = &compute.Snapshot{
+		SourceDisk:        "https://www.googleapis.com/compute/v1/projects/" + projectID + "/zones/" + zone + "/disks/" + disk,
+		Name:              rb.Name,
+		Description:       rb.Description,
+		CreationTimestamp: rb.CreationTimestamp}
 	return &compute.Operation{}, nil
 }
 
@@ -89,9 +95,13 @@ func (c *Compute) ListDisks(ctx context.Context, projectID, zone string) (*compu
 	return c.computeClient.ListDisks(ctx, projectID, zone)
 }
 
-// ListProjectSnapshots returns a list of snapshot reousrces for a given project.
+// ListProjectSnapshots returns a list of snapshot resources for a given project.
 func (c *Compute) ListProjectSnapshots(ctx context.Context, projectID string) (*compute.SnapshotList, error) {
-	return c.computeClient.ListProjectSnapshots(ctx, projectID)
+	list, e := c.computeClient.ListProjectSnapshots(ctx, projectID)
+	if c.lastSnapShotCreated != nil && list != nil {
+		list.Items = append(list.Items, c.lastSnapShotCreated)
+	}
+	return list, e
 }
 
 // SetLabels sets labels on a snapshot.

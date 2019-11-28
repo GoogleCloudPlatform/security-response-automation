@@ -1,4 +1,5 @@
 {
+  "dry_run": true,
   "pager_duty": {
     "api_key": "",
     "enabled": false,

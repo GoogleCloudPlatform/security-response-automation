@@ -24,6 +24,7 @@ type Global struct {
 	CloudSQL      *CloudSQL
 }
 
+// DryRun returns a initialized Global struct using the Dry Run implementation
 func DryRun(ctx context.Context, original *Global) (*Global, error) {
 
 	host, err := initDryRunHost(ctx)
