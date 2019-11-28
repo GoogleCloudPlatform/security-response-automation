@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/googlecloudplatform/security-response-automation/clients"
+	"github.com/sendgrid/rest"
 	"golang.org/x/xerrors"
 	crm "google.golang.org/api/cloudresourcemanager/v1"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
@@ -207,6 +209,7 @@ func cloudSQLRequireSSL(folderIDs []string) (*services.Global, *stubs.CloudSQL, 
 	sql := services.NewCloudSQL(sqlStub)
 	storageStub := &stubs.StorageStub{}
 	crmStub := &stubs.ResourceManagerStub{}
+	sgStub := &stubs.SendGridStub{StubbedSend: &rest.Response{StatusCode: 200}}
 	res := services.NewResource(crmStub, storageStub)
 	conf := &services.Configuration{
 		CloudSQLRequireSSL: &services.CloudSQLRequireSSL{
@@ -215,9 +218,13 @@ func cloudSQLRequireSSL(folderIDs []string) (*services.Global, *stubs.CloudSQL, 
 			},
 		},
 		StackDriver: &services.StackDriverConfiguration{Enabled: true},
+		Email: &services.EmailConfiguration{Enabled: true, API:"", From:"no-reply@clsecteam.com"},
 	}
 
+	sds := clients.NewSendGridClient("")
+	sds.Service = sgStub
 	sd := services.NewStackDriver(log)
-	not := services.NewNotification(sd, conf)
+	email := services.NewEmail(sds)
+	not := services.NewNotification(sd, email, conf)
 	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res, StackDriver:sd, Notification: not}, sqlStub, crmStub
 }

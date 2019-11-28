@@ -8,6 +8,12 @@
   "stack_driver": {
     "enabled": true
   },
+  "email": {
+    "enabled": true,
+    "api_key": "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",
+    "from_mail": "no-reply@clsecteam.com",
+    "to":["amandak@ciandt.com"]
+  },
   "create_snapshot": {
     "snapshot_project_id": "",
     "snapshot_zone": "",
@@ -65,9 +71,9 @@
   },
   "cloud_sql_require_ssl": {
     "resources": {
-      "folder_ids": []
+      "folder_ids": ["593987969559"]
     },
-    "dry_run": true
+    "dry_run": false
   },
   "disable_dashboard": {
     "resources": {

@@ -63,7 +63,8 @@ func New(ctx context.Context) (*Global, error) {
 	}
 
 	stack := initStackDriver(log)
-	noti := initNotification(stack,config)
+	mail := initEmail(config.Email.API)
+	noti := initNotification(stack, mail, config)
 
 	return &Global{
 		Configuration: config,
@@ -168,10 +169,15 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 	return NewCloudSQL(cs), nil
 }
 
-func initNotification(stackdriver *StackDriver, config *Configuration) *Notification{
-	return NewNotification(stackdriver, config)
+func initNotification(stackdriver *StackDriver, email *Email, config *Configuration) *Notification{
+	return NewNotification(stackdriver, email, config)
 }
 
 func initStackDriver(logger *Logger) *StackDriver{
 	return NewStackDriver(logger)
+}
+
+func initEmail(apiKey string) (*Email){
+	sg := clients.NewSendGridClient(apiKey)
+	return NewEmail(sg)
 }

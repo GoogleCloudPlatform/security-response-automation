@@ -118,11 +118,20 @@ type StackDriverConfiguration struct {
 	Enabled bool   `json:"enabled"`
 }
 
+// EmailConfiguration  contains configuration for the Email client.
+type EmailConfiguration struct {
+	Enabled bool    `json:"enabled"`
+	API     string  `json:"api_key"`
+	From    string  `json:"from_mail"`
+	To      []string `json:"to"`
+}
+
 
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	PagerDuty              *PagerDutyConfiguration   `json:"pager_duty"`
 	StackDriver            *StackDriverConfiguration `json:"stack_driver"`
+	Email                  *EmailConfiguration       `json:"email"`
 	CloseBucket            *CloseBucket              `json:"close_bucket"`
 	RevokeGrants           *RevokeGrants             `json:"revoke_grants"`
 	DisableFirewall        *DisableFirewall          `json:"open_firewall"`
