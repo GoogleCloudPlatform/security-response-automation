@@ -19,6 +19,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 	"regexp"
 	"strings"
 
@@ -99,13 +100,8 @@ func readSCCFinding(b []byte, values *Values) error {
 	}
 	switch finding.GetFinding().GetCategory() {
 	case "Persistence: IAM Anomalous Grant":
-		values.ProjectID = finding.GetFinding().GetSourceProperties()["properties_project_id"]
-		values.ExternalMembers = []string{}
-		for k, v := range finding.GetFinding().GetSourceProperties() {
-			if strings.HasPrefix(k, "properties_externalMembers_") {
-				values.ExternalMembers = append(values.ExternalMembers, v)
-			}
-		}
+		values.ProjectID = etd.IAMAnomalousGrantProjectID(finding.GetFinding().GetSourceProperties())
+		values.ExternalMembers = etd.IAMAnomalousGrantExternalMembers(finding.GetFinding().GetSourceProperties())
 	default:
 		return services.ErrUnsupportedFinding
 	}

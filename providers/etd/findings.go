@@ -1,6 +1,9 @@
 package etd
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 // Copyright 2019 Google LLC
 //
@@ -21,6 +24,10 @@ var (
 	extractInstance = regexp.MustCompile(`/instances/(.*)$`)
 	// extractZone used to extract a zone.
 	extractZone = regexp.MustCompile(`/zones/([^/]*)`)
+	// project ID key name in IAM Anomalous Grant finding from SCC Notification.
+	iamAnomalousGrantProjectIDKey = "properties_project_id"
+	// prefix from external members key in IAM Anomalous Grant finding from SCC Notification.
+	iamAnomalousGrantExternalMembersPrefix = "properties_externalMembers_"
 )
 
 // Instance returns the instance name from the source instance string.
@@ -39,4 +46,20 @@ func Zone(resource string) string {
 		return ""
 	}
 	return i[1]
+}
+
+// IAMAnomalousGrantProjectID returns the project id from SCC IAM Anomalous Grant finding.
+func IAMAnomalousGrantProjectID(sourceProperties map[string]string) string {
+	return sourceProperties[iamAnomalousGrantProjectIDKey]
+}
+
+// IAMAnomalousGrantExternalMembers returns the external members from SCC IAM Anomalous Grant finding.
+func IAMAnomalousGrantExternalMembers(sourceProperties map[string]string) []string {
+	var externalMembers []string
+	for k, v := range sourceProperties {
+		if strings.HasPrefix(k, iamAnomalousGrantExternalMembersPrefix) {
+			externalMembers = append(externalMembers, v)
+		}
+	}
+	return externalMembers
 }
