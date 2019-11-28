@@ -17,6 +17,7 @@ package requiressl
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
@@ -35,6 +36,8 @@ type Services struct {
 	CloudSQL      *services.CloudSQL
 	Resource      *services.Resource
 	Logger        *services.Logger
+	AuditLog      *services.Journal
+	Notification  *services.Notification
 }
 
 // ReadFinding will attempt to deserialize all supported findings for this function.
@@ -65,13 +68,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	resources := services.Configuration.CloudSQLRequireSSL.Resources
 	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
 		if services.Configuration.CloudSQLRequireSSL.DryRun {
-			services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+			services.AuditLog.Add(fmt.Sprintf("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID))
 			return nil
 		}
 		if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
 			return err
 		}
-		services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+		services.AuditLog.Add(fmt.Sprintf("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID))
+		services.Notification.Notify(services.AuditLog)
 		return nil
 	})
 }

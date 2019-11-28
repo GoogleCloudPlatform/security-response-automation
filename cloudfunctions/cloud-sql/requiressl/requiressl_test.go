@@ -212,5 +212,8 @@ func cloudSQLRequireSSL(folderIDs []string) (*services.Global, *stubs.CloudSQL, 
 			},
 		},
 	}
-	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub
+
+	sd := services.NewStackDriver(log)
+	not := services.NewNotification(sd, conf)
+	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res, StackDriver:sd, Notification: not}, sqlStub, crmStub
 }

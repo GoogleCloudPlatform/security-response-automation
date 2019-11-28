@@ -21,6 +21,8 @@ type Global struct {
 	Firewall      *Firewall
 	Container     *Container
 	CloudSQL      *CloudSQL
+	Notification  *Notification
+	StackDriver   *StackDriver
 }
 
 // New returns an initialized Global struct.
@@ -60,6 +62,9 @@ func New(ctx context.Context) (*Global, error) {
 		return nil, err
 	}
 
+	stack := initStackDriver(log)
+	noti := initNotification(stack,config)
+
 	return &Global{
 		Configuration: config,
 		Host:          host,
@@ -68,6 +73,8 @@ func New(ctx context.Context) (*Global, error) {
 		Firewall:      fw,
 		Container:     cont,
 		CloudSQL:      sql,
+		Notification:  noti,
+		StackDriver:   stack,
 	}, nil
 }
 
@@ -76,6 +83,12 @@ func InitPagerDuty(apiKey string) *PagerDuty {
 	pd := clients.NewPagerDuty(apiKey)
 	return NewPagerDuty(pd)
 }
+
+// InitAuditLog creates and initializes a new instance of audit log Journal .
+func InitAuditLog(finding string) (*Journal) {
+	return NewAuditLog(finding)
+}
+
 
 // InitBigQuery creates and initializes a new instance of BigQuery.
 func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
@@ -153,4 +166,12 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
 	return NewCloudSQL(cs), nil
+}
+
+func initNotification(stackdriver *StackDriver, config *Configuration) *Notification{
+	return NewNotification(stackdriver, config)
+}
+
+func initStackDriver(logger *Logger) *StackDriver{
+	return NewStackDriver(logger)
 }

@@ -321,11 +321,14 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 	switch values, err := requiressl.ReadFinding(m.Data); err {
 	case nil:
+		auditLog := services.InitAuditLog(string(m.Data))
 		return requiressl.Execute(ctx, values, &requiressl.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
+			Notification:  svcs.Notification,
+			AuditLog:     auditLog,
 		})
 	case services.ErrUnsupportedFinding:
 		return nil
