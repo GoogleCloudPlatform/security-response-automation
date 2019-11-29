@@ -61,7 +61,7 @@ func TestParseTemplateEmail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			email := NewEmail(nil)
+			email := NewEmail(nil, nil)
 			res, err := email.RenderTemplate(tt.template, tt.templateContent)
 
 			if tt.expectedError != errors.Cause(err) {
