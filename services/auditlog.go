@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// Journal structure.
-type Journal struct {
+// AuditLog structure.
+type AuditLog struct {
 	finding string
 	events []Entry
 }
@@ -17,13 +17,13 @@ type Entry struct {
 	isError bool
 }
 
-// NewAuditLog returns a Journal client initialized.
-func NewAuditLog(finding string) *Journal {
-	return &Journal{finding: finding}
+// NewAuditLog returns a AuditLog client initialized.
+func NewAuditLog(finding string) *AuditLog {
+	return &AuditLog{finding: finding}
 }
 
 // Add will create a new successful entry on audit object.
-func (p *Journal) Add(text string) {
+func (p *AuditLog) Add(text string) {
 	p.events = append(p.events, Entry{
 		date: time.Now().String(),
 		text: text,
@@ -32,7 +32,7 @@ func (p *Journal) Add(text string) {
 }
 
 // AddError will create a new error entry on audit object.
-func (p *Journal) AddError(text string) {
+func (p *AuditLog) AddError(text string) {
 	p.events = append(p.events, Entry{
 		date:    time.Now().String(),
 		text:    text,

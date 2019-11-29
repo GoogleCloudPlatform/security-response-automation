@@ -123,7 +123,7 @@ type EmailConfiguration struct {
 	Enabled bool    `json:"enabled"`
 	API     string  `json:"api_key"`
 	From    string  `json:"from_mail"`
-	To      []string `json:"to"`
+	To      []string `json:"to_mail"`
 }
 
 

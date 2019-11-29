@@ -38,21 +38,21 @@ func TestParseTemplateEmail(t *testing.T) {
 	}{
 		{
 			name:             "test parse email success",
-			template:         "testdata/sample.tmpl",
+			template:         "../../templates/testdata/sample.tmpl",
 			templateContent:  struct{ Content sampleContent }{Content: sampleContent{Greeting: "Hello!"}},
 			expectedError:    nil,
 			expectedResponse: fmt.Sprintf(sampleTemplate, "Hello!"),
 		},
 		{
 			name:             "test parse not found file",
-			template:         "testdata/unknown.tmpl",
+			template:         "../../templates/testdata/unknown.tmpl",
 			templateContent:  nil,
 			expectedError:    errLoadTemplate,
 			expectedResponse: "",
 		},
 		{
 			name:             "test parse execution fail",
-			template:         "testdata/sample.tmpl",
+			template:         "../../templates/testdata/sample.tmpl",
 			templateContent:  struct{ Unknown string }{Unknown: "content"},
 			expectedError:    errParseTemplate,
 			expectedResponse: "",

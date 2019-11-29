@@ -1,43 +1,38 @@
 package services
 
-import (
-	"fmt"
-)
-
 type Notification struct {
 	stackdriver *StackDriver
 	email  *Email
-	config *Configuration
 }
 
-func (n *Notification) Notify(audit *Journal){
-	if n.config.StackDriver.Enabled{
-		n.notifyStackDriver(audit)
-	}
-	if n.config.Email.Enabled{
-		n.notifyEmail(audit)
-	}
+type mailContent struct {
+	Greeting string
+	Actions string
+	Finding string
 }
 
-func (n *Notification) notifyStackDriver(audit *Journal){
-	n.stackdriver.LogAudit(audit)
+// Notify sends notification for the channels configured
+func (n *Notification) Notify(audit *AuditLog) []error{
+	var errors []error
+
+	n.notifyStackDriver(audit)
+	err := n.notifyEmail(audit)
+	if err != nil{
+		errors = append(errors, err)
+	}
+
+	return errors
 }
 
-func (n *Notification) notifyEmail(audit *Journal){
-	subject := "A security remediation was automatically done"
-	var actions, status string
-	for _, entry := range audit.events {
-		status = "Remediation done successfully"
-		if entry.isError{
-			status = "Error trying to execute"
-		}
-		actions += fmt.Sprintf("%s - %s: %s \n", entry.date, status, entry.text)
-	}
-	body := fmt.Sprintf("Finding: %s \n Actions made: %s", audit.finding, actions)
-	n.email.service.Send(subject, n.config.Email.From, body, n.config.Email.To)
+func (n *Notification) notifyStackDriver(audit *AuditLog){
+	n.stackdriver.Notify(audit)
+}
+
+func (n *Notification) notifyEmail(audit *AuditLog) error{
+	return n.email.Notify(audit)
 }
 
 // NewNotification returns a Notification client initialized.
-func NewNotification(stackdriver *StackDriver, email *Email, config *Configuration) *Notification {
-	return &Notification{stackdriver: stackdriver, email: email, config: config}
+func NewNotification(stackdriver *StackDriver, email *Email) *Notification {
+	return &Notification{stackdriver: stackdriver, email: email}
 }

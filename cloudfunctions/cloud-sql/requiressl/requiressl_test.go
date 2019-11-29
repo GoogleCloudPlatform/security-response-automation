@@ -218,13 +218,13 @@ func cloudSQLRequireSSL(folderIDs []string) (*services.Global, *stubs.CloudSQL, 
 			},
 		},
 		StackDriver: &services.StackDriverConfiguration{Enabled: true},
-		Email: &services.EmailConfiguration{Enabled: true, API:"", From:"no-reply@clsecteam.com"},
+		Email: &services.EmailConfiguration{Enabled: true, API:"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", From:"no-reply@clsecteam.com", To:[]string{"amandak@ciandt.com"}},
 	}
 
-	sds := clients.NewSendGridClient("")
+	sds := clients.NewSendGridClient("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")
 	sds.Service = sgStub
-	sd := services.NewStackDriver(log)
-	email := services.NewEmail(sds)
-	not := services.NewNotification(sd, email, conf)
-	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res, StackDriver:sd, Notification: not}, sqlStub, crmStub
+	sd := services.NewStackDriver(log, conf)
+	email := services.NewEmail(sds, conf)
+	not := services.NewNotification(sd, email)
+	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res, Notification: not}, sqlStub, crmStub
 }

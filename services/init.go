@@ -22,7 +22,6 @@ type Global struct {
 	Container     *Container
 	CloudSQL      *CloudSQL
 	Notification  *Notification
-	StackDriver   *StackDriver
 }
 
 // New returns an initialized Global struct.
@@ -62,9 +61,9 @@ func New(ctx context.Context) (*Global, error) {
 		return nil, err
 	}
 
-	stack := initStackDriver(log)
-	mail := initEmail(config.Email.API)
-	noti := initNotification(stack, mail, config)
+	stack := initStackDriver(log, config)
+	mail := initEmail(config.Email.API, config)
+	noti := initNotification(stack, mail)
 
 	return &Global{
 		Configuration: config,
@@ -75,7 +74,6 @@ func New(ctx context.Context) (*Global, error) {
 		Container:     cont,
 		CloudSQL:      sql,
 		Notification:  noti,
-		StackDriver:   stack,
 	}, nil
 }
 
@@ -85,8 +83,8 @@ func InitPagerDuty(apiKey string) *PagerDuty {
 	return NewPagerDuty(pd)
 }
 
-// InitAuditLog creates and initializes a new instance of audit log Journal .
-func InitAuditLog(finding string) (*Journal) {
+// InitAuditLog creates and initializes a new instance of audit log AuditLog .
+func InitAuditLog(finding string) *AuditLog {
 	return NewAuditLog(finding)
 }
 
@@ -156,7 +154,7 @@ func initFirewall(ctx context.Context) (*Firewall, error) {
 func initContainer(ctx context.Context) (*Container, error) {
 	cc, err := clients.NewContainer(ctx, authFile)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize container client: %q", err)
+		return nil, fmt.Errorf("failed to initialize container client: %q", err)
 	}
 	return NewContainer(cc), nil
 }
@@ -169,15 +167,15 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 	return NewCloudSQL(cs), nil
 }
 
-func initNotification(stackdriver *StackDriver, email *Email, config *Configuration) *Notification{
-	return NewNotification(stackdriver, email, config)
+func initNotification(stackdriver *StackDriver, email *Email) *Notification{
+	return NewNotification(stackdriver, email)
 }
 
-func initStackDriver(logger *Logger) *StackDriver{
-	return NewStackDriver(logger)
+func initStackDriver(logger *Logger, config *Configuration) *StackDriver{
+	return NewStackDriver(logger, config)
 }
 
-func initEmail(apiKey string) (*Email){
+func initEmail(apiKey string, config *Configuration) *Email {
 	sg := clients.NewSendGridClient(apiKey)
-	return NewEmail(sg)
+	return NewEmail(sg, config)
 }

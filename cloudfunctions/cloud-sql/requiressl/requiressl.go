@@ -36,7 +36,7 @@ type Services struct {
 	CloudSQL      *services.CloudSQL
 	Resource      *services.Resource
 	Logger        *services.Logger
-	AuditLog      *services.Journal
+	AuditLog      *services.AuditLog
 	Notification  *services.Notification
 }
 
@@ -75,7 +75,13 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			return err
 		}
 		services.AuditLog.Add(fmt.Sprintf("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID))
-		services.Notification.Notify(services.AuditLog)
+		err := services.Notification.Notify(services.AuditLog)
+		if len(err) > 0 {
+			services.Logger.Error("Error sending notifications! Actions was done! Please check the log")
+			for _, er := range err {
+				services.Logger.Error(er.Error())
+			}
+		}
 		return nil
 	})
 }

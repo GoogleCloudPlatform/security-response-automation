@@ -12,7 +12,7 @@
     "enabled": true,
     "api_key": "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",
     "from_mail": "no-reply@clsecteam.com",
-    "to":["amandak@ciandt.com"]
+    "to_mail": ["amandak@ciandt.com"]
   },
   "create_snapshot": {
     "snapshot_project_id": "",
