@@ -126,6 +126,16 @@ func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
 	return NewBigQuery(bq), nil
 }
 
+// InitDryRunBigQuery creates and initializes a new instance of BigQuery.
+func InitDryRunBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
+	bqReal, err := clients.NewBigQuery(ctx, authFile, projectID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize bigquery client: %q", err)
+	}
+	bq, _ := dryrun.NewDryRunBigQuery(bqReal)
+	return NewBigQuery(bq), nil
+}
+
 // InitPubSub creates and initializes a new instance of PubSub.
 func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
 	pubsub, err := clients.NewPubSub(ctx, authFile, projectID)

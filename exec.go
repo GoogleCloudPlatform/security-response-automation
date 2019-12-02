@@ -248,9 +248,16 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/bigquery.dataOwner to get and update dataset metadata.
 //
 func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
-	switch values, err := closepublicdataset.ReadFinding(m.Data); err {
+	switch values, mainErr := closepublicdataset.ReadFinding(m.Data); mainErr {
 	case nil:
-		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
+		var bigquery *services.BigQuery
+		var err error
+		if svcs.Configuration.DryRun {
+			bigquery, err = services.InitDryRunBigQuery(ctx, values.ProjectID)
+		} else {
+			bigquery, err = services.InitBigQuery(ctx, values.ProjectID)
+		}
+
 		if err != nil {
 			return err
 		}
@@ -263,7 +270,7 @@ func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
 	case services.ErrUnsupportedFinding:
 		return nil
 	default:
-		return err
+		return mainErr
 	}
 }
 
