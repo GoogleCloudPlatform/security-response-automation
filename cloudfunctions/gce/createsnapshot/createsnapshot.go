@@ -120,6 +120,7 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 
 		if conf.DryRun {
 			services.Logger.Info("dry_run on, would created a snapshot of %q from %q", disk.Name, values.ProjectID)
+			continue
 		}
 
 		for k := range removeExisting {
