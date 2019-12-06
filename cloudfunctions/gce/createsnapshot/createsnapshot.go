@@ -16,13 +16,10 @@ package createsnapshot
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"strings"
 	"time"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
@@ -55,29 +52,6 @@ type Services struct {
 type Output struct {
 	// DiskNames optionally contains the names of the disks copied to a target project.
 	DiskNames []string
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.BadIP
-	values := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	// TODO: Support pb.BadDomain as well.
-	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
-	case "bad_ip":
-		values.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		values.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
-		values.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		values.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if values.RuleName == "" || values.ProjectID == "" || values.Instance == "" || values.Zone == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return values, nil
 }
 
 // Execute creates a snapshot of an instance's disk.

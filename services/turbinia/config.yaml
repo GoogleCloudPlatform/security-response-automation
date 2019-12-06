@@ -1,0 +1,9 @@
+apiVersion: v1alpha1
+kind: Service
+metadata:
+  name: turbinia
+spec:
+  parameters:
+    project_id: "",
+    topic_name: "",
+    zone: "",

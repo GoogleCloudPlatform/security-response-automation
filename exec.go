@@ -48,6 +48,10 @@ func init() {
 	}
 }
 
+func Router(ctx context.Context, m pubsub.Message) error {
+
+}
+
 // IAMRevoke is the entry point for the IAM revoker Cloud Function.
 //
 // This function will attempt to revoke the external members added to the policy if they

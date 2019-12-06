@@ -1,0 +1,13 @@
+apiVersion: security-response-automation.cloud.google.com/v1alpha1
+kind: Remediation
+metadata:
+  name: router
+spec:
+  parameters:
+    etd:
+      bad_ip:
+        - action: gce_create_disk_snapshot
+        - action: slack
+          parameters:
+            api_key: "abc123"
+            channel: "#foo"
