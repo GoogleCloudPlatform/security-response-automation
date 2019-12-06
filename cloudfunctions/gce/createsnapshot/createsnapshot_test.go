@@ -22,79 +22,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"golang.org/x/xerrors"
 	compute "google.golang.org/api/compute/v1"
 )
-
-func TestReadFinding(t *testing.T) {
-	const (
-		validBadIP = `{
-			"jsonPayload": {
-				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
-				},
-				"detectionCategory": {
-					"ruleName": "bad_ip"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
-		missingProperties = `{
-			"jsonPayload": {
-				"detectionCategory": {
-					"ruleName": "bad_ip"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
-		wrongRule = `{
-			"jsonPayload": {
-				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
-				},
-				"detectionCategory": {
-					"ruleName": "something_else"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
-	)
-	for _, tt := range []struct {
-		name, rule, projectID, instance, zone string
-		bytes                                 []byte
-		expectedError                         error
-	}{
-		{name: "read", rule: "bad_ip", projectID: "test-project", zone: "zone-name", instance: "source-instance-name", expectedError: nil, bytes: []byte(validBadIP)},
-		{name: "missing properties", rule: "", projectID: "", zone: "", instance: "", expectedError: services.ErrValueNotFound, bytes: []byte(missingProperties)},
-		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: services.ErrUnsupportedFinding, bytes: []byte(wrongRule)},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			r, err := ReadFinding(tt.bytes)
-			if tt.expectedError == nil && err != nil {
-				t.Errorf("%s failed: %q", tt.name, err)
-			}
-			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
-			}
-			if err == nil && r.RuleName != tt.rule {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.RuleName, tt.rule)
-			}
-			if err == nil && r.Instance != tt.instance {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Instance, tt.instance)
-			}
-			if err == nil && r.Zone != tt.zone {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Zone, tt.zone)
-			}
-			if err == nil && r.ProjectID != tt.projectID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
-			}
-		})
-	}
-}
 
 func TestCreateSnapshot(t *testing.T) {
 	ctx := context.Background()

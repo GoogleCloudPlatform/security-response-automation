@@ -17,6 +17,7 @@ package exec
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -34,6 +35,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -49,7 +51,16 @@ func init() {
 }
 
 func Router(ctx context.Context, m pubsub.Message) error {
-
+	ps, err := services.InitPubSub(ctx, svcs.Configuration.Router.ProjectID)
+	if err != nil {
+		return err
+	}
+	return router.Execute(ctx, &router.Values{
+		Finding: m.Data,
+	}, &router.Services{
+		Configuration: svcs.Configuration,
+		PubSub:        ps,
+	})
 }
 
 // IAMRevoke is the entry point for the IAM revoker Cloud Function.
@@ -92,9 +103,10 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	switch values, err := createsnapshot.ReadFinding(m.Data); err {
+	var values createsnapshot.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
+		output, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
 			Configuration: svcs.Configuration,
 			Host:          svcs.Host,
 			Logger:        svcs.Logger,

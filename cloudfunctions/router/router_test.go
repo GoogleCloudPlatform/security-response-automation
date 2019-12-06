@@ -1,0 +1,88 @@
+package router
+
+// Copyright 2019 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
+	"github.com/googlecloudplatform/security-response-automation/services"
+)
+
+func TestRouter(t *testing.T) {
+	const (
+		somethingElse = `{
+			"jsonPayload": {
+				"properties": {
+					"location": "us-central1",
+					"project_id": "test-project",
+					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
+				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+		validBadIP = `{
+			"jsonPayload": {
+				"properties": {
+					"location": "us-central1",
+					"project_id": "test-project",
+					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
+				},
+				"detectionCategory": {
+					"ruleName": "bad_ip"
+				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+	)
+	var val createsnapshot.Values
+	b, _ := json.Marshal(val)
+	for _, tt := range []struct {
+		name     string
+		expected []byte
+		bytes    []byte
+	}{
+		{name: "bad_ip", bytes: []byte(validBadIP), expected: b},
+		// {name: "not supported", bytes: []byte(somethingElse), expected: ""},
+	} {
+		ctx := context.Background()
+		svcs := setup()
+		psStub := &stubs.PubSubStub{}
+		ps := services.NewPubSub(psStub)
+
+		log.Printf("pss: %+v\n", ps)
+		t.Run(tt.name, func(t *testing.T) {
+			_ = Execute(ctx, &Values{
+				Finding: tt.bytes,
+			}, &Services{
+				Configuration: svcs.Configuration,
+				PubSub:        ps,
+			})
+
+			if diff := cmp.Diff(psStub.PublishedMessage.Data, b); diff != "" {
+				t.Errorf("%q failed, difference:%+v", tt.name, diff)
+			}
+		})
+	}
+}
+
+func setup() *services.Global {
+	return &services.Global{Configuration: &services.Configuration{}}
+}

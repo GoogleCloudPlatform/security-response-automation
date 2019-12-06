@@ -39,6 +39,5 @@ func NewPubSub(client PubSubClient) *PubSub {
 // Publish will publish a message to a PubSub topic.
 func (e *PubSub) Publish(ctx context.Context, topicID string, message *pubsub.Message) (string, error) {
 	topic := e.client.Topic(topicID)
-	defer topic.Stop()
 	return e.client.Publish(ctx, topic, message)
 }
