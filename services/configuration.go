@@ -83,17 +83,6 @@ type DisableDashboard struct {
 	DryRun    bool `json:"dry_run"`
 }
 
-// CreateSnapshot contains configuration required for the create snapshot function.
-type CreateSnapshot struct {
-	TargetSnapshotProjectID string   `json:"snapshot_project_id"`
-	TargetSnapshotZone      string   `json:"snapshot_zone"`
-	TurbiniaProjectID       string   `json:"turbinia_project_id"`
-	TurbiniaZone            string   `json:"turbinia_zone"`
-	TurbiniaTopicName       string   `json:"turbinia_topic_name"`
-	OutputDestinations      []string `json:"output_destinations"`
-	DryRun                  bool     `json:"dry_run"`
-}
-
 // UpdatePassword contains configuration required for the update password function.
 type UpdatePassword struct {
 	Resources *Resources
@@ -130,7 +119,6 @@ type Configuration struct {
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
 	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
-	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
 	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 	RemoveNonOrgMembers    *RemoveNonOrgMembers    `json:"remove_non_org_members"`
 	Router                 *Router

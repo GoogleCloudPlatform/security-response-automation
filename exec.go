@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
@@ -39,7 +40,10 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
-var svcs *services.Global
+var (
+	svcs      *services.Global
+	projectID = os.Getenv("GCP_PROJECT")
+)
 
 func init() {
 	ctx := context.Background()
@@ -50,16 +54,21 @@ func init() {
 	}
 }
 
+// Router foo.
 func Router(ctx context.Context, m pubsub.Message) error {
-	ps, err := services.InitPubSub(ctx, svcs.Configuration.Router.ProjectID)
+	ps, err := services.InitPubSub(ctx, projectID)
+	if err != nil {
+		return err
+	}
+	conf, err := router.Config()
 	if err != nil {
 		return err
 	}
 	return router.Execute(ctx, &router.Values{
 		Finding: m.Data,
 	}, &router.Services{
-		Configuration: svcs.Configuration,
-		PubSub:        ps,
+		PubSub:              ps,
+		RouterConfiguration: conf,
 	})
 }
 
@@ -106,21 +115,26 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	var values createsnapshot.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
+		conf, err := createsnapshot.Config()
+		if err != nil {
+			return err
+		}
 		output, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
-			Configuration: svcs.Configuration,
+			Configuration: conf,
 			Host:          svcs.Host,
 			Logger:        svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		for _, dest := range svcs.Configuration.CreateSnapshot.OutputDestinations {
+		properties := conf.Spec.Validation.OpenAPIV3Schema.Properties
+		for _, dest := range properties.Output {
 			switch dest {
 			case "turbinia":
 				log.Println("turbinia output is enabled, sending each copied disk to turbinia")
-				turbiniaProjectID := svcs.Configuration.CreateSnapshot.TurbiniaProjectID
-				turbiniaTopicName := svcs.Configuration.CreateSnapshot.TurbiniaTopicName
-				turbiniaZone := svcs.Configuration.CreateSnapshot.TurbiniaZone
+				turbiniaProjectID := properties.Turbinia.ProjectID
+				turbiniaTopicName := properties.Turbinia.Topic
+				turbiniaZone := properties.Turbinia.Zone
 				diskNames := output.DiskNames
 				if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskNames); err != nil {
 					return err

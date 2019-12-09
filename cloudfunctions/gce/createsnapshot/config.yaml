@@ -4,12 +4,20 @@ metadata:
   name: gce_create_disk_snapshot
 spec:
   match:
-    target: ["organization/*"]
-    exclude: ["folder/123", "project/456"]
+    target: 
+      - organization/*
+    exclude: 
+      - folder/123
+      - project/456
   validation:
     openAPIV3Schema:
       properties:
-        project_id: ""
-        zone: ""
+        dry_run: true
+        target_snapshot_project_id: foo-123
+        target_snapshot_zone: us-central1
         output:
           - turbinia
+        turbinia:
+          project_id: foo-123
+          topic: bar-234
+          zone: us-central1

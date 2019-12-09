@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.findings-topic}"
+    resource   = "threat-findings-create-disk-snapshot"
   }
 }
 
@@ -36,14 +36,23 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
 # captured at the time the activity occurred. This binding can be removed if the action is not
 # being used.
 #
-# TODO: Support folder level grants.
-resource "google_organization_iam_member" "gce-snapshot-bind-findings-organization" {
-  org_id = "${var.setup.organization-id}"
+# Grant at the orgainzational level (not recommended)
+# resource "google_organization_iam_member" "gce-snapshot-bind-findings-organization" {
+#  org_id = "${var.setup.organization-id}"
+#  role   = "roles/compute.instanceAdmin.v1"
+#  member = "serviceAccount:${var.setup.automation-service-account}"
+# }
+#
+# Grant at the folder level.
+resource "google_folder_iam_member" "roles-storage-admin" {
+  count = length(var.folder-ids)
+
+  folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/compute.instanceAdmin.v1"
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# Used to allow the service account to write to the Turbinia PubSub topic.
+# Optionally used to allow the service account to write to the Turbinia PubSub topic.
 resource "google_pubsub_topic_iam_binding" "writer" {
   # Count trick used to conditionally apply this resource if the variable is defined.
   # https://github.com/hashicorp/terraform/issues/15281
@@ -55,4 +64,11 @@ resource "google_pubsub_topic_iam_binding" "writer" {
   members = [
     "serviceAccount:${var.setup.automation-service-account}",
   ]
+}
+
+resource "google_project_service" "compute_api" {
+  project                    = "${var.setup.automation-project}"
+  service                    = "compute.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

@@ -7,7 +7,5 @@ spec:
     etd:
       bad_ip:
         - action: gce_create_disk_snapshot
-        - action: slack
-          parameters:
-            api_key: "abc123"
-            channel: "#foo"
+      ssh_brute_force:
+        - action: open_firewall

@@ -17,7 +17,6 @@ package router
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -52,37 +51,40 @@ func TestRouter(t *testing.T) {
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
 	)
-	var val createsnapshot.Values
-	b, _ := json.Marshal(val)
+	conf := &RouterConfiguration{}
+	// BadIP findings should map to "gce_create_disk_snapshot".
+	conf.Spec.Parameters.ETD.BadIP = []Automation{
+		{Action: "gce_create_disk_snapshot"},
+	}
+	createSnapshotValues := &createsnapshot.Values{
+		ProjectID: "test-project",
+		RuleName:  "bad_ip",
+		Instance:  "source-instance-name",
+		Zone:      "zone-name",
+	}
+	createSnapshot, _ := json.Marshal(createSnapshotValues)
 	for _, tt := range []struct {
-		name     string
-		expected []byte
-		bytes    []byte
+		name    string
+		mapTo   []byte
+		finding []byte
 	}{
-		{name: "bad_ip", bytes: []byte(validBadIP), expected: b},
-		// {name: "not supported", bytes: []byte(somethingElse), expected: ""},
+		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
 	} {
 		ctx := context.Background()
-		svcs := setup()
 		psStub := &stubs.PubSubStub{}
 		ps := services.NewPubSub(psStub)
 
-		log.Printf("pss: %+v\n", ps)
 		t.Run(tt.name, func(t *testing.T) {
 			_ = Execute(ctx, &Values{
-				Finding: tt.bytes,
+				Finding: tt.finding,
 			}, &Services{
-				Configuration: svcs.Configuration,
-				PubSub:        ps,
+				PubSub:              ps,
+				RouterConfiguration: conf,
 			})
 
-			if diff := cmp.Diff(psStub.PublishedMessage.Data, b); diff != "" {
+			if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
 				t.Errorf("%q failed, difference:%+v", tt.name, diff)
 			}
 		})
 	}
-}
-
-func setup() *services.Global {
-	return &services.Global{Configuration: &services.Configuration{}}
 }

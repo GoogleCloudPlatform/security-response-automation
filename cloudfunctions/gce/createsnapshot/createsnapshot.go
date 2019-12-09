@@ -17,9 +17,11 @@ package createsnapshot
 import (
 	"context"
 	"log"
+	"io/ioutil"
 	"strings"
 	"time"
 
+	"gopkg.in/yaml.v2"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
@@ -43,7 +45,7 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
+	Configuration *CreateSnapshotConfiguration
 	Host          *services.Host
 	Logger        *services.Logger
 }
@@ -52,6 +54,70 @@ type Services struct {
 type Output struct {
 	// DiskNames optionally contains the names of the disks copied to a target project.
 	DiskNames []string
+}
+
+// apiVersion: security-response-automation.cloud.google.com/v1alpha1
+// kind: RemediationFunction
+// metadata:
+//   name: gce_create_disk_snapshot
+// spec:
+//   match:
+//     target: 
+//       - organization/*
+//     exclude: 
+//       - folder/123
+//       - project/456
+//   validation:
+//     openAPIV3Schema:
+//       properties:
+//         output:
+//           - turbinia
+//         turbinia:
+//           project_id: foo-123
+//           topic: bar-234
+//           zone: us-central1
+
+type MatchResource string
+
+type Match struct {
+	Target []MatchResource
+	Exclude []MatchResource
+}
+
+type CreateSnapshotProperties struct {
+	DryRun bool
+	TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
+	TargetSnapshotZone string `yaml: "target_snapshot_zone"`
+	Output []string
+	Turbinia struct {
+		ProjectID string
+		Topic string
+		Zone string
+	}
+}
+
+type CreateSnapshotConfiguration struct {
+	Spec struct {
+		Match Match
+		Validation struct {
+			OpenAPIV3Schema struct {
+				Properties CreateSnapshotProperties
+			}
+		}
+	}	
+}
+
+// Config will return the router's configuration.
+func Config() (*CreateSnapshotConfiguration, error) {
+	var c CreateSnapshotConfiguration
+	b, err := ioutil.ReadFile("config.yaml")
+	if err != nil {
+		return nil, err
+	}
+	if err := yaml.Unmarshal(b, &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
 // Execute creates a snapshot of an instance's disk.
@@ -66,8 +132,8 @@ type Output struct {
 func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 	disksCopied := []string{}
-	conf := services.Configuration.CreateSnapshot
-	dstProjectID := conf.TargetSnapshotProjectID
+	properties := services.Configuration.Spec.Validation.OpenAPIV3Schema.Properties
+	dstProjectID := properties.TargetSnapshotProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
@@ -92,7 +158,7 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 			continue
 		}
 
-		if conf.DryRun {
+		if properties.DryRun {
 			services.Logger.Info("dry_run on, would created a snapshot of %q from %q", disk.Name, values.ProjectID)
 			continue
 		}
@@ -116,12 +182,12 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
 		if dstProjectID != "" {
-			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
+			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, properties.TargetSnapshotZone)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, properties.TargetSnapshotZone, snapshotName); err != nil {
 				return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
 			}
 			disksCopied = append(disksCopied, snapshotName)
-			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
+			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, properties.TargetSnapshotZone)
 		}
 	}
 	log.Printf("completed")

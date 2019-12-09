@@ -174,7 +174,7 @@ func TestCreateSnapshot(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, computeStub := createSnapshotSetup(tt.configuredSnapshotTarget)
+			svcs, conf, computeStub := createSnapshotSetup(tt.configuredSnapshotTarget)
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
 			values := &Values{
@@ -184,7 +184,7 @@ func TestCreateSnapshot(t *testing.T) {
 				Zone:      "test-zone",
 			}
 			if _, err := Execute(ctx, values, &Services{
-				Configuration: svcs.Configuration,
+				Configuration: conf,
 				Host:          svcs.Host,
 				Logger:        svcs.Logger,
 			}); err != nil {
@@ -221,7 +221,30 @@ func createSs(name, time, disk string) *compute.Snapshot {
 	}
 }
 
-func createSnapshotSetup(dstProjectID string) (*services.Global, *stubs.ComputeStub) {
+// type CreateSnapshotProperties struct {
+// 	DryRun bool
+// 	TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
+// 	TargetSnapshotZone string `yaml: "target_snapshot_zone"`
+// 	Output []string
+// 	Turbinia struct {
+// 		ProjectID string
+// 		Topic string
+// 		Zone string
+// 	}
+// }
+
+// type CreateSnapshotConfiguration struct {
+// 	Spec struct {
+// 		Match Match
+// 		Validation struct {
+// 			OpenAPIV3Schema struct {
+// 				Properties CreateSnapshotProperties
+// 			}
+// 		}
+// 	}	
+// }
+
+func createSnapshotSetup(dstProjectID string) (*services.Global, *CreateSnapshotConfiguration, *stubs.ComputeStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
@@ -230,10 +253,7 @@ func createSnapshotSetup(dstProjectID string) (*services.Global, *stubs.ComputeS
 	storageStub := &stubs.StorageStub{}
 	h := services.NewHost(computeStub)
 	r := services.NewResource(resourceManagerStub, storageStub)
-	conf := &services.Configuration{
-		CreateSnapshot: &services.CreateSnapshot{
-			TargetSnapshotProjectID: dstProjectID,
-		},
-	}
-	return &services.Global{Host: h, Resource: r, Logger: log, Configuration: conf}, computeStub
+	conf := &CreateSnapshotConfiguration{}
+	conf.Spec.Validation.OpenAPIV3Schema.Properties.TargetSnapshotProjectID = dstProjectID
+	return &services.Global{Host: h, Resource: r, Logger: log}, conf, computeStub
 }

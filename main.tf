@@ -48,6 +48,7 @@ module "revoke_iam_grants" {
 module "create_disk_snapshot" {
   source              = "./terraform/automations/create-disk-snapshot"
   setup               = "${module.google-setup}"
+  folder-ids = []
   turbinia-project-id = ""
   turbinia-topic-name = ""
 }
