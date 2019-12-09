@@ -87,7 +87,7 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 		}
 	}
 
-	// If there are no authorized networks the field must be explictly declared as null.
+	// If there are no authorized networks the field must be explicitly declared as null.
 	// Otherwise null fields are removed if not declared as such.
 	var nullFields []string
 	if len(authorizedNetworks) == 0 {
@@ -112,8 +112,8 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 	return nil
 }
 
-// IsCloudSQLPublic checks if Cloud SQL instance contains public ip authorized
-func (s *CloudSQL) IsCloudSQLPublic(acls []*sqladmin.AclEntry) bool{
+// IsPublic checks if the Cloud SQL instance contains public IPs.
+func (s *CloudSQL) IsPublic(acls []*sqladmin.AclEntry) bool {
 	found := false
 	for _, ip := range acls {
 		if ip.Value == allIPs {
