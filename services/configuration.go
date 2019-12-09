@@ -32,15 +32,6 @@ type DisableFirewall struct {
 	OutputDestinations []string `json:"output_destinations"`
 }
 
-// RevokeGrants contains configuration required for the Revoke Grants function.
-type RevokeGrants struct {
-	Resources *Resources
-	// A slice of domain names that will be evaluated against incoming added members. If the user
-	// matches a domain in this list they will not be removed.
-	AllowDomains []string `json:"allow_domains"`
-	DryRun       bool     `json:"dry_run"`
-}
-
 // RemovePublicIP contains configuration required for the remove public IP function.
 type RemovePublicIP struct {
 	Resources *Resources
@@ -110,7 +101,6 @@ type PagerDutyConfiguration struct {
 type Configuration struct {
 	PagerDuty              *PagerDutyConfiguration `json:"pager_duty"`
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
-	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
 	DisableFirewall        *DisableFirewall        `json:"open_firewall"`
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
 	ClosePublicDataset     *ClosePublicDataset     `json:"close_public_dataset"`

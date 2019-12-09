@@ -11,17 +11,10 @@ import (
 
 const (
 	badIP = `{
-		"jsonPayload": {
-			"properties": {
-				"location": "us-central1",
-				"project_id": "aerial-jigsaw-235219",
-				"instanceDetails": "/zones/us-central1-a/instances/instance-4"
-			},
-			"detectionCategory": {
-				"ruleName": "bad_ip"
-			}
-		},
-		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		"ProjectID": "aerial-jigsaw-235219",
+		"Instance": "instance-4",
+		"Zone": "us-central1-a",
+		"RuleName": "bad_ip"
 	}`
 	sshBruteForce = `{
 		"jsonPayload": {
@@ -31,15 +24,15 @@ const (
 				"instanceDetails": "/zones/us-central1-c/instances/instance-",
 				"project_id": "aerial-jigsaw-235219",
 				"loginAttempts": [{
-					"authResult": "FAIL",
-					"sourceIp": "10.200.0.2",
-					"userName": "okokok",
-					"vmName": "ssh-password-auth-debian-9"
+						"authResult": "FAIL",
+						"sourceIp": "10.200.0.2",
+						"userName": "okokok",
+						"vmName": "ssh-password-auth-debian-9"
 					}, {
-					"authResult": "SUCCESS",
-					"sourceIp": "10.200.0.2",
-					"userName": "okokok",
-					"vmName": "ssh-password-auth-debian-9"
+						"authResult": "SUCCESS",
+						"sourceIp": "10.200.0.2",
+						"userName": "okokok",
+						"vmName": "ssh-password-auth-debian-9"
 					}]
 		  	},
 		  "detectionCategory": {
@@ -52,13 +45,21 @@ const (
 
 func main() {
 	ctx := context.Background()
+	if err := exec.IAMRevoke(ctx, pubsub.Message{Data: []byte(`{
+		"ProjectID": "aerial-jigsaw-235219",
+		"ExternalMembers": [
+			"ccexperts@gmail.com"
+		]
+	}`)}); err != nil {
+		log.Fatal(err)
+	}
 	// if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
 	// 	log.Fatal(err)
 	// }
 	// if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
 	// 	log.Fatal(err)
 	// }
-	if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
-		log.Fatal(err)
-	}
+	// if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
+	// 	log.Fatal(err)
+	// }
 }

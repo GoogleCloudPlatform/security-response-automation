@@ -17,14 +17,13 @@ package revoke
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strings"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 )
 
 // Values contains the required values needed for this function.
@@ -35,29 +34,38 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
+	Configuration *Configuration
 	Resource      *services.Resource
 	Logger        *services.Logger
 }
 
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.AnomalousIAMGrant
-	v := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+type Properties struct {
+	DryRun       bool     `yaml:"dry_run"`
+	AllowDomains []string `yaml:"allow_domains"`
+}
+
+type Configuration struct {
+	Spec struct {
+		Match      services.Match
+		Validation struct {
+			OpenAPIV3Schema struct {
+				Properties Properties
+			} `yaml:"openAPIV3Schema"`
+		}
 	}
-	switch finding.GetJsonPayload().GetDetectionCategory().GetSubRuleName() {
-	case "external_member_added_to_policy":
-		v.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		v.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
-	default:
-		return nil, services.ErrUnsupportedFinding
+}
+
+// Config will return the automations' configuration.
+func Config() (*Configuration, error) {
+	var c Configuration
+	b, err := ioutil.ReadFile("./cloudfunctions/iam/revoke/config.yaml")
+	if err != nil {
+		return nil, err
 	}
-	if v.ProjectID == "" || len(v.ExternalMembers) == 0 {
-		return nil, services.ErrValueNotFound
+	if err := yaml.Unmarshal(b, &c); err != nil {
+		return nil, err
 	}
-	return v, nil
+	return &c, nil
 }
 
 // Execute is the entry point for the IAM revoker Cloud Function.
@@ -68,14 +76,14 @@ func ReadFinding(b []byte) (*Values, error) {
 // - The users do not match the list of allowed domains.
 //
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration.RevokeGrants
-	resources := services.Configuration.RevokeGrants.Resources
-	members, err := toRemove(values.ExternalMembers, conf.AllowDomains)
+	properties := services.Configuration.Spec.Validation.OpenAPIV3Schema.Properties
+	matches := services.Configuration.Spec.Match
+	members, err := toRemove(values.ExternalMembers, properties.AllowDomains)
 	if err != nil {
 		return err
 	}
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if conf.DryRun {
+	return services.Resource.CheckMatches(ctx, &matches, values.ProjectID, func() error {
+		if properties.DryRun {
 			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 			return nil
 		}

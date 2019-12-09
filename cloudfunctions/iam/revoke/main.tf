@@ -27,11 +27,7 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.findings-topic}"
-  }
-
-  environment_variables = {
-    folder_ids = "${join(",", var.folder-ids)}"
+    resource   = "threat-findings-iam-revoke"
   }
 }
 
@@ -44,18 +40,24 @@ resource "google_folder_iam_member" "revoke_member_cloudfunction-folder-bind" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# In order for this GCF to be able to enumerate and check to see if the affected project is within
-# the specified folder `resourcemanager.projects.get` is required. The function will attempt to
-# make this call but if the permission is not granted the function will fail.
-#
-# You could grant `resourcemanager.projects.get` to the service account at the organization level
-# or let it fail which also means the project is outside of the folder you care about.
-#
-# In this example we'll grant `roles/viewer` which has this permission to the folder.
+# Required to retrieve ancestry for projects within this folder.
 resource "google_folder_iam_member" "revoke_member_viewer_cloudfunction-folder-bind" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/viewer"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-iam-revoke"
+  project = "${var.setup.automation-project}"
+}
+
+# Grant the service account permission to publish to this topic.
+resource "google_project_iam_member" "log-writer-pubsub" {
+  role    = "roles/pubsub.editor"
+  project = "${var.setup.automation-project}"
+  member  = "serviceAccount:${var.setup.automation-service-account}"
 }

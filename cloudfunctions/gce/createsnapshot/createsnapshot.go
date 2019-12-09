@@ -58,7 +58,7 @@ type Output struct {
 }
 
 type CreateSnapshotProperties struct {
-	DryRun                  bool
+	DryRun                  bool   `yaml:"dry_run"`
 	TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
 	TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
 	Output                  []string
@@ -75,7 +75,7 @@ type CreateSnapshotConfiguration struct {
 		Validation struct {
 			OpenAPIV3Schema struct {
 				Properties CreateSnapshotProperties
-			}
+			} `yaml:"openAPIV3Schema"`
 		}
 	}
 }
@@ -83,7 +83,7 @@ type CreateSnapshotConfiguration struct {
 // Config will return the automations' configuration.
 func Config() (*CreateSnapshotConfiguration, error) {
 	var c CreateSnapshotConfiguration
-	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
+	b, err := ioutil.ReadFile("./cloudfunctions/gce/createsnapshot/config.yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +110,7 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 		disksCopied := []string{}
 		properties := services.Configuration.Spec.Validation.OpenAPIV3Schema.Properties
+		log.Printf("properties: %+v", properties)
 		dstProjectID := properties.TargetSnapshotProjectID
 		rule := strings.Replace(values.RuleName, "_", "-", -1)
 		disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)

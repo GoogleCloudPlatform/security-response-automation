@@ -4,9 +4,9 @@ metadata:
   name: gce_create_disk_snapshot
 spec:
   match:
-    target: 
+    target:
       - organization/*
-    exclude: 
+    exclude:
       - folder/123
       - project/456
   validation:

@@ -92,15 +92,18 @@ func Router(ctx context.Context, m pubsub.Message) error {
 //	- roles/viewer to verify the affected project is within the enforced folder.
 //
 func IAMRevoke(ctx context.Context, m pubsub.Message) error {
-	switch values, err := revoke.ReadFinding(m.Data); err {
+	var values revoke.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return revoke.Execute(ctx, values, &revoke.Services{
-			Configuration: svcs.Configuration,
+		conf, err := revoke.Config()
+		if err != nil {
+			return err
+		}
+		return revoke.Execute(ctx, &values, &revoke.Services{
+			Configuration: conf,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
