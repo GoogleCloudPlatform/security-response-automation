@@ -33,6 +33,11 @@ module "google-setup" {
   findings-topic                  = "${local.findings-topic}"
 }
 
+module "router" {
+  source = "./cloudfunctions/router/"
+  setup  = "${module.google-setup}"
+}
+
 module "close_public_bucket" {
   source     = "./terraform/automations/close-public-bucket"
   setup      = "${module.google-setup}"
@@ -46,9 +51,9 @@ module "revoke_iam_grants" {
 }
 
 module "create_disk_snapshot" {
-  source              = "./terraform/automations/create-disk-snapshot"
+  source              = "./cloudfunctions/gce/createsnapshot"
   setup               = "${module.google-setup}"
-  folder-ids = []
+  folder-ids          = ["670032686187"]
   turbinia-project-id = ""
   turbinia-topic-name = ""
 }

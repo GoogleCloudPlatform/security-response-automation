@@ -48,13 +48,18 @@ var (
 func init() {
 	ctx := context.Background()
 	var err error
+	if projectID == "" {
+		log.Fatalf("GCP_PROJECT environment variable not set")
+	}
 	svcs, err = services.New(ctx)
 	if err != nil {
 		log.Fatalf("failed to initialize services: %q", err)
 	}
 }
 
-// Router foo.
+// Router is the entry point for the router Cloud Function.
+//
+// This Cloud Function will receive all findings and route them to configured automation.
 func Router(ctx context.Context, m pubsub.Message) error {
 	ps, err := services.InitPubSub(ctx, projectID)
 	if err != nil {

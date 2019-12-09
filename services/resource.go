@@ -17,6 +17,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -39,6 +40,13 @@ type storageClient interface {
 	SetBucketPolicy(context.Context, string, *iam.Policy) error
 	BucketPolicy(context.Context, string) (*iam.Policy, error)
 	EnableBucketOnlyPolicy(context.Context, string) error
+}
+
+type MatchResource string
+
+type Match struct {
+	Target  []MatchResource
+	Exclude []MatchResource
 }
 
 // Resource service.
@@ -245,6 +253,11 @@ func (r *Resource) Organization(ctx context.Context, orgID string) (*crm.Organiz
 // EnableBucketOnlyPolicy enable bucket only policy for the given bucket
 func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string) error {
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
+}
+
+func (r *Resource) CheckMatches(_ context.Context, _ *Match, projectID string, fn func() error) error {
+	log.Println("CheckMatches: TODO: finish this.")
+	return fn()
 }
 
 // IfProjectWithinResources executes the provided function if the project ID is an ancestor of any provided resources.

@@ -53,8 +53,7 @@ type Values struct {
 
 // topics maps automation targets to PubSub topics.
 var topics = map[string]struct{ Topic string }{
-	"gce_create_disk_snapshot": {Topic: "gce-create-disk-snapshot"},
-	"turbinia":                 {Topic: "gce-create-disk-snapshot"},
+	"gce_create_disk_snapshot": {Topic: "threat-findings-create-disk-snapshot"},
 }
 
 // Automation defines which remediation function to call.
@@ -78,7 +77,7 @@ type RouterConfiguration struct {
 // Config will return the router's configuration.
 func Config() (*RouterConfiguration, error) {
 	var c RouterConfiguration
-	b, err := ioutil.ReadFile("config.yaml")
+	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -116,17 +115,18 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		fields.SetRuleName(f.RuleName)
 		fields.SetInstance(f.Instance)
 		fields.SetZone(f.Zone)
-	case "bad_domain":
-		automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
-	case "sshscanner":
-		automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
-	case "openbucket":
-		automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
+	// case "bad_domain":
+	// 	automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
+	// case "sshscanner":
+	// 	automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
+	// case "openbucket":
+	// 	automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
 	default:
 		return errors.New("foo")
 	}
 
 	for _, automation := range automations {
+		log.Printf("automation: %q", automation.Action)
 		switch automation.Action {
 		case "gce_create_disk_snapshot":
 			v := &createsnapshot.Values{
@@ -139,6 +139,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			if err != nil {
 				return err
 			}
+			log.Printf("publishing to: %q", topics[automation.Action].Topic)
 			if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
 				Data: b,
 			}); err != nil {

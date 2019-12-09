@@ -14,8 +14,8 @@ const (
 		"jsonPayload": {
 			"properties": {
 				"location": "us-central1",
-				"project_id": "dark-shade",
-				"instanceDetails": "/zones/us-central1-c/instances/instance-2"
+				"project_id": "aerial-jigsaw-235219",
+				"instanceDetails": "/zones/us-central1-a/instances/instance-4"
 			},
 			"detectionCategory": {
 				"ruleName": "bad_ip"
@@ -28,7 +28,7 @@ const (
 		  "properties": {
 				"location": "us-central1",
 				"project_id": "dark-shade",
-				"instanceDetails": "/zones/us-central1-c/instances/instance-2",
+				"instanceDetails": "/zones/us-central1-c/instances/instance-",
 				"project_id": "aerial-jigsaw-235219",
 				"loginAttempts": [{
 					"authResult": "FAIL",
@@ -52,10 +52,13 @@ const (
 
 func main() {
 	ctx := context.Background()
-	if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
-		log.Fatal(err)
-	}
-	if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
+	// if err := exec.SnapshotDisk(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
+	// 	log.Fatal(err)
+	// }
+	// if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
+	// 	log.Fatal(err)
+	// }
+	if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
 		log.Fatal(err)
 	}
 }

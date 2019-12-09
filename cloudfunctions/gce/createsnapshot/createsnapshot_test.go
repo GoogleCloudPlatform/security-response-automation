@@ -221,29 +221,6 @@ func createSs(name, time, disk string) *compute.Snapshot {
 	}
 }
 
-// type CreateSnapshotProperties struct {
-// 	DryRun bool
-// 	TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
-// 	TargetSnapshotZone string `yaml: "target_snapshot_zone"`
-// 	Output []string
-// 	Turbinia struct {
-// 		ProjectID string
-// 		Topic string
-// 		Zone string
-// 	}
-// }
-
-// type CreateSnapshotConfiguration struct {
-// 	Spec struct {
-// 		Match Match
-// 		Validation struct {
-// 			OpenAPIV3Schema struct {
-// 				Properties CreateSnapshotProperties
-// 			}
-// 		}
-// 	}	
-// }
-
 func createSnapshotSetup(dstProjectID string) (*services.Global, *CreateSnapshotConfiguration, *stubs.ComputeStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)

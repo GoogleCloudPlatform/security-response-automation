@@ -23,15 +23,15 @@ data "archive_file" "cloud_functions_zip" {
   excludes    = ["deploy", ".git", ".terraform"]
   depends_on = [
     "local_file.cloudfunction-key-file",
-    "google_project_service.compute_api",
-    "google_project_service.cloudresourcemanager_api",
-    "google_project_service.storage_api",
-    "google_project_service.logging_api",
-    "google_project_service.storage_component_api",
-    "google_project_service.pubsub_api",
-    "google_project_service.bigquery_api",
-    "google_project_service.sqladmin_api",
-    "google_project_service.cloudfunctions_api"
+    # "google_project_service.compute_api",
+    # "google_project_service.cloudresourcemanager_api",
+    # "google_project_service.storage_api",
+    # "google_project_service.logging_api",
+    # "google_project_service.storage_component_api",
+    # "google_project_service.pubsub_api",
+    # "google_project_service.bigquery_api",
+    # "google_project_service.sqladmin_api",
+    # "google_project_service.cloudfunctions_api"
   ]
 }
 
@@ -95,65 +95,58 @@ resource "google_project_iam_member" "stackdriver-writer" {
 
 // TODO: Should move all these to where they're used so if someone doesn't want them they're easy to ignore.
 
-resource "google_project_service" "compute_api" {
-  project                    = "${var.automation-project}"
-  service                    = "compute.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "cloudresourcemanager_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "cloudresourcemanager.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "cloudresourcemanager_api" {
-  project                    = "${var.automation-project}"
-  service                    = "cloudresourcemanager.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "pubsub_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "pubsub.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "storage_api" {
-  project                    = "${var.automation-project}"
-  service                    = "storage-api.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "storage_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "storage-api.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "logging_api" {
-  project                    = "${var.automation-project}"
-  service                    = "logging.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "logging_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "logging.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "storage_component_api" {
-  project                    = "${var.automation-project}"
-  service                    = "storage-component.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "storage_component_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "storage-component.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "pubsub_api" {
-  project                    = "${var.automation-project}"
-  service                    = "pubsub.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "bigquery_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "bigquery.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "bigquery_api" {
-  project                    = "${var.automation-project}"
-  service                    = "bigquery.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "sqladmin_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "sqladmin.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
 
-resource "google_project_service" "sqladmin_api" {
-  project                    = "${var.automation-project}"
-  service                    = "sqladmin.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
-
-resource "google_project_service" "cloudfunctions_api" {
-  project                    = "${var.automation-project}"
-  service                    = "cloudfunctions.googleapis.com"
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
+# resource "google_project_service" "cloudfunctions_api" {
+#   project                    = "${var.automation-project}"
+#   service                    = "cloudfunctions.googleapis.com"
+#   disable_dependent_services = false
+#   disable_on_destroy         = false
+# }
