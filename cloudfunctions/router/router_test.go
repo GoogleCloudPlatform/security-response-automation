@@ -22,6 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
+	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -51,9 +52,9 @@ func TestRouter(t *testing.T) {
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
 	)
-	conf := &RouterConfiguration{}
+	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
-	conf.Spec.Parameters.ETD.BadIP = []Automation{
+	conf.Spec.Parameters.ETD.BadIP = []badip.Automation{
 		{Action: "gce_create_disk_snapshot"},
 	}
 	createSnapshotValues := &createsnapshot.Values{
@@ -75,13 +76,15 @@ func TestRouter(t *testing.T) {
 		ps := services.NewPubSub(psStub)
 
 		t.Run(tt.name, func(t *testing.T) {
-			_ = Execute(ctx, &Values{
+
+			if err := Execute(ctx, &Values{
 				Finding: tt.finding,
 			}, &Services{
-				PubSub:              ps,
-				RouterConfiguration: conf,
-			})
-
+				PubSub:        ps,
+				Configuration: conf,
+			}); err != nil {
+				t.Errorf("%q failed: %q", tt.name, err)
+			}
 			if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
 				t.Errorf("%q failed, difference:%+v", tt.name, diff)
 			}

@@ -174,19 +174,18 @@ func TestCreateSnapshot(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, conf, computeStub := createSnapshotSetup(tt.configuredSnapshotTarget)
+			svcs, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
 			values := &Values{
-				ProjectID: "foo-test",
+				ProjectID: tt.configuredSnapshotTarget,
 				RuleName:  "bad_ip",
 				Instance:  "instance1",
 				Zone:      "test-zone",
 			}
 			if _, err := Execute(ctx, values, &Services{
-				Configuration: conf,
-				Host:          svcs.Host,
-				Logger:        svcs.Logger,
+				Host:   svcs.Host,
+				Logger: svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s failed to create snapshot: %q", tt.name, err)
 			}
@@ -221,7 +220,7 @@ func createSs(name, time, disk string) *compute.Snapshot {
 	}
 }
 
-func createSnapshotSetup(dstProjectID string) (*services.Global, *CreateSnapshotConfiguration, *stubs.ComputeStub) {
+func createSnapshotSetup() (*services.Global, *stubs.ComputeStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
@@ -230,7 +229,5 @@ func createSnapshotSetup(dstProjectID string) (*services.Global, *CreateSnapshot
 	storageStub := &stubs.StorageStub{}
 	h := services.NewHost(computeStub)
 	r := services.NewResource(resourceManagerStub, storageStub)
-	conf := &CreateSnapshotConfiguration{}
-	conf.Spec.Validation.OpenAPIV3Schema.Properties.TargetSnapshotProjectID = dstProjectID
-	return &services.Global{Host: h, Resource: r, Logger: log}, conf, computeStub
+	return &services.Global{Host: h, Resource: r, Logger: log}, computeStub
 }

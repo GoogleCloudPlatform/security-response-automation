@@ -16,7 +16,6 @@ package createsnapshot
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -24,7 +23,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -40,57 +38,33 @@ var labels = map[string]string{
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID, RuleName, Instance, Zone string
-}
+	DryRun    bool
+	ProjectID string
+	RuleName  string
+	Instance  string
+	Zone      string
+	Target    []string
+	Exclude   []string
+	Output    []string
 
-// Services contains the services needed for this function.
-type Services struct {
-	Configuration *CreateSnapshotConfiguration
-	Host          *services.Host
-	Logger        *services.Logger
-	Resource      *services.Resource
-}
-
-// Output contains the output of this function.
-type Output struct {
-	// DiskNames optionally contains the names of the disks copied to a target project.
-	DiskNames []string
-}
-
-type CreateSnapshotProperties struct {
-	DryRun                  bool   `yaml:"dry_run"`
-	TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
-	TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
-	Output                  []string
-	Turbinia                struct {
+	Turbinia struct {
 		ProjectID string
 		Topic     string
 		Zone      string
 	}
 }
 
-type CreateSnapshotConfiguration struct {
-	Spec struct {
-		Match      services.Match
-		Validation struct {
-			OpenAPIV3Schema struct {
-				Properties CreateSnapshotProperties
-			} `yaml:"openAPIV3Schema"`
-		}
-	}
+// Services contains the services needed for this function.
+type Services struct {
+	Host     *services.Host
+	Logger   *services.Logger
+	Resource *services.Resource
 }
 
-// Config will return the automations' configuration.
-func Config() (*CreateSnapshotConfiguration, error) {
-	var c CreateSnapshotConfiguration
-	b, err := ioutil.ReadFile("./cloudfunctions/gce/createsnapshot/config.yaml")
-	if err != nil {
-		return nil, err
-	}
-	if err := yaml.Unmarshal(b, &c); err != nil {
-		return nil, err
-	}
-	return &c, nil
+// Output contains the output of this function.
+type Output struct {
+	// DiskNames optionally contains the names of the disks copied to a target project.
+	DiskNames []string
 }
 
 // Execute creates a snapshot of an instance's disk.
@@ -103,15 +77,11 @@ func Config() (*CreateSnapshotConfiguration, error) {
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
 func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
-	matches := services.Configuration.Spec.Match
 	var output Output
-	err := services.Resource.CheckMatches(ctx, &matches, values.ProjectID, func() error {
-		log.Println("executed")
+	err := services.Resource.CheckMatches(ctx, values.Target, values.Exclude, values.ProjectID, func() error {
 		log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 		disksCopied := []string{}
-		properties := services.Configuration.Spec.Validation.OpenAPIV3Schema.Properties
-		log.Printf("properties: %+v", properties)
-		dstProjectID := properties.TargetSnapshotProjectID
+		dstProjectID := values.ProjectID
 		rule := strings.Replace(values.RuleName, "_", "-", -1)
 		disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 		if err != nil {
@@ -136,7 +106,7 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 				continue
 			}
 
-			if properties.DryRun {
+			if values.DryRun {
 				services.Logger.Info("dry_run on, would created a snapshot of %q from %q", disk.Name, values.ProjectID)
 				continue
 			}
@@ -160,12 +130,12 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 			log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
 			if dstProjectID != "" {
-				log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, properties.TargetSnapshotZone)
-				if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, properties.TargetSnapshotZone, snapshotName); err != nil {
+				log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, values.Zone)
+				if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, values.Zone, snapshotName); err != nil {
 					return errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
 				}
 				disksCopied = append(disksCopied, snapshotName)
-				services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, properties.TargetSnapshotZone)
+				services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, values.Zone)
 			}
 		}
 		log.Printf("completed")

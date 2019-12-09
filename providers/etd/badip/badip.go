@@ -3,18 +3,33 @@ package badip
 import (
 	"encoding/json"
 
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd"
-	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
+
+// Automation defines which remediation function to call.
+type Automation struct {
+	Action     string
+	Target     []string
+	Exclude    []string
+	Properties struct {
+		DryRun                  bool   `yaml:"dry_run"`
+		TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
+		TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
+		Output                  []string
+		Turbinia                struct {
+			ProjectID string
+			Topic     string
+			Zone      string
+		}
+	}
+}
 
 // Fields contains the fields from the finding.
 type Fields struct {
 	ProjectID, RuleName, Instance, Zone string
 }
-
-type Finding struct{}
 
 func (f *Finding) Name(b []byte) string {
 	var finding pb.BadIP
@@ -24,23 +39,23 @@ func (f *Finding) Name(b []byte) string {
 	return finding.JsonPayload.GetDetectionCategory().GetRuleName()
 }
 
-func Populate(b []byte) (*Fields, error) {
-	var finding pb.BadIP
-	fields := &Fields{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
+type Finding struct {
+	badIP *pb.BadIP
+}
+
+func New(b []byte) (*Finding, error) {
+	var f Finding
+	if err := json.Unmarshal(b, &f.badIP); err != nil {
+		return nil, err
 	}
-	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
-	case "bad_ip":
-		fields.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		fields.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
-		fields.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		fields.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-	default:
-		return nil, services.ErrUnsupportedFinding
+	return &f, nil
+}
+
+func (f *Finding) CreateSnapshot() *createsnapshot.Values {
+	return &createsnapshot.Values{
+		ProjectID: f.badIP.GetJsonPayload().GetProperties().GetProjectId(),
+		RuleName:  f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName(),
+		Instance:  etd.Instance(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
+		Zone:      etd.Zone(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 	}
-	if fields.RuleName == "" || fields.ProjectID == "" || fields.Instance == "" || fields.Zone == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return fields, nil
 }

@@ -7,5 +7,28 @@ spec:
     etd:
       bad_ip:
         - action: gce_create_disk_snapshot
+          target:
+            - folders/123
+          exclude:
+            - projects/345
+          properties:
+            dry_run: true
+            target_snapshot_project_id: aerial-jigsaw-235219
+            target_snapshot_zone: us-central1-action
+            output:
+            turbinia:
+              project_id: aerial-jigsaw-235219
+              topic: foo
+              zone: us-central1-a
+      anomalouis_iam_grant:
+        target:
+          - organization/*
+        exclude:
+          - folder/123
+          - project/456
+        properties:
+          dry_run: false
+          allow_domains:
+            - google.com
       ssh_brute_force:
         - action: open_firewall

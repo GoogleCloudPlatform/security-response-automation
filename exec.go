@@ -72,8 +72,8 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	return router.Execute(ctx, &router.Values{
 		Finding: m.Data,
 	}, &router.Services{
-		PubSub:              ps,
-		RouterConfiguration: conf,
+		PubSub:        ps,
+		Configuration: conf,
 	})
 }
 
@@ -123,26 +123,20 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	var values createsnapshot.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		conf, err := createsnapshot.Config()
-		if err != nil {
-			return err
-		}
 		output, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
-			Configuration: conf,
-			Host:          svcs.Host,
-			Logger:        svcs.Logger,
+			Host:   svcs.Host,
+			Logger: svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		properties := conf.Spec.Validation.OpenAPIV3Schema.Properties
-		for _, dest := range properties.Output {
+		for _, dest := range values.Output {
 			switch dest {
 			case "turbinia":
 				log.Println("turbinia output is enabled, sending each copied disk to turbinia")
-				turbiniaProjectID := properties.Turbinia.ProjectID
-				turbiniaTopicName := properties.Turbinia.Topic
-				turbiniaZone := properties.Turbinia.Zone
+				turbiniaProjectID := values.Turbinia.ProjectID
+				turbiniaTopicName := values.Turbinia.Topic
+				turbiniaZone := values.Turbinia.Zone
 				diskNames := output.DiskNames
 				if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskNames); err != nil {
 					return err

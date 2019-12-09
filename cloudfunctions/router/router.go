@@ -17,12 +17,10 @@ package router
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
-	"github.com/googlecloudplatform/security-response-automation/providers/common"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/sshbruteforce"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -42,8 +40,8 @@ type Namer interface {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub              *services.PubSub
-	RouterConfiguration *RouterConfiguration
+	PubSub        *services.PubSub
+	Configuration *Configuration
 }
 
 // Values contains the required values for this function.
@@ -56,27 +54,22 @@ var topics = map[string]struct{ Topic string }{
 	"gce_create_disk_snapshot": {Topic: "threat-findings-create-disk-snapshot"},
 }
 
-// Automation defines which remediation function to call.
-type Automation struct {
-	Action string
-}
-
-// RouterConfiguration maps findings to automations.
-type RouterConfiguration struct {
+// Configuration maps findings to automations.
+type Configuration struct {
 	APIVersion string
 	Spec       struct {
 		Name       string
 		Parameters struct {
 			ETD struct {
-				BadIP []Automation `yaml:"bad_ip"`
+				BadIP []badip.Automation `yaml:"bad_ip"`
 			}
 		}
 	}
 }
 
 // Config will return the router's configuration.
-func Config() (*RouterConfiguration, error) {
-	var c RouterConfiguration
+func Config() (*Configuration, error) {
+	var c Configuration
 	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
 	if err != nil {
 		return nil, err
@@ -99,56 +92,39 @@ func ruleName(b []byte) string {
 
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	name := ruleName(values.Finding)
-	log.Printf("configuration: %+v", services.RouterConfiguration)
-	var automations []Automation
-	var fields common.Fields
-
-	switch name {
+	switch name := ruleName(values.Finding); name {
 	case "bad_ip":
-		automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
-		f, err := badip.Populate(values.Finding)
+		automations := services.Configuration.Spec.Parameters.ETD.BadIP
+		badIP, err := badip.New(values.Finding)
 		if err != nil {
 			return err
 		}
-		fields.SetProjectID(f.ProjectID)
-		fields.SetRuleName(f.RuleName)
-		fields.SetInstance(f.Instance)
-		fields.SetZone(f.Zone)
-	// case "bad_domain":
-	// 	automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
-	// case "sshscanner":
-	// 	automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
-	// case "openbucket":
-	// 	automations = services.RouterConfiguration.Spec.Parameters.ETD.BadIP
-	default:
-		return errors.New("foo")
-	}
-
-	for _, automation := range automations {
-		log.Printf("automation: %q", automation.Action)
-		switch automation.Action {
-		case "gce_create_disk_snapshot":
-			v := &createsnapshot.Values{
-				ProjectID: fields.ProjectID(),
-				RuleName:  fields.RuleName(),
-				Instance:  fields.Instance(),
-				Zone:      fields.Zone(),
+		for _, automation := range automations {
+			switch automation.Action {
+			case "gce_create_disk_snapshot":
+				values := badIP.CreateSnapshot()
+				values.Output = automation.Properties.Output
+				values.DryRun = automation.Properties.DryRun
+				values.Target = automation.Target
+				values.Exclude = automation.Exclude
+				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
+				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
+				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
+				b, err := json.Marshal(&values)
+				if err != nil {
+					return err
+				}
+				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					return errors.Wrapf(err, "failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
 			}
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			log.Printf("publishing to: %q", topics[automation.Action].Topic)
-			if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
-				Data: b,
-			}); err != nil {
-				return errors.Wrapf(err, "failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
-			}
-		default:
-			return errors.New("foo")
 		}
-		log.Println("done")
+	default:
+		return fmt.Errorf("rule %q not found", name)
 	}
 	return nil
 }

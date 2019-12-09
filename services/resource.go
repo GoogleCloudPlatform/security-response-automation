@@ -255,7 +255,7 @@ func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }
 
-func (r *Resource) CheckMatches(_ context.Context, _ *Match, projectID string, fn func() error) error {
+func (r *Resource) CheckMatches(_ context.Context, _, _ []string, projectID string, fn func() error) error {
 	log.Println("CheckMatches: TODO: finish this.")
 	return fn()
 }

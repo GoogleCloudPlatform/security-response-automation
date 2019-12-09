@@ -77,12 +77,12 @@ func Config() (*Configuration, error) {
 //
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	properties := services.Configuration.Spec.Validation.OpenAPIV3Schema.Properties
-	matches := services.Configuration.Spec.Match
+	_ = services.Configuration.Spec.Match
 	members, err := toRemove(values.ExternalMembers, properties.AllowDomains)
 	if err != nil {
 		return err
 	}
-	return services.Resource.CheckMatches(ctx, &matches, values.ProjectID, func() error {
+	return services.Resource.CheckMatches(ctx, []string{}, []string{}, values.ProjectID, func() error {
 		if properties.DryRun {
 			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 			return nil
