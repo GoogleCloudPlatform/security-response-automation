@@ -16,11 +16,11 @@ resource "google_cloudfunctions_function" "router" {
   description           = "Routes findings to automations."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "Router"
 
   event_trigger {
@@ -31,6 +31,6 @@ resource "google_cloudfunctions_function" "router" {
 
 resource "google_project_iam_member" "router-pubsub-writer" {
   role    = "roles/pubsub.editor"
-  project = "${var.setup.automation-project}"
+  project = var.setup.automation-project
   member = "serviceAccount:${var.setup.automation-service-account}"
 }

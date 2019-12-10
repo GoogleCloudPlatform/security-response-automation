@@ -18,41 +18,41 @@ locals {
 }
 
 provider "google" {
-  project = "${var.automation-project}"
-  region  = "${local.region}"
+  project = var.automation-project
+  region  = "local.region"
 }
 
 module "google-setup" {
   source = "./terraform/setup/google-setup"
 
-  region                          = "${local.region}"
-  organization-id                 = "${var.organization-id}"
-  automation-project              = "${var.automation-project}"
-  findings-project                = "${var.findings-project}"
-  cscc-notifications-topic-prefix = "${local.cscc-findings-topic}"
-  findings-topic                  = "${local.findings-topic}"
+  region                          = local.region
+  organization-id                 = var.organization-id
+  automation-project              = var.automation-project
+  findings-project                = var.findings-project
+  cscc-notifications-topic-prefix = local.cscc-findings-topic
+  findings-topic                  = local.findings-topic
 }
 
 module "router" {
   source = "./cloudfunctions/router/"
-  setup  = "${module.google-setup}"
+  setup  = module.google-setup
 }
 
 # module "close_public_bucket" {
 #   source     = "./terraform/automations/close-public-bucket"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 module "revoke_iam_grants" {
   source     = "./cloudfunctions/iam/revoke"
-  setup      = "${module.google-setup}"
+  setup      = module.google-setup
   folder-ids = ["670032686187"]
 }
 
 module "create_disk_snapshot" {
   source              = "./cloudfunctions/gce/createsnapshot"
-  setup               = "${module.google-setup}"
+  setup               = module.google-setup
   folder-ids          = ["670032686187"]
   turbinia-project-id = ""
   turbinia-topic-name = ""
@@ -60,60 +60,60 @@ module "create_disk_snapshot" {
 
 # module "open_firewall" {
 #   source     = "./terraform/automations/disable-firewall"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "remove_public_ip" {
 #   source     = "./terraform/automations/remove-public-ip"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "close_public_dataset" {
 #   source     = "./terraform/automations/close-public-dataset"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "enable_bucket_only_policy" {
 #   source     = "./terraform/automations/enable-bucket-only-policy"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "close_public_cloud_sql" {
 #   source     = "./terraform/automations/close-public-cloud-sql"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "cloud-sql-require-ssl" {
 #   source     = "./terraform/automations/cloud-sql-require-ssl"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "disable_dashboard" {
 #   source     = "./terraform/automations/disable-dashboard"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "update_password" {
 #   source     = "./terraform/automations/update-password"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 # module "enable_audit_logs" {
 #   source     = "./terraform/automations/enable-audit-logs"
-#   setup      = "${module.google-setup}"
+#   setup      = module.google-setup
 #   folder-ids = []
 # }
 
 // TODO: enable again and fix IAM roles
 //module "remove_non_org_members" {
 //  source = "./terraform/automations/remove-non-org-members"
-//  setup  = "${module.google-setup}"
+//  setup  = module.google-setup
 //}

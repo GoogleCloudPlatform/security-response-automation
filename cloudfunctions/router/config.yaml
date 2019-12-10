@@ -17,18 +17,19 @@ spec:
             target_snapshot_zone: us-central1-action
             output:
             turbinia:
-              project_id: aerial-jigsaw-235219
-              topic: foo
+              project_id: ae-turbinia
+              topic: psq-turbinia-f7be51e9de8c829c-psq
               zone: us-central1-a
-      anomalouis_iam_grant:
-        target:
-          - organization/*
-        exclude:
-          - folder/123
-          - project/456
-        properties:
-          dry_run: false
-          allow_domains:
-            - google.com
+      anomalouis_iam:
+        - action: iam_revoke
+          target:
+            - organization/*
+          exclude:
+            - folder/123
+            - project/456
+          properties:
+            dry_run: false
+            allow_domains:
+              - google.com
       ssh_brute_force:
         - action: open_firewall

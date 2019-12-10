@@ -18,54 +18,26 @@ package revoke
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"regexp"
 	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"gopkg.in/yaml.v2"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID       string
 	ExternalMembers []string
+	AllowDomains    []string
+	DryRun          bool
+	Target          []string
+	Exclude         []string
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *Configuration
-	Resource      *services.Resource
-	Logger        *services.Logger
-}
-
-type Properties struct {
-	DryRun       bool     `yaml:"dry_run"`
-	AllowDomains []string `yaml:"allow_domains"`
-}
-
-type Configuration struct {
-	Spec struct {
-		Match      services.Match
-		Validation struct {
-			OpenAPIV3Schema struct {
-				Properties Properties
-			} `yaml:"openAPIV3Schema"`
-		}
-	}
-}
-
-// Config will return the automations' configuration.
-func Config() (*Configuration, error) {
-	var c Configuration
-	b, err := ioutil.ReadFile("./cloudfunctions/iam/revoke/config.yaml")
-	if err != nil {
-		return nil, err
-	}
-	if err := yaml.Unmarshal(b, &c); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute is the entry point for the IAM revoker Cloud Function.
@@ -76,14 +48,12 @@ func Config() (*Configuration, error) {
 // - The users do not match the list of allowed domains.
 //
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	properties := services.Configuration.Spec.Validation.OpenAPIV3Schema.Properties
-	_ = services.Configuration.Spec.Match
-	members, err := toRemove(values.ExternalMembers, properties.AllowDomains)
+	members, err := toRemove(values.ExternalMembers, values.AllowDomains)
 	if err != nil {
 		return err
 	}
-	return services.Resource.CheckMatches(ctx, []string{}, []string{}, values.ProjectID, func() error {
-		if properties.DryRun {
+	return services.Resource.CheckMatches(ctx, values.Target, values.Exclude, values.ProjectID, func() error {
+		if values.DryRun {
 			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 			return nil
 		}

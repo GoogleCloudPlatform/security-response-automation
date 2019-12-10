@@ -16,11 +16,11 @@ resource "google_cloudfunctions_function" "close-cloud-sql" {
   description           = "Removes public IPs from a Cloud SQL instance."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "CloseCloudSQL"
 
   event_trigger {

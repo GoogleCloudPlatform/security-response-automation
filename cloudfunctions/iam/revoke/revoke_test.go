@@ -159,13 +159,11 @@ func TestIAMRevoke(t *testing.T) {
 			values := &Values{
 				ProjectID:       "test-project-id",
 				ExternalMembers: tt.externalMembers,
+				AllowDomains:    tt.allowed,
 			}
-			conf := &Configuration{}
-			conf.Spec.Validation.OpenAPIV3Schema.Properties.AllowDomains = tt.allowed
 			if err := Execute(ctx, values, &Services{
-				Configuration: conf,
-				Resource:      svcs.Resource,
-				Logger:        svcs.Logger,
+				Resource: svcs.Resource,
+				Logger:   svcs.Logger,
 			}); err != nil {
 				if !xerrors.Is(errors.Cause(err), tt.expectedError) {
 					t.Errorf("%q failed\nwant:%qngot:%q", tt.name, tt.expectedError, errors.Cause(err))

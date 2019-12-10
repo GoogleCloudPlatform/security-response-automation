@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/sshbruteforce"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -29,6 +30,7 @@ import (
 )
 
 var findings = []Namer{
+	&anomalousiam.Finding{},
 	&sshbruteforce.Finding{},
 	&badip.Finding{},
 }
@@ -52,6 +54,7 @@ type Values struct {
 // topics maps automation targets to PubSub topics.
 var topics = map[string]struct{ Topic string }{
 	"gce_create_disk_snapshot": {Topic: "threat-findings-create-disk-snapshot"},
+	"iam_revoke":               {Topic: "threat-findings-iam-revoke"},
 }
 
 // Configuration maps findings to automations.
@@ -61,7 +64,8 @@ type Configuration struct {
 		Name       string
 		Parameters struct {
 			ETD struct {
-				BadIP []badip.Automation `yaml:"bad_ip"`
+				BadIP        []badip.Automation        `yaml:"bad_ip"`
+				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
 			}
 		}
 	}
@@ -123,6 +127,33 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+	case "iam_anomalous_grant":
+		automations := services.Configuration.Spec.Parameters.ETD.AnomalousIAM
+		anomalousIAM, err := anomalousiam.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "iam_revoke":
+				values := anomalousIAM.IAMRevoke()
+				values.DryRun = automation.Properties.DryRun
+				values.Target = automation.Target
+				values.Exclude = automation.Exclude
+				b, err := json.Marshal(&values)
+				if err != nil {
+					return err
+				}
+				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					return errors.Wrapf(err, "failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+
 	default:
 		return fmt.Errorf("rule %q not found", name)
 	}
