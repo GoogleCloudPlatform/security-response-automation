@@ -25,7 +25,7 @@ func (f *Finding) Name(b []byte) string {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return ""
 	}
-	return finding.JsonPayload.GetDetectionCategory().GetRuleName()
+	return finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
 }
 
 // New returns a new finding.
