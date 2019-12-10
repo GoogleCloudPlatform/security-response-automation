@@ -1,3 +1,4 @@
+// Package badip represents the bad IP finding.
 package badip
 
 import (
@@ -8,7 +9,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 )
 
-// Automation defines which remediation function to call.
+// Automation defines the configuration for this finding.
 type Automation struct {
 	Action     string
 	Target     []string
@@ -26,11 +27,7 @@ type Automation struct {
 	}
 }
 
-// Fields contains the fields from the finding.
-type Fields struct {
-	ProjectID, RuleName, Instance, Zone string
-}
-
+// Name returns the rule name of the finding.
 func (f *Finding) Name(b []byte) string {
 	var finding pb.BadIP
 	if err := json.Unmarshal(b, &finding); err != nil {
@@ -39,10 +36,7 @@ func (f *Finding) Name(b []byte) string {
 	return finding.JsonPayload.GetDetectionCategory().GetRuleName()
 }
 
-type Finding struct {
-	badIP *pb.BadIP
-}
-
+// New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
 	if err := json.Unmarshal(b, &f.badIP); err != nil {
@@ -51,6 +45,12 @@ func New(b []byte) (*Finding, error) {
 	return &f, nil
 }
 
+// Finding represents this finding.
+type Finding struct {
+	badIP *pb.BadIP
+}
+
+// CreateSnapshot returns values for the create snapshot automation.
 func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 	return &createsnapshot.Values{
 		ProjectID: f.badIP.GetJsonPayload().GetProperties().GetProjectId(),

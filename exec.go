@@ -95,14 +95,9 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 	var values revoke.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		conf, err := revoke.Config()
-		if err != nil {
-			return err
-		}
 		return revoke.Execute(ctx, &values, &revoke.Services{
-			Configuration: conf,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err
