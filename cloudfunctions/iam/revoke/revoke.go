@@ -30,8 +30,6 @@ type Values struct {
 	ExternalMembers []string
 	AllowDomains    []string
 	DryRun          bool
-	Target          []string
-	Exclude         []string
 }
 
 // Services contains the services needed for this function.
@@ -52,17 +50,15 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	if err != nil {
 		return err
 	}
-	return services.Resource.CheckMatches(ctx, values.Target, values.Exclude, values.ProjectID, func() error {
-		if values.DryRun {
-			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
-			return nil
-		}
-		if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
-			return err
-		}
-		services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
+	if values.DryRun {
+		services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 		return nil
-	})
+	}
+	if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
+		return err
+	}
+	services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
+	return nil
 }
 
 // toRemove returns a slice containing only external members that are disallowed.
