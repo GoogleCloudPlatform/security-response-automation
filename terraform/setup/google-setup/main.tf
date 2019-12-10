@@ -20,7 +20,8 @@ data "archive_file" "cloud_functions_zip" {
   type        = "zip"
   source_dir  = "${path.root}"
   output_path = "${path.root}/deploy/functions.zip"
-  excludes    = ["deploy", ".git", ".terraform"]
+  excludes = ["deploy", ".git", ".gitignore", ".terraform", ".pre-commit-config.yaml", ".github", ".vscode", ".idea",
+  "README.md", "CONTRIBUTING.md", "automations.md", "LICENSE", "terraform.tfstate", "terraform", "local"]
   depends_on = [
     "local_file.cloudfunction-key-file",
     "google_project_service.compute_api",
