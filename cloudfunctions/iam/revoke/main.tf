@@ -18,11 +18,11 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   description           = "Revokes IAM Event Threat Detection anomalous IAM grants."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "IAMRevoke"
 
   event_trigger {
@@ -52,12 +52,12 @@ resource "google_folder_iam_member" "revoke_member_viewer_cloudfunction-folder-b
 # PubSub topic to trigger this automation.
 resource "google_pubsub_topic" "topic" {
   name    = "threat-findings-iam-revoke"
-  project = "${var.setup.automation-project}"
+  project = var.setup.automation-project
 }
 
 # Grant the service account permission to publish to this topic.
 resource "google_project_iam_member" "log-writer-pubsub" {
   role    = "roles/pubsub.editor"
-  project = "${var.setup.automation-project}"
+  project = var.setup.automation-project
   member  = "serviceAccount:${var.setup.automation-service-account}"
 }

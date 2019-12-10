@@ -16,11 +16,11 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
   description           = "Takes a snapshot of a GCE disk."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "SnapshotDisk"
 
   event_trigger {
@@ -50,12 +50,12 @@ resource "google_folder_iam_member" "roles-compute-admin" {
 # PubSub topic to trigger this automation.
 resource "google_pubsub_topic" "topic" {
   name    = "threat-findings-create-disk-snapshot"
-  project = "${var.setup.automation-project}"
+  project = var.setup.automation-project
 }
 
 # Grant the service account permission to publish to this topic.
 resource "google_project_iam_member" "log-writer-pubsub" {
   role    = "roles/pubsub.editor"
-  project = "${var.setup.automation-project}"
+  project = var.setup.automation-project
   member  = "serviceAccount:${var.setup.automation-service-account}"
 }
