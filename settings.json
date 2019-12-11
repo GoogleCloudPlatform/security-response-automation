@@ -15,76 +15,67 @@
     "dry_run": true
   },
   "close_bucket": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "revoke_grants": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "allow_domains": [],
     "dry_run": true
   },
   "open_firewall": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "output_destinations": [],
     "remediation_action": "",
     "source_ranges": [],
     "dry_run": true
   },
   "remove_public_ip": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "close_public_dataset": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "enable_bucket_only_policy": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "close_cloud_sql": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "cloud_sql_require_ssl": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "disable_dashboard": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "cloud_sql_update_password": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "enable_audit_logs": {
-    "resources": {
-      "folder_ids": []
-    },
+    "target": [],
+    "exclude": [],
     "dry_run": true
   },
   "remove_non_org_members": {
+    "target": [],
+    "exclude": [],
     "allow_domains": [],
     "dry_run": true
   }

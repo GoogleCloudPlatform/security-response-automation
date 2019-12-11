@@ -173,28 +173,28 @@ func TestCloseBucket(t *testing.T) {
 	test := []struct {
 		name           string
 		initialMembers []string
-		folderIDs      []string
+		target         []string
 		expected       []string
 		ancestry       *crm.GetAncestryResponse
 	}{
 		{
 			name:           "remove allUsers",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
-			folderIDs:      []string{"123"},
+			target:         []string{"organizations/1055058813388/folders/123/*"},
 			expected:       []string{"member:tom@tom.com"},
-			ancestry:       services.CreateAncestors([]string{"folder/123"}),
+			ancestry:       services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
 		},
 		{
 			name:           "no folders",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
-			folderIDs:      nil,
+			target:         nil,
 			expected:       nil,
-			ancestry:       services.CreateAncestors([]string{"folder/123"}),
+			ancestry:       services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub, storageStub := closeBucketSetup(tt.folderIDs)
+			svcs, crmStub, storageStub := closeBucketSetup(tt.target)
 			crmStub.GetAncestryResponse = tt.ancestry
 			for _, v := range tt.initialMembers {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
@@ -223,7 +223,7 @@ func TestCloseBucket(t *testing.T) {
 	}
 }
 
-func closeBucketSetup(folderIDs []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func closeBucketSetup(target []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
@@ -232,9 +232,7 @@ func closeBucketSetup(folderIDs []string) (*services.Global, *stubs.ResourceMana
 	storageStub.BucketPolicyResponse = &iam.Policy{}
 	conf := &services.Configuration{
 		CloseBucket: &services.CloseBucket{
-			Resources: &services.Resources{
-				FolderIDs: folderIDs,
-			},
+			Target: target,
 		},
 	}
 	return &services.Global{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub

@@ -164,16 +164,16 @@ func (r *Resource) EnableAuditLogs(ctx context.Context, projectID string) (*crm.
 }
 
 // GetProjectAncestry returns a slice of the project's ancestry.
-func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) ([]string, error) {
+func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) (string, error) {
 	resp, err := r.crm.GetAncestry(ctx, projectID)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	s := []string{}
-	for _, a := range resp.Ancestor {
-		s = append(s, a.ResourceId.Type+"s/"+a.ResourceId.Id)
+	for i := len(resp.Ancestor) - 1; i >= 0; i-- {
+		s = append(s, resp.Ancestor[i].ResourceId.Type+"s/"+resp.Ancestor[i].ResourceId.Id)
 	}
-	return s, nil
+	return strings.Join(s, "/"), nil
 }
 
 // keepUsersFromPolicy keeps users if they match the given domain.
@@ -247,73 +247,31 @@ func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }
 
-// IfProjectWithinResources executes the provided function if the project ID is an ancestor of any provided resources.
-func (r *Resource) IfProjectWithinResources(ctx context.Context, conf *Resources, projectID string, fn func() error) error {
-	if err := r.IfProjectInFolders(ctx, conf.FolderIDs, projectID, fn); err != nil {
-		return err
-	}
-	if err := r.IfProjectInProjects(ctx, conf.ProjectIDs, projectID, fn); err != nil {
-		return err
-	}
-	if err := r.IfProjectInOrg(ctx, conf.OrganizationID, projectID, fn); err != nil {
-		return err
-	}
-	return nil
-}
-
-// IfProjectInFolders will apply the function if the project ID is within the folder IDs.
-func (r *Resource) IfProjectInFolders(ctx context.Context, ids []string, projectID string, fn func() error) error {
-	if len(ids) == 0 {
-		return nil
-	}
-	ancestors, err := r.GetProjectAncestry(ctx, projectID)
+// CheckMatches checks if a project is included in the target and not included in exclude
+func (r *Resource) CheckMatches(ctx context.Context, target, exclude []string, projectID string, fn func() error) error {
+	ancestorPath, err := r.GetProjectAncestry(ctx, projectID)
 	if err != nil {
-		return errors.Wrap(err, "failed to get project ancestry")
+		return errors.Wrap(err, "failed to get project ancestry path")
 	}
-	for _, resource := range ancestors {
-		for _, folderID := range ids {
-			if resource != "folders/"+folderID {
-				continue
-			}
-			if err := fn(); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
+	matches := false
 
-// IfProjectInProjects will apply the function if the project ID is within the project IDs.
-func (r *Resource) IfProjectInProjects(ctx context.Context, ids []string, projectID string, fn func() error) error {
-	if len(ids) == 0 {
-		return nil
-	}
-	for _, v := range ids {
-		if v != projectID {
+	for _, singleTarget := range target {
+		fmt.Println(singleTarget)
+		fmt.Println(ancestorPath)
+		if singleTarget == "" {
 			continue
 		}
-		if err := fn(); err != nil {
-			return err
+		match, err2 := regexp.MatchString("^"+singleTarget, ancestorPath)
+		if err2 != nil {
+			return errors.Wrap(err, "failed parse: "+singleTarget)
+		}
+		if match {
+			matches = true
+			break
 		}
 	}
-	return nil
-}
-
-// IfProjectInOrg will apply the function if the project ID is within the organization.
-func (r *Resource) IfProjectInOrg(ctx context.Context, orgID, projectID string, fn func() error) error {
-	if orgID == "" {
+	if !matches {
 		return nil
 	}
-	ancestors, err := r.GetProjectAncestry(ctx, projectID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get project ancestry")
-	}
-	for _, resource := range ancestors {
-		if resource == "organizations/"+orgID {
-			if err := fn(); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return fn()
 }

@@ -176,7 +176,7 @@ func TestRemovePublicIP(t *testing.T) {
 		name                         string
 		instance                     *compute.Instance
 		expectedDeletedAccessConfigs []stubs.NetworkAccessConfigStub
-		folderIDs                    []string
+		target                       []string
 		ancestry                     *crm.GetAncestryResponse
 	}{
 		{
@@ -192,8 +192,8 @@ func TestRemovePublicIP(t *testing.T) {
 					AccessConfigName:     "External NAT",
 				},
 			},
-			folderIDs: []string{"123"},
-			ancestry:  services.CreateAncestors([]string{"folder/123"}),
+			target:   []string{"organizations/1055058813388/folders/123/*"},
+			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
 		},
 		{
 			name: "no valid folder",
@@ -203,13 +203,13 @@ func TestRemovePublicIP(t *testing.T) {
 				},
 			},
 			expectedDeletedAccessConfigs: nil,
-			folderIDs:                    []string{"456"},
-			ancestry:                     services.CreateAncestors([]string{"folder/123"}),
+			target:                       []string{"456"},
+			ancestry:                     services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, computeStub, crmStub := setupRemovePublicIP(tt.folderIDs)
+			svcs, computeStub, crmStub := setupRemovePublicIP(tt.target)
 			computeStub.StubbedInstance = tt.instance
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
@@ -234,7 +234,7 @@ func TestRemovePublicIP(t *testing.T) {
 	}
 }
 
-func setupRemovePublicIP(folderIDs []string) (*services.Global, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
+func setupRemovePublicIP(target []string) (*services.Global, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
@@ -244,9 +244,7 @@ func setupRemovePublicIP(folderIDs []string) (*services.Global, *stubs.ComputeSt
 	h := services.NewHost(computeStub)
 	conf := &services.Configuration{
 		RemovePublicIP: &services.RemovePublicIP{
-			Resources: &services.Resources{
-				FolderIDs: folderIDs,
-			},
+			Target: target,
 		},
 	}
 	return &services.Global{Logger: log, Host: h, Resource: res, Configuration: conf}, computeStub, crmStub

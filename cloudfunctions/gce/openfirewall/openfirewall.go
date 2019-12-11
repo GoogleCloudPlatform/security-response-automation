@@ -134,13 +134,13 @@ func readSHAFinding(b []byte, values *Values) error {
 
 // Execute remediates an open firewall.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.DisableFirewall.Resources
-	if services.Configuration.DisableFirewall.DryRun {
-		services.Logger.Info("dry_run on, would have remediated firewall %q in project %q with action %q", values.FirewallID, values.ProjectID, services.Configuration.DisableFirewall.RemediationAction)
+	conf := services.Configuration.DisableFirewall
+	if conf.DryRun {
+		services.Logger.Info("dry_run on, would have remediated firewall %q in project %q with action %q", values.FirewallID, values.ProjectID, conf.RemediationAction)
 		return nil
 	}
 	var fn func() error
-	switch action := services.Configuration.DisableFirewall.RemediationAction; action {
+	switch action := conf.RemediationAction; action {
 	case "BLOCK_SSH":
 		fn = func() error {
 			if err := services.Firewall.BlockSSH(ctx, values.ProjectID, values.SourceRanges); err != nil {
@@ -154,12 +154,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	case "DELETE":
 		fn = delete(ctx, services.Logger, services.Firewall, values.ProjectID, values.FirewallID)
 	case "UPDATE_RANGE":
-		fn = updateRange(ctx, services.Logger, services.Configuration.DisableFirewall.SourceRanges, services.Firewall, values.ProjectID, values.FirewallID)
+		fn = updateRange(ctx, services.Logger, conf.SourceRanges, services.Firewall, values.ProjectID, values.FirewallID)
 	default:
 		return fmt.Errorf("unknown open firewall remediation action: %q", action)
 	}
-	log.Printf("remediation action: %q", services.Configuration.DisableFirewall.RemediationAction)
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, fn)
+	log.Printf("remediation action: %q", conf.RemediationAction)
+	return services.Resource.CheckMatches(ctx, conf.Target, conf.Exclude, values.ProjectID, fn)
 }
 
 func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {

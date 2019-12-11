@@ -63,9 +63,9 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute removes the public IP of a GCE instance.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.RemovePublicIP.Resources
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if services.Configuration.RemovePublicIP.DryRun {
+	conf := services.Configuration.RemovePublicIP
+	return services.Resource.CheckMatches(ctx, conf.Target, conf.Exclude, values.ProjectID, func() error {
+		if conf.DryRun {
 			services.Logger.Info("dry_run on, would have removed public IP address for instance %q, in zone %q in project %q.", values.InstanceID, values.ProjectID)
 			return nil
 		}

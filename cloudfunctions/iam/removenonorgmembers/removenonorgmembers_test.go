@@ -256,14 +256,13 @@ func TestRemoveNonOrgMembers(t *testing.T) {
 func setupNonOrgTest(policy *crm.Policy, allowed []string) (*services.Global, *stubs.ResourceManagerStub) {
 	crmStub := &stubs.ResourceManagerStub{}
 	crmStub.GetPolicyResponse = policy
-	crmStub.GetAncestryResponse = services.CreateAncestors([]string{"folder/593987969559"})
+	crmStub.GetAncestryResponse = services.CreateAncestors([]string{"project/678", "folder/593987969559", "organization/1055058813388"})
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	config := services.Configuration{
 		RemoveNonOrgMembers: &services.RemoveNonOrgMembers{
+			Target:       []string{"organizations/1055058813388/folders/593987969559/*"},
 			AllowDomains: allowed,
-			Resources: &services.Resources{
-				FolderIDs: []string{"593987969559"}},
 		},
 	}
 	return &services.Global{

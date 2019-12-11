@@ -34,8 +34,7 @@ func TestIAMRevoke(t *testing.T) {
 		expectedError   error
 		externalMembers []string
 		initialMembers  []string
-		folderIDs       []string
-		projectIDs      []string
+		target          []string
 		allowed         []string
 		expectedMembers []string
 		ancestry        *crm.GetAncestryResponse
@@ -43,8 +42,7 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "no folder provided and doesn't remove members",
 			expectedError:   nil,
-			folderIDs:       []string{""},
-			projectIDs:      []string{},
+			target:          []string{""},
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			allowed:         []string{""},
@@ -54,8 +52,7 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "remove new gmail user folder",
 			expectedError:   nil,
-			folderIDs:       []string{"folderID"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID"},
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			allowed:         []string{},
@@ -65,19 +62,17 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "remove new gmail user project",
 			expectedError:   nil,
-			folderIDs:       []string{},
-			projectIDs:      []string{"test-project-id"},
+			target:          []string{"organizations/organizationID/folders/folderID/projects/test-project-id"},
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com"},
 			allowed:         []string{},
 			expectedMembers: []string{"user:test@test.com"},
-			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/folderID", "organization/organizationID"}),
+			ancestry:        services.CreateAncestors([]string{"project/test-project-id", "folder/folderID", "organization/organizationID"}),
 		},
 		{
 			name:            "remove new user only",
 			expectedError:   nil,
-			folderIDs:       []string{"folderID"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID"},
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			allowed:         []string{},
@@ -87,8 +82,7 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "allowed domain containing a substring of the domain to remove",
 			expectedError:   nil,
-			folderIDs:       []string{"folderID"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID"},
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
 			allowed:         []string{"mail.com"},
@@ -98,8 +92,7 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "domains in allowed list",
 			expectedError:   nil,
-			folderIDs:       []string{"folderID"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID"},
 			externalMembers: []string{"user:tom@foo.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com"},
 			allowed:         []string{"test.com", "foo.com"},
@@ -109,8 +102,7 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "ignore non-users",
 			expectedError:   nil,
-			folderIDs:       []string{"folderID"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID"},
 			externalMembers: []string{"user:tom@foo.com", "serviceAccount:bob@foo.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com", "serviceAccount:bob@foo.com"},
 			allowed:         []string{"test.com", "foo.com"},
@@ -120,8 +112,7 @@ func TestIAMRevoke(t *testing.T) {
 		{
 			name:            "remove users but leave non-users",
 			expectedError:   nil,
-			folderIDs:       []string{"folderID"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID"},
 			externalMembers: []string{"user:tom@foo.com", "serviceAccount:bob@foo.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@foo.com", "serviceAccount:bob@foo.com"},
 			allowed:         []string{},
@@ -132,8 +123,7 @@ func TestIAMRevoke(t *testing.T) {
 			name:            "provide multiple folders and remove gmail users",
 			expectedError:   nil,
 			externalMembers: []string{"user:tom@gmail.com"},
-			folderIDs:       []string{"folderID", "folderID1"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID", "organizations/organizationID/folders/folderID1"},
 			initialMembers:  []string{"user:test@test.com", "user:existing@gmail.com", "user:tom@gmail.com"},
 			allowed:         []string{},
 			expectedMembers: []string{"user:test@test.com", "user:existing@gmail.com"},
@@ -144,8 +134,7 @@ func TestIAMRevoke(t *testing.T) {
 			expectedError:   nil,
 			externalMembers: []string{"user:tom@gmail.com"},
 			initialMembers:  []string{"user:test@test.com", "user:tom@gmail.com", "user:existing@gmail.com"},
-			folderIDs:       []string{"folderID", "folderID1"},
-			projectIDs:      []string{},
+			target:          []string{"organizations/organizationID/folders/folderID", "organizations/organizationID/folders/folderID1"},
 			allowed:         []string{},
 			expectedMembers: nil,
 			ancestry:        services.CreateAncestors([]string{"project/projectID", "folder/anotherfolderID", "organization/organizationID"}),
@@ -153,7 +142,7 @@ func TestIAMRevoke(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub := revokeGrantsSetup(tt.folderIDs, tt.projectIDs, tt.allowed)
+			svcs, crmStub := revokeGrantsSetup(tt.target, tt.allowed)
 			crmStub.GetPolicyResponse = &crm.Policy{Bindings: createPolicy(tt.initialMembers)}
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
@@ -189,7 +178,7 @@ func createPolicy(members []string) []*crm.Binding {
 	}
 }
 
-func revokeGrantsSetup(folderIDs, projectIDs, allowed []string) (*services.Global, *stubs.ResourceManagerStub) {
+func revokeGrantsSetup(target, allowed []string) (*services.Global, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	l := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
@@ -197,10 +186,7 @@ func revokeGrantsSetup(folderIDs, projectIDs, allowed []string) (*services.Globa
 	r := services.NewResource(crmStub, storageStub)
 	conf := &services.Configuration{
 		RevokeGrants: &services.RevokeGrants{
-			Resources: &services.Resources{
-				FolderIDs:  folderIDs,
-				ProjectIDs: projectIDs,
-			},
+			Target:       target,
 			AllowDomains: allowed,
 		},
 	}

@@ -198,22 +198,23 @@ func TestProjectInOrg(t *testing.T) {
 	r := NewResource(crmStub, storageStub)
 	ctx := context.Background()
 	const projectID = "test-project"
+	projectAncestor := []string{"project/" + projectID, "folder/123", "organization/456"}
 	tests := []struct {
 		name     string
-		orgID    string
+		target   string
 		ancestry *crm.GetAncestryResponse
 		inOrg    bool
 	}{
-		{name: "in org", inOrg: true, orgID: "456", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
-		{name: "out org", inOrg: false, orgID: "888", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
-		{name: "no org", inOrg: false, orgID: "", ancestry: CreateAncestors([]string{"folder/123", "organization/456"})},
+		{name: "in org", inOrg: true, target: "organizations/456/*", ancestry: CreateAncestors(projectAncestor)},
+		{name: "out org", inOrg: false, target: "organizations/888/*", ancestry: CreateAncestors(projectAncestor)},
+		{name: "no org", inOrg: false, target: "", ancestry: CreateAncestors(projectAncestor)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			crmStub.GetAncestryResponse = tt.ancestry
 			exec := false
-			if err := r.IfProjectInOrg(ctx, tt.orgID, projectID, func() error {
+			if err := r.CheckMatches(ctx, []string{tt.target}, []string{}, projectID, func() error {
 				exec = true
 				return nil
 			}); err != nil {
