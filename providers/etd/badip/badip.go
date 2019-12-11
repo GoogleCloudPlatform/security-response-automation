@@ -43,14 +43,14 @@ type Automation struct {
 
 // Name returns the rule name of the finding.
 func (f *Finding) Name(b []byte) string {
-	var finding pb.BadIP
-	if err := json.Unmarshal(b, &finding); err != nil {
+	ff, err := New(b)
+	if err != nil {
 		return ""
 	}
-	if f.useCSCC {
-		return f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+	if ff.useCSCC {
+		return ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
 	}
-	return finding.JsonPayload.GetDetectionCategory().GetRuleName()
+	return ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 }
 
 type Finding struct {
