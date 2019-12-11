@@ -247,31 +247,66 @@ func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }
 
-// CheckMatches checks if a project is included in the target and not included in exclude
-func (r *Resource) CheckMatches(ctx context.Context, target, exclude []string, projectID string, fn func() error) error {
+// CheckMatches checks if a project is included in the target and not included in ignore
+func (r *Resource) CheckMatches(ctx context.Context, target, ignore []string, projectID string, fn func() error) error {
 	ancestorPath, err := r.GetProjectAncestry(ctx, projectID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get project ancestry path")
 	}
-	matches := false
 
-	for _, singleTarget := range target {
-		fmt.Println(singleTarget)
-		fmt.Println(ancestorPath)
-		if singleTarget == "" {
-			continue
-		}
-		match, err2 := regexp.MatchString("^"+singleTarget, ancestorPath)
-		if err2 != nil {
-			return errors.Wrap(err, "failed parse: "+singleTarget)
-		}
-		if match {
-			matches = true
-			break
-		}
+	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to process ignore list")
 	}
-	if !matches {
+	if matchesIgnore {
+		return nil
+	}
+
+	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to process target list")
+	}
+	if !matchesTarget {
 		return nil
 	}
 	return fn()
+}
+
+func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool, error) {
+	for _, pattern := range patterns {
+		if pattern == "" {
+			continue
+		}
+		match, err := regexp.MatchString("^"+pattern, ancestorPath)
+		if err != nil {
+			return false, errors.Wrap(err, "failed to parse: "+pattern)
+		}
+		if match {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// IsTarget checks if a project is included in the target and not included in ignore
+func (r *Resource) IsTarget(ctx context.Context, project string, target, ignore []string) bool {
+	ancestorPath, err := r.GetProjectAncestry(ctx, project)
+	if err != nil {
+		return false
+	}
+	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
+	if err != nil {
+		return false
+	}
+	if matchesIgnore {
+		return false
+	}
+	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
+	if err != nil {
+		return false
+	}
+	if !matchesTarget {
+		return true
+	}
+	return false
 }

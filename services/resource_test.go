@@ -192,6 +192,47 @@ func setupOrgTest(binding []*crm.Binding) (*Resource, *stubs.ResourceManagerStub
 	return resource, crmStub
 }
 
+func TestProjectInOrgIgnore(t *testing.T) {
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := NewResource(crmStub, storageStub)
+	ctx := context.Background()
+	const projectID = "test-project"
+	projectAncestor := []string{"project/" + projectID, "folder/123", "organization/456"}
+	tests := []struct {
+		name        string
+		target      string
+		ignore      string
+		ancestry    *crm.GetAncestryResponse
+		mustExecute bool
+	}{
+		{name: "in target and not in ignore", mustExecute: true, target: "organizations/456/*", ignore: "organizations/888/*", ancestry: CreateAncestors(projectAncestor)},
+		{name: "in target and in ignore", mustExecute: false, target: "organizations/456/*", ignore: "organizations/456/*", ancestry: CreateAncestors(projectAncestor)},
+		{name: "not in target and in ignore", mustExecute: false, target: "organizations/888/*", ignore: "organizations/456/*", ancestry: CreateAncestors(projectAncestor)},
+		{name: "not in target and not in ignore", mustExecute: false, target: "", ignore: "", ancestry: CreateAncestors(projectAncestor)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			crmStub.GetAncestryResponse = tt.ancestry
+			executed := false
+			if err := r.CheckMatches(ctx, []string{tt.target}, []string{tt.ignore}, projectID, func() error {
+				executed = true
+				return nil
+			}); err != nil {
+				t.Errorf("%s failed, err: %+v", tt.name, err)
+			}
+			if !tt.mustExecute && executed {
+				t.Errorf("%s failed: it should not executed function but function was executed", tt.name)
+			}
+			if tt.mustExecute && !executed {
+				t.Errorf("%s failed: it should execute function but function was not executed", tt.name)
+			}
+		})
+	}
+
+}
+
 func TestProjectInOrg(t *testing.T) {
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}

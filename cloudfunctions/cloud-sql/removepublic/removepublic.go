@@ -64,7 +64,7 @@ func ReadFinding(b []byte) (*Values, error) {
 // Execute will remove any public IPs in SQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.CloseCloudSQL
-	return services.Resource.CheckMatches(ctx, conf.Target, conf.Exclude, values.ProjectID, func() error {
+	return services.Resource.CheckMatches(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
 		log.Printf("getting details from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		instance, err := services.CloudSQL.InstanceDetails(ctx, values.ProjectID, values.InstanceName)
 		if err != nil {

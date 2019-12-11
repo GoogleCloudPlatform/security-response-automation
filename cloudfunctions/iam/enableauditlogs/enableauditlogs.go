@@ -65,7 +65,7 @@ func ReadFinding(b []byte) (*Values, error) {
 // Execute is the entry point for the Cloud Function to enable audit logs for a specific project.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.EnableAuditLogs
-	if err := services.Resource.CheckMatches(ctx, conf.Target, conf.Exclude, values.ProjectID, func() error {
+	if err := services.Resource.CheckMatches(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
 		if conf.DryRun {
 			services.Logger.Info("dry_run on, would have enabled data access audit logs in project %q", values.ProjectID)
 			return nil

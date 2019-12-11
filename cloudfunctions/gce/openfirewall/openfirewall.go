@@ -159,7 +159,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return fmt.Errorf("unknown open firewall remediation action: %q", action)
 	}
 	log.Printf("remediation action: %q", conf.RemediationAction)
-	return services.Resource.CheckMatches(ctx, conf.Target, conf.Exclude, values.ProjectID, fn)
+	return services.Resource.CheckMatches(ctx, conf.Target, conf.Ignore, values.ProjectID, fn)
 }
 
 func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, projectID, firewallID string) func() error {
