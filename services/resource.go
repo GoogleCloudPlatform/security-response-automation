@@ -17,7 +17,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -164,19 +163,6 @@ func (r *Resource) EnableAuditLogs(ctx context.Context, projectID string) (*crm.
 	return result, nil
 }
 
-// GetProjectAncestry returns a slice of the project's ancestry.
-func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) (string, error) {
-	resp, err := r.crm.GetAncestry(ctx, projectID)
-	if err != nil {
-		return "", err
-	}
-	s := []string{}
-	for i := len(resp.Ancestor) - 1; i >= 0; i-- {
-		s = append(s, resp.Ancestor[i].ResourceId.Type+"s/"+resp.Ancestor[i].ResourceId.Id)
-	}
-	return strings.Join(s, "/"), nil
-}
-
 // keepUsersFromPolicy keeps users if they match the given domain.
 func (r *Resource) keepUsersFromPolicy(policy *crm.Policy, allowedDomains []string) ([]string, *crm.Policy, error) {
 	// Throw an error if no allowed domains are passed. Otherwise all users would be removed.
@@ -248,8 +234,21 @@ func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }
 
-// CheckMatches checks if a project is included in the target and not included in ignore
-func (r *Resource) CheckMatches(ctx context.Context, target, ignore []string, projectID string, fn func() error) error {
+// GetProjectAncestry returns a string of the project's ancestry path.
+func (r *Resource) GetProjectAncestry(ctx context.Context, projectID string) (string, error) {
+	resp, err := r.crm.GetAncestry(ctx, projectID)
+	if err != nil {
+		return "", err
+	}
+	s := []string{}
+	for i := len(resp.Ancestor) - 1; i >= 0; i-- {
+		s = append(s, resp.Ancestor[i].ResourceId.Type+"s/"+resp.Ancestor[i].ResourceId.Id)
+	}
+	return strings.Join(s, "/"), nil
+}
+
+// CheckMatchesWithLambda checks if a project is included in the target and not included in ignore
+func (r *Resource) CheckMatchesWithLambda(ctx context.Context, target, ignore []string, projectID string, fn func() error) error {
 	ancestorPath, err := r.GetProjectAncestry(ctx, projectID)
 	if err != nil {
 		return errors.Wrap(err, "failed to get project ancestry path")
@@ -289,28 +288,25 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 	return false, nil
 }
 
-// IsTarget checks if a project is included in the target and not included in ignore
-func (r *Resource) IsTarget(ctx context.Context, project string, target, ignore []string) bool {
+// CheckMatches checks if a project is included in the target and not included in ignore
+func (r *Resource) CheckMatches(ctx context.Context, project string, target, ignore []string) (bool, error) {
 	ancestorPath, err := r.GetProjectAncestry(ctx, project)
 	if err != nil {
-		log.Println("failed to get project ancestry path")
-		return false
+		return false, errors.Wrap(err, "failed to get project ancestry path")
 	}
 	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
 	if err != nil {
-		log.Println("failed to process ignore list")
-		return false
+		return false, errors.Wrap(err, "failed to process ignore list")
 	}
 	if matchesIgnore {
-		return false
+		return false, nil
 	}
 	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
 	if err != nil {
-		log.Println("failed to process target list")
-		return false
+		return false, errors.Wrap(err, "failed to process target list")
 	}
-	if !matchesTarget {
-		return true
+	if matchesTarget {
+		return true, nil
 	}
-	return false
+	return false, nil
 }

@@ -216,7 +216,7 @@ func TestProjectInOrgIgnore(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			crmStub.GetAncestryResponse = tt.ancestry
 			executed := false
-			if err := r.CheckMatches(ctx, []string{tt.target}, []string{tt.ignore}, projectID, func() error {
+			if err := r.CheckMatchesWithLambda(ctx, []string{tt.target}, []string{tt.ignore}, projectID, func() error {
 				executed = true
 				return nil
 			}); err != nil {
@@ -255,7 +255,7 @@ func TestProjectInOrg(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			crmStub.GetAncestryResponse = tt.ancestry
 			exec := false
-			if err := r.CheckMatches(ctx, []string{tt.target}, []string{}, projectID, func() error {
+			if err := r.CheckMatchesWithLambda(ctx, []string{tt.target}, []string{}, projectID, func() error {
 				exec = true
 				return nil
 			}); err != nil {

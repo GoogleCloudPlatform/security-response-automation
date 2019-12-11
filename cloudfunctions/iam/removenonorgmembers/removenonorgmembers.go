@@ -66,7 +66,7 @@ func ReadFinding(b []byte) (*Values, error) {
 // Execute removes all users from a specific project not in allowed domain list.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	conf := services.Configuration.RemoveNonOrgMembers
-	return services.Resource.CheckMatches(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
+	return services.Resource.CheckMatchesWithLambda(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
 		if conf.DryRun {
 			services.Logger.Info("dry run, would have removed users not from %q in %q", conf.AllowDomains, values.ProjectID)
 			return nil
