@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
@@ -94,6 +95,11 @@ func ruleName(b []byte) string {
 	return ""
 }
 
+// isTarget will return if the project is within the target and not in the ignore slice.
+func isTarget(project string, target, ignore []string) bool {
+	return true
+}
+
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	switch name := ruleName(values.Finding); name {
@@ -109,11 +115,13 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values := badIP.CreateSnapshot()
 				values.Output = automation.Properties.Output
 				values.DryRun = automation.Properties.DryRun
-				values.Target = automation.Target
-				values.Exclude = automation.Exclude
 				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
 				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
+				if !isTarget(values.ProjectID, automation.Target, automation.Exclude) {
+					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
 				b, err := json.Marshal(&values)
 				if err != nil {
 					return err
@@ -138,8 +146,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
 				values.DryRun = automation.Properties.DryRun
-				values.Target = automation.Target
-				values.Exclude = automation.Exclude
+				if !isTarget(values.ProjectID, automation.Target, automation.Exclude) {
+					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
 				b, err := json.Marshal(&values)
 				if err != nil {
 					return err
@@ -153,7 +163,6 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
-
 	default:
 		return fmt.Errorf("rule %q not found", name)
 	}

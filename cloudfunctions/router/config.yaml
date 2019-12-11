@@ -12,7 +12,7 @@ spec:
           exclude:
             - projects/345
           properties:
-            dry_run: true
+            dry_run: false
             target_snapshot_project_id: aerial-jigsaw-235219
             target_snapshot_zone: us-central1-action
             output:
