@@ -17,6 +17,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -292,10 +293,12 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 func (r *Resource) IsTarget(ctx context.Context, project string, target, ignore []string) bool {
 	ancestorPath, err := r.GetProjectAncestry(ctx, project)
 	if err != nil {
+		log.Println("failed to get project ancestry path")
 		return false
 	}
 	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
 	if err != nil {
+		log.Println("failed to process ignore list")
 		return false
 	}
 	if matchesIgnore {
@@ -303,6 +306,7 @@ func (r *Resource) IsTarget(ctx context.Context, project string, target, ignore 
 	}
 	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
 	if err != nil {
+		log.Println("failed to process target list")
 		return false
 	}
 	if !matchesTarget {
