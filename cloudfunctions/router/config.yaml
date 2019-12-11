@@ -20,7 +20,7 @@ spec:
               project_id: ae-turbinia
               topic: psq-turbinia-f7be51e9de8c829c-psq
               zone: us-central1-a
-      anomalouis_iam:
+      anomalous_iam:
         - action: iam_revoke
           target:
             - organization/*

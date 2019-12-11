@@ -51,17 +51,19 @@ Automatically create a snapshot of all disks associated with a GCE instance.
 
 Configuration
 
-- Configured in settings.json under the `create_snapshot` key.
-- `snapshot_project_id` Optional project ID where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_project_id`.
-- `snapshot_zone` Optional zone where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_zone`.
-- `output_destinations` Repeated set of optional output destinations after the function has executed.
+- action `gce_create_disk_snapshot`
+- `target_snapshot_project_id` Project ID where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_project_id`.
+- `target_snapshot_project_zone` Zone where disk snapshots should be sent to. If outputing to Turbinia this should be the same as `turbinia_zone`.
+- `output` Repeated set of optional output destinations after the function has executed.
   - `turbinia` Will notify Turbinia when a snapshot is created.
 
 Required if output contains `turbinia`:
 
-- `turbinia_project_id` Project ID where Tubinia is installed.
-- `turbinia_topic_name` Pub/Sub topic where we should notify Turbinia.
-- `turbinia_zone` Zone where Turbinia disks are kept.
+The below keys are placed under the `turbinia` key:
+
+- `project_id` Project ID where Tubinia is installed.
+- `topic_name` Pub/Sub topic where we should notify Turbinia.
+- `zone` Zone where Turbinia disks are kept.
 
 #### Remove public IPs from an instance
 

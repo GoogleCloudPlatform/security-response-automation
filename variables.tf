@@ -12,3 +12,8 @@ variable "organization-id" {
   type        = string
   description = "Organization ID."
 }
+
+variable "folder-ids" {
+  type        = list(string)
+  description = "Folder IDs to apply automations to."
+}

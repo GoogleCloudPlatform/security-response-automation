@@ -47,13 +47,13 @@ module "router" {
 module "revoke_iam_grants" {
   source     = "./cloudfunctions/iam/revoke"
   setup      = module.google-setup
-  folder-ids = ["670032686187"]
+  folder-ids = var.folder-ids
 }
 
 module "create_disk_snapshot" {
   source              = "./cloudfunctions/gce/createsnapshot"
   setup               = module.google-setup
-  folder-ids          = ["670032686187"]
+  folder-ids          = var.folder-ids
   turbinia-project-id = ""
   turbinia-topic-name = ""
 }

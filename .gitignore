@@ -10,4 +10,4 @@ deploy
 .history
 .vscode
 .idea
-settings.json
+router/config.yaml
