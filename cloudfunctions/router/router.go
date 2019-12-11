@@ -109,6 +109,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "gce_create_disk_snapshot":
@@ -126,6 +127,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				if err != nil {
 					return err
 				}
+				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
 				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
 					Data: b,
 				}); err != nil {

@@ -10,6 +10,45 @@ import (
 )
 
 const (
+	badIPCSCC = `{
+		"notificationConfigName": "organizations/1037840971520/notificationConfigs/sampleConfigId",
+		"finding": {
+		  "name": "organizations/1037840971520/sources/15233230630886231666/findings/6cc800d88324478aa80d2031794214a4",
+		  "parent": "organizations/1037840971520/sources/15233230630886231666",
+		  "resourceName": "//cloudresourcemanager.googleapis.com/projects/459837319394",
+		  "state": "ACTIVE",
+		  "category": "C2: Bad IP",
+		  "sourceProperties": {
+			"properties_subnetwork_name": "default",
+			"detectionCategory_ruleName": "bad_ip",
+			"properties_project_id": "ae-threat-detection",
+			"eventTime": "2019-12-11T22:39:54.657Z",
+			"sourceId_projectNumber": "459837319394",
+			"affectedResources_0_gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/459837319394",
+			"properties_ip_0": "80.82.64.214",
+			"properties_location": "us-central1-a",
+			"evidence_0_sourceLogId_timestamp": "2019-12-11T22:39:54.060661565Z",
+			"detectionPriority": "HIGH",
+			"properties_instanceDetails": "/projects/ae-threat-detection/zones/us-central1-a/instances/instance-1",
+			"detectionCategory_technique": "C2",
+			"findingId": "6cc800d88324478aa80d2031794214a4",
+			"sourceId_customerOrganizationNumber": "1037840971520",
+			"evidence_0_sourceLogId_insertId": "198cht8g3wedctq",
+			"detectionCategory_indicator": "ip",
+			"properties_subnetwork_id": "3951118263795572377"
+		  },
+		  "securityMarks": {
+			"name": "organizations/1037840971520/sources/15233230630886231666/findings/6cc800d88324478aa80d2031794214a4/securityMarks",
+			"marks": {
+			  "k": "ok",
+			  "adfs": "adf",
+			  "adsf": "adsf"
+			}
+		  },
+		  "eventTime": "2019-12-11T22:39:54.657Z",
+		  "createTime": "2019-12-11T22:39:55.358Z"
+		}
+	}`
 	badIP = `{
 		"jsonPayload": {
 			"properties": {
@@ -76,7 +115,7 @@ func main() {
 	// if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
 	// 	log.Fatal(err)
 	// }
-	if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIP)}); err != nil {
+	if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIPCSCC)}); err != nil {
 		log.Fatal(err)
 	}
 }
