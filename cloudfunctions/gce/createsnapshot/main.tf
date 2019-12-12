@@ -18,7 +18,7 @@ resource "google_cloudfunctions_function" "create-disk-snapshot" {
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
-  timeout               = 60
+  timeout               = 360
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "SnapshotDisk"
