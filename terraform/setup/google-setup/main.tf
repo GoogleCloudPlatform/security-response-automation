@@ -10,7 +10,7 @@ resource "google_storage_bucket" "gcf_bucket" {
 }
 
 resource "google_storage_bucket_object" "gcf_object" {
-  name       = "functions.zip"
+  name       = "functions-${data.archive_file.cloud_functions_zip.output_md5}.zip"
   bucket     = google_storage_bucket.gcf_bucket.name
   source     = "${path.root}/deploy/functions.zip"
   depends_on = [data.archive_file.cloud_functions_zip]
