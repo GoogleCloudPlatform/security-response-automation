@@ -5,8 +5,7 @@ Take automated actions on your Cloud Security Command Center findings:
 - Automatically create disk snapshots to enable forensic investigations.
 - Revoke IAM grants that violate your desired policy.
 - Notify other systems such as PagerDuty, Slack or email.
-
-See full list of [automations](/automations.md).
+- See the full list of [automations](/automations.md) for more information.
 
 You're in control:
 
@@ -17,22 +16,30 @@ You're in control:
 
 ### Configure automations
 
-Before installation we'll configure our automations, rename or copy `./router/empty-config.yaml` to `./router/config.yaml`. Within this file we'll restrict our automations to only take actions if the affected resource are within a set of resource IDs we declare. For example, you may want to revoke IAM grants in your development environment but in your prod environment you may want to monitor only.
+Before installation we'll configure our automations, copy `./router/empty-config.yaml` to `./router/config.yaml`. Within this file we'll define a few steps to get started:
 
-- For a full list of automations and their individual configurations see [automations](/automations.md).
-- For each resource ID (folder, project, or organization) you configure below you'll also need to modify (main.tf)[/main.tf] so Terraform can grant the required permissions.
+- Which automations should apply to which findings. 
+- Which projects to target these automations with.
+- Which projects to exclude.
+- Fill in any needed variables.
 
-Each automation that considers resources will support the following resources:
+## Restricting projects
 
-### Example
+Every automation accepts a `target` and `exclude` array that accepts an ancestry pattern that is compared against the incoming project. For example lets say you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use folder ID `5656565656` that you want to leave alone. If you have projects outside of folders you can specify them too.
 
-In the [automations](/automations.md) documentation we see that this automation is configured in [config.yaml](config.yaml) under the `revoke_iam` key. In this example we'll configure Security Response Automation to do the following:
+In this case your configuration could look like:
 
-- When Event Threat Detection (ETD) detects an Anomalous IAM Grant take the following set of actions:
-  - Call the `iam_revoke` automation
-  - Apply this automation to every project under the folder number 1234567890 excluding project 54321.
-  - This automation will run in dry_run mode, no users will be removed, however you will see a log of who would have been removed.
-  - Do not remove any users who are part of the foo.com domain.
+```yaml
+target:
+  - organizations/1234567890/folders/424242424242/*
+  - organizations/1234567890/projects/77981237242
+excludes:
+  - organizations/1234567890/folders/5656565656/*
+```
+
+In the [automations](/automations.md) documentation we see that this automation is configured in [config.yaml](config.yaml) under the action name `revoke_iam`. In this example we'll configure Security Response Automation to apply this automation to Event Threat Detection's Anomalous IAM Grant findigns.
+
+It's important to note this automation requires the `allow_domains` to contain at least one valid domain. This is used to ensure SRA only removes domains not explictly allowed. It's also best practice to run SRA with `dry_run` enabled. This way you can let SRA generate StackDriver logs to see what actions it would have taken. Once you confirm this is as expected you can set `dry_run` to false and redeploy.
 
 ```yaml
 apiVersion: security-response-automation.cloud.google.com/v1alpha1
@@ -45,9 +52,8 @@ spec:
       anomalous_iam:
         - action: iam_revoke
           target:
-            - folders/1234567890
+            - organizations/1234567890/folders/424242424242/*
           exclude:
-            - projects/54321
           properties:
             dry_run: false
             allow_domains:
@@ -56,50 +62,22 @@ spec:
 
 #### Configuring permissions
 
-The service account is configured separately within [main.tf](/main.tf). Here we inform Terraform which folders we're enforcing so the required roles are automatically granted. If you choose you can leave out this step but you must authorize the SRA service account to have the necessary roles to revoke the IAM grants. You could grant the account `Project IAM Admin` role on each project ID you want enforced then add the project IDs to the above `project_ids` key. You could also grant the role at the organization level and enter your organzation ID in the `organization_id`.
+The service account is configured separately within [main.tf](/main.tf). Here we inform Terraform which folders we're enforcing so the required roles are automatically granted. You have a few choices for how to configure this step:
 
-```terraform
-module "revoke_iam_grants" {
-  source     = "./cloudfunctions/iam/revoke"
-  setup      = module.google-setup
-  folder-ids = ["670032686187"]
-}
-```
+- **Recommended** Specify a list of folder IDs that SRA could grant its service account the necessary roles to. This ensures SRA only has the access it needs at the folders where it's being used. This list will be asked below in the **Installation** section.
+- Grant permissions on your own either per project or at the organizational level.
 
-### Installation
+#### Forward findings to Pub/Sub
 
-Following these instructions will deploy all automations. Before you get started be sure
-you have:
+Currently Event Threat Detection publishes to StackDriver and CSCC, Security Health Analytics publishes to CSCC only. We're currently in the process of moving to CSCC notifications but for completeness sake we'll list instructions for StackDriver (legacy) and CSCC notifications.
 
-- Go version 1.11
-- Terraform version 0.12.17
+**StackDriver** 
 
-```shell
-$ gcloud auth application-default login
-$ terraform init
+If you're only interested in processing ETD findings then your configuration is done for you automatically below using Terraform. You can skip the **Setup CSCC Notifications** section.
 
-// Install all automations.
-$ terraform apply
+**Setup CSCC Notifications**
 
-// Install a single automations.
-$ terraform apply --target module.revoke_iam_grants
-```
-
-TIP: Instead of entering variables every time you can create `terraform.tfvars`
-file and input key value pairs there, i.e.
-`automation-project="aerial-jigsaw-235219"`.
-
-If at any point you want to revert the changes we've made just run `terraform destroy .`
-
-**CSCC Notifications**
-
-Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
-
-Note: If you enable CSCC notifications as described below you'll need to remove the StackDriver export so automations are not triggered twice. You can do this by running:
-
-```shell
-$ gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
-```
+CSCC Notifications will enable you to receive SHA & ETD findings. 
 
 Configure CSCC notifications
 
@@ -133,6 +111,7 @@ $ go run ./local/cli/main.go \
 // streaming_config:<filter:"state = \"ACTIVE\"" >
 //
 // Make sure to replace `SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
+
 $ gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
   --member="serviceAccount:service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com" \
   --role="roles/pubsub.publisher"
@@ -141,6 +120,39 @@ $ gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
   --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
   --role='roles/pubsub.admin'
 ```
+
+### Installation
+
+Following these instructions will deploy all automations. Before you get started be sure
+you have:
+
+- Go version 1.11
+- Terraform version 0.12.17
+
+```shell
+$ gcloud auth application-default login
+$ terraform init
+
+// Install all automations.
+$ terraform apply
+
+// Install a single automations.
+$ terraform apply --target module.revoke_iam_grants
+```
+
+**NOTE**
+
+If you setup CSCC notifications it's important to remove the StackDriver export so automations are not triggered twice. This is done by running:
+
+```shell
+$ gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
+```
+
+TIP: Instead of entering variables every time you can create `terraform.tfvars`
+file and input key value pairs there, i.e.
+`automation-project="aerial-jigsaw-235219"`.
+
+If at any point you want to revert the changes we've made just run `terraform destroy .`
 
 ### Reinstalling a Cloud Function
 

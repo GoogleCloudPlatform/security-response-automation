@@ -26,8 +26,7 @@ Removes members from an IAM policy.
 
 Configuration
 
-- Configured in settings.json under the `revoke_iam` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `iam_revoke`
 
 Before a user is removed the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
 
