@@ -170,27 +170,27 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name     string
-		target   []string
-		expected string
-		ancestry *crm.GetAncestryResponse
+		name      string
+		folderIDs []string
+		expected  string
+		ancestry  *crm.GetAncestryResponse
 	}{
 		{
-			name:     "enable bucket only policy",
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			expected: "bucket-to-enable-policy",
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "enable bucket only policy",
+			folderIDs: []string{"123"},
+			expected:  "bucket-to-enable-policy",
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
-			name:     "no folders",
-			target:   nil,
-			expected: "",
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "no folders",
+			folderIDs: nil,
+			expected:  "",
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub, storageStub := enableBucketOnlyPolicySetup(tt.target)
+			svcs, crmStub, storageStub := enableBucketOnlyPolicySetup(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 
 			values := &Values{
@@ -215,7 +215,7 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 	}
 }
 
-func enableBucketOnlyPolicySetup(target []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func enableBucketOnlyPolicySetup(folderIDs []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
@@ -224,7 +224,9 @@ func enableBucketOnlyPolicySetup(target []string) (*services.Global, *stubs.Reso
 	storageStub.BucketPolicyResponse = &iam.Policy{}
 	conf := &services.Configuration{
 		EnableBucketOnlyPolicy: &services.EnableBucketOnlyPolicy{
-			Target: target,
+			Resources: &services.Resources{
+				FolderIDs: folderIDs,
+			},
 		},
 	}
 	return &services.Global{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub

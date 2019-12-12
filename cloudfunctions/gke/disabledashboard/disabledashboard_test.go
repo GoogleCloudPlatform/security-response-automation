@@ -146,14 +146,14 @@ func TestDisableDashboard(t *testing.T) {
 
 	test := []struct {
 		name            string
-		target          []string
+		folderIDs       []string
 		ancestry        *crm.GetAncestryResponse
 		expectedRequest *container.SetAddonsConfigRequest
 	}{
 		{
-			name:     "disable dashboard",
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "disable dashboard",
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &container.SetAddonsConfigRequest{
 				AddonsConfig: &container.AddonsConfig{
 					KubernetesDashboard: &container.KubernetesDashboard{
@@ -164,13 +164,13 @@ func TestDisableDashboard(t *testing.T) {
 		},
 		{
 			name:            "no valid folder",
-			target:          []string{"organizations/1055058813388/folders/456/*"},
-			ancestry:        services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			folderIDs:       []string{"456"},
+			ancestry:        services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: nil,
 		},
 	}
 	for _, tt := range test {
-		values, svcs, crmStub, contStub := disableDashboardSetup(tt.target)
+		values, svcs, crmStub, contStub := disableDashboardSetup(tt.folderIDs)
 		crmStub.GetAncestryResponse = tt.ancestry
 		if err := Execute(ctx, values, &Services{
 			Configuration: svcs.Configuration,
@@ -186,7 +186,7 @@ func TestDisableDashboard(t *testing.T) {
 	}
 }
 
-func disableDashboardSetup(target []string) (*Values, *services.Global, *stubs.ResourceManagerStub, *stubs.ContainerStub) {
+func disableDashboardSetup(folderIDs []string) (*Values, *services.Global, *stubs.ResourceManagerStub, *stubs.ContainerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	contStub := &stubs.ContainerStub{}
@@ -201,7 +201,9 @@ func disableDashboardSetup(target []string) (*Values, *services.Global, *stubs.R
 	}
 	conf := &services.Configuration{
 		DisableDashboard: &services.DisableDashboard{
-			Target: target,
+			Resources: &services.Resources{
+				FolderIDs: folderIDs,
+			},
 		},
 	}
 	return req, &services.Global{Logger: log, Configuration: conf, Resource: resource, Container: cont}, crmStub, contStub

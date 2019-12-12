@@ -64,9 +64,9 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute will remove any public users from buckets found within the provided folders.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration.CloseBucket
-	return services.Resource.CheckMatchesWithLambda(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
-		if conf.DryRun {
+	resources := services.Configuration.CloseBucket.Resources
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if services.Configuration.CloseBucket.DryRun {
 			services.Logger.Info("dry_run on, would have removed public members from bucket %q in project %q", values.BucketName, values.ProjectID)
 			return nil
 		}

@@ -154,14 +154,14 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
 		name            string
-		target          []string
+		folderIDs       []string
 		ancestry        *crm.GetAncestryResponse
 		expectedRequest *sqladmin.DatabaseInstance
 	}{
 		{
-			name:     "enforce ssl on sql instance",
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "enforce ssl on sql instance",
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",
@@ -175,7 +175,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, sqlStub, crmStub := cloudSQLRequireSSL(tt.target)
+			svcs, sqlStub, crmStub := cloudSQLRequireSSL(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
 				ProjectID:    "sha-resources-20191002",
@@ -197,7 +197,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	}
 }
 
-func cloudSQLRequireSSL(target []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
+func cloudSQLRequireSSL(folderIDs []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
@@ -207,7 +207,9 @@ func cloudSQLRequireSSL(target []string) (*services.Global, *stubs.CloudSQL, *st
 	res := services.NewResource(crmStub, storageStub)
 	conf := &services.Configuration{
 		CloudSQLRequireSSL: &services.CloudSQLRequireSSL{
-			Target: target,
+			Resources: &services.Resources{
+				FolderIDs: folderIDs,
+			},
 		},
 	}
 	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub

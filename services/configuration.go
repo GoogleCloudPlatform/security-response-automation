@@ -6,17 +6,22 @@ import (
 	"os"
 )
 
+// Resources represents common resource IDs used for configuration.
+type Resources struct {
+	FolderIDs      []string `json:"folder_ids"`
+	ProjectIDs     []string `json:"project_ids"`
+	OrganizationID string   `json:"organization_id"`
+}
+
 // CloseBucket contains configuration required for the Cloud Bucket function.
 type CloseBucket struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // DisableFirewall contains configuration required for the disable firewall function.
 type DisableFirewall struct {
-	Target             []string
-	Ignore             []string
+	Resources          *Resources
 	RemediationAction  string   `json:"remediation_action"`
 	SourceRanges       []string `json:"source_ranges"`
 	DryRun             bool     `json:"dry_run"`
@@ -25,8 +30,7 @@ type DisableFirewall struct {
 
 // RevokeGrants contains configuration required for the Revoke Grants function.
 type RevokeGrants struct {
-	Target []string
-	Ignore []string
+	Resources *Resources
 	// A slice of domain names that will be evaluated against incoming added members. If the user
 	// matches a domain in this list they will not be removed.
 	AllowDomains []string `json:"allow_domains"`
@@ -35,51 +39,44 @@ type RevokeGrants struct {
 
 // RemovePublicIP contains configuration required for the remove public IP function.
 type RemovePublicIP struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // EnableBucketOnlyPolicy contains configuration required for the enable bucket only policy function.
 type EnableBucketOnlyPolicy struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // EnableAuditLogs configuration required to enable data access audit logs
 type EnableAuditLogs struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // CloseCloudSQL contains configuration required for the close Cloud SQL function.
 type CloseCloudSQL struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // CloudSQLRequireSSL contains configuration required for the Cloud SQL require SSL function.
 type CloudSQLRequireSSL struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // DisableDashboard contains configuration required for the disable dashboard function.
 type DisableDashboard struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // CreateSnapshot contains configuration required for the create snapshot function.
@@ -95,15 +92,13 @@ type CreateSnapshot struct {
 
 // UpdatePassword contains configuration required for the update password function.
 type UpdatePassword struct {
-	Target []string
-	Ignore []string
-	DryRun bool `json:"dry_run"`
+	Resources *Resources
+	DryRun    bool `json:"dry_run"`
 }
 
 // RemoveNonOrgMembers contains configuration required for remove non-org members function.
 type RemoveNonOrgMembers struct {
-	Target       []string
-	Ignore       []string
+	Resources    *Resources
 	AllowDomains []string `json:"allow_domains"`
 	DryRun       bool     `json:"dry_run"`
 }

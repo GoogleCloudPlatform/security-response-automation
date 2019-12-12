@@ -155,28 +155,28 @@ func TestUpdatePassword(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
 		name            string
-		target          []string
+		folderIDs       []string
 		ancestry        *crm.GetAncestryResponse
 		expectedRequest *sqladmin.User
 	}{
 		{
-			name:     "update root password",
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "update root password",
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: &sqladmin.User{
 				Password: "4a542dd833d9f8a7600b13cd281d00cf2b0a5610e825ff931260b2911bef95b5",
 			},
 		},
 		{
 			name:            "no valid folder",
-			target:          []string{"456"},
-			ancestry:        services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			folderIDs:       []string{"456"},
+			ancestry:        services.CreateAncestors([]string{"folder/123"}),
 			expectedRequest: nil,
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, sqlStub, crmStub := updatePasswordSetup(tt.target)
+			svcs, sqlStub, crmStub := updatePasswordSetup(tt.folderIDs)
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
 				ProjectID:    "threat-auto-tests-07102019",
@@ -201,7 +201,7 @@ func TestUpdatePassword(t *testing.T) {
 	}
 }
 
-func updatePasswordSetup(target []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
+func updatePasswordSetup(folderIDs []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
@@ -211,7 +211,9 @@ func updatePasswordSetup(target []string) (*services.Global, *stubs.CloudSQL, *s
 	res := services.NewResource(crmStub, storageStub)
 	conf := &services.Configuration{
 		UpdatePassword: &services.UpdatePassword{
-			Target: target,
+			Resources: &services.Resources{
+				FolderIDs: folderIDs,
+			},
 		},
 	}
 	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub

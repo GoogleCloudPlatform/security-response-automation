@@ -63,9 +63,10 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute disables the Kubernetes dashboard.
 func Execute(ctx context.Context, values *Values, service *Services) error {
-	conf := service.Configuration.DisableDashboard
-	return service.Resource.CheckMatchesWithLambda(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
-		if conf.DryRun {
+	conf := service.Configuration
+	resources := service.Configuration.DisableDashboard.Resources
+	return service.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if conf.DisableDashboard.DryRun {
 			service.Logger.Info("dry_run on, would have disabled dashboard from custer %q in zone %q in project %q", values.ClusterID, values.Zone, values.ProjectID)
 			return nil
 		}

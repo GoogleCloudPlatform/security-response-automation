@@ -172,14 +172,15 @@ func setupAuditLogs(mock *crm.Policy) *services.Global {
 	log := services.NewLogger(loggerStub)
 	config := services.Configuration{
 		EnableAuditLogs: &services.EnableAuditLogs{
-			Target: []string{"organizations/1055058813388/folders/593987969559/*"},
+			Resources: &services.Resources{
+				FolderIDs: []string{"593987969559"}},
 		},
 	}
 	return &services.Global{
 		Resource: services.NewResource(
 			&stubs.ResourceManagerStub{
 				GetPolicyResponse:   mock,
-				GetAncestryResponse: services.CreateAncestors([]string{"project/678", "folder/593987969559", "organization/1055058813388"}),
+				GetAncestryResponse: services.CreateAncestors([]string{"folder/593987969559"}),
 			},
 			&stubs.StorageStub{}),
 		Configuration: &config,

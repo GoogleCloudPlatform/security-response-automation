@@ -150,7 +150,7 @@ func TestClosePublicDataset(t *testing.T) {
 		name             string
 		metadata         *bigquery.DatasetMetadata
 		expectedMetadata *bigquery.DatasetMetadataToUpdate
-		target           []string
+		folderIDs        []string
 		ancestry         *crm.GetAncestryResponse
 	}{
 		{
@@ -169,20 +169,20 @@ func TestClosePublicDataset(t *testing.T) {
 					{Entity: "anotheruser@org.com"},
 				},
 			},
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:             "no valid folder",
 			metadata:         &bigquery.DatasetMetadata{},
 			expectedMetadata: nil,
-			target:           []string{"organizations/1055058813388/folders/456/*"},
-			ancestry:         services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			folderIDs:        []string{"456"},
+			ancestry:         services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, bigqueryStub, crmStub := setup(tt.target)
+			svcs, bigqueryStub, crmStub := setup(tt.folderIDs)
 			bigqueryStub.StubbedMetadata = tt.metadata
 			bigqueryStub.SavedDatasetMetadata = tt.expectedMetadata
 			crmStub.GetAncestryResponse = tt.ancestry
@@ -207,7 +207,7 @@ func TestClosePublicDataset(t *testing.T) {
 	}
 }
 
-func setup(target []string) (*services.Global, *stubs.BigQueryStub, *stubs.ResourceManagerStub) {
+func setup(folderIDs []string) (*services.Global, *stubs.BigQueryStub, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	storageStub := &stubs.StorageStub{}
@@ -216,7 +216,9 @@ func setup(target []string) (*services.Global, *stubs.BigQueryStub, *stubs.Resou
 	bigqueryStub := &stubs.BigQueryStub{}
 	conf := &services.Configuration{
 		ClosePublicDataset: &services.ClosePublicDataset{
-			Target: target,
+			Resources: &services.Resources{
+				FolderIDs: folderIDs,
+			},
 		},
 	}
 	return &services.Global{Logger: log, Resource: res, Configuration: conf}, bigqueryStub, crmStub

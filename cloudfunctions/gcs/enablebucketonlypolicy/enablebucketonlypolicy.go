@@ -61,9 +61,9 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute will enable bucket only policy on buckets found within the provided folders.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration.EnableBucketOnlyPolicy
-	return services.Resource.CheckMatchesWithLambda(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
-		if conf.DryRun {
+	resources := services.Configuration.EnableBucketOnlyPolicy.Resources
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if services.Configuration.EnableBucketOnlyPolicy.DryRun {
 			services.Logger.Info("dry_run on, would have enabled Bucket only policy on bucket %q in project %q.", values.BucketName, values.ProjectID)
 			return nil
 		}

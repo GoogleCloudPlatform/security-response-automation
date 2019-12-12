@@ -154,15 +154,15 @@ func TestCloseCloudSQL(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
 		name                    string
-		target                  []string
+		folderIDs               []string
 		instanceDetailsResponse *sqladmin.DatabaseInstance
 		ancestry                *crm.GetAncestryResponse
 		expectedRequest         *sqladmin.DatabaseInstance
 	}{
 		{
-			name:     "close public ip on sql instance",
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "close public ip on sql instance",
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			instanceDetailsResponse: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",
@@ -194,9 +194,9 @@ func TestCloseCloudSQL(t *testing.T) {
 			},
 		},
 		{
-			name:     "tries to close instance already closed",
-			target:   []string{"organizations/1055058813388/folders/123/*"},
-			ancestry: services.CreateAncestors([]string{"project/678", "folder/123", "organization/1055058813388"}),
+			name:      "tries to close instance already closed",
+			folderIDs: []string{"123"},
+			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 			instanceDetailsResponse: &sqladmin.DatabaseInstance{
 				Name:    "non-public-sql-instance",
 				Project: "sha-resources-20191002",
@@ -215,7 +215,7 @@ func TestCloseCloudSQL(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, sqlStub, crmStub := closeSQLSetup(tt.target)
+			svcs, sqlStub, crmStub := closeSQLSetup(tt.folderIDs)
 			sqlStub.InstanceDetailsResponse = tt.instanceDetailsResponse
 			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
@@ -238,7 +238,7 @@ func TestCloseCloudSQL(t *testing.T) {
 	}
 }
 
-func closeSQLSetup(target []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
+func closeSQLSetup(folderIDs []string) (*services.Global, *stubs.CloudSQL, *stubs.ResourceManagerStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	sqlStub := &stubs.CloudSQL{}
@@ -248,7 +248,9 @@ func closeSQLSetup(target []string) (*services.Global, *stubs.CloudSQL, *stubs.R
 	res := services.NewResource(crmStub, storageStub)
 	conf := &services.Configuration{
 		CloseCloudSQL: &services.CloseCloudSQL{
-			Target: target,
+			Resources: &services.Resources{
+				FolderIDs: folderIDs,
+			},
 		},
 	}
 	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub, crmStub

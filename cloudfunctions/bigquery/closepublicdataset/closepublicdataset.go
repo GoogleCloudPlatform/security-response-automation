@@ -62,9 +62,9 @@ func ReadFinding(b []byte) (*Values, error) {
 
 // Execute removes public access of a BigQuery dataset.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration.ClosePublicDataset
-	return services.Resource.CheckMatchesWithLambda(ctx, conf.Target, conf.Ignore, values.ProjectID, func() error {
-		if conf.DryRun {
+	resources := services.Configuration.ClosePublicDataset.Resources
+	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
+		if services.Configuration.ClosePublicDataset.DryRun {
 			services.Logger.Info("dry_run on, would have removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
 			return nil
 		}
