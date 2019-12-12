@@ -318,8 +318,7 @@ func (r *Resource) IfProjectInOrg(ctx context.Context, orgID, projectID string, 
 	return nil
 }
 
-// GetProjectAncestryPath returns a string of the project's ancestry path.
-func (r *Resource) GetProjectAncestryPath(ctx context.Context, projectID string) (string, error) {
+func (r *Resource) getProjectAncestryPath(ctx context.Context, projectID string) (string, error) {
 	resp, err := r.crm.GetAncestry(ctx, projectID)
 	if err != nil {
 		return "", err
@@ -331,39 +330,14 @@ func (r *Resource) GetProjectAncestryPath(ctx context.Context, projectID string)
 	return strings.Join(s, "/"), nil
 }
 
-// CheckMatchesWithLambda checks if a project is included in the target and not included in ignore
-func (r *Resource) CheckMatchesWithLambda(ctx context.Context, target, ignore []string, projectID string, fn func() error) error {
-	ancestorPath, err := r.GetProjectAncestryPath(ctx, projectID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get project ancestry path")
-	}
-
-	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to process ignore list")
-	}
-	if matchesIgnore {
-		return nil
-	}
-
-	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
-	if err != nil {
-		return errors.Wrap(err, "failed to process target list")
-	}
-	if !matchesTarget {
-		return nil
-	}
-	return fn()
-}
-
 func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool, error) {
 	for _, pattern := range patterns {
 		if pattern == "" {
 			continue
 		}
-		match, err := regexp.MatchString("^"+pattern, ancestorPath)
+		match, err := regexp.MatchString("^"+strings.Replace(pattern, "*", ".*", -1), ancestorPath)
 		if err != nil {
-			return false, errors.Wrap(err, "failed to parse: "+pattern)
+			return false, errors.Wrapf(err, "failed to parse: %s", pattern)
 		}
 		if match {
 			return true, nil
@@ -374,7 +348,7 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 
 // CheckMatches checks if a project is included in the target and not included in ignore
 func (r *Resource) CheckMatches(ctx context.Context, project string, target, ignore []string) (bool, error) {
-	ancestorPath, err := r.GetProjectAncestryPath(ctx, project)
+	ancestorPath, err := r.getProjectAncestryPath(ctx, project)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get project ancestry path")
 	}
