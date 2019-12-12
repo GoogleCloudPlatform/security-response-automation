@@ -289,3 +289,47 @@ func setupResourceManager(auditConfig *crm.AuditConfig) *stubs.ResourceManagerSt
 	}
 	return &stubs.ResourceManagerStub{GetPolicyResponse: &crm.Policy{}}
 }
+
+func TestCheckMatches(t *testing.T) {
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	r := NewResource(crmStub, storageStub)
+	ctx := context.Background()
+	const projectID = "test-project"
+	ancestryResponse := CreateAncestors([]string{"project/" + projectID, "folder/123", "organization/456"})
+	tests := []struct {
+		name      string
+		target    string
+		ignore    string
+		mustMatch bool
+	}{
+		{name: "org in target and not in ignore", mustMatch: true, target: "organizations/456/*", ignore: "organizations/888/*"},
+		{name: "org in target and in ignore", mustMatch: false, target: "organizations/456/*", ignore: "organizations/456/*"},
+		{name: "org not in target and in ignore", mustMatch: false, target: "organizations/888/*", ignore: "organizations/456/*"},
+		{name: "folder in target and not in ignore", mustMatch: true, target: "organizations/456/folders/123/*", ignore: "organizations/456/folders/12/*"},
+		{name: "folder in target and in ignore", mustMatch: false, target: "organizations/456/folders/123/*", ignore: "organizations/456/folders/123/*"},
+		{name: "folder not in target and in ignore", mustMatch: false, target: "organizations/456/folders/12/*", ignore: "organizations/456/folders/123/*"},
+		{name: "project in target and not in ignore", mustMatch: true, target: "organizations/456/folders/123/projects/" + projectID, ignore: "organizations/456/folders/123/projects/other-project"},
+		{name: "project in target and in ignore", mustMatch: false, target: "organizations/456/folders/123/projects/" + projectID, ignore: "organizations/456/folders/123/projects/" + projectID},
+		{name: "project not in target and in ignore", mustMatch: false, target: "organizations/456/folders/123/projects/yet-other-project", ignore: "organizations/456/folders/123/projects/" + projectID},
+		{name: "org not in target and not in ignore", mustMatch: false, target: "", ignore: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			crmStub.GetAncestryResponse = ancestryResponse
+			matches := false
+			var err error
+			if matches, err = r.CheckMatches(ctx, projectID, []string{tt.target}, []string{tt.ignore}); err != nil {
+				t.Errorf("%s failed, err: %+v", tt.name, err)
+			}
+			if !tt.mustMatch && matches {
+				t.Errorf("%s failed: it should not matches function but function was matches", tt.name)
+			}
+			if tt.mustMatch && !matches {
+				t.Errorf("%s failed: it should execute function but function was not matches", tt.name)
+			}
+		})
+	}
+
+}

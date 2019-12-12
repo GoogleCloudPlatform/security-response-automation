@@ -11,3 +11,4 @@ deploy
 .vscode
 .idea
 router/config.yaml
+settings.json

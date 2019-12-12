@@ -116,11 +116,6 @@ func TestClosePublicAccess(t *testing.T) {
 				},
 			},
 		},
-		{
-			name:     "no authorized networks",
-			acls:     []*sqladmin.AclEntry{},
-			expected: nil,
-		},
 	}
 
 	for _, tt := range tests {
