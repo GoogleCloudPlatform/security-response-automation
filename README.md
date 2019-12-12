@@ -95,6 +95,14 @@ If at any point you want to revert the changes we've made just run `terraform de
 
 Security Health Analytics requires CSCC notifications to be setup. This requires your account to be added to a early access group, please ping tomfitzgerald@google.com to be added. You can then create a new notification config that will send all CSCC findings to a Pub/Sub topic.
 
+Note: If you enable CSCC notifications as described below you'll need to remove the StackDriver export so automations are not triggered twice. You can do this by running:
+
+```shell
+$ gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
+```
+
+Configure CSCC notifications
+
 ```shell
 $ export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
 $ export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
