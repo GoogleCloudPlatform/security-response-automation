@@ -255,11 +255,6 @@ func (r *Resource) EnableBucketOnlyPolicy(ctx context.Context, bucketName string
 	return r.storage.EnableBucketOnlyPolicy(ctx, bucketName)
 }
 
-func (r *Resource) CheckMatches(_ context.Context, _, _ []string, projectID string, fn func() error) error {
-	log.Println("CheckMatches: TODO: finish this.")
-	return fn()
-}
-
 // IfProjectWithinResources executes the provided function if the project ID is an ancestor of any provided resources.
 func (r *Resource) IfProjectWithinResources(ctx context.Context, conf *Resources, projectID string, fn func() error) error {
 	if err := r.IfProjectInFolders(ctx, conf.FolderIDs, projectID, fn); err != nil {
@@ -345,9 +340,7 @@ func (r *Resource) getProjectAncestryPath(ctx context.Context, projectID string)
 
 func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool, error) {
 	for _, pattern := range patterns {
-		if pattern == "" {
-			continue
-		}
+		log.Printf("comparing:\n%s\n%s", pattern, ancestorPath)
 		match, err := regexp.MatchString("^"+strings.Replace(pattern, "*", ".*", -1), ancestorPath)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to parse: %s", pattern)
@@ -359,12 +352,14 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 	return false, nil
 }
 
-// CheckMatches checks if a project is included in the target and not included in ignore
-func (r *Resource) CheckMatches(ctx context.Context, project string, target, ignore []string) (bool, error) {
-	ancestorPath, err := r.getProjectAncestryPath(ctx, project)
+// CheckMatches checks if a project is included in the target and not included in ignore.
+func (r *Resource) CheckMatches(ctx context.Context, projectID string, target, ignore []string) (bool, error) {
+	log.Println("check m")
+	ancestorPath, err := r.getProjectAncestryPath(ctx, projectID)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get project ancestry path")
 	}
+	log.Printf("path: %q", ancestorPath)
 	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to process ignore list")
@@ -376,8 +371,5 @@ func (r *Resource) CheckMatches(ctx context.Context, project string, target, ign
 	if err != nil {
 		return false, errors.Wrap(err, "failed to process target list")
 	}
-	if matchesTarget {
-		return true, nil
-	}
-	return false, nil
+	return matchesTarget, nil
 }

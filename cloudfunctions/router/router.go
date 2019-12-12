@@ -45,6 +45,8 @@ type Namer interface {
 type Services struct {
 	PubSub        *services.PubSub
 	Configuration *Configuration
+	Logger        *services.Logger
+	Resources     *services.Resource
 }
 
 // Values contains the required values for this function.
@@ -119,8 +121,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
 				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
-				if !isTarget(values.ProjectID, automation.Target, automation.Exclude) {
+				ok, err := services.Resources.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
+				if err != nil {
+					log.Printf("failed: %q", err)
+					services.Logger.Error("failed to run %q: %q", automation.Action, err)
 					continue
 				}
 				b, err := json.Marshal(&values)

@@ -55,7 +55,7 @@ func TestRouter(t *testing.T) {
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
 	conf.Spec.Parameters.ETD.BadIP = []badip.Automation{
-		{Action: "gce_create_disk_snapshot"},
+		{Action: "gce_create_disk_snapshot", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	createSnapshotValues := &createsnapshot.Values{
 		ProjectID: "test-project",
@@ -64,6 +64,12 @@ func TestRouter(t *testing.T) {
 		Zone:      "zone-name",
 	}
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
+	crmStub.GetAncestryResponse = ancestryResponse
+
+	r := services.NewResource(crmStub, storageStub)
 	for _, tt := range []struct {
 		name    string
 		mapTo   []byte
@@ -81,7 +87,9 @@ func TestRouter(t *testing.T) {
 				Finding: tt.finding,
 			}, &Services{
 				PubSub:        ps,
+				Logger:        services.NewLogger(&stubs.LoggerStub{}),
 				Configuration: conf,
+				Resources:     r,
 			}); err != nil {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
