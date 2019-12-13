@@ -69,17 +69,17 @@ The service account is configured separately within [main.tf](/main.tf). Here we
 
 #### Forward findings to Pub/Sub
 
-Currently Event Threat Detection publishes to StackDriver and CSCC, Security Health Analytics publishes to CSCC only. We're currently in the process of moving to CSCC notifications but for completeness sake we'll list instructions for StackDriver (legacy) and CSCC notifications.
+Currently Event Threat Detection publishes to StackDriver and Security Command Center, Security Health Analytics publishes to Security Command Center only. We're currently in the process of moving to Security Command Center notifications but for completeness sake we'll list instructions for StackDriver (legacy) and Security Command Center notifications.
 
 **StackDriver** 
 
-If you're only interested in processing ETD findings then your configuration is done for you automatically below using Terraform. You can skip the **Setup CSCC Notifications** section.
+If you're only interested in processing ETD findings then your configuration is done for you automatically below using Terraform. You can skip the **Setup Security Command Center Notifications** section.
 
-**Setup CSCC Notifications**
+**Setup Security Command Center Notifications**
 
-CSCC Notifications will enable you to receive SHA & ETD findings. 
+Security Command Center Notifications will enable you to receive SHA & ETD findings. 
 
-Configure CSCC notifications
+Configure Security Command Center notifications
 
 ```shell
 $ export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
@@ -142,7 +142,7 @@ $ terraform apply --target module.revoke_iam_grants
 
 **NOTE**
 
-If you setup CSCC notifications it's important to remove the StackDriver export so automations are not triggered twice. This is done by running:
+If you setup Security Command Center notifications it's important to remove the StackDriver export so automations are not triggered twice. This is done by running:
 
 ```shell
 $ gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
