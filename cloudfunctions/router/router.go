@@ -24,14 +24,12 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
-	"github.com/googlecloudplatform/security-response-automation/providers/etd/sshbruteforce"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"gopkg.in/yaml.v2"
 )
 
 var findings = []Namer{
 	&anomalousiam.Finding{},
-	&sshbruteforce.Finding{},
 	&badip.Finding{},
 }
 
@@ -94,11 +92,6 @@ func ruleName(b []byte) string {
 		}
 	}
 	return ""
-}
-
-// isTarget will return if the project is within the target and not in the ignore slice.
-func isTarget(project string, target, ignore []string) bool {
-	return true
 }
 
 // Execute will route the incoming finding to the appropriate remediations.
