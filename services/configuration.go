@@ -6,10 +6,6 @@ import (
 	"os"
 )
 
-type Router struct {
-	ProjectID string
-}
-
 // Resources represents common resource IDs used for configuration.
 type Resources struct {
 	FolderIDs      []string `json:"folder_ids"`
@@ -111,7 +107,6 @@ type Configuration struct {
 	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
 	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 	RemoveNonOrgMembers    *RemoveNonOrgMembers    `json:"remove_non_org_members"`
-	Router                 *Router
 }
 
 // NewConfiguration returns a new configuration.
