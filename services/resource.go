@@ -340,11 +340,13 @@ func (r *Resource) getProjectAncestryPath(ctx context.Context, projectID string)
 
 func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool, error) {
 	for _, pattern := range patterns {
-		log.Printf("comparing:\n%s\n%s", pattern, ancestorPath)
 		match, err := regexp.MatchString("^"+strings.Replace(pattern, "*", ".*", -1), ancestorPath)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to parse: %s", pattern)
 		}
+		log.Printf("pattern: %q", pattern)
+		log.Printf("comparing: %q", ancestorPath)
+		log.Printf("match: %t", match)
 		if match {
 			return true, nil
 		}
@@ -354,12 +356,10 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 
 // CheckMatches checks if a project is included in the target and not included in ignore.
 func (r *Resource) CheckMatches(ctx context.Context, projectID string, target, ignore []string) (bool, error) {
-	log.Println("check m")
 	ancestorPath, err := r.getProjectAncestryPath(ctx, projectID)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get project ancestry path")
 	}
-	log.Printf("path: %q", ancestorPath)
 	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to process ignore list")
