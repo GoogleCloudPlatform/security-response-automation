@@ -92,6 +92,12 @@ func main() {
 
 }
 
+func delete(ctx context.Context, client *securitycenter.Client, orgID string) error {
+	return client.DeleteNotificationConfig(ctx, &securitycenterpb.DeleteNotificationConfigRequest{
+		Name: "organizations/" + orgID + "/notificationConfigs/sampleConfigId",
+	})
+}
+
 func list(ctx context.Context, client *securitycenter.Client, orgID string, pubsubTopic string) error {
 	defer client.Close()
 	it := client.ListNotificationConfigs(ctx, &securitycenterpb.ListNotificationConfigsRequest{
