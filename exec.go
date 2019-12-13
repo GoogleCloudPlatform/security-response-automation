@@ -17,8 +17,10 @@ package exec
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
@@ -34,18 +36,46 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
-var svcs *services.Global
+var (
+	svcs      *services.Global
+	projectID = os.Getenv("GCP_PROJECT")
+)
 
 func init() {
 	ctx := context.Background()
 	var err error
+	if projectID == "" {
+		log.Fatalf("GCP_PROJECT environment variable not set")
+	}
 	svcs, err = services.New(ctx)
 	if err != nil {
 		log.Fatalf("failed to initialize services: %q", err)
 	}
+}
+
+// Router is the entry point for the router Cloud Function.
+//
+// This Cloud Function will receive all findings and route them to configured automation.
+func Router(ctx context.Context, m pubsub.Message) error {
+	ps, err := services.InitPubSub(ctx, projectID)
+	if err != nil {
+		return err
+	}
+	conf, err := router.Config()
+	if err != nil {
+		return err
+	}
+	return router.Execute(ctx, &router.Values{
+		Finding: m.Data,
+	}, &router.Services{
+		PubSub:        ps,
+		Configuration: conf,
+		Resource:      svcs.Resource,
+	})
 }
 
 // IAMRevoke is the entry point for the IAM revoker Cloud Function.
@@ -63,15 +93,13 @@ func init() {
 //	- roles/viewer to verify the affected project is within the enforced folder.
 //
 func IAMRevoke(ctx context.Context, m pubsub.Message) error {
-	switch values, err := revoke.ReadFinding(m.Data); err {
+	var values revoke.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return revoke.Execute(ctx, values, &revoke.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return revoke.Execute(ctx, &values, &revoke.Services{
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -88,23 +116,23 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to manage disk snapshots.
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
-	switch values, err := createsnapshot.ReadFinding(m.Data); err {
+	var values createsnapshot.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		output, err := createsnapshot.Execute(ctx, values, &createsnapshot.Services{
-			Configuration: svcs.Configuration,
-			Host:          svcs.Host,
-			Logger:        svcs.Logger,
+		output, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
+			Host:   svcs.Host,
+			Logger: svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		for _, dest := range svcs.Configuration.CreateSnapshot.OutputDestinations {
+		for _, dest := range values.Output {
 			switch dest {
 			case "turbinia":
 				log.Println("turbinia output is enabled, sending each copied disk to turbinia")
-				turbiniaProjectID := svcs.Configuration.CreateSnapshot.TurbiniaProjectID
-				turbiniaTopicName := svcs.Configuration.CreateSnapshot.TurbiniaTopicName
-				turbiniaZone := svcs.Configuration.CreateSnapshot.TurbiniaZone
+				turbiniaProjectID := values.Turbinia.ProjectID
+				turbiniaTopicName := values.Turbinia.Topic
+				turbiniaZone := values.Turbinia.Zone
 				diskNames := output.DiskNames
 				if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskNames); err != nil {
 					return err

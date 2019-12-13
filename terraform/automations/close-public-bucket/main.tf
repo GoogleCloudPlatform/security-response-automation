@@ -16,20 +16,20 @@ resource "google_cloudfunctions_function" "close-bucket" {
   description           = "Removes users that enable public viewing of GCS buckets."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "CloseBucket"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
+    resource   = var.setup.cscc-notifications-topic-prefix}-topi
   }
 
   environment_variables = {
-    folder_ids = "${join(",", var.folder-ids)}"
+    folder_ids = join(",", var.folder-ids)
   }
 }
 

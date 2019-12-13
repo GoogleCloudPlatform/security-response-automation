@@ -43,5 +43,6 @@ func (p *PubSub) Topic(id string) *pubsub.Topic {
 
 // Publish will publish a message to a PubSub topic.
 func (p *PubSub) Publish(ctx context.Context, topic *pubsub.Topic, message *pubsub.Message) (string, error) {
+	defer topic.Stop()
 	return topic.Publish(ctx, message).Get(ctx)
 }

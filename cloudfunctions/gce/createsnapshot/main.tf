@@ -11,25 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-resource "google_cloudfunctions_function" "close-cloud-sql" {
-  name                  = "CloseCloudSQL"
-  description           = "Removes public IPs from a Cloud SQL instance."
+resource "google_cloudfunctions_function" "create-disk-snapshot" {
+  name                  = "SnapshotDisk"
+  description           = "Takes a snapshot of a GCE disk."
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
-  timeout               = 60
+  timeout               = 360
   project               = var.setup.automation-project
   region                = var.setup.region
-  entry_point           = "CloseCloudSQL"
+  entry_point           = "SnapshotDisk"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
-  }
-
-  environment_variables = {
-    folder_ids = "${join(",", var.folder-ids)}"
+    resource   = "threat-findings-create-disk-snapshot"
   }
 }
 
@@ -42,11 +38,24 @@ resource "google_folder_iam_member" "roles-viewer" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# Required to modify cloud sql instance within this folder.
-resource "google_folder_iam_member" "roles-cloud-sql-admin" {
+# Used to create snapshots.
+resource "google_folder_iam_member" "roles-compute-admin" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/cloudsql.editor"
+  role   = "roles/compute.admin"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-create-disk-snapshot"
+  project = var.setup.automation-project
+}
+
+# Grant the service account permission to publish to this topic.
+resource "google_project_iam_member" "log-writer-pubsub" {
+  role    = "roles/pubsub.editor"
+  project = var.setup.automation-project
+  member  = "serviceAccount:${var.setup.automation-service-account}"
 }
