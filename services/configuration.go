@@ -6,6 +6,10 @@ import (
 	"os"
 )
 
+type Router struct {
+	ProjectID string
+}
+
 // Resources represents common resource IDs used for configuration.
 type Resources struct {
 	FolderIDs      []string `json:"folder_ids"`
@@ -26,15 +30,6 @@ type DisableFirewall struct {
 	SourceRanges       []string `json:"source_ranges"`
 	DryRun             bool     `json:"dry_run"`
 	OutputDestinations []string `json:"output_destinations"`
-}
-
-// RevokeGrants contains configuration required for the Revoke Grants function.
-type RevokeGrants struct {
-	Resources *Resources
-	// A slice of domain names that will be evaluated against incoming added members. If the user
-	// matches a domain in this list they will not be removed.
-	AllowDomains []string `json:"allow_domains"`
-	DryRun       bool     `json:"dry_run"`
 }
 
 // RemovePublicIP contains configuration required for the remove public IP function.
@@ -79,17 +74,6 @@ type DisableDashboard struct {
 	DryRun    bool `json:"dry_run"`
 }
 
-// CreateSnapshot contains configuration required for the create snapshot function.
-type CreateSnapshot struct {
-	TargetSnapshotProjectID string   `json:"snapshot_project_id"`
-	TargetSnapshotZone      string   `json:"snapshot_zone"`
-	TurbiniaProjectID       string   `json:"turbinia_project_id"`
-	TurbiniaZone            string   `json:"turbinia_zone"`
-	TurbiniaTopicName       string   `json:"turbinia_topic_name"`
-	OutputDestinations      []string `json:"output_destinations"`
-	DryRun                  bool     `json:"dry_run"`
-}
-
 // UpdatePassword contains configuration required for the update password function.
 type UpdatePassword struct {
 	Resources *Resources
@@ -117,7 +101,6 @@ type PagerDutyConfiguration struct {
 type Configuration struct {
 	PagerDuty              *PagerDutyConfiguration `json:"pager_duty"`
 	CloseBucket            *CloseBucket            `json:"close_bucket"`
-	RevokeGrants           *RevokeGrants           `json:"revoke_grants"`
 	DisableFirewall        *DisableFirewall        `json:"open_firewall"`
 	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
 	ClosePublicDataset     *ClosePublicDataset     `json:"close_public_dataset"`
@@ -126,9 +109,9 @@ type Configuration struct {
 	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
 	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
 	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
-	CreateSnapshot         *CreateSnapshot         `json:"create_snapshot"`
 	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
 	RemoveNonOrgMembers    *RemoveNonOrgMembers    `json:"remove_non_org_members"`
+	Router                 *Router
 }
 
 // NewConfiguration returns a new configuration.

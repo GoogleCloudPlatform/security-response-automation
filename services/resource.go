@@ -17,6 +17,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -39,6 +40,13 @@ type storageClient interface {
 	SetBucketPolicy(context.Context, string, *iam.Policy) error
 	BucketPolicy(context.Context, string) (*iam.Policy, error)
 	EnableBucketOnlyPolicy(context.Context, string) error
+}
+
+type MatchResource string
+
+type Match struct {
+	Target  []MatchResource
+	Exclude []MatchResource
 }
 
 // Resource service.
@@ -332,13 +340,13 @@ func (r *Resource) getProjectAncestryPath(ctx context.Context, projectID string)
 
 func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool, error) {
 	for _, pattern := range patterns {
-		if pattern == "" {
-			continue
-		}
 		match, err := regexp.MatchString("^"+strings.Replace(pattern, "*", ".*", -1), ancestorPath)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to parse: %s", pattern)
 		}
+		log.Printf("pattern: %q", pattern)
+		log.Printf("comparing: %q", ancestorPath)
+		log.Printf("match: %t", match)
 		if match {
 			return true, nil
 		}
@@ -346,9 +354,9 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 	return false, nil
 }
 
-// CheckMatches checks if a project is included in the target and not included in ignore
-func (r *Resource) CheckMatches(ctx context.Context, project string, target, ignore []string) (bool, error) {
-	ancestorPath, err := r.getProjectAncestryPath(ctx, project)
+// CheckMatches checks if a project is included in the target and not included in ignore.
+func (r *Resource) CheckMatches(ctx context.Context, projectID string, target, ignore []string) (bool, error) {
+	ancestorPath, err := r.getProjectAncestryPath(ctx, projectID)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to get project ancestry path")
 	}
@@ -363,8 +371,5 @@ func (r *Resource) CheckMatches(ctx context.Context, project string, target, ign
 	if err != nil {
 		return false, errors.Wrap(err, "failed to process target list")
 	}
-	if matchesTarget {
-		return true, nil
-	}
-	return false, nil
+	return matchesTarget, nil
 }

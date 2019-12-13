@@ -22,79 +22,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"golang.org/x/xerrors"
 	compute "google.golang.org/api/compute/v1"
 )
-
-func TestReadFinding(t *testing.T) {
-	const (
-		validBadIP = `{
-			"jsonPayload": {
-				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
-				},
-				"detectionCategory": {
-					"ruleName": "bad_ip"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
-		missingProperties = `{
-			"jsonPayload": {
-				"detectionCategory": {
-					"ruleName": "bad_ip"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
-		wrongRule = `{
-			"jsonPayload": {
-				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
-				},
-				"detectionCategory": {
-					"ruleName": "something_else"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
-	)
-	for _, tt := range []struct {
-		name, rule, projectID, instance, zone string
-		bytes                                 []byte
-		expectedError                         error
-	}{
-		{name: "read", rule: "bad_ip", projectID: "test-project", zone: "zone-name", instance: "source-instance-name", expectedError: nil, bytes: []byte(validBadIP)},
-		{name: "missing properties", rule: "", projectID: "", zone: "", instance: "", expectedError: services.ErrValueNotFound, bytes: []byte(missingProperties)},
-		{name: "wrong rule", rule: "", projectID: "", zone: "", instance: "", expectedError: services.ErrUnsupportedFinding, bytes: []byte(wrongRule)},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			r, err := ReadFinding(tt.bytes)
-			if tt.expectedError == nil && err != nil {
-				t.Errorf("%s failed: %q", tt.name, err)
-			}
-			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
-			}
-			if err == nil && r.RuleName != tt.rule {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.RuleName, tt.rule)
-			}
-			if err == nil && r.Instance != tt.instance {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Instance, tt.instance)
-			}
-			if err == nil && r.Zone != tt.zone {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.Zone, tt.zone)
-			}
-			if err == nil && r.ProjectID != tt.projectID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
-			}
-		})
-	}
-}
 
 func TestCreateSnapshot(t *testing.T) {
 	ctx := context.Background()
@@ -245,19 +174,18 @@ func TestCreateSnapshot(t *testing.T) {
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, computeStub := createSnapshotSetup(tt.configuredSnapshotTarget)
+			svcs, computeStub := createSnapshotSetup()
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
 			values := &Values{
-				ProjectID: "foo-test",
+				ProjectID: tt.configuredSnapshotTarget,
 				RuleName:  "bad_ip",
 				Instance:  "instance1",
 				Zone:      "test-zone",
 			}
 			if _, err := Execute(ctx, values, &Services{
-				Configuration: svcs.Configuration,
-				Host:          svcs.Host,
-				Logger:        svcs.Logger,
+				Host:   svcs.Host,
+				Logger: svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s failed to create snapshot: %q", tt.name, err)
 			}
@@ -292,7 +220,7 @@ func createSs(name, time, disk string) *compute.Snapshot {
 	}
 }
 
-func createSnapshotSetup(dstProjectID string) (*services.Global, *stubs.ComputeStub) {
+func createSnapshotSetup() (*services.Global, *stubs.ComputeStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
@@ -301,10 +229,5 @@ func createSnapshotSetup(dstProjectID string) (*services.Global, *stubs.ComputeS
 	storageStub := &stubs.StorageStub{}
 	h := services.NewHost(computeStub)
 	r := services.NewResource(resourceManagerStub, storageStub)
-	conf := &services.Configuration{
-		CreateSnapshot: &services.CreateSnapshot{
-			TargetSnapshotProjectID: dstProjectID,
-		},
-	}
-	return &services.Global{Host: h, Resource: r, Logger: log, Configuration: conf}, computeStub
+	return &services.Global{Host: h, Resource: r, Logger: log}, computeStub
 }

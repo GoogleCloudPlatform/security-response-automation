@@ -16,13 +16,10 @@ package createsnapshot
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"strings"
 	"time"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"
@@ -41,43 +38,31 @@ var labels = map[string]string{
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID, RuleName, Instance, Zone string
+	DryRun    bool
+	ProjectID string
+	RuleName  string
+	Instance  string
+	Zone      string
+	Output    []string
+
+	Turbinia struct {
+		ProjectID string
+		Topic     string
+		Zone      string
+	}
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Host          *services.Host
-	Logger        *services.Logger
+	Host     *services.Host
+	Logger   *services.Logger
+	Resource *services.Resource
 }
 
 // Output contains the output of this function.
 type Output struct {
 	// DiskNames optionally contains the names of the disks copied to a target project.
 	DiskNames []string
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.BadIP
-	values := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	// TODO: Support pb.BadDomain as well.
-	switch finding.GetJsonPayload().GetDetectionCategory().GetRuleName() {
-	case "bad_ip":
-		values.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		values.RuleName = finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
-		values.Instance = etd.Instance(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-		values.Zone = etd.Zone(finding.GetJsonPayload().GetProperties().GetInstanceDetails())
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if values.RuleName == "" || values.ProjectID == "" || values.Instance == "" || values.Zone == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return values, nil
 }
 
 // Execute creates a snapshot of an instance's disk.
@@ -90,10 +75,10 @@ func ReadFinding(b []byte) (*Values, error) {
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
 func Execute(ctx context.Context, values *Values, services *Services) (*Output, error) {
+	var output Output
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 	disksCopied := []string{}
-	conf := services.Configuration.CreateSnapshot
-	dstProjectID := conf.TargetSnapshotProjectID
+	dstProjectID := values.ProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
@@ -118,7 +103,7 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 			continue
 		}
 
-		if conf.DryRun {
+		if values.DryRun {
 			services.Logger.Info("dry_run on, would created a snapshot of %q from %q", disk.Name, values.ProjectID)
 			continue
 		}
@@ -142,16 +127,17 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
 		if dstProjectID != "" {
-			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone, snapshotName); err != nil {
+			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, values.Zone)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, values.Zone, snapshotName); err != nil {
 				return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
 			}
 			disksCopied = append(disksCopied, snapshotName)
-			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, services.Configuration.CreateSnapshot.TargetSnapshotZone)
+			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, values.Zone)
 		}
 	}
 	log.Printf("completed")
-	return &Output{DiskNames: disksCopied}, nil
+	output.DiskNames = disksCopied
+	return &output, nil
 }
 
 // canCreateSnapshot checks if we should create a snapshot along with a map of existing snapshots to be removed.

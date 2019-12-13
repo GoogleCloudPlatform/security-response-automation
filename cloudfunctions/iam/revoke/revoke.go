@@ -17,47 +17,25 @@ package revoke
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID       string
 	ExternalMembers []string
+	AllowDomains    []string
+	DryRun          bool
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Resource      *services.Resource
-	Logger        *services.Logger
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.AnomalousIAMGrant
-	v := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetJsonPayload().GetDetectionCategory().GetSubRuleName() {
-	case "external_member_added_to_policy":
-		v.ProjectID = finding.GetJsonPayload().GetProperties().GetProjectId()
-		v.ExternalMembers = finding.GetJsonPayload().GetProperties().GetExternalMembers()
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if v.ProjectID == "" || len(v.ExternalMembers) == 0 {
-		return nil, services.ErrValueNotFound
-	}
-	return v, nil
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute is the entry point for the IAM revoker Cloud Function.
@@ -68,23 +46,19 @@ func ReadFinding(b []byte) (*Values, error) {
 // - The users do not match the list of allowed domains.
 //
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration.RevokeGrants
-	resources := services.Configuration.RevokeGrants.Resources
-	members, err := toRemove(values.ExternalMembers, conf.AllowDomains)
+	members, err := toRemove(values.ExternalMembers, values.AllowDomains)
 	if err != nil {
 		return err
 	}
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if conf.DryRun {
-			services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
-			return nil
-		}
-		if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
-			return err
-		}
-		services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
+	if values.DryRun {
+		services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 		return nil
-	})
+	}
+	if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
+		return err
+	}
+	services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
+	return nil
 }
 
 // toRemove returns a slice containing only external members that are disallowed.

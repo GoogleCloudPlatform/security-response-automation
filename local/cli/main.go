@@ -81,6 +81,11 @@ func main() {
 			log.Fatalf("failed to list: %q", err)
 			os.Exit(1)
 		}
+	case "delete":
+		if err := delete(ctx, client, *orgID); err != nil {
+			log.Fatalf("failed to delete: %q", err)
+			os.Exit(1)
+		}
 	case "create":
 		if err := create(ctx, client, *orgID, *topic); err != nil {
 			log.Fatalf("failed to create: %q", err)

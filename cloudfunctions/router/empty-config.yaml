@@ -1,0 +1,10 @@
+apiVersion: security-response-automation.cloud.google.com/v1alpha1
+kind: Remediation
+metadata:
+  name: router
+spec:
+  parameters:
+    etd:
+      bad_ip:
+      anomalous_iam:
+      ssh_brute_force:
