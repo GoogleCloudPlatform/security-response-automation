@@ -38,11 +38,11 @@ module "router" {
   setup  = module.google-setup
 }
 
-# module "close_public_bucket" {
-#   source     = "./terraform/automations/close-public-bucket"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "close_public_bucket" {
+  source     = "./cloudfunctions/gcs/closebucket"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 module "revoke_iam_grants" {
   source     = "./cloudfunctions/iam/revoke"
@@ -76,11 +76,11 @@ module "create_disk_snapshot" {
 #   folder-ids = []
 # }
 
-# module "enable_bucket_only_policy" {
-#   source     = "./terraform/automations/enable-bucket-only-policy"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "enable_bucket_only_policy" {
+  source     = "./cloudfunctions/gcs/enablebucketonlypolicy"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 # module "close_public_cloud_sql" {
 #   source     = "./terraform/automations/close-public-cloud-sql"

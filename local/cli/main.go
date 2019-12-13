@@ -99,7 +99,7 @@ func main() {
 
 func delete(ctx context.Context, client *securitycenter.Client, orgID string) error {
 	return client.DeleteNotificationConfig(ctx, &securitycenterpb.DeleteNotificationConfigRequest{
-		Name:  "organizations/"+orgID+"/notificationConfigs/sampleConfigId",
+		Name: "organizations/" + orgID + "/notificationConfigs/sampleConfigId",
 	})
 }
 

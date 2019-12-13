@@ -33,3 +33,20 @@ spec:
               - google.com
       ssh_brute_force:
         - action: open_firewall
+    sha:
+      public_bucket_acl:
+        - action: close_bucket
+          target:
+            - organizations/000/folders/0000/*
+          exclude:
+            - organizations/000/folders/0000/projects/000
+          properties:
+            dry_run: false
+      bucket_policy_only_disabled:
+        - action: enable_bucket_only_policy
+          target:
+            - organizations/000/folders/0000/*
+          exclude:
+            - organizations/000/folders/0000/projects/000
+          properties:
+            dry_run: false
