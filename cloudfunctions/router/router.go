@@ -26,7 +26,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/sshbruteforce"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -46,7 +45,7 @@ type Services struct {
 	PubSub        *services.PubSub
 	Configuration *Configuration
 	Logger        *services.Logger
-	Resources     *services.Resource
+	Resource      *services.Resource
 }
 
 // Values contains the required values for this function.
@@ -121,7 +120,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
 				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
-				ok, err := services.Resources.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
 					continue
@@ -133,13 +132,15 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				}
 				b, err := json.Marshal(&values)
 				if err != nil {
-					return err
+					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
+					continue
 				}
 				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
 				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
 					Data: b,
 				}); err != nil {
-					return errors.Wrapf(err, "failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					continue
 				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
@@ -156,18 +157,26 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
 				values.DryRun = automation.Properties.DryRun
-				if !isTarget(values.ProjectID, automation.Target, automation.Exclude) {
+				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
+				if err != nil {
+					services.Logger.Error("failed to run %q: %q", automation.Action, err)
 					continue
 				}
 				b, err := json.Marshal(&values)
 				if err != nil {
-					return err
+					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
+					continue
 				}
+				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
 				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
 					Data: b,
 				}); err != nil {
-					return errors.Wrapf(err, "failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					continue
 				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)

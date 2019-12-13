@@ -89,7 +89,7 @@ func TestRouter(t *testing.T) {
 				PubSub:        ps,
 				Logger:        services.NewLogger(&stubs.LoggerStub{}),
 				Configuration: conf,
-				Resources:     r,
+				Resource:      r,
 			}); err != nil {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
