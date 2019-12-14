@@ -42,13 +42,6 @@ type storageClient interface {
 	EnableBucketOnlyPolicy(context.Context, string) error
 }
 
-type MatchResource string
-
-type Match struct {
-	Target  []MatchResource
-	Exclude []MatchResource
-}
-
 // Resource service.
 type Resource struct {
 	crm     crmClient

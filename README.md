@@ -21,6 +21,7 @@ Before installation we'll configure our automations, copy `./router/empty-config
 - Which automations should apply to which findings.
 - Which projects to target these automations with.
 - Which projects to exclude.
+- Enable/disable dry run(monitor) mode
 - Fill in any needed variables.
 
 ## Restricting projects
