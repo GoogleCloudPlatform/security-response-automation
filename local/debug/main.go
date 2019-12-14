@@ -97,6 +97,61 @@ const (
 		},
 		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 	}`
+	iam = `{
+		"jsonPayload": {
+		  "affectedResources": [
+			{
+			  "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/997507777601"
+			}
+		  ],
+		  "detectionCategory": {
+			"indicator": "audit_log",
+			"ruleName": "iam_anomalous_grant",
+			"subRuleName": "external_member_added_to_policy",
+			"technique": "persistence"
+		  },
+		  "detectionPriority": "HIGH",
+		  "eventTime": "2019-12-12T22:42:36.720Z",
+		  "evidence": [
+			{
+			  "sourceLogId": {
+				"insertId": "28alkud1zr2",
+				"timestamp": "2019-12-12T22:42:35.113Z"
+			  }
+			}
+		  ],
+		  "findingId": "829f7e10a7aa43f48c91c23407d3e16b",
+		  "properties": {
+			"bindingDeltas": [
+			  {
+				"action": "ADD",
+				"member": "user:ccexperts@gmail.com",
+				"role": "roles/editor"
+			  }
+			],
+			"externalMembers": [
+			  "user:ccexperts@gmail.com"
+			],
+			"principalEmail": "tom3fitzgerald@gmail.com",
+			"project_id": "aerial-jigsaw-235219"
+		  },
+		  "sourceId": {
+			"customerOrganizationNumber": "154584661726",
+			"projectNumber": "997507777601"
+		  }
+		},
+		"logName": "projects/aerial-jigsaw-235219/logs/threatdetection.googleapis.com%2Fdetection",
+		"receiveTimestamp": "2019-12-12T22:42:37.613334916Z",
+		"resource": {
+		  "labels": {
+			"detector_name": "iam_anomalous_grant",
+			"project_id": "aerial-jigsaw-235219"
+		  },
+		  "type": "threat_detector"
+		},
+		"severity": "CRITICAL",
+		"timestamp": "2019-12-12T22:42:36.720Z"
+	  }`
 )
 
 func main() {
@@ -115,7 +170,7 @@ func main() {
 	// if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
 	// 	log.Fatal(err)
 	// }
-	if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIPCSCC)}); err != nil {
+	if err := exec.Router(ctx, pubsub.Message{Data: []byte(iam)}); err != nil {
 		log.Fatal(err)
 	}
 }

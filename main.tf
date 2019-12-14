@@ -58,6 +58,12 @@ module "create_disk_snapshot" {
   turbinia-topic-name = ""
 }
 
+module "enable_bucket_only_policy" {
+  source     = "./cloudfunctions/gcs/enablebucketonlypolicy"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
+
 # module "open_firewall" {
 #   source     = "./terraform/automations/disable-firewall"
 #   setup      = module.google-setup
@@ -75,12 +81,6 @@ module "create_disk_snapshot" {
 #   setup      = module.google-setup
 #   folder-ids = []
 # }
-
-module "enable_bucket_only_policy" {
-  source     = "./cloudfunctions/gcs/enablebucketonlypolicy"
-  setup      = module.google-setup
-  folder-ids = var.folder-ids
-}
 
 # module "close_public_cloud_sql" {
 #   source     = "./terraform/automations/close-public-cloud-sql"

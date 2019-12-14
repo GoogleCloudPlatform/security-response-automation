@@ -24,14 +24,14 @@ data "archive_file" "cloud_functions_zip" {
   depends_on = [
     local_file.cloudfunction-key-file,
     # "google_project_service.compute_api",
-    # "google_project_service.cloudresourcemanager_api",
+    "google_project_service.cloudresourcemanager_api",
     # "google_project_service.storage_api",
-    # "google_project_service.logging_api",
+    "google_project_service.logging_api",
     # "google_project_service.storage_component_api",
-    # "google_project_service.pubsub_api",
+    "google_project_service.pubsub_api",
     # "google_project_service.bigquery_api",
     # "google_project_service.sqladmin_api",
-    # "google_project_service.cloudfunctions_api"
+    "google_project_service.cloudfunctions_api"
   ]
 }
 
@@ -81,12 +81,6 @@ resource "google_pubsub_subscription" "cscc-notifications-subscription" {
   ack_deadline_seconds = 20
 }
 
-resource "google_organization_iam_member" "cscc-notifications-sa" {
-  org_id = var.organization-id
-  role   = "roles/securitycenter.notificationConfigEditor"
-  member = "serviceAccount:${google_service_account.automation-service-account.email}"
-}
-
 resource "google_project_iam_member" "stackdriver-writer" {
   project = var.automation-project
   role    = "roles/logging.logWriter"
@@ -95,33 +89,34 @@ resource "google_project_iam_member" "stackdriver-writer" {
 
 // TODO: Should move all these to where they're used so if someone doesn't want them they're easy to ignore.
 
-# resource "google_project_service" "cloudresourcemanager_api" {
-#   project                    = var.automation-project
-#   service                    = "cloudresourcemanager.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
 
-# resource "google_project_service" "pubsub_api" {
-#   project                    = var.automation-project
-#   service                    = "pubsub.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
+resource "google_project_service" "cloudresourcemanager_api" {
+  project                    = var.automation-project
+  service                    = "cloudresourcemanager.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
 
-# resource "google_project_service" "storage_api" {
-#   project                    = var.automation-project
-#   service                    = "storage-api.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
+resource "google_project_service" "pubsub_api" {
+  project                    = var.automation-project
+  service                    = "pubsub.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
 
-# resource "google_project_service" "logging_api" {
-#   project                    = var.automation-project
-#   service                    = "logging.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
+resource "google_project_service" "storage_api" {
+  project                    = var.automation-project
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "logging_api" {
+  project                    = var.automation-project
+  service                    = "logging.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
 
 # resource "google_project_service" "storage_component_api" {
 #   project                    = var.automation-project
@@ -144,9 +139,9 @@ resource "google_project_iam_member" "stackdriver-writer" {
 #   disable_on_destroy         = false
 # }
 
-# resource "google_project_service" "cloudfunctions_api" {
-#   project                    = var.automation-project
-#   service                    = "cloudfunctions.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
+resource "google_project_service" "cloudfunctions_api" {
+  project                    = var.automation-project
+  service                    = "cloudfunctions.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}

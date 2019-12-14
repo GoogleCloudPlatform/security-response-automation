@@ -74,6 +74,7 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	}, &router.Services{
 		PubSub:        ps,
 		Configuration: conf,
+		Resource:      svcs.Resource,
 	})
 }
 

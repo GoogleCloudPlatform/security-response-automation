@@ -67,7 +67,7 @@ func TestRouter(t *testing.T) {
 					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
 					"SeverityLevel": "High",
 					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "aerial-jigsaw-235219",
+					"ProjectId": "test-project",
 					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
 					"ScannerName": "STORAGE_SCANNER",
 					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
@@ -87,7 +87,7 @@ func TestRouter(t *testing.T) {
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
 	conf.Spec.Parameters.ETD.BadIP = []badip.Automation{
-		{Action: "gce_create_disk_snapshot"},
+		{Action: "gce_create_disk_snapshot", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	createSnapshotValues := &createsnapshot.Values{
 		ProjectID: "test-project",
@@ -98,15 +98,21 @@ func TestRouter(t *testing.T) {
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
 
 	conf.Spec.Parameters.SHA.PublicBucketACL = []publicbucketacl.Automation{
-		{Action: "close_bucket"},
+		{Action: "close_bucket", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	closeBucketValues := &closebucket.Values{
-		ProjectID:  "aerial-jigsaw-235219",
+		ProjectID:  "test-project",
 		BucketName: "this-is-public-on-purpose",
 		DryRun:     false,
 	}
 	closeBucket, _ := json.Marshal(closeBucketValues)
 
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
+	crmStub.GetAncestryResponse = ancestryResponse
+
+	r := services.NewResource(crmStub, storageStub)
 	for _, tt := range []struct {
 		name    string
 		mapTo   []byte
@@ -125,7 +131,9 @@ func TestRouter(t *testing.T) {
 				Finding: tt.finding,
 			}, &Services{
 				PubSub:        ps,
+				Logger:        services.NewLogger(&stubs.LoggerStub{}),
 				Configuration: conf,
+				Resource:      r,
 			}); err != nil {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}

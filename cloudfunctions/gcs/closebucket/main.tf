@@ -53,13 +53,6 @@ resource "google_folder_iam_member" "roles-storage-admin" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# resource "google_project_service" "storage_api" {
-#   project                    = var.automation-project
-#   service                    = "storage-api.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
-
 # resource "google_project_service" "storage_component_api" {
 #   project                    = var.automation-project
 #   service                    = "storage-component.googleapis.com"

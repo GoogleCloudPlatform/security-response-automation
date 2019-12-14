@@ -10,4 +10,5 @@ deploy
 .history
 .vscode
 .idea
-router/config.yaml
+cloudfunctions/router/config.yaml
+settings.json

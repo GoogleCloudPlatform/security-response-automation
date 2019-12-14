@@ -53,14 +53,14 @@ func (f *Finding) Name(b []byte) string {
 	return ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 }
 
-// Finding represents this finding.
+// Finding represents a bad IP finding.
 type Finding struct {
 	useCSCC   bool
 	badIP     *pb.BadIP
 	badIPCSCC *pb.BadIPSCC
 }
 
-// New returns a new finding.
+// New returns a new bad IP finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
 	if err := json.Unmarshal(b, &f.badIP); err != nil {
