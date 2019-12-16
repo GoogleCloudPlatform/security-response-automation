@@ -1,8 +1,10 @@
-package sqlnorootpassword
+package sqlscanner
 
 import (
 	"encoding/json"
 
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/updatepassword"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
@@ -20,7 +22,7 @@ type Automation struct {
 
 // Finding represents this finding.
 type Finding struct {
-	sqlnorootpassword *pb.SqlScanner
+	sqlscanner *pb.SqlScanner
 }
 
 // Name returns the rule name of the finding.
@@ -35,16 +37,32 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.sqlnorootpassword); err != nil {
+	if err := json.Unmarshal(b, &f.sqlscanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
 }
 
+// RemovePublic returns values for the remove public automation.
+func (f *Finding) RemovePublic() *removepublic.Values {
+	return &removepublic.Values{
+		ProjectID:    f.sqlscanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceName: sha.Instance(f.sqlscanner.GetFinding().GetResourceName()),
+	}
+}
+
 // UpdatePassword returns values for the update password automation.
 func (f *Finding) UpdatePassword() *updatepassword.Values {
 	return &updatepassword.Values{
-		ProjectID:    f.sqlnorootpassword.GetFinding().GetSourceProperties().GetProjectID(),
-		InstanceName: sha.Instance(f.sqlnorootpassword.GetFinding().GetResourceName()),
+		ProjectID:    f.sqlscanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceName: sha.Instance(f.sqlscanner.GetFinding().GetResourceName()),
+	}
+}
+
+// RequireSSL returns values for the require SSL automation.
+func (f *Finding) RequireSSL() *requiressl.Values {
+	return &requiressl.Values{
+		ProjectID:    f.sqlscanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceName: sha.Instance(f.sqlscanner.GetFinding().GetResourceName()),
 	}
 }

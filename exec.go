@@ -326,10 +326,9 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		return removepublic.Execute(ctx, &values, &removepublic.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err
@@ -350,10 +349,9 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		return requiressl.Execute(ctx, &values, &requiressl.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err
@@ -423,10 +421,9 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		return updatepassword.Execute(ctx, &values, &updatepassword.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err

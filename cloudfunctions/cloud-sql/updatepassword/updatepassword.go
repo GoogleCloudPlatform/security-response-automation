@@ -29,10 +29,9 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *srv.Configuration
-	CloudSQL      *srv.CloudSQL
-	Resource      *srv.Resource
-	Logger        *srv.Logger
+	CloudSQL *srv.CloudSQL
+	Resource *srv.Resource
+	Logger   *srv.Logger
 }
 
 const (
@@ -45,7 +44,7 @@ const (
 // Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-	if services.Configuration.UpdatePassword.DryRun {
+	if values.DryRun {
 		services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	}

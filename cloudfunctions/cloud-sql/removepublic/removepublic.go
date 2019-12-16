@@ -29,10 +29,9 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	CloudSQL      *services.CloudSQL
-	Resource      *services.Resource
-	Logger        *services.Logger
+	CloudSQL *services.CloudSQL
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute will remove any public IPs in SQL instance found within the provided resources.
@@ -48,7 +47,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		services.Logger.Info("instance %q does not have public access enabled", values.InstanceName)
 		return nil
 	}
-	if services.Configuration.CloseCloudSQL.DryRun {
+	if values.DryRun {
 		services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	}

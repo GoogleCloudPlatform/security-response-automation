@@ -28,15 +28,14 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	CloudSQL      *services.CloudSQL
-	Resource      *services.Resource
-	Logger        *services.Logger
+	CloudSQL *services.CloudSQL
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	if services.Configuration.CloudSQLRequireSSL.DryRun {
+	if values.DryRun {
 		services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	}
