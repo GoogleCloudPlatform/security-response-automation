@@ -11,3 +11,6 @@ spec:
     sha:
       public_bucket_acl:
       bucket_policy_only_disabled:
+      public_sql_instance:
+      ssl_not_enforced:
+      sql_no_root_password:

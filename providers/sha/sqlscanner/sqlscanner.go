@@ -53,9 +53,18 @@ func (f *Finding) RemovePublic() *removepublic.Values {
 
 // UpdatePassword returns values for the update password automation.
 func (f *Finding) UpdatePassword() *updatepassword.Values {
+	const (
+		// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
+		hostWildcard = "%"
+		// userName is the MySQL user name that will have their password reset.
+		userName = "root"
+	)
+
 	return &updatepassword.Values{
 		ProjectID:    f.sqlscanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlscanner.GetFinding().GetResourceName()),
+		Host:         hostWildcard,
+		UserName:     userName,
 	}
 }
 

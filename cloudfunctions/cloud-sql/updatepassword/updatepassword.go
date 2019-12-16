@@ -23,8 +23,8 @@ import (
 
 // Values contains the values values needed for this function.
 type Values struct {
-	ProjectID, InstanceName string
-	DryRun                  bool
+	ProjectID, InstanceName, Host, UserName, Password string
+	DryRun                                            bool
 }
 
 // Services contains the services needed for this function.
@@ -33,13 +33,6 @@ type Services struct {
 	Resource *srv.Resource
 	Logger   *srv.Logger
 }
-
-const (
-	// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
-	hostWildcard = "%"
-	// userName is the MySQL user name that will have their password reset.
-	userName = "root"
-)
 
 // Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
@@ -52,7 +45,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	if err != nil {
 		return err
 	}
-	if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, hostWildcard, userName, password); err != nil {
+	if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, password); err != nil {
 		return err
 	}
 	services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
