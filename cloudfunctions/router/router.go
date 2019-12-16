@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"gopkg.in/yaml.v2"
 )
@@ -31,6 +32,7 @@ import (
 var findings = []Namer{
 	&anomalousiam.Finding{},
 	&badip.Finding{},
+	&storagescanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -53,8 +55,10 @@ type Values struct {
 
 // topics maps automation targets to PubSub topics.
 var topics = map[string]struct{ Topic string }{
-	"gce_create_disk_snapshot": {Topic: "threat-findings-create-disk-snapshot"},
-	"iam_revoke":               {Topic: "threat-findings-iam-revoke"},
+	"gce_create_disk_snapshot":  {Topic: "threat-findings-create-disk-snapshot"},
+	"iam_revoke":                {Topic: "threat-findings-iam-revoke"},
+	"close_bucket":              {Topic: "threat-findings-close-bucket"},
+	"enable_bucket_only_policy": {Topic: "threat-findings-enable-bucket-only-policy"},
 }
 
 // Configuration maps findings to automations.
@@ -66,6 +70,10 @@ type Configuration struct {
 			ETD struct {
 				BadIP        []badip.Automation        `yaml:"bad_ip"`
 				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
+			}
+			SHA struct {
+				PublicBucketACL         []storagescanner.Automation `yaml:"public_bucket_acl"`
+				BucketPolicyOnlyDisable []storagescanner.Automation `yaml:"bucket_policy_only_disabled"`
 			}
 		}
 	}
@@ -149,6 +157,78 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
+				values.DryRun = automation.Properties.DryRun
+				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				if !ok {
+					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
+				if err != nil {
+					services.Logger.Error("failed to run %q: %q", automation.Action, err)
+					continue
+				}
+				b, err := json.Marshal(&values)
+				if err != nil {
+					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
+					continue
+				}
+				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
+				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "PUBLIC_BUCKET_ACL":
+		automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
+		storageScanner, err := storagescanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "close_bucket":
+				values := storageScanner.CloseBucket()
+				values.DryRun = automation.Properties.DryRun
+				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				if !ok {
+					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
+				if err != nil {
+					services.Logger.Error("failed to run %q: %q", automation.Action, err)
+					continue
+				}
+				b, err := json.Marshal(&values)
+				if err != nil {
+					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
+					continue
+				}
+				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
+				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "BUCKET_POLICY_ONLY_DISABLED":
+		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
+		storageScanner, err := storagescanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "enable_bucket_only_policy":
+				values := storageScanner.EnableBucketOnlyPolicy()
 				values.DryRun = automation.Properties.DryRun
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {

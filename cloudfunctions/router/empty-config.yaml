@@ -8,3 +8,6 @@ spec:
       bad_ip:
       anomalous_iam:
       ssh_brute_force:
+    sha:
+      public_bucket_acl:
+      bucket_policy_only_disabled:

@@ -10,7 +10,7 @@ Take automated actions on your Cloud Security Command Center findings:
 You're in control:
 
 - Service account runs with lowest permission needed granted at granularity you specify.
-- You control which projects are enforced by each automation. 
+- You control which projects are enforced by each automation.
 - Every action is logged to StackDriver and is easy auditable.
 - Can be run in monitor mode where actions are logged only.
 
@@ -18,9 +18,10 @@ You're in control:
 
 Before installation we'll configure our automations, copy `./router/empty-config.yaml` to `./router/config.yaml`. Within this file we'll define a few steps to get started:
 
-- Which automations should apply to which findings. 
+- Which automations should apply to which findings.
 - Which projects to target these automations with.
 - Which projects to exclude.
+- Enable/disable dry run(monitor) mode
 - Fill in any needed variables.
 
 ## Restricting projects
@@ -71,13 +72,13 @@ The service account is configured separately within [main.tf](/main.tf). Here we
 
 Currently Event Threat Detection publishes to StackDriver and CSCC, Security Health Analytics publishes to CSCC only. We're currently in the process of moving to CSCC notifications but for completeness sake we'll list instructions for StackDriver (legacy) and CSCC notifications.
 
-**StackDriver** 
+**StackDriver**
 
 If you're only interested in processing ETD findings then your configuration is done for you automatically below using Terraform. You can skip the **Setup CSCC Notifications** section.
 
 **Setup CSCC Notifications**
 
-CSCC Notifications will enable you to receive SHA & ETD findings. 
+CSCC Notifications will enable you to receive SHA & ETD findings.
 
 Configure CSCC notifications
 

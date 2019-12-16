@@ -13,12 +13,6 @@ type Resources struct {
 	OrganizationID string   `json:"organization_id"`
 }
 
-// CloseBucket contains configuration required for the Cloud Bucket function.
-type CloseBucket struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // DisableFirewall contains configuration required for the disable firewall function.
 type DisableFirewall struct {
 	Resources          *Resources
@@ -36,12 +30,6 @@ type RemovePublicIP struct {
 
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
-// EnableBucketOnlyPolicy contains configuration required for the enable bucket only policy function.
-type EnableBucketOnlyPolicy struct {
 	Resources *Resources
 	DryRun    bool `json:"dry_run"`
 }
@@ -95,18 +83,16 @@ type PagerDutyConfiguration struct {
 
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	PagerDuty              *PagerDutyConfiguration `json:"pager_duty"`
-	CloseBucket            *CloseBucket            `json:"close_bucket"`
-	DisableFirewall        *DisableFirewall        `json:"open_firewall"`
-	RemovePublicIP         *RemovePublicIP         `json:"remove_public_ip"`
-	ClosePublicDataset     *ClosePublicDataset     `json:"close_public_dataset"`
-	CloseCloudSQL          *CloseCloudSQL          `json:"close_cloud_sql"`
-	CloudSQLRequireSSL     *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
-	DisableDashboard       *DisableDashboard       `json:"disable_dashboard"`
-	EnableBucketOnlyPolicy *EnableBucketOnlyPolicy `json:"enable_bucket_only_policy"`
-	EnableAuditLogs        *EnableAuditLogs        `json:"enable_audit_logs"`
-	UpdatePassword         *UpdatePassword         `json:"cloud_sql_update_password"`
-	RemoveNonOrgMembers    *RemoveNonOrgMembers    `json:"remove_non_org_members"`
+	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
+	DisableFirewall     *DisableFirewall        `json:"open_firewall"`
+	RemovePublicIP      *RemovePublicIP         `json:"remove_public_ip"`
+	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
+	CloseCloudSQL       *CloseCloudSQL          `json:"close_cloud_sql"`
+	CloudSQLRequireSSL  *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
+	DisableDashboard    *DisableDashboard       `json:"disable_dashboard"`
+	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`
+	UpdatePassword      *UpdatePassword         `json:"cloud_sql_update_password"`
+	RemoveNonOrgMembers *RemoveNonOrgMembers    `json:"remove_non_org_members"`
 }
 
 // NewConfiguration returns a new configuration.
