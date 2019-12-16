@@ -32,9 +32,8 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Resource      *services.Resource
-	Logger        *services.Logger
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute will remove any public users from buckets found within the provided folders.

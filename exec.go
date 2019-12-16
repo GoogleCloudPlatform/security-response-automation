@@ -159,9 +159,8 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		return closebucket.Execute(ctx, &values, &closebucket.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err
@@ -301,9 +300,8 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		return enablebucketonlypolicy.Execute(ctx, &values, &enablebucketonlypolicy.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err

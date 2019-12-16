@@ -27,19 +27,12 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name      string
-		folderIDs []string
-		expected  string
+		name     string
+		expected string
 	}{
 		{
-			name:      "enable bucket only policy",
-			folderIDs: []string{"123"},
-			expected:  "bucket-to-enable-policy",
-		},
-		{
-			name:      "no folders",
-			folderIDs: nil,
-			expected:  "",
+			name:     "enable bucket only policy",
+			expected: "bucket-to-enable-policy",
 		},
 	}
 	for _, tt := range test {
@@ -51,9 +44,8 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 			}
 
 			if err := Execute(ctx, values, &Services{
-				Configuration: svcs.Configuration,
-				Resource:      svcs.Resource,
-				Logger:        svcs.Logger,
+				Resource: svcs.Resource,
+				Logger:   svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}

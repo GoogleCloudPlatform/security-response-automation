@@ -29,9 +29,8 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Resource      *services.Resource
-	Logger        *services.Logger
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute will enable bucket only policy on buckets found within the provided folders.

@@ -30,20 +30,12 @@ func TestCloseBucket(t *testing.T) {
 	test := []struct {
 		name           string
 		initialMembers []string
-		folderIDs      []string
 		expected       []string
 	}{
 		{
 			name:           "remove allUsers",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
-			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
-		},
-		{
-			name:           "no folders",
-			initialMembers: []string{"allUsers", "member:tom@tom.com"},
-			folderIDs:      nil,
-			expected:       nil,
 		},
 	}
 	for _, tt := range test {
@@ -59,9 +51,8 @@ func TestCloseBucket(t *testing.T) {
 			}
 
 			if err := Execute(ctx, required, &Services{
-				Configuration: svcs.Configuration,
-				Resource:      svcs.Resource,
-				Logger:        svcs.Logger,
+				Resource: svcs.Resource,
+				Logger:   svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
