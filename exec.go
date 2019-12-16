@@ -322,16 +322,15 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublic.ReadFinding(m.Data); err {
+	var values removepublic.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublic.Execute(ctx, values, &removepublic.Services{
+		return removepublic.Execute(ctx, &values, &removepublic.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -347,16 +346,15 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	switch values, err := requiressl.ReadFinding(m.Data); err {
+	var values requiressl.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return requiressl.Execute(ctx, values, &requiressl.Services{
+		return requiressl.Execute(ctx, &values, &requiressl.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -421,9 +419,10 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.admin to update a user password.
 //
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
-	switch values, err := updatepassword.ReadFinding(m.Data); err {
+	var values updatepassword.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return updatepassword.Execute(ctx, values, &updatepassword.Services{
+		return updatepassword.Execute(ctx, &values, &updatepassword.Services{
 			Configuration: svcs.Configuration,
 			CloudSQL:      svcs.CloudSQL,
 			Resource:      svcs.Resource,

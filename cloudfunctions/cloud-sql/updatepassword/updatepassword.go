@@ -16,26 +16,23 @@ package updatepassword
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
-	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
+	srv "github.com/googlecloudplatform/security-response-automation/services"
 )
 
 // Values contains the values values needed for this function.
 type Values struct {
-	ProjectID, InstanceName, Host, UserName, Password string
+	ProjectID, InstanceName string
+	DryRun                  bool
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	CloudSQL      *services.CloudSQL
-	Resource      *services.Resource
-	Logger        *services.Logger
+	Configuration *srv.Configuration
+	CloudSQL      *srv.CloudSQL
+	Resource      *srv.Resource
+	Logger        *srv.Logger
 }
 
 const (
@@ -45,50 +42,20 @@ const (
 	userName = "root"
 )
 
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.SqlScanner
-	password, err := services.GeneratePassword()
-	if err != nil {
-		return nil, err
-	}
-	values := &Values{
-		Host:     hostWildcard,
-		UserName: userName,
-		Password: password,
-	}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetFinding().GetCategory() {
-	case "SQL_NO_ROOT_PASSWORD":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
-		}
-		values.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
-		values.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if values.InstanceName == "" || values.ProjectID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return values, nil
-}
-
 // Execute will update the root password for the MySQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.UpdatePassword.Resources
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-		if services.Configuration.UpdatePassword.DryRun {
-			services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-			return nil
-		}
-		if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
-			return err
-		}
-		services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	if services.Configuration.UpdatePassword.DryRun {
+		services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
-	})
+	}
+	password, err := srv.GeneratePassword()
+	if err != nil {
+		return err
+	}
+	if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, hostWildcard, userName, password); err != nil {
+		return err
+	}
+	services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	return nil
 }

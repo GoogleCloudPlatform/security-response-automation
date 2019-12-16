@@ -16,18 +16,15 @@ package removepublic
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID, InstanceName string
+	DryRun                  bool
 }
 
 // Services contains the services needed for this function.
@@ -38,52 +35,26 @@ type Services struct {
 	Logger        *services.Logger
 }
 
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.SqlScanner
-	r := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetFinding().GetCategory() {
-	case "PUBLIC_SQL_INSTANCE":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
-		}
-		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if r.InstanceName == "" || r.ProjectID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return r, nil
-}
-
 // Execute will remove any public IPs in SQL instance found within the provided resources.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.CloseCloudSQL.Resources
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		log.Printf("getting details from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-		instance, err := services.CloudSQL.InstanceDetails(ctx, values.ProjectID, values.InstanceName)
-		if err != nil {
-			return err
-		}
+	log.Printf("getting details from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	instance, err := services.CloudSQL.InstanceDetails(ctx, values.ProjectID, values.InstanceName)
+	if err != nil {
+		return err
+	}
 
-		acls := instance.Settings.IpConfiguration.AuthorizedNetworks
-		if !services.CloudSQL.IsPublic(acls) {
-			services.Logger.Info("instance %q does not have public access enabled", values.InstanceName)
-			return nil
-		}
-		if services.Configuration.CloseCloudSQL.DryRun {
-			services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
-			return nil
-		}
-		if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, acls); err != nil {
-			return err
-		}
-		services.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	acls := instance.Settings.IpConfiguration.AuthorizedNetworks
+	if !services.CloudSQL.IsPublic(acls) {
+		services.Logger.Info("instance %q does not have public access enabled", values.InstanceName)
 		return nil
-	})
+	}
+	if services.Configuration.CloseCloudSQL.DryRun {
+		services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		return nil
+	}
+	if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, acls); err != nil {
+		return err
+	}
+	services.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	return nil
 }
