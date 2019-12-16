@@ -22,7 +22,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
 func TestCloseBucket(t *testing.T) {
@@ -33,27 +32,23 @@ func TestCloseBucket(t *testing.T) {
 		initialMembers []string
 		folderIDs      []string
 		expected       []string
-		ancestry       *crm.GetAncestryResponse
 	}{
 		{
 			name:           "remove allUsers",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      []string{"123"},
 			expected:       []string{"member:tom@tom.com"},
-			ancestry:       services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:           "no folders",
 			initialMembers: []string{"allUsers", "member:tom@tom.com"},
 			folderIDs:      nil,
 			expected:       nil,
-			ancestry:       services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub, storageStub := closeBucketSetup(tt.folderIDs)
-			crmStub.GetAncestryResponse = tt.ancestry
+			svcs, storageStub := closeBucketSetup()
 			for _, v := range tt.initialMembers {
 				storageStub.BucketPolicyResponse.Add(v, "project/viewer")
 			}
@@ -81,19 +76,12 @@ func TestCloseBucket(t *testing.T) {
 	}
 }
 
-func closeBucketSetup(folderIDs []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func closeBucketSetup() (*services.Global, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	res := services.NewResource(crmStub, storageStub)
 	storageStub.BucketPolicyResponse = &iam.Policy{}
-	conf := &services.Configuration{
-		CloseBucket: &services.CloseBucket{
-			Resources: &services.Resources{
-				FolderIDs: folderIDs,
-			},
-		},
-	}
-	return &services.Global{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub
+	return &services.Global{Logger: log, Resource: res}, storageStub
 }

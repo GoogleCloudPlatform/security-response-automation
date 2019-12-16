@@ -24,7 +24,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/publicbucketacl"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -97,7 +97,7 @@ func TestRouter(t *testing.T) {
 	}
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
 
-	conf.Spec.Parameters.SHA.PublicBucketACL = []publicbucketacl.Automation{
+	conf.Spec.Parameters.SHA.PublicBucketACL = []storagescanner.Automation{
 		{Action: "close_bucket", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	closeBucketValues := &closebucket.Values{

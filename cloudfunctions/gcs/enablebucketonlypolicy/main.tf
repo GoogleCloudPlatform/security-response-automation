@@ -18,20 +18,20 @@ resource "google_cloudfunctions_function" "enable-bucket-only-policy" {
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
-  timeout               = 360
+  timeout               = 60
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "EnableBucketOnlyPolicy"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "security-findings-enable-bucket-only-policy"
+    resource   = "threat-findings-enable-bucket-only-policy"
   }
 }
 
 # PubSub topic to trigger this automation.
 resource "google_pubsub_topic" "topic" {
-  name    = "security-findings-enable-bucket-only-policy"
+  name    = "threat-findings-enable-bucket-only-policy"
   project = var.setup.automation-project
 }
 
@@ -51,4 +51,11 @@ resource "google_folder_iam_member" "roles-storage-admin" {
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/storage.admin"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+resource "google_project_service" "storage_api" {
+  project                    = var.setup.automation-project
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

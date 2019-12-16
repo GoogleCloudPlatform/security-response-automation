@@ -24,8 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/bucketpolicyonlydisabled"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/publicbucketacl"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"gopkg.in/yaml.v2"
 )
@@ -33,8 +32,7 @@ import (
 var findings = []Namer{
 	&anomalousiam.Finding{},
 	&badip.Finding{},
-	&publicbucketacl.Finding{},
-	&bucketpolicyonlydisabled.Finding{},
+	&storagescanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -59,8 +57,8 @@ type Values struct {
 var topics = map[string]struct{ Topic string }{
 	"gce_create_disk_snapshot":  {Topic: "threat-findings-create-disk-snapshot"},
 	"iam_revoke":                {Topic: "threat-findings-iam-revoke"},
-	"close_bucket":              {Topic: "security-findings-close-bucket"},
-	"enable_bucket_only_policy": {Topic: "security-findings-enable-bucket-only-policy"},
+	"close_bucket":              {Topic: "threat-findings-close-bucket"},
+	"enable_bucket_only_policy": {Topic: "threat-findings-enable-bucket-only-policy"},
 }
 
 // Configuration maps findings to automations.
@@ -74,8 +72,8 @@ type Configuration struct {
 				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
 			}
 			SHA struct {
-				PublicBucketACL         []publicbucketacl.Automation          `yaml:"public_bucket_acl"`
-				BucketPolicyOnlyDisable []bucketpolicyonlydisabled.Automation `yaml:"bucket_policy_only_disabled"`
+				PublicBucketACL         []storagescanner.Automation `yaml:"public_bucket_acl"`
+				BucketPolicyOnlyDisable []storagescanner.Automation `yaml:"bucket_policy_only_disabled"`
 			}
 		}
 	}
@@ -187,14 +185,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		}
 	case "PUBLIC_BUCKET_ACL":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
-		publicBucketACL, err := publicbucketacl.New(values.Finding)
+		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
 			return err
 		}
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_bucket":
-				values := publicBucketACL.CloseBucket()
+				values := storageScanner.CloseBucket()
 				values.DryRun = automation.Properties.DryRun
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
@@ -223,14 +221,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		}
 	case "BUCKET_POLICY_ONLY_DISABLED":
 		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
-		bucketPolicyOnlyDisabled, err := bucketpolicyonlydisabled.New(values.Finding)
+		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
 			return err
 		}
 		for _, automation := range automations {
 			switch automation.Action {
 			case "enable_bucket_only_policy":
-				values := bucketPolicyOnlyDisabled.EnableBucketOnlyPolicy()
+				values := storageScanner.EnableBucketOnlyPolicy()
 				values.DryRun = automation.Properties.DryRun
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {

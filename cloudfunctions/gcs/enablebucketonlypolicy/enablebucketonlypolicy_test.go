@@ -21,7 +21,6 @@ import (
 	"cloud.google.com/go/iam"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
 
 func TestEnableBucketOnlyPolicy(t *testing.T) {
@@ -31,26 +30,21 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 		name      string
 		folderIDs []string
 		expected  string
-		ancestry  *crm.GetAncestryResponse
 	}{
 		{
 			name:      "enable bucket only policy",
 			folderIDs: []string{"123"},
 			expected:  "bucket-to-enable-policy",
-			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 		{
 			name:      "no folders",
 			folderIDs: nil,
 			expected:  "",
-			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub, storageStub := enableBucketOnlyPolicySetup(tt.folderIDs)
-			crmStub.GetAncestryResponse = tt.ancestry
-
+			svcs, storageStub := enableBucketOnlyPolicySetup()
 			values := &Values{
 				ProjectID:  "project-name",
 				BucketName: "bucket-to-enable-policy",
@@ -73,19 +67,12 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 	}
 }
 
-func enableBucketOnlyPolicySetup(folderIDs []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func enableBucketOnlyPolicySetup() (*services.Global, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	res := services.NewResource(crmStub, storageStub)
 	storageStub.BucketPolicyResponse = &iam.Policy{}
-	conf := &services.Configuration{
-		EnableBucketOnlyPolicy: &services.EnableBucketOnlyPolicy{
-			Resources: &services.Resources{
-				FolderIDs: folderIDs,
-			},
-		},
-	}
-	return &services.Global{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub
+	return &services.Global{Logger: log, Resource: res}, storageStub
 }
