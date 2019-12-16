@@ -26,6 +26,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
@@ -121,26 +122,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
 				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
-				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
-				if !ok {
-					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
-					continue
-				}
-				if err != nil {
-					log.Printf("failed: %q", err)
-					services.Logger.Error("failed to run %q: %q", automation.Action, err)
-					continue
-				}
-				b, err := json.Marshal(&values)
-				if err != nil {
-					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
-					continue
-				}
-				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
-				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
-					Data: b,
-				}); err != nil {
-					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -158,32 +142,16 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
 				values.DryRun = automation.Properties.DryRun
-				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
-				if !ok {
-					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
-					continue
-				}
-				if err != nil {
-					services.Logger.Error("failed to run %q: %q", automation.Action, err)
-					continue
-				}
-				b, err := json.Marshal(&values)
-				if err != nil {
-					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
-					continue
-				}
-				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
-				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
-					Data: b,
-				}); err != nil {
-					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
-	case "PUBLIC_BUCKET_ACL":
+	case "public_bucket_acl":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
@@ -194,32 +162,16 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "close_bucket":
 				values := storageScanner.CloseBucket()
 				values.DryRun = automation.Properties.DryRun
-				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
-				if !ok {
-					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
-					continue
-				}
-				if err != nil {
-					services.Logger.Error("failed to run %q: %q", automation.Action, err)
-					continue
-				}
-				b, err := json.Marshal(&values)
-				if err != nil {
-					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
-					continue
-				}
-				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
-				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
-					Data: b,
-				}); err != nil {
-					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
-	case "BUCKET_POLICY_ONLY_DISABLED":
+	case "bucket_policy_only_disabled":
 		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
@@ -230,25 +182,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "enable_bucket_only_policy":
 				values := storageScanner.EnableBucketOnlyPolicy()
 				values.DryRun = automation.Properties.DryRun
-				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
-				if !ok {
-					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
-					continue
-				}
-				if err != nil {
-					services.Logger.Error("failed to run %q: %q", automation.Action, err)
-					continue
-				}
-				b, err := json.Marshal(&values)
-				if err != nil {
-					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
-					continue
-				}
-				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
-				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
-					Data: b,
-				}); err != nil {
-					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -258,5 +194,27 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	default:
 		return fmt.Errorf("rule %q not found", name)
 	}
+	return nil
+}
+
+func publish(ctx context.Context, services *Services, action, topic, projectID string, target, exclude []string, values interface{}) error {
+	ok, err := services.Resource.CheckMatches(ctx, projectID, target, exclude)
+	if !ok {
+		return fmt.Errorf("project %q is not within the target or is excluded", projectID)
+	}
+	if err != nil {
+		return errors.Wrapf(err, "failed to run %q", action)
+	}
+	b, err := json.Marshal(&values)
+	if err != nil {
+		return errors.Wrapf(err, "failed to unmarshal when runing %q", action)
+	}
+	if _, err := services.PubSub.Publish(ctx, topic, &pubsub.Message{
+		Data: b,
+	}); err != nil {
+		services.Logger.Error("failed to publish to %q for action %q", topic, action)
+		return err
+	}
+	log.Printf("sent to pubsub topic: %q", topic)
 	return nil
 }

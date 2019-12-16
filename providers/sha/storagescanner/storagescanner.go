@@ -2,6 +2,7 @@ package storagescanner
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/enablebucketonlypolicy"
@@ -30,7 +31,7 @@ func (f *Finding) Name(b []byte) string {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return ""
 	}
-	return finding.GetFinding().GetCategory()
+	return strings.ToLower(finding.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
