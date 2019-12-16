@@ -25,12 +25,14 @@ resource "google_cloudfunctions_function" "close-bucket" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = var.setup.cscc-notifications-topic-prefix}-topi
+    resource   = "threat-findings-close-bucket"
   }
+}
 
-  environment_variables = {
-    folder_ids = join(",", var.folder-ids)
-  }
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-close-bucket"
+  project = var.setup.automation-project
 }
 
 # Required to retrieve ancestry for projects within this folder.
@@ -49,4 +51,11 @@ resource "google_folder_iam_member" "roles-storage-admin" {
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/storage.admin"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+resource "google_project_service" "storage_api" {
+  project                    = var.setup.automation-project
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

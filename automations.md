@@ -6,8 +6,7 @@ Removes public access from Google Cloud Storage buckets.
 
 Configuration
 
-- Configured in settings.json under the `close_bucket` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `close_bucket`
 
 #### Enable bucket only policy
 
@@ -15,8 +14,7 @@ Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-
 
 Configuration
 
-- Configured in settings.json under the `enable_bucket_only_policy` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `enable_bucket_only_policy`
 
 ### IAM
 
