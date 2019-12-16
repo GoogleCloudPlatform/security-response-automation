@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/publicdataset"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"gopkg.in/yaml.v2"
 )
@@ -31,6 +32,7 @@ import (
 var findings = []Namer{
 	&anomalousiam.Finding{},
 	&badip.Finding{},
+	&publicdataset.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -55,6 +57,7 @@ type Values struct {
 var topics = map[string]struct{ Topic string }{
 	"gce_create_disk_snapshot": {Topic: "threat-findings-create-disk-snapshot"},
 	"iam_revoke":               {Topic: "threat-findings-iam-revoke"},
+	"close_public_dataset":     {Topic: "threat-findings-close-public-dataset"},
 }
 
 // Configuration maps findings to automations.
@@ -66,6 +69,9 @@ type Configuration struct {
 			ETD struct {
 				BadIP        []badip.Automation        `yaml:"bad_ip"`
 				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
+			}
+			SHA struct {
+				PublicDataset []publicdataset.Automation `yaml:"bigquery_public_dataset"`
 			}
 		}
 	}
@@ -149,6 +155,43 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
+				values.DryRun = automation.Properties.DryRun
+				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				if !ok {
+					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
+				if err != nil {
+					services.Logger.Error("failed to run %q: %q", automation.Action, err)
+					continue
+				}
+				b, err := json.Marshal(&values)
+				if err != nil {
+					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
+					continue
+				}
+				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
+				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "PUBLIC_DATASET":
+		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
+		publicDataset, err := publicdataset.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		print(publicDataset)
+		for _, automation := range automations {
+			switch automation.Action {
+			case "close_public_dataset":
+				values := publicDataset.ClosePublicDataset()
 				values.DryRun = automation.Properties.DryRun
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {

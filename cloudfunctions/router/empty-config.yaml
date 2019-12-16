@@ -8,3 +8,5 @@ spec:
       bad_ip:
       anomalous_iam:
       ssh_brute_force:
+    sha:
+      bigquery_public_dataset:

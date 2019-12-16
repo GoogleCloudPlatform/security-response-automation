@@ -270,20 +270,19 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/bigquery.dataOwner to get and update dataset metadata.
 //
 func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
-	switch values, err := closepublicdataset.ReadFinding(m.Data); err {
+	var values closepublicdataset.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
 		if err != nil {
 			return err
 		}
-		return closepublicdataset.Execute(ctx, values, &closepublicdataset.Services{
+		return closepublicdataset.Execute(ctx, &values, &closepublicdataset.Services{
 			Configuration: svcs.Configuration,
 			BigQuery:      bigquery,
 			Resource:      svcs.Resource,
 			Logger:        svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
