@@ -50,7 +50,7 @@ func (f *Finding) EnableBucketOnlyPolicy() *enablebucketonlypolicy.Values {
 	}
 }
 
-// CloseBucket returns values for the enable bucket only policy automation.
+// CloseBucket returns values for the close bucket automation.
 func (f *Finding) CloseBucket() *closebucket.Values {
 	return &closebucket.Values{
 		ProjectID:  f.storagescanner.GetFinding().GetSourceProperties().GetProjectId(),
