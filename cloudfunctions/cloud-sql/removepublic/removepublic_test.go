@@ -29,13 +29,11 @@ func TestCloseCloudSQL(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
 		name                    string
-		folderIDs               []string
 		instanceDetailsResponse *sqladmin.DatabaseInstance
 		expectedRequest         *sqladmin.DatabaseInstance
 	}{
 		{
-			name:      "close public ip on sql instance",
-			folderIDs: []string{"123"},
+			name: "close public ip on sql instance",
 			instanceDetailsResponse: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",
@@ -67,8 +65,7 @@ func TestCloseCloudSQL(t *testing.T) {
 			},
 		},
 		{
-			name:      "tries to close instance already closed",
-			folderIDs: []string{"123"},
+			name: "tries to close instance already closed",
 			instanceDetailsResponse: &sqladmin.DatabaseInstance{
 				Name:    "non-public-sql-instance",
 				Project: "sha-resources-20191002",
@@ -116,8 +113,5 @@ func closeSQLSetup() (*services.Global, *stubs.CloudSQL) {
 	storageStub := &stubs.StorageStub{}
 	crmStub := &stubs.ResourceManagerStub{}
 	res := services.NewResource(crmStub, storageStub)
-	conf := &services.Configuration{
-		CloseCloudSQL: &services.CloseCloudSQL{},
-	}
-	return &services.Global{Logger: log, Configuration: conf, CloudSQL: sql, Resource: res}, sqlStub
+	return &services.Global{Logger: log, CloudSQL: sql, Resource: res}, sqlStub
 }

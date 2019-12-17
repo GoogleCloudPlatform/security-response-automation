@@ -29,12 +29,10 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 	ctx := context.Background()
 	test := []struct {
 		name            string
-		folderIDs       []string
 		expectedRequest *sqladmin.DatabaseInstance
 	}{
 		{
-			name:      "enforce ssl on sql instance",
-			folderIDs: []string{"123"},
+			name: "enforce ssl on sql instance",
 			expectedRequest: &sqladmin.DatabaseInstance{
 				Name:    "public-sql-instance",
 				Project: "sha-resources-20191002",
