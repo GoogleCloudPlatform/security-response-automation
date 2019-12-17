@@ -16,11 +16,11 @@ resource "google_cloudfunctions_function" "enforce-ssl-cloud-sql" {
   description           = "Enforces SSL to a Cloud SQL instance."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
-  timeout               = 360
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
+  timeout               = 180
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "CloudSQLRequireSSL"
 
   event_trigger {

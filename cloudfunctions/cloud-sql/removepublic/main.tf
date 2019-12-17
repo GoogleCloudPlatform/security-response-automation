@@ -18,7 +18,7 @@ resource "google_cloudfunctions_function" "close-cloud-sql" {
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
-  timeout               = 360
+  timeout               = 180
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "CloseCloudSQL"
