@@ -1,4 +1,4 @@
-package publicdataset
+package datasetscanner
 
 import (
 	"encoding/json"

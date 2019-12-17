@@ -24,7 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/publicdataset"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
@@ -35,7 +35,7 @@ var findings = []Namer{
 	&anomalousiam.Finding{},
 	&badip.Finding{},
 	&storagescanner.Finding{},
-	&publicdataset.Finding{},
+	&datasetscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -78,7 +78,7 @@ type Configuration struct {
 			SHA struct {
 				PublicBucketACL         []storagescanner.Automation `yaml:"public_bucket_acl"`
 				BucketPolicyOnlyDisable []storagescanner.Automation `yaml:"bucket_policy_only_disabled"`
-				PublicDataset           []publicdataset.Automation  `yaml:"bigquery_public_dataset"`
+				PublicDataset           []datasetscanner.Automation `yaml:"bigquery_public_dataset"`
 			}
 		}
 	}
@@ -195,37 +195,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
-	case "PUBLIC_DATASET":
+	case "public_dataset":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
-		publicDataset, err := publicdataset.New(values.Finding)
+		publicDataset, err := datasetscanner.New(values.Finding)
 		if err != nil {
 			return err
 		}
-
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_public_dataset":
 				values := publicDataset.ClosePublicDataset()
 				values.DryRun = automation.Properties.DryRun
-				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
-				if !ok {
-					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
-					continue
-				}
-				if err != nil {
-					services.Logger.Error("failed to run %q: %q", automation.Action, err)
-					continue
-				}
-				b, err := json.Marshal(&values)
-				if err != nil {
-					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
-					continue
-				}
-				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
-				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
-					Data: b,
-				}); err != nil {
-					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:

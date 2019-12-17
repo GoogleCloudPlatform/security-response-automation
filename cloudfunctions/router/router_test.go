@@ -25,8 +25,8 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/publicdataset"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -143,7 +143,7 @@ func TestRouter(t *testing.T) {
 
 	r := services.NewResource(crmStub, storageStub)
 
-	conf.Spec.Parameters.SHA.PublicDataset = []publicdataset.Automation{
+	conf.Spec.Parameters.SHA.PublicDataset = []datasetscanner.Automation{
 		{Action: "close_public_dataset", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	closePublicDatasetValues := &closepublicdataset.Values{
