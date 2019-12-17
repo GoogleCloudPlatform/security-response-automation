@@ -54,8 +54,8 @@ resource "google_pubsub_topic" "topic" {
 }
 
 resource "google_project_service" "bigquery_api" {
-  project = var.setup.automation-project
-  service = "bigquery.googleapis.com"
+  project                    = var.setup.automation-project
+  service                    = "bigquery.googleapis.com"
   disable_dependent_services = false
-  disable_on_destroy = false
+  disable_on_destroy         = false
 }
