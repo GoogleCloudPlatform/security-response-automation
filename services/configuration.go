@@ -22,12 +22,6 @@ type DisableFirewall struct {
 	OutputDestinations []string `json:"output_destinations"`
 }
 
-// RemovePublicIP contains configuration required for the remove public IP function.
-type RemovePublicIP struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
 	Resources *Resources
@@ -40,26 +34,8 @@ type EnableAuditLogs struct {
 	DryRun    bool `json:"dry_run"`
 }
 
-// CloseCloudSQL contains configuration required for the close Cloud SQL function.
-type CloseCloudSQL struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
-// CloudSQLRequireSSL contains configuration required for the Cloud SQL require SSL function.
-type CloudSQLRequireSSL struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // DisableDashboard contains configuration required for the disable dashboard function.
 type DisableDashboard struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
-// UpdatePassword contains configuration required for the update password function.
-type UpdatePassword struct {
 	Resources *Resources
 	DryRun    bool `json:"dry_run"`
 }
@@ -85,13 +61,9 @@ type PagerDutyConfiguration struct {
 type Configuration struct {
 	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
 	DisableFirewall     *DisableFirewall        `json:"open_firewall"`
-	RemovePublicIP      *RemovePublicIP         `json:"remove_public_ip"`
 	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
-	CloseCloudSQL       *CloseCloudSQL          `json:"close_cloud_sql"`
-	CloudSQLRequireSSL  *CloudSQLRequireSSL     `json:"cloud_sql_require_ssl"`
 	DisableDashboard    *DisableDashboard       `json:"disable_dashboard"`
 	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`
-	UpdatePassword      *UpdatePassword         `json:"cloud_sql_update_password"`
 	RemoveNonOrgMembers *RemoveNonOrgMembers    `json:"remove_non_org_members"`
 }
 

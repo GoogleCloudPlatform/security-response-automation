@@ -70,11 +70,11 @@ module "enable_bucket_only_policy" {
 #   folder-ids = []
 # }
 
-# module "remove_public_ip" {
-#   source     = "./terraform/automations/remove-public-ip"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "remove_public_ip" {
+  source     = "./cloudfunctions/gce/removepublicip"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 module "close_public_dataset" {
   source     = "./cloudfunctions/bigquery/closepublicdataset"
@@ -82,17 +82,17 @@ module "close_public_dataset" {
   folder-ids = var.folder-ids
 }
 
-# module "close_public_cloud_sql" {
-#   source     = "./terraform/automations/close-public-cloud-sql"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "close_public_cloud_sql" {
+  source     = "./cloudfunctions/cloud-sql/removepublic"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "cloud-sql-require-ssl" {
-#   source     = "./terraform/automations/cloud-sql-require-ssl"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "cloud-sql-require-ssl" {
+  source     = "./cloudfunctions/cloud-sql/requiressl"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 # module "disable_dashboard" {
 #   source     = "./terraform/automations/disable-dashboard"
@@ -100,11 +100,11 @@ module "close_public_dataset" {
 #   folder-ids = []
 # }
 
-# module "update_password" {
-#   source     = "./terraform/automations/update-password"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "update_password" {
+  source     = "./cloudfunctions/cloud-sql/updatepassword"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 # module "enable_audit_logs" {
 #   source     = "./terraform/automations/enable-audit-logs"

@@ -16,62 +16,32 @@ package requiressl
 
 import (
 	"context"
-	"encoding/json"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID, InstanceName string
+	DryRun                  bool
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	CloudSQL      *services.CloudSQL
-	Resource      *services.Resource
-	Logger        *services.Logger
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.SqlScanner
-	r := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetFinding().GetCategory() {
-	case "SSL_NOT_ENFORCED":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
-		}
-		r.InstanceName = sha.Instance(finding.GetFinding().GetResourceName())
-		r.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if r.InstanceName == "" || r.ProjectID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return r, nil
+	CloudSQL *services.CloudSQL
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.CloudSQLRequireSSL.Resources
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if services.Configuration.CloudSQLRequireSSL.DryRun {
-			services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
-			return nil
-		}
-		if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
-			return err
-		}
-		services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+	if values.DryRun {
+		services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
-	})
+	}
+	if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
+		return err
+	}
+	services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+	return nil
 }

@@ -244,16 +244,14 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublicip.ReadFinding(m.Data); err {
+	var values removepublicip.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublicip.Execute(ctx, values, &removepublicip.Services{
-			Configuration: svcs.Configuration,
-			Host:          svcs.Host,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return removepublicip.Execute(ctx, &values, &removepublicip.Services{
+			Host:     svcs.Host,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -316,16 +314,14 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublic.ReadFinding(m.Data); err {
+	var values removepublic.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublic.Execute(ctx, values, &removepublic.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return removepublic.Execute(ctx, &values, &removepublic.Services{
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -341,16 +337,14 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	switch values, err := requiressl.ReadFinding(m.Data); err {
+	var values requiressl.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return requiressl.Execute(ctx, values, &requiressl.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return requiressl.Execute(ctx, &values, &requiressl.Services{
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -415,13 +409,13 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.admin to update a user password.
 //
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
-	switch values, err := updatepassword.ReadFinding(m.Data); err {
+	var values updatepassword.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return updatepassword.Execute(ctx, values, &updatepassword.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return updatepassword.Execute(ctx, &values, &updatepassword.Services{
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err

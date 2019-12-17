@@ -68,8 +68,7 @@ Removes all public IPs from an instance's network interface.
 
 Configuration
 
-- Configured in settings.json under the `remove_public_ip` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `remove_public_ip`
 
 #### Remediate open firewall
 
@@ -101,8 +100,7 @@ Close a public cloud SQL instance.
 
 Configuration
 
-- Configured in settings.json under the `close_cloud_sql` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `close_cloud_sql`
 
 #### Require SSL connection to Cloud SQL
 
@@ -110,8 +108,15 @@ Update Cloud SQL instance to require SSL connections.
 
 Configuration
 
-- Configured in settings.json under the `cloud_sql_require_ssl` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `cloud_sql_require_ssl`
+
+#### Update root password
+
+Update the root password of a Cloud SQL instance.
+
+Configuration
+
+- Action name `cloud_sql_update_password`
 
 ### BigQuery
 
