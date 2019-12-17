@@ -21,7 +21,7 @@ type Automation struct {
 
 // Finding represents this finding.
 type Finding struct {
-	computeinstancescanner *pb.ComputeInstanceScanner
+	computeInstanceScanner *pb.ComputeInstanceScanner
 }
 
 // Name returns the rule name of the finding.
@@ -36,7 +36,7 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.computeinstancescanner); err != nil {
+	if err := json.Unmarshal(b, &f.computeInstanceScanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -45,8 +45,8 @@ func New(b []byte) (*Finding, error) {
 // RemovePublicIP returns values for the remove public IP policy automation.
 func (f *Finding) RemovePublicIP() *removepublicip.Values {
 	return &removepublicip.Values{
-		ProjectID:    f.computeinstancescanner.GetFinding().GetSourceProperties().GetProjectID(),
-		InstanceZone: sha.Zone(f.computeinstancescanner.GetFinding().GetResourceName()),
-		InstanceID:   sha.Instance(f.computeinstancescanner.GetFinding().GetResourceName()),
+		ProjectID:    f.computeInstanceScanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceZone: sha.Zone(f.computeInstanceScanner.GetFinding().GetResourceName()),
+		InstanceID:   sha.Instance(f.computeInstanceScanner.GetFinding().GetResourceName()),
 	}
 }
