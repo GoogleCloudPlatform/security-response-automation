@@ -187,7 +187,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
-		print(publicDataset)
+
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_public_dataset":
