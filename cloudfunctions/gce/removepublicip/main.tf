@@ -16,17 +16,23 @@ resource "google_cloudfunctions_function" "remove-public-ip" {
   description           = "Removes all the external IP addresses of a GCE instance."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
-  timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
+  timeout               = 180
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "RemovePublicIP"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
+    resource   = "threat-findings-remove-public-ip"
   }
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-remove-public-ip"
+  project = var.setup.automation-project
 }
 
 # Required to retrieve ancestry for projects within this folder.
@@ -45,4 +51,11 @@ resource "google_folder_iam_member" "roles-instance-admin-v1" {
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/compute.instanceAdmin.v1"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+resource "google_project_service" "compute_api" {
+  project                    = var.setup.automation-project
+  service                    = "compute.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

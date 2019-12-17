@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/computeinstancescanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -35,6 +36,7 @@ var findings = []Namer{
 	&badip.Finding{},
 	&storagescanner.Finding{},
 	&sqlscanner.Finding{},
+	&computeinstancescanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -64,6 +66,7 @@ var topics = map[string]struct{ Topic string }{
 	"close_cloud_sql":           {Topic: "threat-findings-remove-public-sql"},
 	"cloud_sql_require_ssl":     {Topic: "threat-findings-require-ssl"},
 	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
+	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
 }
 
 // Configuration maps findings to automations.
@@ -77,11 +80,12 @@ type Configuration struct {
 				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
 			}
 			SHA struct {
-				PublicBucketACL         []storagescanner.Automation `yaml:"public_bucket_acl"`
-				BucketPolicyOnlyDisable []storagescanner.Automation `yaml:"bucket_policy_only_disabled"`
-				PublicSQLInstance       []sqlscanner.Automation     `yaml:"public_sql_instance"`
-				SSLNotEnforced          []sqlscanner.Automation     `yaml:"ssl_not_enforced"`
-				SQLNoRootPassword       []sqlscanner.Automation     `yaml:"sql_no_root_password"`
+				PublicBucketACL         []storagescanner.Automation         `yaml:"public_bucket_acl"`
+				BucketPolicyOnlyDisable []storagescanner.Automation         `yaml:"bucket_policy_only_disabled"`
+				PublicSQLInstance       []sqlscanner.Automation             `yaml:"public_sql_instance"`
+				SSLNotEnforced          []sqlscanner.Automation             `yaml:"ssl_not_enforced"`
+				SQLNoRootPassword       []sqlscanner.Automation             `yaml:"sql_no_root_password"`
+				PublicIPAddress         []computeinstancescanner.Automation `yaml:"public_ip_address"`
 			}
 		}
 	}
@@ -345,6 +349,42 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "cloud_sql_update_password":
 				values := sqlScanner.UpdatePassword()
+				values.DryRun = automation.Properties.DryRun
+				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
+				if !ok {
+					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
+					continue
+				}
+				if err != nil {
+					services.Logger.Error("failed to run %q: %q", automation.Action, err)
+					continue
+				}
+				b, err := json.Marshal(&values)
+				if err != nil {
+					services.Logger.Error("failed to unmarshal when runing %q: %q", automation.Action, err)
+					continue
+				}
+				log.Printf("sending to pubsub topic: %q", topics[automation.Action].Topic)
+				if _, err := services.PubSub.Publish(ctx, topics[automation.Action].Topic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					services.Logger.Error("failed to publish to %q for action %q", topics[automation.Action].Topic, automation.Action)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "PUBLIC_IP_ADDRESS":
+		automations := services.Configuration.Spec.Parameters.SHA.PublicIPAddress
+		computeInstanceScanner, err := computeinstancescanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "remove_public_ip":
+				values := computeInstanceScanner.RemovePublicIP()
 				values.DryRun = automation.Properties.DryRun
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {

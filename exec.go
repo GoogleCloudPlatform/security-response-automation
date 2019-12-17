@@ -243,16 +243,14 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublicip.ReadFinding(m.Data); err {
+	var values removepublicip.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublicip.Execute(ctx, values, &removepublicip.Services{
-			Configuration: svcs.Configuration,
-			Host:          svcs.Host,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return removepublicip.Execute(ctx, &values, &removepublicip.Services{
+			Host:     svcs.Host,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}

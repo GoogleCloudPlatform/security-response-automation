@@ -70,11 +70,11 @@ module "enable_bucket_only_policy" {
 #   folder-ids = []
 # }
 
-# module "remove_public_ip" {
-#   source     = "./terraform/automations/remove-public-ip"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "remove_public_ip" {
+  source     = "./cloudfunctions/gce/removepublicip"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 # module "close_public_dataset" {
 #   source     = "./terraform/automations/close-public-dataset"
