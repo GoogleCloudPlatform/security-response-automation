@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
@@ -34,6 +35,7 @@ var findings = []Namer{
 	&anomalousiam.Finding{},
 	&badip.Finding{},
 	&storagescanner.Finding{},
+	&sqlscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -60,6 +62,9 @@ var topics = map[string]struct{ Topic string }{
 	"iam_revoke":                {Topic: "threat-findings-iam-revoke"},
 	"close_bucket":              {Topic: "threat-findings-close-bucket"},
 	"enable_bucket_only_policy": {Topic: "threat-findings-enable-bucket-only-policy"},
+	"close_cloud_sql":           {Topic: "threat-findings-remove-public-sql"},
+	"cloud_sql_require_ssl":     {Topic: "threat-findings-require-ssl"},
+	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
 }
 
 // Configuration maps findings to automations.
@@ -75,6 +80,9 @@ type Configuration struct {
 			SHA struct {
 				PublicBucketACL         []storagescanner.Automation `yaml:"public_bucket_acl"`
 				BucketPolicyOnlyDisable []storagescanner.Automation `yaml:"bucket_policy_only_disabled"`
+				PublicSQLInstance       []sqlscanner.Automation     `yaml:"public_sql_instance"`
+				SSLNotEnforced          []sqlscanner.Automation     `yaml:"ssl_not_enforced"`
+				SQLNoRootPassword       []sqlscanner.Automation     `yaml:"sql_no_root_password"`
 			}
 		}
 	}
@@ -181,6 +189,70 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "enable_bucket_only_policy":
 				values := storageScanner.EnableBucketOnlyPolicy()
+				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "PUBLIC_SQL_INSTANCE":
+		automations := services.Configuration.Spec.Parameters.SHA.PublicSQLInstance
+		sqlScanner, err := sqlscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "close_cloud_sql":
+				values := sqlScanner.RemovePublic()
+				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "SSL_NOT_ENFORCED":
+		automations := services.Configuration.Spec.Parameters.SHA.SSLNotEnforced
+		sqlScanner, err := sqlscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "cloud_sql_require_ssl":
+				values := sqlScanner.RequireSSL()
+				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "SQL_NO_ROOT_PASSWORD":
+		automations := services.Configuration.Spec.Parameters.SHA.SQLNoRootPassword
+		sqlScanner, err := sqlscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "cloud_sql_update_password":
+				values, err := sqlScanner.UpdatePassword()
+				if err != nil {
+					services.Logger.Error("failed to get values for %q: %q", automation.Action, err)
+					continue
+				}
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {

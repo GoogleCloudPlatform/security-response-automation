@@ -42,25 +42,7 @@
     },
     "dry_run": true
   },
-  "close_cloud_sql": {
-    "resources": {
-      "folder_ids": []
-    },
-    "dry_run": true
-  },
-  "cloud_sql_require_ssl": {
-    "resources": {
-      "folder_ids": []
-    },
-    "dry_run": true
-  },
   "disable_dashboard": {
-    "resources": {
-      "folder_ids": []
-    },
-    "dry_run": true
-  },
-  "cloud_sql_update_password": {
     "resources": {
       "folder_ids": []
     },
