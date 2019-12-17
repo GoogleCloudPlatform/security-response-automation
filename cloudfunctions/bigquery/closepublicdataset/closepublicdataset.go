@@ -30,10 +30,8 @@ type Values struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	BigQuery      *services.BigQuery
-	Resource      *services.Resource
-	Logger        *services.Logger
+	BigQuery *services.BigQuery
+	Logger   *services.Logger
 }
 
 // Execute removes public access of a BigQuery dataset.

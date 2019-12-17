@@ -21,7 +21,6 @@ import (
 	"cloud.google.com/go/bigquery"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	crm "google.golang.org/api/cloudresourcemanager/v1"
 
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -34,8 +33,6 @@ func TestClosePublicDataset(t *testing.T) {
 		name             string
 		metadata         *bigquery.DatasetMetadata
 		expectedMetadata *bigquery.DatasetMetadataToUpdate
-		folderIDs        []string
-		ancestry         *crm.GetAncestryResponse
 	}{
 		{
 			name: "remove bigquery dataset public access",
@@ -53,16 +50,13 @@ func TestClosePublicDataset(t *testing.T) {
 					{Entity: "anotheruser@org.com"},
 				},
 			},
-			folderIDs: []string{"123"},
-			ancestry:  services.CreateAncestors([]string{"folder/123"}),
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, bigqueryStub, crmStub := setup(tt.folderIDs)
+			svcs, bigqueryStub := setup()
 			bigqueryStub.StubbedMetadata = tt.metadata
 			bigqueryStub.SavedDatasetMetadata = tt.expectedMetadata
-			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
 				ProjectID: "project-id",
 				DatasetID: "dataset-id",
@@ -70,7 +64,6 @@ func TestClosePublicDataset(t *testing.T) {
 			bq := services.NewBigQuery(bigqueryStub)
 			if err := Execute(ctx, values, &Services{
 				BigQuery: bq,
-				Resource: svcs.Resource,
 				Logger:   svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s failed to remove public access in bigquery dataset:%q", tt.name, err)
@@ -83,12 +76,9 @@ func TestClosePublicDataset(t *testing.T) {
 	}
 }
 
-func setup(folderIDs []string) (*services.Global, *stubs.BigQueryStub, *stubs.ResourceManagerStub) {
+func setup() (*services.Global, *stubs.BigQueryStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
-	storageStub := &stubs.StorageStub{}
-	crmStub := &stubs.ResourceManagerStub{}
-	res := services.NewResource(crmStub, storageStub)
 	bigqueryStub := &stubs.BigQueryStub{}
-	return &services.Global{Logger: log, Resource: res}, bigqueryStub, crmStub
+	return &services.Global{Logger: log}, bigqueryStub
 }

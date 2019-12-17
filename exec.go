@@ -276,10 +276,8 @@ func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
 			return err
 		}
 		return closepublicdataset.Execute(ctx, &values, &closepublicdataset.Services{
-			Configuration: svcs.Configuration,
-			BigQuery:      bigquery,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			BigQuery: bigquery,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err
