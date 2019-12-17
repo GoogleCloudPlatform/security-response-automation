@@ -8,6 +8,14 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/updatepassword"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
+	"github.com/googlecloudplatform/security-response-automation/services"
+)
+
+const (
+	// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
+	hostWildcard = "%"
+	// userName is the MySQL user name that will have their password reset.
+	userName = "root"
 )
 
 // Automation defines the configuration for this finding.
@@ -52,20 +60,18 @@ func (f *Finding) RemovePublic() *removepublic.Values {
 }
 
 // UpdatePassword returns values for the update password automation.
-func (f *Finding) UpdatePassword() *updatepassword.Values {
-	const (
-		// hostWildcard matches any MySQL host. Reference: https://cloud.google.com/sql/docs/mysql/users.
-		hostWildcard = "%"
-		// userName is the MySQL user name that will have their password reset.
-		userName = "root"
-	)
-
+func (f *Finding) UpdatePassword() (*updatepassword.Values, error) {
+	password, err := services.GeneratePassword()
+	if err != nil {
+		return nil, err
+	}
 	return &updatepassword.Values{
 		ProjectID:    f.sqlscanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlscanner.GetFinding().GetResourceName()),
 		Host:         hostWildcard,
 		UserName:     userName,
-	}
+		Password:     password,
+	}, nil
 }
 
 // RequireSSL returns values for the require SSL automation.

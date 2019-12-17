@@ -38,11 +38,11 @@ func TestReadFindingUpdatePassword(t *testing.T) {
 		}`
 	)
 	for _, tt := range []struct {
-		name, instanceName, projectID string
-		bytes                         []byte
-		expectedError                 error
+		name, instanceName, projectID, host, userName string
+		bytes                                         []byte
+		expectedError                                 error
 	}{
-		{name: "read", projectID: "threat-auto-tests-07102019", instanceName: "test-no-password", bytes: []byte(noRootPassword), expectedError: nil},
+		{name: "read", projectID: "threat-auto-tests-07102019", instanceName: "test-no-password", host: "%", userName: "root", bytes: []byte(noRootPassword), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -52,12 +52,21 @@ func TestReadFindingUpdatePassword(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			values := r.UpdatePassword()
+			values, _ := r.UpdatePassword()
 			if err == nil && r != nil && values.InstanceName != tt.instanceName {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.InstanceName, tt.instanceName)
 			}
 			if err == nil && r != nil && values.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+			}
+			if err == nil && r != nil && values.Host != tt.host {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Host, tt.host)
+			}
+			if err == nil && r != nil && values.UserName != tt.userName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.UserName, tt.userName)
+			}
+			if err == nil && r != nil && values.Password == "" {
+				t.Errorf("%s failed: got:%q", tt.name, values.Password)
 			}
 		})
 	}

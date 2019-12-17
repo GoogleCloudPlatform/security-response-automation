@@ -202,6 +202,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "close_bucket":
 				values := storageScanner.CloseBucket()
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
@@ -238,6 +239,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "enable_bucket_only_policy":
 				values := storageScanner.EnableBucketOnlyPolicy()
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
@@ -274,6 +276,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "close_cloud_sql":
 				values := sqlScanner.RemovePublic()
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
@@ -310,6 +313,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "cloud_sql_require_ssl":
 				values := sqlScanner.RequireSSL()
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)
@@ -344,8 +348,13 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		for _, automation := range automations {
 			switch automation.Action {
 			case "cloud_sql_update_password":
-				values := sqlScanner.UpdatePassword()
+				values, err := sqlScanner.UpdatePassword()
+				if err != nil {
+					services.Logger.Error("failed to get values for %q: %q", automation.Action, err)
+					continue
+				}
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
 				ok, err := services.Resource.CheckMatches(ctx, values.ProjectID, automation.Target, automation.Exclude)
 				if !ok {
 					log.Printf("project %q is not within the target or is excluded", values.ProjectID)

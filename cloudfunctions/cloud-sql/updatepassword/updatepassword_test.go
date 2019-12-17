@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
@@ -42,6 +43,9 @@ func TestUpdatePassword(t *testing.T) {
 			values := &Values{
 				ProjectID:    "threat-auto-tests-07102019",
 				InstanceName: "test-no-password",
+				Host:         "%",
+				UserName:     "root",
+				Password:     "4a542dd833d9f8a7600b13cd281d00cf2b0a5610e825ff931260b2911bef95b5",
 			}
 			if err := Execute(ctx, values, &Services{
 				CloudSQL: svcs.CloudSQL,
@@ -51,8 +55,8 @@ func TestUpdatePassword(t *testing.T) {
 				t.Errorf("%s failed to update root password for instance :%q", tt.name, err)
 			}
 
-			if sqlStub.UpdatedUser == nil || sqlStub.UpdatedUser.Password == "" {
-				t.Errorf("%v failed\n expcted non nil password", tt.name)
+			if diff := cmp.Diff(sqlStub.UpdatedUser, tt.expectedRequest); diff != "" {
+				t.Errorf("%v failed\n exp:%v\n got:%v", tt.name, tt.expectedRequest, sqlStub.SavedInstanceUpdated)
 			}
 		})
 	}
