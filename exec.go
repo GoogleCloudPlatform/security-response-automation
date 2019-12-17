@@ -174,9 +174,10 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.securityAdmin to modify firewall rules.
 //
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
-	switch values, err := openfirewall.ReadFinding(m.Data); err {
+	var values openfirewall.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		err := openfirewall.Execute(ctx, values, &openfirewall.Services{
+		err := openfirewall.Execute(ctx, &values, &openfirewall.Services{
 			Configuration: svcs.Configuration,
 			Firewall:      svcs.Firewall,
 			Resource:      svcs.Resource,
