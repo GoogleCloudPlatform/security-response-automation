@@ -14,3 +14,4 @@ spec:
       public_sql_instance:
       ssl_not_enforced:
       sql_no_root_password:
+      public_ip_address:

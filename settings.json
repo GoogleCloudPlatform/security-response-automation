@@ -30,12 +30,6 @@
     "source_ranges": [],
     "dry_run": true
   },
-  "remove_public_ip": {
-    "resources": {
-      "folder_ids": []
-    },
-    "dry_run": true
-  },
   "close_public_dataset": {
     "resources": {
       "folder_ids": []
