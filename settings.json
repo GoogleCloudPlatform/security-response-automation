@@ -14,12 +14,6 @@
     "output_destinations": [""],
     "dry_run": true
   },
-  "close_bucket": {
-    "resources": {
-      "folder_ids": []
-    },
-    "dry_run": true
-  },
   "revoke_grants": {
     "resources": {
       "folder_ids": []
@@ -43,12 +37,6 @@
     "dry_run": true
   },
   "close_public_dataset": {
-    "resources": {
-      "folder_ids": []
-    },
-    "dry_run": true
-  },
-  "enable_bucket_only_policy": {
     "resources": {
       "folder_ids": []
     },

@@ -32,5 +32,5 @@ resource "google_cloudfunctions_function" "router" {
 resource "google_project_iam_member" "router-pubsub-writer" {
   role    = "roles/pubsub.editor"
   project = var.setup.automation-project
-  member = "serviceAccount:${var.setup.automation-service-account}"
+  member  = "serviceAccount:${var.setup.automation-service-account}"
 }

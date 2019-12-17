@@ -23,7 +23,9 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/publicdataset"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
@@ -52,6 +54,36 @@ func TestRouter(t *testing.T) {
 				}
 			},
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+		validPublicBucket = `{
+			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"finding": {
+				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
+				"parent": "organizations/154584661726/sources/2673592633662526977",
+				"resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
+				"state": "ACTIVE",
+				"category": "PUBLIC_BUCKET_ACL",
+				"externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
+				"sourceProperties": {
+					"ReactivationCount": 0.0,
+					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+					"SeverityLevel": "High",
+					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
+					"ProjectId": "test-project",
+					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
+					"ScannerName": "STORAGE_SCANNER",
+					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
+					"Explanation": "This bucket is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
+				},
+				"securityMarks": {
+					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
+					"marks": {
+						"babab": "3"
+					}
+				},
+				"eventTime": "2019-09-23T17:20:27.204Z",
+				"createTime": "2019-09-23T17:20:27.934Z"
+			}
 		}`
 		validPublicDataset = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
@@ -93,6 +125,17 @@ func TestRouter(t *testing.T) {
 		Zone:      "zone-name",
 	}
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
+
+	conf.Spec.Parameters.SHA.PublicBucketACL = []storagescanner.Automation{
+		{Action: "close_bucket", Target: []string{"organizations/456/folders/123/projects/test-project"}},
+	}
+	closeBucketValues := &closebucket.Values{
+		ProjectID:  "test-project",
+		BucketName: "this-is-public-on-purpose",
+		DryRun:     false,
+	}
+	closeBucket, _ := json.Marshal(closeBucketValues)
+
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
@@ -116,6 +159,7 @@ func TestRouter(t *testing.T) {
 		finding []byte
 	}{
 		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
+		{name: "PUBLIC_BUCKET_ACL", finding: []byte(validPublicBucket), mapTo: closeBucket},
 		{name: "PUBLIC_DATASET", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
 	} {
 		ctx := context.Background()

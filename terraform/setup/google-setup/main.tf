@@ -89,6 +89,7 @@ resource "google_project_iam_member" "stackdriver-writer" {
 
 // TODO: Should move all these to where they're used so if someone doesn't want them they're easy to ignore.
 
+
 resource "google_project_service" "cloudresourcemanager_api" {
   project                    = var.automation-project
   service                    = "cloudresourcemanager.googleapis.com"

@@ -21,187 +21,31 @@ import (
 	"cloud.google.com/go/iam"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"golang.org/x/xerrors"
-	crm "google.golang.org/api/cloudresourcemanager/v1"
 )
-
-func TestReadFinding(t *testing.T) {
-	const (
-		storageScanner = `{
-			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
-			"finding": {
-				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
-				"parent": "organizations/154584661726/sources/2673592633662526977",
-				"resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
-				"state": "ACTIVE",
-				"category": "BUCKET_POLICY_ONLY_DISABLED",
-				"externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
-				"sourceProperties": {
-					"ReactivationCount": 0.0,
-					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
-					"SeverityLevel": "High",
-					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "aerial-jigsaw-235219",
-					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
-					"ScannerName": "STORAGE_SCANNER",
-					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
-					"Explanation": "This bucket is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
-				},
-				"securityMarks": {
-					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
-					"marks": {
-						"babab": "3"
-					}
-				},
-				"eventTime": "2019-09-23T17:20:27.204Z",
-				"createTime": "2019-09-23T17:20:27.934Z"
-			}
-		}`
-		somethingElse = `{
-			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
-			"finding": {
-				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
-				"parent": "organizations/154584661726/sources/2673592633662526977",
-				"resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
-				"state": "ACTIVE",
-				"category": "SOMETHING_ELSE",
-				"externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
-				"sourceProperties": {
-					"ReactivationCount": 0.0,
-					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
-					"SeverityLevel": "High",
-					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "aerial-jigsaw-235219",
-					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
-					"ScannerName": "STORAGE_SCANNER",
-					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
-					"Explanation": "This bucket is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
-				},
-				"securityMarks": {
-					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
-					"marks": {
-						"babab": "3"
-					}
-				},
-				"eventTime": "2019-09-23T17:20:27.204Z",
-				"createTime": "2019-09-23T17:20:27.934Z"
-			}
-		}`
-		missingProperties = `{
-			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
-			"finding": {
-				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
-				"parent": "organizations/154584661726/sources/2673592633662526977",
-				"resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
-				"state": "ACTIVE",
-				"category": "BUCKET_POLICY_ONLY_DISABLED",
-				"externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
-				"securityMarks": {
-					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
-					"marks": {
-						"babab": "3"
-					}
-				},
-				"eventTime": "2019-09-23T17:20:27.204Z",
-				"createTime": "2019-09-23T17:20:27.934Z"
-			}
-		}`
-
-		inactiveFinding = `{
-			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
-			"finding": {
-				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
-				"parent": "organizations/154584661726/sources/2673592633662526977",
-				"resourceName": "//storage.googleapis.com/this-is-public-on-purpose",
-				"state": "INACTIVE",
-				"category": "BUCKET_POLICY_ONLY_DISABLED",
-				"externalUri": "https://console.cloud.google.com/storage/browser/this-is-public-on-purpose",
-				"sourceProperties": {
-					"ReactivationCount": 0.0,
-					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
-					"SeverityLevel": "High",
-					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "aerial-jigsaw-235219",
-					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
-					"ScannerName": "STORAGE_SCANNER",
-					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
-					"Explanation": "This bucket is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
-				},
-				"securityMarks": {
-					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
-					"marks": {
-						"babab": "3"
-					}
-				},
-				"eventTime": "2019-09-23T17:20:27.204Z",
-				"createTime": "2019-09-23T17:20:27.934Z"
-			}
-		}`
-	)
-	for _, tt := range []struct {
-		name, bucket, projectID string
-		bytes                   []byte
-		expectedError           error
-	}{
-		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219", bytes: []byte(storageScanner), expectedError: nil},
-		{name: "missing properties", bucket: "", projectID: "", bytes: []byte(missingProperties), expectedError: services.ErrValueNotFound},
-		{name: "wrong category", bucket: "", projectID: "", bytes: []byte(somethingElse), expectedError: services.ErrUnsupportedFinding},
-		{name: "inactive finding", bucket: "", projectID: "", bytes: []byte(inactiveFinding), expectedError: services.ErrUnsupportedFinding},
-	} {
-		t.Run(tt.name, func(t *testing.T) {
-			r, err := ReadFinding(tt.bytes)
-			if tt.expectedError == nil && err != nil {
-				t.Errorf("%s failed: %q", tt.name, err)
-			}
-			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
-			}
-			if r != nil && err == nil && r.BucketName != tt.bucket {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.BucketName, tt.bucket)
-			}
-			if r != nil && err == nil && r.ProjectID != tt.projectID {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, r.ProjectID, tt.projectID)
-			}
-		})
-	}
-}
 
 func TestEnableBucketOnlyPolicy(t *testing.T) {
 	ctx := context.Background()
 
 	test := []struct {
-		name      string
-		folderIDs []string
-		expected  string
-		ancestry  *crm.GetAncestryResponse
+		name     string
+		expected string
 	}{
 		{
-			name:      "enable bucket only policy",
-			folderIDs: []string{"123"},
-			expected:  "bucket-to-enable-policy",
-			ancestry:  services.CreateAncestors([]string{"folder/123"}),
-		},
-		{
-			name:      "no folders",
-			folderIDs: nil,
-			expected:  "",
-			ancestry:  services.CreateAncestors([]string{"folder/123"}),
+			name:     "enable bucket only policy",
+			expected: "bucket-to-enable-policy",
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, crmStub, storageStub := enableBucketOnlyPolicySetup(tt.folderIDs)
-			crmStub.GetAncestryResponse = tt.ancestry
-
+			svcs, storageStub := enableBucketOnlyPolicySetup()
 			values := &Values{
 				ProjectID:  "project-name",
 				BucketName: "bucket-to-enable-policy",
 			}
 
 			if err := Execute(ctx, values, &Services{
-				Configuration: svcs.Configuration,
-				Resource:      svcs.Resource,
-				Logger:        svcs.Logger,
+				Resource: svcs.Resource,
+				Logger:   svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s test failed want:%q", tt.name, err)
 			}
@@ -215,19 +59,12 @@ func TestEnableBucketOnlyPolicy(t *testing.T) {
 	}
 }
 
-func enableBucketOnlyPolicySetup(folderIDs []string) (*services.Global, *stubs.ResourceManagerStub, *stubs.StorageStub) {
+func enableBucketOnlyPolicySetup() (*services.Global, *stubs.StorageStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	crmStub := &stubs.ResourceManagerStub{}
 	storageStub := &stubs.StorageStub{}
 	res := services.NewResource(crmStub, storageStub)
 	storageStub.BucketPolicyResponse = &iam.Policy{}
-	conf := &services.Configuration{
-		EnableBucketOnlyPolicy: &services.EnableBucketOnlyPolicy{
-			Resources: &services.Resources{
-				FolderIDs: folderIDs,
-			},
-		},
-	}
-	return &services.Global{Logger: log, Resource: res, Configuration: conf}, crmStub, storageStub
+	return &services.Global{Logger: log, Resource: res}, storageStub
 }
