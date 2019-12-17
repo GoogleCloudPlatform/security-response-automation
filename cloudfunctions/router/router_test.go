@@ -21,9 +21,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
@@ -83,6 +85,33 @@ func TestRouter(t *testing.T) {
 				"createTime": "2019-09-23T17:20:27.934Z"
 			}
 		}`
+		validPublicDataset = `{
+			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"finding": {
+				"name": "organizations/154584661726/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7",
+				"parent": "organizations/154584661726/sources/7086426792249889955",
+				"resourceName": "//bigquery.googleapis.com/projects/test-project/datasets/public_dataset123",
+				"state": "ACTIVE",
+				"category": "PUBLIC_DATASET",
+				"externalUri": "https://console.cloud.google.com/bigquery?project=test-project&folder&organizationId=154584661726&p=test-project&d=public_dataset123&page=dataset",
+				"sourceProperties": {
+				  "ReactivationCount": 0,
+				  "ExceptionInstructions": "Add the security mark \"allow_public_dataset\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+				  "SeverityLevel": "High",
+				  "Recommendation": "Go to https://console.cloud.google.com/bigquery?project=test-project&folder&organizationId=154584661726&p=test-project&d=public_dataset123&page=dataset, click \"SHARE DATASET\", search members for \"allUsers\" and \"allAuthenticatedUsers\",  and remove access for those members.",
+				  "ProjectId": "test-project",
+				  "AssetCreationTime": "2019-10-02T18:28:42.182Z",
+				  "ScannerName": "DATASET_SCANNER",
+				  "ScanRunId": "2019-10-03T11:40:22.538-07:00",
+				  "Explanation": "This dataset is public and can be accessed by anyone on the Internet. \"allUsers\" represents anyone on the Internet, and \"allAuthenticatedUsers\" represents anyone who is authenticated with a Google account; neither is constrained to users within your organization."
+				},
+				"securityMarks": {
+				  "name": "organizations/154584661726/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7/securityMarks"
+				},
+				"eventTime": "2019-10-03T18:40:22.538Z",
+				"createTime": "2019-10-03T18:40:23.445Z"
+			}
+		}`
 	)
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
@@ -113,6 +142,17 @@ func TestRouter(t *testing.T) {
 	crmStub.GetAncestryResponse = ancestryResponse
 
 	r := services.NewResource(crmStub, storageStub)
+
+	conf.Spec.Parameters.SHA.PublicDataset = []datasetscanner.Automation{
+		{Action: "close_public_dataset", Target: []string{"organizations/456/folders/123/projects/test-project"}},
+	}
+	closePublicDatasetValues := &closepublicdataset.Values{
+		ProjectID: "test-project",
+		DatasetID: "public_dataset123",
+		DryRun:    false,
+	}
+	closePublicDataset, _ := json.Marshal(closePublicDatasetValues)
+
 	for _, tt := range []struct {
 		name    string
 		mapTo   []byte
@@ -120,6 +160,7 @@ func TestRouter(t *testing.T) {
 	}{
 		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
 		{name: "PUBLIC_BUCKET_ACL", finding: []byte(validPublicBucket), mapTo: closeBucket},
+		{name: "PUBLIC_DATASET", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
