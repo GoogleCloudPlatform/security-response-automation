@@ -24,6 +24,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/containerscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -36,6 +37,7 @@ var findings = []Namer{
 	&badip.Finding{},
 	&storagescanner.Finding{},
 	&sqlscanner.Finding{},
+	&containerscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -65,6 +67,7 @@ var topics = map[string]struct{ Topic string }{
 	"close_cloud_sql":           {Topic: "threat-findings-remove-public-sql"},
 	"cloud_sql_require_ssl":     {Topic: "threat-findings-require-ssl"},
 	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
+	"disable_dashboard":         {Topic: "threat-findings-disable-dashboard"},
 }
 
 // Configuration maps findings to automations.
@@ -78,11 +81,12 @@ type Configuration struct {
 				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
 			}
 			SHA struct {
-				PublicBucketACL         []storagescanner.Automation `yaml:"public_bucket_acl"`
-				BucketPolicyOnlyDisable []storagescanner.Automation `yaml:"bucket_policy_only_disabled"`
-				PublicSQLInstance       []sqlscanner.Automation     `yaml:"public_sql_instance"`
-				SSLNotEnforced          []sqlscanner.Automation     `yaml:"ssl_not_enforced"`
-				SQLNoRootPassword       []sqlscanner.Automation     `yaml:"sql_no_root_password"`
+				PublicBucketACL         []storagescanner.Automation   `yaml:"public_bucket_acl"`
+				BucketPolicyOnlyDisable []storagescanner.Automation   `yaml:"bucket_policy_only_disabled"`
+				PublicSQLInstance       []sqlscanner.Automation       `yaml:"public_sql_instance"`
+				SSLNotEnforced          []sqlscanner.Automation       `yaml:"ssl_not_enforced"`
+				SQLNoRootPassword       []sqlscanner.Automation       `yaml:"sql_no_root_password"`
+				DisableDashboard        []containerscanner.Automation `yaml:"disable_dashboard"`
 			}
 		}
 	}
@@ -253,6 +257,26 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 					services.Logger.Error("failed to get values for %q: %q", automation.Action, err)
 					continue
 				}
+				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "WEB_UI_ENABLED":
+		automations := services.Configuration.Spec.Parameters.SHA.DisableDashboard
+		containerScanner, err := containerscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "disable_dashboard":
+				values := containerScanner.DisableDashboard()
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
