@@ -41,6 +41,7 @@ var findings = []Namer{
 	&sqlscanner.Finding{},
 	&computeinstancescanner.Finding{},
 	&datasetscanner.Finding{},
+	&loggingscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
