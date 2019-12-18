@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "enable-audit-logs" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
+    resource   = "threat-findings-enable-audit-logs"
   }
 }
 
