@@ -16,11 +16,11 @@ resource "google_cloudfunctions_function" "enable-audit-logs" {
   description           = "Remediate projects with data access audit logging disabled"
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
+  project               = var.setup.automation-project
+  region                = var.setup.region
   entry_point           = "EnableAuditLogs"
 
   event_trigger {
@@ -45,4 +45,10 @@ resource "google_folder_iam_member" "roles-rm-admin" {
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/resourcemanager.folderAdmin"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-enable-audit-logs"
+  project = var.setup.automation-project
 }
