@@ -26,6 +26,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/computeinstancescanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -91,6 +92,7 @@ type Configuration struct {
 				SQLNoRootPassword       []sqlscanner.Automation             `yaml:"sql_no_root_password"`
 				PublicIPAddress         []computeinstancescanner.Automation `yaml:"public_ip_address"`
 				PublicDataset           []datasetscanner.Automation         `yaml:"bigquery_public_dataset"`
+				AuditLoggingDisabled    []loggingscanner.Automation         `yaml:"audit_logging_disabled"`
 			}
 		}
 	}
@@ -301,6 +303,26 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "close_public_dataset":
 				values := publicDataset.ClosePublicDataset()
+				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "audit_logging_disabled":
+		automations := services.Configuration.Spec.Parameters.SHA.AuditLoggingDisabled
+		loggingScanner, err := loggingscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "enable_audit_logs":
+				values := loggingScanner.EnableAuditLogs()
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
