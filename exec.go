@@ -190,7 +190,7 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 			switch dest {
 			case "pagerduty":
 				log.Println("will attempt to output to PagerDuty")
-				conf := svcs.Configuration.PagerDuty
+				conf := values.PagerDuty
 				if !conf.Enabled {
 					log.Println("pagerDuty not enabled")
 					continue

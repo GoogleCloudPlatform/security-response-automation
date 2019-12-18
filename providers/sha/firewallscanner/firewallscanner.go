@@ -19,6 +19,12 @@ type Automation struct {
 		SourceRanges      []string `yaml:"source_ranges"`
 		RemediationAction string   `yaml:"remediation_action"`
 		Output            []string
+		PagerDuty         struct {
+			Enabled   bool   `yaml:"enabled"`
+			APIKey    string `yaml:"api_key"`
+			ServiceID string `yaml:"service_id"`
+			From      string `yaml:"from"`
+		} `yaml:"pagerduty"`
 	}
 }
 

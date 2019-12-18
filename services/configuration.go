@@ -38,23 +38,12 @@ type RemoveNonOrgMembers struct {
 	DryRun       bool     `json:"dry_run"`
 }
 
-// PagerDutyConfiguration contains configuration for the PagerDuty client.
-type PagerDutyConfiguration struct {
-	APIKey  string `json:"api_key"`
-	Enabled bool   `json:"enabled"`
-	// ServiceID of the affected service within PagerDuty.
-	ServiceID string `json:"service_id"`
-	// From is the email address that sends the incident. This must be a valid user within PagerDuty.
-	From string `json:"from"`
-}
-
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
-	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
-	DisableDashboard    *DisableDashboard       `json:"disable_dashboard"`
-	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`
-	RemoveNonOrgMembers *RemoveNonOrgMembers    `json:"remove_non_org_members"`
+	ClosePublicDataset  *ClosePublicDataset  `json:"close_public_dataset"`
+	DisableDashboard    *DisableDashboard    `json:"disable_dashboard"`
+	EnableAuditLogs     *EnableAuditLogs     `json:"enable_audit_logs"`
+	RemoveNonOrgMembers *RemoveNonOrgMembers `json:"remove_non_org_members"`
 }
 
 // NewConfiguration returns a new configuration.
