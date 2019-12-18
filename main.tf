@@ -76,11 +76,11 @@ module "remove_public_ip" {
   folder-ids = var.folder-ids
 }
 
-# module "close_public_dataset" {
-#   source     = "./terraform/automations/close-public-dataset"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "close_public_dataset" {
+  source     = "./cloudfunctions/bigquery/closepublicdataset"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 module "close_public_cloud_sql" {
   source     = "./cloudfunctions/cloud-sql/removepublic"

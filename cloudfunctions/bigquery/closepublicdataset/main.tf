@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "close-public-dataset" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
+    resource   = "threat-findings-close-public-dataset"
   }
 }
 
@@ -45,4 +45,17 @@ resource "google_folder_iam_member" "roles-bigquery-dataowner" {
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/bigquery.dataOwner"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-close-public-dataset"
+  project = var.setup.automation-project
+}
+
+resource "google_project_service" "bigquery_api" {
+  project                    = var.setup.automation-project
+  service                    = "bigquery.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

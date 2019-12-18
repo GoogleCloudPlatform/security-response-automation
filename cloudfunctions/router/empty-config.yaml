@@ -16,3 +16,4 @@ spec:
       sql_no_root_password:
       public_ip_address:
       open_firewall:
+      bigquery_public_dataset:

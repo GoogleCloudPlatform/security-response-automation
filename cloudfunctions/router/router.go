@@ -26,6 +26,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/sshbruteforce"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/computeinstancescanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/firewallscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
@@ -42,6 +43,7 @@ var findings = []Namer{
 	&sqlscanner.Finding{},
 	&computeinstancescanner.Finding{},
 	&firewallscanner.Finding{},
+	&datasetscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -74,6 +76,7 @@ var topics = map[string]struct{ Topic string }{
 	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
 	"remediate_firewall":        {Topic: "threat-findings-open-firewall"},
 	"block_ssh":                 {Topic: "threat-findings-open-firewall"},
+	"close_public_dataset":      {Topic: "threat-findings-close-public-dataset"},
 }
 
 // Configuration maps findings to automations.
@@ -95,6 +98,7 @@ type Configuration struct {
 				SQLNoRootPassword       []sqlscanner.Automation             `yaml:"sql_no_root_password"`
 				PublicIPAddress         []computeinstancescanner.Automation `yaml:"public_ip_address"`
 				OpenFirewall            []firewallscanner.Automation        `yaml:"open_firewall"`
+				PublicDataset           []datasetscanner.Automation         `yaml:"bigquery_public_dataset"`
 			}
 		}
 	}
@@ -335,6 +339,26 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.SourceRanges = automation.Properties.SourceRanges
 				values.Action = automation.Properties.RemediationAction
 				values.Output = automation.Properties.Output
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "public_dataset":
+		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
+		publicDataset, err := datasetscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "close_public_dataset":
+				values := publicDataset.ClosePublicDataset()
+				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

@@ -125,13 +125,6 @@ resource "google_project_service" "logging_api" {
 #   disable_on_destroy         = false
 # }
 
-# resource "google_project_service" "bigquery_api" {
-#   project                    = var.automation-project
-#   service                    = "bigquery.googleapis.com"
-#   disable_dependent_services = false
-#   disable_on_destroy         = false
-# }
-
 # resource "google_project_service" "sqladmin_api" {
 #   project                    = var.automation-project
 #   service                    = "sqladmin.googleapis.com"
