@@ -2,6 +2,7 @@ package containerscanner
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gke/disabledashboard"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
@@ -29,7 +30,7 @@ func (f *Finding) Name(b []byte) string {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return ""
 	}
-	return finding.GetFinding().GetCategory()
+	return strings.ToLower(finding.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
