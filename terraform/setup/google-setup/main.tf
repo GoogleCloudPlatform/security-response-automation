@@ -24,14 +24,14 @@ data "archive_file" "cloud_functions_zip" {
   depends_on = [
     local_file.cloudfunction-key-file,
     # "google_project_service.compute_api",
-    "google_project_service.cloudresourcemanager_api",
+    google_project_service.cloudresourcemanager_api,
     # "google_project_service.storage_api",
-    "google_project_service.logging_api",
+    google_project_service.logging_api,
     # "google_project_service.storage_component_api",
-    "google_project_service.pubsub_api",
+    google_project_service.pubsub_api,
     # "google_project_service.bigquery_api",
     # "google_project_service.sqladmin_api",
-    "google_project_service.cloudfunctions_api"
+    google_project_service.cloudfunctions_api
   ]
 }
 
