@@ -42,6 +42,12 @@
     },
     "dry_run": true
   },
+  "disable_dashboard": {
+    "resources": {
+      "folder_ids": []
+    },
+    "dry_run": true
+  },
   "enable_audit_logs": {
     "resources": {
       "folder_ids": []

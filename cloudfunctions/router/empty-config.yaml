@@ -14,4 +14,6 @@ spec:
       public_sql_instance:
       ssl_not_enforced:
       sql_no_root_password:
-      disable_dashboard:
+      public_ip_address:
+      bigquery_public_dataset:
+      web_ui_enabled:

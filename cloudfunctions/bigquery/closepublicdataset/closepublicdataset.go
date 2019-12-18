@@ -16,62 +16,33 @@ package closepublicdataset
 
 import (
 	"context"
-	"encoding/json"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID, DatasetID string
+	ProjectID string
+	DatasetID string
+	DryRun    bool
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	BigQuery      *services.BigQuery
-	Resource      *services.Resource
-	Logger        *services.Logger
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.DatasetScanner
-	v := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetFinding().GetCategory() {
-	case "PUBLIC_DATASET":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
-		}
-		v.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		v.DatasetID = sha.Dataset(finding.GetFinding().GetResourceName())
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if v.ProjectID == "" || v.DatasetID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return v, nil
+	BigQuery *services.BigQuery
+	Logger   *services.Logger
 }
 
 // Execute removes public access of a BigQuery dataset.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	resources := services.Configuration.ClosePublicDataset.Resources
-	return services.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if services.Configuration.ClosePublicDataset.DryRun {
-			services.Logger.Info("dry_run on, would have removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
-			return nil
-		}
-		if err := services.BigQuery.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
-			return errors.Wrapf(err, "error removing bigquery dataset %q public access in project %q", values.DatasetID, values.ProjectID)
-		}
-		services.Logger.Info("removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
+	if values.DryRun {
+		services.Logger.Info("dry_run on, would have removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
 		return nil
-	})
+	}
+	if err := services.BigQuery.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
+		return errors.Wrapf(err, "error removing bigquery dataset %q public access in project %q", values.DatasetID, values.ProjectID)
+	}
+	services.Logger.Info("removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
+	return nil
 }

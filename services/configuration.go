@@ -22,12 +22,6 @@ type DisableFirewall struct {
 	OutputDestinations []string `json:"output_destinations"`
 }
 
-// RemovePublicIP contains configuration required for the remove public IP function.
-type RemovePublicIP struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
 	Resources *Resources
@@ -61,7 +55,6 @@ type PagerDutyConfiguration struct {
 type Configuration struct {
 	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
 	DisableFirewall     *DisableFirewall        `json:"open_firewall"`
-	RemovePublicIP      *RemovePublicIP         `json:"remove_public_ip"`
 	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
 	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`
 	RemoveNonOrgMembers *RemoveNonOrgMembers    `json:"remove_non_org_members"`

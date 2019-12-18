@@ -22,7 +22,7 @@ type Automation struct {
 
 // Finding represents this finding.
 type Finding struct {
-	storagescanner *pb.StorageScanner
+	storageScanner *pb.StorageScanner
 }
 
 // Name returns the rule name of the finding.
@@ -37,7 +37,7 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.storagescanner); err != nil {
+	if err := json.Unmarshal(b, &f.storageScanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -46,15 +46,15 @@ func New(b []byte) (*Finding, error) {
 // EnableBucketOnlyPolicy returns values for the enable bucket only policy automation.
 func (f *Finding) EnableBucketOnlyPolicy() *enablebucketonlypolicy.Values {
 	return &enablebucketonlypolicy.Values{
-		ProjectID:  f.storagescanner.GetFinding().GetSourceProperties().GetProjectId(),
-		BucketName: sha.BucketName(f.storagescanner.GetFinding().GetResourceName()),
+		ProjectID:  f.storageScanner.GetFinding().GetSourceProperties().GetProjectId(),
+		BucketName: sha.BucketName(f.storageScanner.GetFinding().GetResourceName()),
 	}
 }
 
 // CloseBucket returns values for the close bucket automation.
 func (f *Finding) CloseBucket() *closebucket.Values {
 	return &closebucket.Values{
-		ProjectID:  f.storagescanner.GetFinding().GetSourceProperties().GetProjectId(),
-		BucketName: sha.BucketName(f.storagescanner.GetFinding().GetResourceName()),
+		ProjectID:  f.storageScanner.GetFinding().GetSourceProperties().GetProjectId(),
+		BucketName: sha.BucketName(f.storageScanner.GetFinding().GetResourceName()),
 	}
 }

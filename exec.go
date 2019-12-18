@@ -74,6 +74,7 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	}, &router.Services{
 		PubSub:        ps,
 		Configuration: conf,
+		Logger:        svcs.Logger,
 		Resource:      svcs.Resource,
 	})
 }
@@ -243,16 +244,14 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublicip.ReadFinding(m.Data); err {
+	var values removepublicip.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublicip.Execute(ctx, values, &removepublicip.Services{
-			Configuration: svcs.Configuration,
-			Host:          svcs.Host,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return removepublicip.Execute(ctx, &values, &removepublicip.Services{
+			Host:     svcs.Host,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -268,20 +267,17 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/bigquery.dataOwner to get and update dataset metadata.
 //
 func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
-	switch values, err := closepublicdataset.ReadFinding(m.Data); err {
+	var values closepublicdataset.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
 		if err != nil {
 			return err
 		}
-		return closepublicdataset.Execute(ctx, values, &closepublicdataset.Services{
-			Configuration: svcs.Configuration,
-			BigQuery:      bigquery,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return closepublicdataset.Execute(ctx, &values, &closepublicdataset.Services{
+			BigQuery: bigquery,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}

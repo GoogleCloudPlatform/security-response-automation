@@ -68,8 +68,7 @@ Removes all public IPs from an instance's network interface.
 
 Configuration
 
-- Configured in settings.json under the `remove_public_ip` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `remove_public_ip`
 
 #### Remediate open firewall
 
