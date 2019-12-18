@@ -178,15 +178,14 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		err := openfirewall.Execute(ctx, &values, &openfirewall.Services{
-			Configuration: svcs.Configuration,
-			Firewall:      svcs.Firewall,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+			Firewall: svcs.Firewall,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		for _, dest := range svcs.Configuration.DisableFirewall.OutputDestinations {
+		for _, dest := range values.Output {
 			switch dest {
 			case "pagerduty":
 				log.Println("will attempt to output to PagerDuty")
@@ -197,7 +196,7 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 				}
 				pd := services.InitPagerDuty(conf.APIKey)
 				title := "Open firewall detected"
-				body := fmt.Sprintf("automatically took action: %q", svcs.Configuration.DisableFirewall.RemediationAction)
+				body := fmt.Sprintf("automatically took action: %q", values.Action)
 				if err := pd.CreateIncident(ctx, conf.From, conf.ServiceID, title, body); err != nil {
 					return err
 				}

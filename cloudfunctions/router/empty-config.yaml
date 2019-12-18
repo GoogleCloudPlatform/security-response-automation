@@ -15,3 +15,4 @@ spec:
       ssl_not_enforced:
       sql_no_root_password:
       public_ip_address:
+      open_firewall:

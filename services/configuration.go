@@ -13,15 +13,6 @@ type Resources struct {
 	OrganizationID string   `json:"organization_id"`
 }
 
-// DisableFirewall contains configuration required for the disable firewall function.
-type DisableFirewall struct {
-	Resources          *Resources
-	RemediationAction  string   `json:"remediation_action"`
-	SourceRanges       []string `json:"source_ranges"`
-	DryRun             bool     `json:"dry_run"`
-	OutputDestinations []string `json:"output_destinations"`
-}
-
 // ClosePublicDataset contains configuration required for the close public dataset function.
 type ClosePublicDataset struct {
 	Resources *Resources
@@ -60,7 +51,6 @@ type PagerDutyConfiguration struct {
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
 	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
-	DisableFirewall     *DisableFirewall        `json:"open_firewall"`
 	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
 	DisableDashboard    *DisableDashboard       `json:"disable_dashboard"`
 	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`

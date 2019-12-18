@@ -16,11 +16,8 @@ package openfirewall
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 )
@@ -32,39 +29,14 @@ type Values struct {
 	FirewallID   string
 	SourceRanges []string
 	DryRun       bool
+	Output       []string
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Firewall      *services.Firewall
-	Resource      *services.Resource
-	Logger        *services.Logger
-}
-
-func readSHAFinding(b []byte, values *Values) error {
-	var shaFinding pb.FirewallScanner
-	if err := json.Unmarshal(b, &shaFinding); err != nil {
-		return errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch shaFinding.GetFinding().GetCategory() {
-	case "OPEN_FIREWALL":
-		fallthrough
-	case "OPEN_SSH_PORT":
-		fallthrough
-	case "OPEN_RDP_PORT":
-		if sha.IgnoreFinding(shaFinding.GetFinding()) {
-			return services.ErrUnsupportedFinding
-		}
-		values.FirewallID = sha.FirewallID(shaFinding.GetFinding().GetResourceName())
-		values.ProjectID = shaFinding.GetFinding().GetSourceProperties().GetProjectId()
-	default:
-		return services.ErrUnsupportedFinding
-	}
-	if values.FirewallID == "" || values.ProjectID == "" {
-		return services.ErrValueNotFound
-	}
-	return nil
+	Firewall *services.Firewall
+	Resource *services.Resource
+	Logger   *services.Logger
 }
 
 // Execute remediates an open firewall.
@@ -76,11 +48,11 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	switch action := values.Action; action {
 	case "block_ssh":
 		return blockSSH(ctx, services.Logger, services.Firewall, values)
-	case "disable_firewall":
+	case "disable":
 		return disable(ctx, services.Logger, services.Firewall, values)
-	case "delete_firewall":
+	case "delete":
 		return delete(ctx, services.Logger, services.Firewall, values)
-	case "update_firewall_source_range":
+	case "update_source_range":
 		return updateRange(ctx, services.Logger, services.Firewall, values)
 	default:
 		return fmt.Errorf("unknown open firewall remediation action: %q", action)

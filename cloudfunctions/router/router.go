@@ -24,7 +24,9 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
+	"github.com/googlecloudplatform/security-response-automation/providers/etd/sshbruteforce"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/computeinstancescanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/firewallscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -35,9 +37,11 @@ import (
 var findings = []Namer{
 	&anomalousiam.Finding{},
 	&badip.Finding{},
+	&sshbruteforce.Finding{},
 	&storagescanner.Finding{},
 	&sqlscanner.Finding{},
 	&computeinstancescanner.Finding{},
+	&firewallscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -68,6 +72,8 @@ var topics = map[string]struct{ Topic string }{
 	"cloud_sql_require_ssl":     {Topic: "threat-findings-require-ssl"},
 	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
 	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
+	"remediate_firewall":        {Topic: "threat-findings-open-firewall"},
+	"block_ssh":                 {Topic: "threat-findings-open-firewall"},
 }
 
 // Configuration maps findings to automations.
@@ -77,8 +83,9 @@ type Configuration struct {
 		Name       string
 		Parameters struct {
 			ETD struct {
-				BadIP        []badip.Automation        `yaml:"bad_ip"`
-				AnomalousIAM []anomalousiam.Automation `yaml:"anomalous_iam"`
+				BadIP         []badip.Automation         `yaml:"bad_ip"`
+				AnomalousIAM  []anomalousiam.Automation  `yaml:"anomalous_iam"`
+				SSHBruteForce []sshbruteforce.Automation `yaml:"ssh_brute_force"`
 			}
 			SHA struct {
 				PublicBucketACL         []storagescanner.Automation         `yaml:"public_bucket_acl"`
@@ -87,6 +94,7 @@ type Configuration struct {
 				SSLNotEnforced          []sqlscanner.Automation             `yaml:"ssl_not_enforced"`
 				SQLNoRootPassword       []sqlscanner.Automation             `yaml:"sql_no_root_password"`
 				PublicIPAddress         []computeinstancescanner.Automation `yaml:"public_ip_address"`
+				OpenFirewall            []firewallscanner.Automation        `yaml:"open_firewall"`
 			}
 		}
 	}
@@ -154,6 +162,28 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "ssh_brute_force":
+		automations := services.Configuration.Spec.Parameters.ETD.SSHBruteForce
+		sshBruteForce, err := sshbruteforce.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "block_ssh":
+				values := sshBruteForce.BlockSSH()
+				values.DryRun = automation.Properties.DryRun
+				values.Action = automation.Action
+				values.Output = automation.Properties.Output
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -278,6 +308,33 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "remove_public_ip":
 				values := computeInstanceScanner.RemovePublicIP()
 				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "open_firewall":
+		fallthrough
+	case "open_ssh_port":
+		fallthrough
+	case "open_rdp_port":
+		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
+		firewallScanner, err := firewallscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "remediate_firewall":
+				values := firewallScanner.Remediate()
+				values.DryRun = automation.Properties.DryRun
+				values.SourceRanges = automation.Properties.SourceRanges
+				values.Action = automation.Properties.RemediationAction
+				values.Output = automation.Properties.Output
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

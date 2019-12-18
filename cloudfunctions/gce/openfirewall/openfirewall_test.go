@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	crm "google.golang.org/api/cloudresourcemanager/v1"
 	compute "google.golang.org/api/compute/v1"
 
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
@@ -29,8 +28,6 @@ import (
 func TestBlockSSH(t *testing.T) {
 	for _, tt := range []struct {
 		name         string
-		ranges       []string
-		bytes        []byte
 		sourceRanges []string
 		expected     *compute.Firewall
 	}{
@@ -52,23 +49,20 @@ func TestBlockSSH(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			folderIDs := []string{"123"}
-			svcs, computeStub, crmStub := openFirewallSetup(folderIDs, "BLOCK_SSH", []string{})
+			svcs, computeStub := openFirewallSetup()
 			computeStub.StubbedFirewall = &compute.Firewall{
 				Id:           123,
 				SourceRanges: []string{},
 			}
-			crmStub.GetAncestryResponse = services.CreateAncestors([]string{"folder/123"})
-			svcs.Configuration.DisableFirewall.RemediationAction = "BLOCK_SSH"
 			values := &Values{
 				ProjectID:    "test-project",
 				SourceRanges: tt.sourceRanges,
+				Action:       "block_ssh",
 			}
 			if err := Execute(ctx, values, &Services{
-				Configuration: svcs.Configuration,
-				Firewall:      svcs.Firewall,
-				Resource:      svcs.Resource,
-				Logger:        svcs.Logger,
+				Firewall: svcs.Firewall,
+				Resource: svcs.Resource,
+				Logger:   svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
 			}
@@ -84,8 +78,6 @@ func TestOpenFirewall(t *testing.T) {
 		name              string
 		firewallRule      *compute.Firewall
 		expFirewallRule   *compute.Firewall
-		folderIDs         []string
-		ancestry          *crm.GetAncestryResponse
 		remediationAction string
 		sourceRange       []string
 	}{
@@ -93,54 +85,39 @@ func TestOpenFirewall(t *testing.T) {
 			name:              "disable open firewall",
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
 			expFirewallRule:   &compute.Firewall{Name: "default_allow_all", Disabled: true},
-			folderIDs:         []string{"123"},
-			ancestry:          services.CreateAncestors([]string{"folder/123"}),
-			remediationAction: "DISABLE",
+			remediationAction: "disable",
 			sourceRange:       []string{"127.0.0.1/8"},
 		},
 		{
 			name:              "update source range for open firewall",
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false, SourceRanges: []string{"0.0.0.0/0"}},
 			expFirewallRule:   &compute.Firewall{Name: "default_allow_all", Disabled: false, SourceRanges: []string{"6.6.6.6/24"}},
-			folderIDs:         []string{"123"},
-			ancestry:          services.CreateAncestors([]string{"folder/123"}),
-			remediationAction: "UPDATE_RANGE",
+			remediationAction: "update_source_range",
 			sourceRange:       []string{"6.6.6.6/24"},
 		},
 		{
 			name:              "delete open firewall",
 			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
 			expFirewallRule:   nil,
-			folderIDs:         []string{"123"},
-			ancestry:          services.CreateAncestors([]string{"folder/123"}),
-			remediationAction: "DELETE",
-			sourceRange:       []string{"127.0.0.1/8"},
-		},
-		{
-			name:              "no valid folder",
-			firewallRule:      &compute.Firewall{Name: "default_allow_all", Disabled: false},
-			expFirewallRule:   nil,
-			folderIDs:         []string{"4242"},
-			ancestry:          services.CreateAncestors([]string{"folder/123"}),
-			remediationAction: "DISABLE",
+			remediationAction: "delete",
 			sourceRange:       []string{"127.0.0.1/8"},
 		},
 	}
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			svcs, computeStub, crmStub := openFirewallSetup(tt.folderIDs, tt.remediationAction, tt.sourceRange)
+			svcs, computeStub := openFirewallSetup()
 			tt.firewallRule.SourceRanges = []string{}
 			computeStub.StubbedFirewall = tt.firewallRule
-			crmStub.GetAncestryResponse = tt.ancestry
 			values := &Values{
-				ProjectID:  "test-project",
-				FirewallID: "open-firewall-id",
+				ProjectID:    "test-project",
+				FirewallID:   "open-firewall-id",
+				Action:       tt.remediationAction,
+				SourceRanges: tt.sourceRange,
 			}
 			if err := Execute(ctx, values, &Services{
-				Configuration: svcs.Configuration,
-				Firewall:      svcs.Firewall,
-				Resource:      svcs.Resource,
-				Logger:        svcs.Logger,
+				Firewall: svcs.Firewall,
+				Resource: svcs.Resource,
+				Logger:   svcs.Logger,
 			}); err != nil {
 				t.Errorf("%s failed to disable firewall :%q", tt.name, err)
 			}
@@ -151,7 +128,7 @@ func TestOpenFirewall(t *testing.T) {
 	}
 }
 
-func openFirewallSetup(folderIDs []string, remediationAction string, sourceRanges []string) (*services.Global, *stubs.ComputeStub, *stubs.ResourceManagerStub) {
+func openFirewallSetup() (*services.Global, *stubs.ComputeStub) {
 	loggerStub := &stubs.LoggerStub{}
 	log := services.NewLogger(loggerStub)
 	computeStub := &stubs.ComputeStub{}
@@ -159,14 +136,5 @@ func openFirewallSetup(folderIDs []string, remediationAction string, sourceRange
 	crmStub := &stubs.ResourceManagerStub{}
 	res := services.NewResource(crmStub, storageStub)
 	f := services.NewFirewall(computeStub)
-	conf := &services.Configuration{
-		DisableFirewall: &services.DisableFirewall{
-			Resources: &services.Resources{
-				FolderIDs: folderIDs,
-			},
-			RemediationAction: remediationAction,
-			SourceRanges:      sourceRanges,
-		},
-	}
-	return &services.Global{Logger: log, Firewall: f, Resource: res, Configuration: conf}, computeStub, crmStub
+	return &services.Global{Logger: log, Firewall: f, Resource: res}, computeStub
 }

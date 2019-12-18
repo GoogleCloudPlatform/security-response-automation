@@ -14,6 +14,7 @@ type Automation struct {
 	Exclude    []string
 	Properties struct {
 		DryRun bool `yaml:"dry_run"`
+		Output []string
 	}
 }
 
