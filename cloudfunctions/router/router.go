@@ -72,6 +72,7 @@ var topics = map[string]struct{ Topic string }{
 	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
 	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
 	"close_public_dataset":      {Topic: "threat-findings-close-public-dataset"},
+	"enable_audit_logs":         {Topic: "threat-findings-enable-audit-logs"},
 }
 
 // Configuration maps findings to automations.

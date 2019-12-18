@@ -24,8 +24,10 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
@@ -112,6 +114,34 @@ func TestRouter(t *testing.T) {
 				"createTime": "2019-10-03T18:40:23.445Z"
 			}
 		}`
+		validAuditLogDisabled = `{
+		"finding": {
+			"name": "organizations/154584661726/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074",
+			"parent": "organizations/154584661726/sources/1986930501971458034",
+			"resourceName": "//cloudresourcemanager.googleapis.com/projects/108906606255",
+			"state": "ACTIVE",
+			"category": "AUDIT_LOGGING_DISABLED",
+			"externalUri": "https://console.cloud.google.com/iam-admin/audit/allservices?project=test-project",
+			"sourceProperties": {
+				"ReactivationCount": 0,
+				"ExceptionInstructions": "Add the security mark \"allow_audit_logging_disabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+				"SeverityLevel": "Low",
+				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/audit/allservices?project=test-project and under \"LOG TYPE\" select \"Admin read\", \"Data read\", and \"Data write\", and then click \"SAVE\". Make sure there are no exempted users configured.",
+				"ProjectId": "test-project",
+				"AssetCreationTime": "2019-10-22T15:13:39.305Z",
+				"ScannerName": "LOGGING_SCANNER",
+				"ScanRunId": "2019-10-22T14:01:08.832-07:00",
+				"Explanation": "You should enable Cloud Audit Logging for all services, to track all Admin activities including read and write access to user data."
+			},
+			"securityMarks": {
+				"name": "organizations/154584661726/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074/securityMarks"
+			},
+			"eventTime": "2019-10-22T21:01:08.832Z",
+			"createTime": "2019-10-22T21:01:39.098Z",
+			"assetId": "organizations/154584661726/assets/11190834741917282179",
+			"assetDisplayName": "test-project"
+		   }
+		}`
 	)
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
@@ -143,6 +173,7 @@ func TestRouter(t *testing.T) {
 
 	r := services.NewResource(crmStub, storageStub)
 
+	// GIVEN bigquery dataset finding data
 	conf.Spec.Parameters.SHA.PublicDataset = []datasetscanner.Automation{
 		{Action: "close_public_dataset", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
@@ -153,6 +184,16 @@ func TestRouter(t *testing.T) {
 	}
 	closePublicDataset, _ := json.Marshal(closePublicDatasetValues)
 
+	// GIVEN IAM audit logs finding data
+	conf.Spec.Parameters.SHA.AuditLoggingDisabled = []loggingscanner.Automation{
+		{Action: "enable_audit_logs", Target: []string{"organizations/456/folders/123/projects/test-project"}},
+	}
+	enableAuditLogsValues := &enableauditlogs.Values{
+		ProjectID: "test-project",
+		DryRun:    false,
+	}
+	enableAuditLog, _ := json.Marshal(enableAuditLogsValues)
+
 	for _, tt := range []struct {
 		name    string
 		mapTo   []byte
@@ -161,6 +202,7 @@ func TestRouter(t *testing.T) {
 		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
 		{name: "PUBLIC_BUCKET_ACL", finding: []byte(validPublicBucket), mapTo: closeBucket},
 		{name: "PUBLIC_DATASET", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
+		{name: "AUDIT_LOGGING_DISABLED", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
