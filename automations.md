@@ -77,16 +77,16 @@ Remediate an [Open Firewall](https://cloud.google.com/security-command-center/do
 Configuration
 
 - Action name `remediate_firewall`
-- `remediation_action`: One of `disable`, `delete` or `update_source_range`
-- `source_ranges`: If the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+- `remediation_action`: One of `disable`, `delete` or `update_source_range`.
+- `source_ranges`: If the `remediation_action` is `update_source_range` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
-- `disable` Will disable the firewall, it means it will not delete the firewall but the firewall rule will not be enforced on the network
-- `delete` Will delete the fire wall rule
-- `update_source_range` Will use the `source_ranges` to update the source ranges used in the firewall
+- `disable` Will disable the firewall, it means it will not delete the firewall but the firewall rule will not be enforced on the network.
+- `delete` Will delete the fire wall rule.
+- `update_source_range` Will use the `source_ranges` to update the source ranges used in the firewall.
 
 #### Block SSH Connections
 
-Create a firewall rule to block SSH access from suspicious IPs
+Create a firewall rule to block SSH access from suspicious IPs.
 
 Configuration
 
@@ -100,8 +100,7 @@ Automatically disable the Kubernetes Dashboard addon.
 
 Configuration
 
-- Configured in settings.json under the `disable_dashboard` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `disable_dashboard`
 
 ### Google Cloud SQL
 
@@ -137,43 +136,4 @@ Removes public access from a BigQuery dataset.
 
 Configuration
 
-- Configured in settings.json under the `close_public_dataset` key.
-- See general [resource list](/README.md#resources) options.
-
-## Example
-
-```yaml
-apiVersion: security-response-automation.cloud.google.com/v1alpha1
-kind: Remediation
-metadata:
-  name: router
-spec:
-  parameters:
-    etd:
-      bad_ip:
-        - action: gce_create_disk_snapshot
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-            target_snapshot_project_id: aerial-jigsaw-235219
-            target_snapshot_zone: us-central1-a
-            output:
-              - turbinia
-            turbinia:
-              project_id: ae-turbinia
-              topic: psq-turbinia-f7be51e9de8c829c-psq
-              zone: us-central1-a
-    sha:
-      open_firewall:
-        - action: remediate_firewall
-          target:
-            - organizations/000/folders/0001/*
-          properties:
-            dry_run: false
-            remediation_action: delete
-            source_ranges:
-              - "10.128.0.0/9"
-```
+- Action name `close_public_dataset`

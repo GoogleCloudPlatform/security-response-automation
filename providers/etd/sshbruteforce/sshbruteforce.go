@@ -13,20 +13,13 @@ type Automation struct {
 	Target     []string
 	Exclude    []string
 	Properties struct {
-		DryRun    bool `yaml:"dry_run"`
-		Output    []string
-		PagerDuty struct {
-			Enabled   bool   `yaml:"enabled"`
-			APIKey    string `yaml:"api_key"`
-			ServiceID string `yaml:"service_id"`
-			From      string `yaml:"from"`
-		} `yaml:"pagerduty"`
+		DryRun bool `yaml:"dry_run"`
 	}
 }
 
 // Finding represents this finding.
 type Finding struct {
-	sshbruteforce *pb.SshBruteForce
+	sshBruteForce *pb.SshBruteForce
 }
 
 // Name returns the rule name of the finding.
@@ -41,7 +34,7 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.sshbruteforce); err != nil {
+	if err := json.Unmarshal(b, &f.sshBruteForce); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -60,7 +53,7 @@ func sourceIPRanges(finding *pb.SshBruteForce) []string {
 // OpenFirewall returns values for the Block SSH automation.
 func (f *Finding) OpenFirewall() *openfirewall.Values {
 	return &openfirewall.Values{
-		ProjectID:    f.sshbruteforce.GetJsonPayload().GetProperties().GetProjectId(),
-		SourceRanges: sourceIPRanges(f.sshbruteforce),
+		ProjectID:    f.sshBruteForce.GetJsonPayload().GetProperties().GetProjectId(),
+		SourceRanges: sourceIPRanges(f.sshBruteForce),
 	}
 }
