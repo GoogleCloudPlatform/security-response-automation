@@ -94,11 +94,11 @@ module "cloud-sql-require-ssl" {
   folder-ids = var.folder-ids
 }
 
-# module "disable_dashboard" {
-#   source     = "./terraform/automations/disable-dashboard"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "disable_dashboard" {
+  source     = "./cloudfunctions/gke/disabledashboard"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 module "update_password" {
   source     = "./cloudfunctions/cloud-sql/updatepassword"

@@ -340,15 +340,13 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
-	switch values, err := disabledashboard.ReadFinding(m.Data); err {
-	case services.ErrUnsupportedFinding:
-		return nil
+	var values disabledashboard.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
-			Configuration: svcs.Configuration,
-			Container:     svcs.Container,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return disabledashboard.Execute(ctx, &values, &disabledashboard.Services{
+			Container: svcs.Container,
+			Resource:  svcs.Resource,
+			Logger:    svcs.Logger,
 		})
 	default:
 		return err

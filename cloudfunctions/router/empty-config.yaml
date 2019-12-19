@@ -18,3 +18,4 @@ spec:
       open_firewall:
       bigquery_public_dataset:
       audit_logging_disabled:
+      web_ui_enabled:

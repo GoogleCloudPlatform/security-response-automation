@@ -13,24 +13,6 @@ type Resources struct {
 	OrganizationID string   `json:"organization_id"`
 }
 
-// ClosePublicDataset contains configuration required for the close public dataset function.
-type ClosePublicDataset struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
-// EnableAuditLogs configuration required to enable data access audit logs
-type EnableAuditLogs struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
-// DisableDashboard contains configuration required for the disable dashboard function.
-type DisableDashboard struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // RemoveNonOrgMembers contains configuration required for remove non-org members function.
 type RemoveNonOrgMembers struct {
 	Resources    *Resources
@@ -40,9 +22,6 @@ type RemoveNonOrgMembers struct {
 
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	ClosePublicDataset  *ClosePublicDataset  `json:"close_public_dataset"`
-	DisableDashboard    *DisableDashboard    `json:"disable_dashboard"`
-	EnableAuditLogs     *EnableAuditLogs     `json:"enable_audit_logs"`
 	RemoveNonOrgMembers *RemoveNonOrgMembers `json:"remove_non_org_members"`
 }
 
