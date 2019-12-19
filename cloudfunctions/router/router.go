@@ -184,14 +184,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		for _, automation := range automations {
 			switch automation.Action {
 			case "block_ssh":
-				values := sshBruteForce.BlockSSH()
+				values := sshBruteForce.OpenFirewall()
 				values.DryRun = automation.Properties.DryRun
 				values.Action = automation.Action
-				values.Output = automation.Properties.Output
-				values.PagerDuty.Enabled = automation.Properties.PagerDuty.Enabled
-				values.PagerDuty.APIKey = automation.Properties.PagerDuty.APIKey
-				values.PagerDuty.ServiceID = automation.Properties.PagerDuty.ServiceID
-				values.PagerDuty.From = automation.Properties.PagerDuty.From
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -338,15 +333,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
-				values := firewallScanner.Remediate()
+				values := firewallScanner.OpenFirewall()
 				values.DryRun = automation.Properties.DryRun
 				values.SourceRanges = automation.Properties.SourceRanges
 				values.Action = automation.Properties.RemediationAction
-				values.Output = automation.Properties.Output
-				values.PagerDuty.Enabled = automation.Properties.PagerDuty.Enabled
-				values.PagerDuty.APIKey = automation.Properties.PagerDuty.APIKey
-				values.PagerDuty.ServiceID = automation.Properties.PagerDuty.ServiceID
-				values.PagerDuty.From = automation.Properties.PagerDuty.From
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

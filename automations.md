@@ -70,46 +70,27 @@ Configuration
 
 - Action name `remove_public_ip`
 
-#### Open Firewall
+#### Remediate Firewall
 
 Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
 
 Configuration
 
 - Action name `remediate_firewall`
-- `output` Repeated set of optional output destinations after the function has executed.
-  - `pagerduty` Will notify PagerDuty when a firewall is remediated.
-- `remediation_action`: one of `disable`, `delete` or `update_source_range`
-- `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+- `remediation_action`: One of `disable`, `delete` or `update_source_range`
+- `source_ranges`: If the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
 
-Required if output contains `pagerduty`:
+- `disable` Will disable the firewall, it means it will not delete the firewall but the firewall rule will not be enforced on the network
+- `delete` Will delete the fire wall rule
+- `update_source_range` Will use the `source_ranges` to update the source ranges used in the firewall
 
-The below keys are placed under the `pagerduty` key:
-
-- `enabled` indicates that PagerDuty integration is active
-- `api_key` A unique API key generated to allow access to PagerDuty API. See PagerDuty [documentation](https://support.pagerduty.com/docs/generating-api-keys)
-- `service_id` of the affected service within PagerDuty.
-- `from` is the email address that sends the incident. This must be a valid user within PagerDuty.
-
-#### SSH Brute Force
+#### Block SSH Connections
 
 Create a firewall rule to block SSH access from suspicious IPs
 
 Configuration
 
 - Action name `block_ssh`
-- `output` Repeated set of optional output destinations after the function has executed.
-  - `pagerduty` Will notify PagerDuty when a SSH access from suspicious IPs is blocked.
-
-Required if output contains `pagerduty`:
-
-The below keys are placed under the `pagerduty` key:
-
-- `enabled` indicates that PagerDuty integration is active
-- `api_key` A unique API key generated to allow access to PagerDuty API. See PagerDuty [documentation](https://support.pagerduty.com/docs/generating-api-keys)
-- `service_id` of the affected service within PagerDuty.
-- `from` is the email address that sends the incident. This must be a valid user within PagerDuty.
-
 
 ### Google Kubernetes Engine
 
@@ -178,84 +159,14 @@ spec:
           properties:
             dry_run: false
             target_snapshot_project_id: aerial-jigsaw-235219
-            target_snapshot_zone: us-central1-action
+            target_snapshot_zone: us-central1-a
             output:
+              - turbinia
             turbinia:
               project_id: ae-turbinia
               topic: psq-turbinia-f7be51e9de8c829c-psq
               zone: us-central1-a
-      anomalous_iam:
-        - action: iam_revoke
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/000000000000/*
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-            allow_domains:
-              - google.com
-      ssh_brute_force:
-        - action: block_ssh
-          target:
-            - organizations/000/folders/0001/*
-          properties:
-            output:
-            dry_run: false
-            pagerduty:
-              enable: false
-              apy_key: actual_apy_key
-              service_id: actual_service_id
-              from: tom@example.com
     sha:
-      public_bucket_acl:
-        - action: close_bucket
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-      bucket_policy_only_disabled:
-        - action: enable_bucket_only_policy
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-      public_sql_instance:
-        - action: close_cloud_sql
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-      ssl_not_enforced:
-        - action: cloud_sql_require_ssl
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-      sql_no_root_password:
-        - action: cloud_sql_update_password
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
-      public_ip_address:
-        - action: remove_public_ip
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
       open_firewall:
         - action: remediate_firewall
           target:
@@ -265,19 +176,4 @@ spec:
             remediation_action: delete
             source_ranges:
               - "10.128.0.0/9"
-            output:
-              - pagerduty
-            pagerduty:
-              enable: false
-              apy_key: actual_apy_key
-              service_id: actual_service_id
-              from: tom@example.com
-      bigquery_public_dataset:
-        - action: close_public_dataset
-          target:
-            - organizations/000/folders/0001/*
-          exclude:
-            - organizations/000/folders/0000/projects/000
-          properties:
-            dry_run: false
 ```

@@ -61,17 +61,15 @@ func TestReadFinding(t *testing.T) {
 			if tt.expectedError != nil && err != nil && !xerrors.Is(err, tt.expectedError) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			values := r.Remediate()
-			if err == nil && r != nil {
-				if diff := cmp.Diff(values.SourceRanges, tt.ranges); diff != "" {
-					t.Errorf("%s failed: diff:%s", tt.name, diff)
-				}
-				if values.FirewallID != tt.firewallID {
-					t.Errorf("%s failed: got:%q want:%q", tt.name, values.FirewallID, tt.firewallID)
-				}
-				if values.ProjectID != tt.projectID {
-					t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
-				}
+			values := r.OpenFirewall()
+			if diff := cmp.Diff(values.SourceRanges, tt.ranges); diff != "" {
+				t.Errorf("%s failed: diff:%s", tt.name, diff)
+			}
+			if err == nil && r != nil && values.FirewallID != tt.firewallID {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.FirewallID, tt.firewallID)
+			}
+			if err == nil && r != nil && values.ProjectID != tt.projectID {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
 			}
 		})
 	}

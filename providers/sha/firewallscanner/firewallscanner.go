@@ -51,8 +51,8 @@ func New(b []byte) (*Finding, error) {
 	return &f, nil
 }
 
-// Remediate returns values for the Remediate  automation.
-func (f *Finding) Remediate() *openfirewall.Values {
+// OpenFirewall returns values for the remediate automation.
+func (f *Finding) OpenFirewall() *openfirewall.Values {
 	return &openfirewall.Values{
 		ProjectID:  f.firewallScanner.GetFinding().GetSourceProperties().GetProjectId(),
 		FirewallID: sha.FirewallID(f.firewallScanner.GetFinding().GetResourceName()),

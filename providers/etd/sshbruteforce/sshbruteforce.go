@@ -57,8 +57,8 @@ func sourceIPRanges(finding *pb.SshBruteForce) []string {
 	return ranges
 }
 
-// BlockSSH returns values for the Block SSH automation.
-func (f *Finding) BlockSSH() *openfirewall.Values {
+// OpenFirewall returns values for the Block SSH automation.
+func (f *Finding) OpenFirewall() *openfirewall.Values {
 	return &openfirewall.Values{
 		ProjectID:    f.sshbruteforce.GetJsonPayload().GetProperties().GetProjectId(),
 		SourceRanges: sourceIPRanges(f.sshbruteforce),

@@ -49,7 +49,7 @@ func TestReadFinding(t *testing.T) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
 			if err == nil && r != nil {
-				values := r.BlockSSH()
+				values := r.OpenFirewall()
 				if diff := cmp.Diff(values.SourceRanges, tt.ranges); diff != "" {
 					t.Errorf("%s failed: diff:%s", tt.name, diff)
 				}

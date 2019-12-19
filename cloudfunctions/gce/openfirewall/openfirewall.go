@@ -29,13 +29,6 @@ type Values struct {
 	FirewallID   string
 	SourceRanges []string
 	DryRun       bool
-	Output       []string
-	PagerDuty    struct {
-		Enabled   bool
-		APIKey    string
-		ServiceID string
-		From      string
-	}
 }
 
 // Services contains the services needed for this function.
