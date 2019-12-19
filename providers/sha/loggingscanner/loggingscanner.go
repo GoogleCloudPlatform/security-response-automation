@@ -18,7 +18,7 @@ type Automation struct {
 	}
 }
 
-//Finding represents this finding.
+// Finding represents this finding.
 type Finding struct {
 	loggingscanner *pb.LoggingScanner
 }
@@ -41,7 +41,7 @@ func (f *Finding) Name(b []byte) string {
 	return strings.ToLower(finding.GetFinding().GetCategory())
 }
 
-//EnableAuditLogs return values for the enable audit logs automation.
+// EnableAuditLogs return values for the enable audit logs automation.
 func (f *Finding) EnableAuditLogs() *enableauditlogs.Values {
 	return &enableauditlogs.Values{
 		ProjectID: f.loggingscanner.GetFinding().GetSourceProperties().GetProjectID(),

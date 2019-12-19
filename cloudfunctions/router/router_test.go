@@ -173,7 +173,6 @@ func TestRouter(t *testing.T) {
 
 	r := services.NewResource(crmStub, storageStub)
 
-	// GIVEN bigquery dataset finding data
 	conf.Spec.Parameters.SHA.PublicDataset = []datasetscanner.Automation{
 		{Action: "close_public_dataset", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
@@ -184,7 +183,6 @@ func TestRouter(t *testing.T) {
 	}
 	closePublicDataset, _ := json.Marshal(closePublicDatasetValues)
 
-	// GIVEN IAM audit logs finding data
 	conf.Spec.Parameters.SHA.AuditLoggingDisabled = []loggingscanner.Automation{
 		{Action: "enable_audit_logs", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
@@ -200,9 +198,9 @@ func TestRouter(t *testing.T) {
 		finding []byte
 	}{
 		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
-		{name: "PUBLIC_BUCKET_ACL", finding: []byte(validPublicBucket), mapTo: closeBucket},
-		{name: "PUBLIC_DATASET", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
-		{name: "AUDIT_LOGGING_DISABLED", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
+		{name: "public_bucket_acl", finding: []byte(validPublicBucket), mapTo: closeBucket},
+		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
+		{name: "audit_logging_disabled", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
