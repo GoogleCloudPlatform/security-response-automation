@@ -90,7 +90,7 @@ Create a firewall rule to block SSH access from suspicious IPs
 
 Configuration
 
-- Action name `block_ssh`
+- Action name `remediate_firewall`
 
 ### Google Kubernetes Engine
 

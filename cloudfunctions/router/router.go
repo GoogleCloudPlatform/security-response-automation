@@ -75,7 +75,6 @@ var topics = map[string]struct{ Topic string }{
 	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
 	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
 	"remediate_firewall":        {Topic: "threat-findings-open-firewall"},
-	"block_ssh":                 {Topic: "threat-findings-open-firewall"},
 	"close_public_dataset":      {Topic: "threat-findings-close-public-dataset"},
 }
 
@@ -183,10 +182,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		}
 		for _, automation := range automations {
 			switch automation.Action {
-			case "block_ssh":
+			case "remediate_firewall":
 				values := sshBruteForce.OpenFirewall()
 				values.DryRun = automation.Properties.DryRun
-				values.Action = automation.Action
+				values.Action = "block_ssh"
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
