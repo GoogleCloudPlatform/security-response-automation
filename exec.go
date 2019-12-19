@@ -383,14 +383,12 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 //	- roles/editor to get/update resource policy to specific project.
 //
 func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
-	switch values, err := enableauditlogs.ReadFinding(m.Data); err {
-	case services.ErrUnsupportedFinding:
-		return nil
+	var values enableauditlogs.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return enableauditlogs.Execute(ctx, values, &enableauditlogs.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return enableauditlogs.Execute(ctx, &values, &enableauditlogs.Services{
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err

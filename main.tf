@@ -106,11 +106,11 @@ module "update_password" {
   folder-ids = var.folder-ids
 }
 
-# module "enable_audit_logs" {
-#   source     = "./terraform/automations/enable-audit-logs"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "enable_audit_logs" {
+  source     = "./cloudfunctions/iam/enableauditlogs"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 // TODO: enable again and fix IAM roles
 //module "remove_non_org_members" {
