@@ -16,64 +16,32 @@ package disabledashboard
 
 import (
 	"context"
-	"encoding/json"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID, Zone, ClusterID string
+	DryRun                     bool
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Container     *services.Container
-	Resource      *services.Resource
-	Logger        *services.Logger
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.ContainerScanner
-	r := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetFinding().GetCategory() {
-	case "WEB_UI_ENABLED":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
-		}
-		r.ProjectID = finding.Finding.SourceProperties.GetProjectID()
-		r.Zone = sha.ClusterZone(finding.GetFinding().GetResourceName())
-		r.ClusterID = sha.ClusterID(finding.GetFinding().GetResourceName())
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if r.ProjectID == "" || r.Zone == "" || r.ClusterID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return r, nil
+	Container *services.Container
+	Resource  *services.Resource
+	Logger    *services.Logger
 }
 
 // Execute disables the Kubernetes dashboard.
 func Execute(ctx context.Context, values *Values, service *Services) error {
-	conf := service.Configuration
-	resources := service.Configuration.DisableDashboard.Resources
-	return service.Resource.IfProjectWithinResources(ctx, resources, values.ProjectID, func() error {
-		if conf.DisableDashboard.DryRun {
-			service.Logger.Info("dry_run on, would have disabled dashboard from custer %q in zone %q in project %q", values.ClusterID, values.Zone, values.ProjectID)
-			return nil
-		}
-		if _, err := service.Container.DisableDashboard(ctx, values.ProjectID, values.Zone, values.ClusterID); err != nil {
-			return err
-		}
-		service.Logger.Info("successfully disabled dashboard from cluster %q in project %q", values.ClusterID, values.ProjectID)
+	if values.DryRun {
+		service.Logger.Info("dry_run on, would have disabled dashboard from custer %q in zone %q in project %q", values.ClusterID, values.Zone, values.ProjectID)
 		return nil
-	})
+	}
+	if _, err := service.Container.DisableDashboard(ctx, values.ProjectID, values.Zone, values.ClusterID); err != nil {
+		return err
+	}
+	service.Logger.Info("successfully disabled dashboard from cluster %q in project %q", values.ClusterID, values.ProjectID)
+	return nil
 }

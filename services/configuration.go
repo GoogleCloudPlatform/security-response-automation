@@ -34,12 +34,6 @@ type EnableAuditLogs struct {
 	DryRun    bool `json:"dry_run"`
 }
 
-// DisableDashboard contains configuration required for the disable dashboard function.
-type DisableDashboard struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // RemoveNonOrgMembers contains configuration required for remove non-org members function.
 type RemoveNonOrgMembers struct {
 	Resources    *Resources
@@ -62,7 +56,6 @@ type Configuration struct {
 	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
 	DisableFirewall     *DisableFirewall        `json:"open_firewall"`
 	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
-	DisableDashboard    *DisableDashboard       `json:"disable_dashboard"`
 	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`
 	RemoveNonOrgMembers *RemoveNonOrgMembers    `json:"remove_non_org_members"`
 }

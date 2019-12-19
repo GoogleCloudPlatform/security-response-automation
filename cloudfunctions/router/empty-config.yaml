@@ -17,3 +17,4 @@ spec:
       public_ip_address:
       bigquery_public_dataset:
       audit_logging_disabled:
+      web_ui_enabled:

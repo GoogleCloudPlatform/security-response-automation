@@ -25,6 +25,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/computeinstancescanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/containerscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
@@ -39,6 +40,7 @@ var findings = []Namer{
 	&badip.Finding{},
 	&storagescanner.Finding{},
 	&sqlscanner.Finding{},
+	&containerscanner.Finding{},
 	&computeinstancescanner.Finding{},
 	&datasetscanner.Finding{},
 	&loggingscanner.Finding{},
@@ -71,6 +73,7 @@ var topics = map[string]struct{ Topic string }{
 	"close_cloud_sql":           {Topic: "threat-findings-remove-public-sql"},
 	"cloud_sql_require_ssl":     {Topic: "threat-findings-require-ssl"},
 	"cloud_sql_update_password": {Topic: "threat-findings-update-password"},
+	"disable_dashboard":         {Topic: "threat-findings-disable-dashboard"},
 	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
 	"close_public_dataset":      {Topic: "threat-findings-close-public-dataset"},
 	"enable_audit_logs":         {Topic: "threat-findings-enable-audit-logs"},
@@ -95,6 +98,7 @@ type Configuration struct {
 				PublicIPAddress         []computeinstancescanner.Automation `yaml:"public_ip_address"`
 				PublicDataset           []datasetscanner.Automation         `yaml:"bigquery_public_dataset"`
 				AuditLoggingDisabled    []loggingscanner.Automation         `yaml:"audit_logging_disabled"`
+				WebUIEnabled            []containerscanner.Automation       `yaml:"web_ui_enabled"`
 			}
 		}
 	}
@@ -325,6 +329,26 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "enable_audit_logs":
 				values := loggingScanner.EnableAuditLogs()
+				values.DryRun = automation.Properties.DryRun
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+	case "web_ui_enabled":
+		automations := services.Configuration.Spec.Parameters.SHA.WebUIEnabled
+		containerScanner, err := containerscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "disable_dashboard":
+				values := containerScanner.DisableDashboard()
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
