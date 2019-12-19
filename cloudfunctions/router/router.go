@@ -27,6 +27,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/computeinstancescanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/containerscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/iamscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
@@ -44,6 +45,7 @@ var findings = []Namer{
 	&computeinstancescanner.Finding{},
 	&datasetscanner.Finding{},
 	&loggingscanner.Finding{},
+	&iamscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
@@ -77,6 +79,7 @@ var topics = map[string]struct{ Topic string }{
 	"remove_public_ip":          {Topic: "threat-findings-remove-public-ip"},
 	"close_public_dataset":      {Topic: "threat-findings-close-public-dataset"},
 	"enable_audit_logs":         {Topic: "threat-findings-enable-audit-logs"},
+	"remove_non_org_members":    {Topic: "threat-findings-remove-non-org-members"},
 }
 
 // Configuration maps findings to automations.
@@ -99,6 +102,7 @@ type Configuration struct {
 				PublicDataset           []datasetscanner.Automation         `yaml:"bigquery_public_dataset"`
 				AuditLoggingDisabled    []loggingscanner.Automation         `yaml:"audit_logging_disabled"`
 				WebUIEnabled            []containerscanner.Automation       `yaml:"web_ui_enabled"`
+				NonOrgMembers           []iamscanner.Automation             `yaml:"non_org_members"`
 			}
 		}
 	}
@@ -359,6 +363,26 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+	case "non_org_iam_member":
+		automations := services.Configuration.Spec.Parameters.SHA.NonOrgMembers
+		iamScanner, err := iamscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "remove_non_org_members":
+				values := iamScanner.RemoveNonOrgMembers()
+				values.DryRun = automation.Properties.DryRun
+				values.AllowDomains = automation.Properties.AllowDomains
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			}
+		}
+
 	default:
 		return fmt.Errorf("rule %q not found", name)
 	}

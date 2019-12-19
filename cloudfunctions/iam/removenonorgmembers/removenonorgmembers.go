@@ -16,70 +16,35 @@ package removenonorgmembers
 
 import (
 	"context"
-	"encoding/json"
-	"strings"
 
-	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
 
 const projectPrefix = "//cloudresourcemanager.googleapis.com/projects/"
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID string
+	ProjectID    string
+	AllowDomains []string
+	DryRun       bool
 }
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *services.Configuration
-	Logger        *services.Logger
-	Resource      *services.Resource
-}
-
-// ReadFinding will attempt to deserialize all supported findings for this function.
-func ReadFinding(b []byte) (*Values, error) {
-	var finding pb.IamScanner
-	v := &Values{}
-	if err := json.Unmarshal(b, &finding); err != nil {
-		return nil, errors.Wrap(services.ErrUnmarshal, err.Error())
-	}
-	switch finding.GetFinding().GetCategory() {
-	case "NON_ORG_IAM_MEMBER":
-		if sha.IgnoreFinding(finding.GetFinding()) {
-			return nil, services.ErrUnsupportedFinding
-		}
-		if fromProject(finding.GetFinding().GetResourceName()) {
-			v.ProjectID = finding.GetFinding().GetSourceProperties().GetProjectID()
-		}
-	default:
-		return nil, services.ErrUnsupportedFinding
-	}
-	if v.ProjectID == "" {
-		return nil, services.ErrValueNotFound
-	}
-	return v, nil
+	Logger   *services.Logger
+	Resource *services.Resource
 }
 
 // Execute removes all users from a specific project not in allowed domain list.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	conf := services.Configuration.RemoveNonOrgMembers
-	return services.Resource.IfProjectWithinResources(ctx, conf.Resources, values.ProjectID, func() error {
-		if conf.DryRun {
-			services.Logger.Info("dry run, would have removed users not from %q in %q", conf.AllowDomains, values.ProjectID)
-			return nil
-		}
-		removed, err := services.Resource.ProjectOnlyKeepUsersFromDomains(ctx, values.ProjectID, conf.AllowDomains)
-		if err != nil {
-			return err
-		}
-		services.Logger.Info("successfully removed %q from %s", removed, values.ProjectID)
+	if values.DryRun {
+		services.Logger.Info("dry run, would have removed users not from %q in %q", values.AllowDomains, values.ProjectID)
 		return nil
-	})
-}
-
-func fromProject(resourceName string) bool {
-	return strings.HasPrefix(resourceName, projectPrefix)
+	}
+	removed, err := services.Resource.ProjectOnlyKeepUsersFromDomains(ctx, values.ProjectID, values.AllowDomains)
+	if err != nil {
+		return err
+	}
+	services.Logger.Info("successfully removed %q from %s", removed, values.ProjectID)
+	return nil
 }

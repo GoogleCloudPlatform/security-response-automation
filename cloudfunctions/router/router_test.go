@@ -28,6 +28,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/iamscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -150,13 +151,13 @@ func TestRouter(t *testing.T) {
 			"resourceName": "//cloudresourcemanager.googleapis.com/projects/72300000536",
 			"state": "ACTIVE",
 			"category": "NON_ORG_IAM_MEMBER",
-			"externalUri": "https://console.cloud.google.com/iam-admin/iam?project=next19-demo",
+			"externalUri": "https://console.cloud.google.com/iam-admin/iam?project=test-project",
 			"sourceProperties": {
 				"ReactivationCount": 0,
 				"ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
 				"SeverityLevel": "High",
-				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?project=next19-demo and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
-				"ProjectId": "next19-demo",
+				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?project=test-project and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+				"ProjectId": "test-project",
 				"AssetCreationTime": "2019-02-26T15:41:40.726Z",
 				"ScannerName": "IAM_SCANNER",
 				"ScanRunId": "2019-10-18T08:30:22.082-07:00",
@@ -219,6 +220,9 @@ func TestRouter(t *testing.T) {
 	}
 	enableAuditLog, _ := json.Marshal(enableAuditLogsValues)
 
+	conf.Spec.Parameters.SHA.NonOrgMembers = []iamscanner.Automation{
+		{Action: "remove_non_org_members", Target: []string{"organizations/456/folders/123/projects/test-project"}},
+	}
 	removeNonOrgMembersValues := &removenonorgmembers.Values{
 		ProjectID: "test-project",
 		DryRun:    false,
