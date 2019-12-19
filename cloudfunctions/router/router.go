@@ -320,9 +320,49 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			}
 		}
 	case "open_firewall":
-		fallthrough
+		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
+		firewallScanner, err := firewallscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "remediate_firewall":
+				values := firewallScanner.OpenFirewall()
+				values.DryRun = automation.Properties.DryRun
+				values.SourceRanges = automation.Properties.SourceRanges
+				values.Action = automation.Properties.RemediationAction
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
 	case "open_ssh_port":
-		fallthrough
+		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
+		firewallScanner, err := firewallscanner.New(values.Finding)
+		if err != nil {
+			return err
+		}
+		for _, automation := range automations {
+			switch automation.Action {
+			case "remediate_firewall":
+				values := firewallScanner.OpenFirewall()
+				values.DryRun = automation.Properties.DryRun
+				values.SourceRanges = automation.Properties.SourceRanges
+				values.Action = automation.Properties.RemediationAction
+				topic := topics[automation.Action].Topic
+				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+					services.Logger.Error("failed to publish: %q", err)
+					continue
+				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
 	case "open_rdp_port":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
