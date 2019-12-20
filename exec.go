@@ -18,7 +18,6 @@ package exec
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -175,36 +174,17 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.securityAdmin to modify firewall rules.
 //
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
-	switch values, err := openfirewall.ReadFinding(m.Data); err {
+	var values openfirewall.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		err := openfirewall.Execute(ctx, values, &openfirewall.Services{
-			Configuration: svcs.Configuration,
-			Firewall:      svcs.Firewall,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		err := openfirewall.Execute(ctx, &values, &openfirewall.Services{
+			Firewall: svcs.Firewall,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		for _, dest := range svcs.Configuration.DisableFirewall.OutputDestinations {
-			switch dest {
-			case "pagerduty":
-				log.Println("will attempt to output to PagerDuty")
-				conf := svcs.Configuration.PagerDuty
-				if !conf.Enabled {
-					log.Println("pagerDuty not enabled")
-					continue
-				}
-				pd := services.InitPagerDuty(conf.APIKey)
-				title := "Open firewall detected"
-				body := fmt.Sprintf("automatically took action: %q", svcs.Configuration.DisableFirewall.RemediationAction)
-				if err := pd.CreateIncident(ctx, conf.From, conf.ServiceID, title, body); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	case services.ErrUnsupportedFinding:
 		return nil
 	default:
 		return err

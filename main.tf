@@ -64,11 +64,11 @@ module "enable_bucket_only_policy" {
   folder-ids = var.folder-ids
 }
 
-# module "open_firewall" {
-#   source     = "./terraform/automations/disable-firewall"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "open_firewall" {
+  source     = "./cloudfunctions/gce/openfirewall"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 module "remove_public_ip" {
   source     = "./cloudfunctions/gce/removepublicip"

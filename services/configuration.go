@@ -13,27 +13,6 @@ type Resources struct {
 	OrganizationID string   `json:"organization_id"`
 }
 
-// DisableFirewall contains configuration required for the disable firewall function.
-type DisableFirewall struct {
-	Resources          *Resources
-	RemediationAction  string   `json:"remediation_action"`
-	SourceRanges       []string `json:"source_ranges"`
-	DryRun             bool     `json:"dry_run"`
-	OutputDestinations []string `json:"output_destinations"`
-}
-
-// ClosePublicDataset contains configuration required for the close public dataset function.
-type ClosePublicDataset struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
-// EnableAuditLogs configuration required to enable data access audit logs
-type EnableAuditLogs struct {
-	Resources *Resources
-	DryRun    bool `json:"dry_run"`
-}
-
 // RemoveNonOrgMembers contains configuration required for remove non-org members function.
 type RemoveNonOrgMembers struct {
 	Resources    *Resources
@@ -41,23 +20,9 @@ type RemoveNonOrgMembers struct {
 	DryRun       bool     `json:"dry_run"`
 }
 
-// PagerDutyConfiguration contains configuration for the PagerDuty client.
-type PagerDutyConfiguration struct {
-	APIKey  string `json:"api_key"`
-	Enabled bool   `json:"enabled"`
-	// ServiceID of the affected service within PagerDuty.
-	ServiceID string `json:"service_id"`
-	// From is the email address that sends the incident. This must be a valid user within PagerDuty.
-	From string `json:"from"`
-}
-
 // Configuration contains the ID(s) to apply actions to.
 type Configuration struct {
-	PagerDuty           *PagerDutyConfiguration `json:"pager_duty"`
-	DisableFirewall     *DisableFirewall        `json:"open_firewall"`
-	ClosePublicDataset  *ClosePublicDataset     `json:"close_public_dataset"`
-	EnableAuditLogs     *EnableAuditLogs        `json:"enable_audit_logs"`
-	RemoveNonOrgMembers *RemoveNonOrgMembers    `json:"remove_non_org_members"`
+	RemoveNonOrgMembers *RemoveNonOrgMembers `json:"remove_non_org_members"`
 }
 
 // NewConfiguration returns a new configuration.

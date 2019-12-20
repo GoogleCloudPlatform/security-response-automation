@@ -70,16 +70,27 @@ Configuration
 
 - Action name `remove_public_ip`
 
-#### Remediate open firewall
+#### Remediate Firewall
 
 Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
 
 Configuration
 
-- Configured in settings.json under the `open_firewall` key.
-- See general [resource list](/README.md#resources) options.
-- `remediation_action`: one of `DISABLE`, `DELETE` or `UPDATE_RANGE`
-  - `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+- Action name `remediate_firewall`
+- `remediation_action`: One of `disable`, `delete` or `update_source_range`.
+- `source_ranges`: If the `remediation_action` is `update_source_range` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+
+- `disable` Will disable the firewall, it means it will not delete the firewall but the firewall rule will not be enforced on the network.
+- `delete` Will delete the fire wall rule.
+- `update_source_range` Will use the `source_ranges` to update the source ranges used in the firewall.
+
+#### Block SSH Connections
+
+Create a firewall rule to block SSH access from suspicious IPs.
+
+Configuration
+
+- Action name `remediate_firewall`
 
 ### Google Kubernetes Engine
 
@@ -89,8 +100,7 @@ Automatically disable the Kubernetes Dashboard addon.
 
 Configuration
 
-- Configured in settings.json under the `disable_dashboard` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `disable_dashboard`
 
 ### Google Cloud SQL
 
@@ -126,5 +136,4 @@ Removes public access from a BigQuery dataset.
 
 Configuration
 
-- Configured in settings.json under the `close_public_dataset` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `close_public_dataset`
