@@ -20,8 +20,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
-const projectPrefix = "//cloudresourcemanager.googleapis.com/projects/"
-
 // Values contains the required values needed for this function.
 type Values struct {
 	ProjectID    string
