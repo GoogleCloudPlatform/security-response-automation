@@ -34,7 +34,7 @@ resource "google_folder_iam_member" "roles-org-policy" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/iam.securityAdmin"
+  role   = "roles/resourcemanager.folderAdmin"
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
