@@ -15,6 +15,7 @@ spec:
       ssl_not_enforced:
       sql_no_root_password:
       public_ip_address:
+      open_firewall:
       bigquery_public_dataset:
       audit_logging_disabled:
       web_ui_enabled:
