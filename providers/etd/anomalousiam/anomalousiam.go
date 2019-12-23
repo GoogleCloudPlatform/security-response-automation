@@ -42,11 +42,6 @@ type Finding struct {
 	anomalousIAM *pb.AnomalousIAMGrant
 }
 
-// Fields contains the fields from the finding.
-type Fields struct {
-	anomalousIAM *pb.AnomalousIAMGrant
-}
-
 // IAMRevoke returns values for the IAM revoke automation.
 func (f *Finding) IAMRevoke() *revoke.Values {
 	return &revoke.Values{
