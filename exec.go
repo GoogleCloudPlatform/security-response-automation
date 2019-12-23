@@ -200,15 +200,13 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 //
 func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
+	var values removenonorgmembers.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
-			Logger:        svcs.Logger,
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
+		return removenonorgmembers.Execute(ctx, &values, &removenonorgmembers.Services{
+			Logger:   svcs.Logger,
+			Resource: svcs.Resource,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}

@@ -25,8 +25,10 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
+	"github.com/googlecloudplatform/security-response-automation/providers/sha/iamscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -142,6 +144,32 @@ func TestRouter(t *testing.T) {
 			"assetDisplayName": "test-project"
 		   }
 		}`
+		validNonOrgMembers = `{
+		"finding": {
+			"name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
+			"parent": "organizations/1050000000008/sources/1986930501000008034",
+			"resourceName": "//cloudresourcemanager.googleapis.com/projects/72300000536",
+			"state": "ACTIVE",
+			"category": "NON_ORG_IAM_MEMBER",
+			"externalUri": "https://console.cloud.google.com/iam-admin/iam?project=test-project",
+			"sourceProperties": {
+				"ReactivationCount": 0,
+				"ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+				"SeverityLevel": "High",
+				"Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?project=test-project and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+				"ProjectId": "test-project",
+				"AssetCreationTime": "2019-02-26T15:41:40.726Z",
+				"ScannerName": "IAM_SCANNER",
+				"ScanRunId": "2019-10-18T08:30:22.082-07:00",
+				"Explanation": "A user outside of your organization has IAM permissions on a project or organization."
+			},
+			"securityMarks": {
+				"name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a/securityMarks"
+			},
+			"eventTime": "2019-10-18T15:30:22.082Z",
+			"createTime": "2019-10-18T15:31:58.487Z"
+           }
+		}`
 	)
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
@@ -192,6 +220,15 @@ func TestRouter(t *testing.T) {
 	}
 	enableAuditLog, _ := json.Marshal(enableAuditLogsValues)
 
+	conf.Spec.Parameters.SHA.NonOrgMembers = []iamscanner.Automation{
+		{Action: "remove_non_org_members", Target: []string{"organizations/456/folders/123/projects/test-project"}},
+	}
+	removeNonOrgMembersValues := &removenonorgmembers.Values{
+		ProjectID: "test-project",
+		DryRun:    false,
+	}
+	removeNonOrgMembers, _ := json.Marshal(removeNonOrgMembersValues)
+
 	for _, tt := range []struct {
 		name    string
 		mapTo   []byte
@@ -201,6 +238,7 @@ func TestRouter(t *testing.T) {
 		{name: "public_bucket_acl", finding: []byte(validPublicBucket), mapTo: closeBucket},
 		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
 		{name: "audit_logging_disabled", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
+		{name: "non_org_members", finding: []byte(validNonOrgMembers), mapTo: removeNonOrgMembers},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
@@ -216,7 +254,7 @@ func TestRouter(t *testing.T) {
 				Configuration: conf,
 				Resource:      r,
 			}); err != nil {
-				t.Errorf("%q failed: %q", tt.name, err)
+				t.Fatalf("%q failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
 				t.Errorf("%q failed, difference:%+v", tt.name, diff)
