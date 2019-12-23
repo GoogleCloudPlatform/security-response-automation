@@ -30,15 +30,17 @@ Before a user is removed the user is checked against the below lists. These list
 
 - `allow_domains` An array of strings containing domain names to be matched. If the member added matches a domain in this list do not remove it. At least one domain is required in this list.
 
-**Remove non-Organization members**
+#### Remove non-Organization members
 
-Automatically removes non-organization users.
+Removes non-organization members from resource level IAM policy.
 
 Configuration
 
-- Configured in settings.json under the `remove_non_org_members` key.
-- See general [resource list](/README.md#resources) options.
-- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
+- Action name `remove_non_org_members`
+
+Before a user is removed, the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
+
+- `allow_domains` An array of strings containing domain names to be matched. If the member added matches a domain in this list do not remove it. At least one domain is required in this list.
 
 ### Google Compute Engine
 
