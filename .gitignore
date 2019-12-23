@@ -11,4 +11,3 @@ deploy
 .vscode
 .idea
 cloudfunctions/router/config.yaml
-settings.json
