@@ -141,8 +141,6 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			}
 		}
 		return nil
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}

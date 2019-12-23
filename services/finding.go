@@ -15,23 +15,6 @@ package services
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import (
-	"github.com/pkg/errors"
-)
-
-var (
-	// ErrUnmarshal thrown when unable to unmarshal.
-	ErrUnmarshal = errors.New("failed to unmarshal")
-	// ErrParsing thrown when unable to parse.
-	ErrParsing = errors.New("not a valid log")
-	// ErrValueNotFound thrown when a value is requested but not found.
-	ErrValueNotFound = errors.New("value not found")
-	// ErrUnsupportedFinding thrown when a finding is not supported by a function.
-	ErrUnsupportedFinding = errors.New("unsupported finding")
-	// ErrSkipFinding thrown when a finding is not supported by a function.
-	ErrSkipFinding = errors.New("unsupported finding")
-)
-
 // Life of a finding
 //
 // Findings are deserialized with the Cloud Function that uses them. For example, the
