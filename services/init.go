@@ -8,19 +8,17 @@ import (
 )
 
 const (
-	authFile     = "credentials/auth.json"
-	settingsFile = "settings.json"
+	authFile = "credentials/auth.json"
 )
 
 // Global holds all initialized services.
 type Global struct {
-	Configuration *Configuration
-	Logger        *Logger
-	Resource      *Resource
-	Host          *Host
-	Firewall      *Firewall
-	Container     *Container
-	CloudSQL      *CloudSQL
+	Logger    *Logger
+	Resource  *Resource
+	Host      *Host
+	Firewall  *Firewall
+	Container *Container
+	CloudSQL  *CloudSQL
 }
 
 // New returns an initialized Global struct.
@@ -45,11 +43,6 @@ func New(ctx context.Context) (*Global, error) {
 		return nil, err
 	}
 
-	config, err := initConfiguration()
-	if err != nil {
-		return nil, err
-	}
-
 	cont, err := initContainer(ctx)
 	if err != nil {
 		return nil, err
@@ -61,13 +54,12 @@ func New(ctx context.Context) (*Global, error) {
 	}
 
 	return &Global{
-		Configuration: config,
-		Host:          host,
-		Logger:        log,
-		Resource:      res,
-		Firewall:      fw,
-		Container:     cont,
-		CloudSQL:      sql,
+		Host:      host,
+		Logger:    log,
+		Resource:  res,
+		Firewall:  fw,
+		Container: cont,
+		CloudSQL:  sql,
 	}, nil
 }
 
@@ -93,14 +85,6 @@ func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
 		return nil, fmt.Errorf("failed to initialize pubsub client: %q", err)
 	}
 	return NewPubSub(pubsub), nil
-}
-
-func initConfiguration() (*Configuration, error) {
-	conf, err := NewConfiguration(settingsFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read configuration: %q", err)
-	}
-	return conf, nil
 }
 
 func initHost(ctx context.Context) (*Host, error) {
