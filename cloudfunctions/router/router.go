@@ -474,6 +474,8 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
+			default:
+				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
 

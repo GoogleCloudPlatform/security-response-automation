@@ -254,8 +254,7 @@ func TestRouter(t *testing.T) {
 				Configuration: conf,
 				Resource:      r,
 			}); err != nil {
-				t.Errorf("%q failed: %q", tt.name, err)
-				t.FailNow()
+				t.Fatalf("%q failed: %q", tt.name, err)
 			}
 			if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
 				t.Errorf("%q failed, difference:%+v", tt.name, diff)
