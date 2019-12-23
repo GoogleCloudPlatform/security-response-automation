@@ -20,6 +20,7 @@ import (
 
 	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
+	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 )
 
@@ -55,7 +56,7 @@ func (s *Storage) EnableBucketOnlyPolicy(ctx context.Context, bucketName string)
 		},
 	}
 	if _, err := s.service.Bucket(bucketName).Update(ctx, enableBucketPolicyOnly); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing enable Bucket Policy Only on bucket %q", bucketName)
 	}
 	return nil
 }

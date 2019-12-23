@@ -19,6 +19,7 @@ import (
 	"log"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
@@ -39,7 +40,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	log.Printf("getting details from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 	instance, err := services.CloudSQL.InstanceDetails(ctx, values.ProjectID, values.InstanceName)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed while getting instance details for SQL instance %q on project %q", values.InstanceName, values.ProjectID)
 	}
 
 	acls := instance.Settings.IpConfiguration.AuthorizedNetworks
@@ -48,12 +49,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if values.DryRun {
-		services.Logger.Info("dry_run on, would have removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		services.Logger.Info("dry_run on, would have removed public access from SQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	}
 	if err := services.CloudSQL.ClosePublicAccess(ctx, values.ProjectID, values.InstanceName, acls); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing close public access in SQL instance %q on project %q", values.InstanceName, values.ProjectID)
 	}
-	services.Logger.Info("removed public access from Cloud SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	services.Logger.Info("removed public access from SQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 	return nil
 }

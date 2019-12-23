@@ -48,17 +48,17 @@ func SendTurbinia(ctx context.Context, turbiniaProjectID, topic, zone string, di
 	m := &pubsub.Message{}
 	ps, err := InitPubSub(ctx, turbiniaProjectID)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to initialize PubSub client on %q", turbiniaProjectID)
 	}
 	for _, diskName := range diskNames {
 		b, err := buildRequest(turbiniaProjectID, zone, diskName)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to marshal turbinia request project %q, zone: %q, diskName: %+v", turbiniaProjectID, zone, diskName)
 		}
 		m.Data = b
 		log.Printf("sending disk %q to turbinia project %q", diskName, turbiniaProjectID)
 		if _, err := ps.Publish(ctx, topic, m); err != nil {
-			return err
+			return errors.Wrapf(err, "failed to publish on topic: %q of project %q", topic, turbiniaProjectID)
 		}
 	}
 	return nil

@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
@@ -48,14 +49,14 @@ type Services struct {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	members, err := toRemove(values.ExternalMembers, values.AllowDomains)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed to process members to remove. ExternalMembers: %+v, AllowDomains: %+v", values.ExternalMembers, values.AllowDomains)
 	}
 	if values.DryRun {
 		services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 		return nil
 	}
 	if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing Remove Users %+v from Project %q", members, values.ProjectID)
 	}
 	services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
 	return nil

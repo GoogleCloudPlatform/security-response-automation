@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
@@ -36,12 +37,12 @@ type Services struct {
 // Execute will remove any public ips in sql instance found within the provided folders.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	if values.DryRun {
-		services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+		services.Logger.Info("dry_run on, enforced SSL on SQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	}
 	if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing enforce SSL for SQL instance %q on project %q", values.InstanceName, values.ProjectID)
 	}
-	services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
+	services.Logger.Info("enforced SSL on SQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 	return nil
 }

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
@@ -40,7 +41,7 @@ func Execute(ctx context.Context, values *Values, service *Services) error {
 		return nil
 	}
 	if _, err := service.Container.DisableDashboard(ctx, values.ProjectID, values.Zone, values.ClusterID); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing Disable Dashboard on %+v", values)
 	}
 	service.Logger.Info("successfully disabled dashboard from cluster %q in project %q", values.ClusterID, values.ProjectID)
 	return nil

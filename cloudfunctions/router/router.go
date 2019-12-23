@@ -145,7 +145,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.ETD.BadIP
 		badIP, err := badip.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal bad ip finding: %q", values.Finding)
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -170,7 +170,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.ETD.AnomalousIAM
 		anomalousIAM, err := anomalousiam.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal anomalous iam finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -190,7 +190,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.ETD.SSHBruteForce
 		sshBruteForce, err := sshbruteforce.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal ssh brute force finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -211,7 +211,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal storage scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -231,7 +231,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal storage scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -251,7 +251,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.PublicSQLInstance
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -271,7 +271,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.SSLNotEnforced
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -291,7 +291,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.SQLNoRootPassword
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -315,7 +315,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.PublicIPAddress
 		computeInstanceScanner, err := computeinstancescanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal compute instance scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -335,7 +335,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -357,7 +357,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -379,7 +379,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -401,7 +401,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
 		publicDataset, err := datasetscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal dataset scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -421,7 +421,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.AuditLoggingDisabled
 		loggingScanner, err := loggingscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal logging Scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -441,7 +441,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.WebUIEnabled
 		containerScanner, err := containerscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal container scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -461,7 +461,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.SHA.NonOrgMembers
 		iamScanner, err := iamscanner.New(values.Finding)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "failed to unmarshal iam scanner finding: %q", values.Finding)
 		}
 		for _, automation := range automations {
 			switch automation.Action {
@@ -495,13 +495,13 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 	}
 	b, err := json.Marshal(&values)
 	if err != nil {
-		return errors.Wrapf(err, "failed to unmarshal when runing %q", action)
+		return errors.Wrapf(err, "failed to unmarshal when running %q", action)
 	}
 	if _, err := services.PubSub.Publish(ctx, topic, &pubsub.Message{
 		Data: b,
 	}); err != nil {
 		services.Logger.Error("failed to publish to %q for action %q", topic, action)
-		return err
+		return errors.Wrapf(err, "failed to publish to %q for action %q", topic, action)
 	}
 	log.Printf("sent to pubsub topic: %q", topic)
 	return nil

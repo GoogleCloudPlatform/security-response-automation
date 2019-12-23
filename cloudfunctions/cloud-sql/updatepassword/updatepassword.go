@@ -19,6 +19,7 @@ import (
 	"log"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the values values needed for this function.
@@ -38,12 +39,12 @@ type Services struct {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	log.Printf("updating root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
 	if values.DryRun {
-		services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+		services.Logger.Info("dry_run on, would have updated root password for MySQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 		return nil
 	}
 	if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing update root password for MySQL instance %q on project %q", values.InstanceName, values.ProjectID)
 	}
-	services.Logger.Info("updated root password for MySQL instance %q in project %q.", values.InstanceName, values.ProjectID)
+	services.Logger.Info("updated root password for MySQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 	return nil
 }

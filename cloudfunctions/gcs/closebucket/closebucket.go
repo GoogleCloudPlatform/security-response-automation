@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // publicUsers contains a slice of public users we want to remove.
@@ -43,7 +44,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.Resource.RemoveMembersFromBucket(ctx, values.BucketName, publicUsers); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing Remove Members Fro mBucket on %+v", values)
 	}
 	services.Logger.Info("removed public members from bucket %q in project %q", values.BucketName, values.ProjectID)
 	return nil

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
@@ -41,7 +42,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	}
 	removed, err := services.Resource.ProjectOnlyKeepUsersFromDomains(ctx, values.ProjectID, values.AllowDomains)
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing Project Only Keep Users From Domains on %+v", values)
 	}
 	services.Logger.Info("successfully removed %q from %s", removed, values.ProjectID)
 	return nil

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Required contains the required values needed for this function.
@@ -40,11 +41,11 @@ type Values struct {
 // Execute is the entry point for the Cloud Function to enable audit logs for a specific project.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	if values.DryRun {
-		services.Logger.Info("dry_run on, would have enabled data access audit logs in project %q", values.ProjectID)
+		services.Logger.Info("dry_run on, would have enabled data access audit logs on project %q", values.ProjectID)
 		return nil
 	}
 	if _, err := services.Resource.EnableAuditLogs(ctx, values.ProjectID); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing enable Audit Logs on project %q", values.ProjectID)
 	}
 	services.Logger.Info("audit logs was enabled on %q", values.ProjectID)
 	return nil

@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/PagerDuty/go-pagerduty"
+	"github.com/pkg/errors"
 )
 
 // PagerDuty service.
@@ -38,7 +39,7 @@ func NewPagerDuty(cs PagerDutyClient) *PagerDuty {
 // CreateIncident will create an incident within PagerDuty.
 func (p *PagerDuty) CreateIncident(ctx context.Context, from, serviceID, title, body string) error {
 	if _, err := p.client.CreateIncident(from, serviceID, title, body); err != nil {
-		return err
+		return errors.Wrapf(err, "failed to create PagerDuty Incident from: %q, serviceID: %q, title: %q, body: %q", from, serviceID, title, body)
 	}
 	return nil
 }

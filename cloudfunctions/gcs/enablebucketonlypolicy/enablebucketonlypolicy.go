@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 // Values contains the required values needed for this function.
@@ -40,7 +41,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.Resource.EnableBucketOnlyPolicy(ctx, values.BucketName); err != nil {
-		return err
+		return errors.Wrapf(err, "failed while performing Enable Bucket Only Policy on %+v", values)
 	}
 	services.Logger.Info("Bucket only policy enabled on bucket %q in project %q.", values.BucketName, values.ProjectID)
 	return nil
