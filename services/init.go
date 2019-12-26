@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/googlecloudplatform/security-response-automation/clients"
 	"github.com/pkg/errors"

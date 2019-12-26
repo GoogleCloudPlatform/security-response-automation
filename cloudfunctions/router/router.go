@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"regexp"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
@@ -51,6 +52,8 @@ var findings = []Namer{
 	&loggingscanner.Finding{},
 	&iamscanner.Finding{},
 }
+
+var newLineRegex = regexp.MustCompile(`\r?\n`)
 
 // Namer represents findings that export their name.
 type Namer interface {
@@ -120,10 +123,10 @@ func Config() (*Configuration, error) {
 	var c Configuration
 	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to read file ./cloudfunctions/router/config.yaml")
 	}
 	if err := yaml.Unmarshal(b, &c); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to unmarshal file ./cloudfunctions/router/config.yaml")
 	}
 	return &c, nil
 }
@@ -145,7 +148,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		automations := services.Configuration.Spec.Parameters.ETD.BadIP
 		badIP, err := badip.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal bad ip finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal bad ip finding: %q", replaceNewLines(string(values.Finding)))
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -159,19 +162,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish to Turbinia.Topic %q on project %q: %q", values.Turbinia.Topic, values.Turbinia.ProjectID, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "iam_anomalous_grant":
 		automations := services.Configuration.Spec.Parameters.ETD.AnomalousIAM
 		anomalousIAM, err := anomalousiam.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal anomalous iam finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal anomalous iam finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "iam_revoke":
@@ -179,19 +183,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "ssh_brute_force":
 		automations := services.Configuration.Spec.Parameters.ETD.SSHBruteForce
 		sshBruteForce, err := sshbruteforce.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal ssh brute force finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal ssh brute force finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -200,19 +205,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = "block_ssh"
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "public_bucket_acl":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal storage scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal storage scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_bucket":
@@ -220,19 +226,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "bucket_policy_only_disabled":
 		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal storage scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal storage scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "enable_bucket_only_policy":
@@ -240,19 +247,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "public_sql_instance":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicSQLInstance
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_cloud_sql":
@@ -260,19 +268,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "ssl_not_enforced":
 		automations := services.Configuration.Spec.Parameters.SHA.SSLNotEnforced
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "cloud_sql_require_ssl":
@@ -280,19 +289,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "sql_no_root_password":
 		automations := services.Configuration.Spec.Parameters.SHA.SQLNoRootPassword
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal sql scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "cloud_sql_update_password":
@@ -304,19 +314,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "public_ip_address":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicIPAddress
 		computeInstanceScanner, err := computeinstancescanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal compute instance scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal compute instance scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remove_public_ip":
@@ -324,19 +335,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "open_firewall":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -346,19 +358,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = automation.Properties.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "open_ssh_port":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -368,19 +381,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = automation.Properties.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "open_rdp_port":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal firewall scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -390,19 +404,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = automation.Properties.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "public_dataset":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
 		publicDataset, err := datasetscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal dataset scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal dataset scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_public_dataset":
@@ -410,19 +425,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "audit_logging_disabled":
 		automations := services.Configuration.Spec.Parameters.SHA.AuditLoggingDisabled
 		loggingScanner, err := loggingscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal logging Scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal logging Scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "enable_audit_logs":
@@ -430,19 +446,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "web_ui_enabled":
 		automations := services.Configuration.Spec.Parameters.SHA.WebUIEnabled
 		containerScanner, err := containerscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal container scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal container scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "disable_dashboard":
@@ -450,19 +467,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 	case "non_org_iam_member":
 		automations := services.Configuration.Spec.Parameters.SHA.NonOrgMembers
 		iamScanner, err := iamscanner.New(values.Finding)
 		if err != nil {
-			return errors.Wrapf(err, "failed to unmarshal iam scanner finding: %q", values.Finding)
+			return errors.Wrapf(err, "failed to unmarshal iam scanner finding: %q", replaceNewLines(string(values.Finding)))
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remove_non_org_members":
@@ -471,27 +489,27 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.AllowDomains = automation.Properties.AllowDomains
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
+					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
 					continue
 				}
 			default:
-				return fmt.Errorf("action %q not found", automation.Action)
+				return fmt.Errorf("action %q not found for rule %q", automation.Action, name)
 			}
 		}
 
 	default:
-		return fmt.Errorf("rule %q not found", name)
+		return fmt.Errorf("rule %q not found. Finding: %+v", name, replaceNewLines(string(values.Finding)))
 	}
 	return nil
 }
 
 func publish(ctx context.Context, services *Services, action, topic, projectID string, target, exclude []string, values interface{}) error {
 	ok, err := services.Resource.CheckMatches(ctx, projectID, target, exclude)
+	if err != nil {
+		return errors.Wrapf(err, "failed to check matches for %q", action)
+	}
 	if !ok {
 		return fmt.Errorf("project %q is not within the target or is excluded", projectID)
-	}
-	if err != nil {
-		return errors.Wrapf(err, "failed to run %q", action)
 	}
 	b, err := json.Marshal(&values)
 	if err != nil {
@@ -505,4 +523,8 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 	}
 	log.Printf("sent to pubsub topic: %q", topic)
 	return nil
+}
+
+func replaceNewLines(text string) string {
+	return newLineRegex.ReplaceAllString(text, " ")
 }

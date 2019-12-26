@@ -253,9 +253,7 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to parse: %s", pattern)
 		}
-		log.Printf("pattern: %q", pattern)
-		log.Printf("comparing: %q", ancestorPath)
-		log.Printf("match: %t", match)
+		log.Printf(" match: %t, pattern: %q, comparing: %q", match, pattern, ancestorPath)
 		if match {
 			return true, nil
 		}
@@ -267,18 +265,19 @@ func (r *Resource) ancestryMatches(patterns []string, ancestorPath string) (bool
 func (r *Resource) CheckMatches(ctx context.Context, projectID string, target, ignore []string) (bool, error) {
 	ancestorPath, err := r.getProjectAncestryPath(ctx, projectID)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to get project ancestry path")
+		return false, errors.Wrapf(err, "failed to get project ancestry path for project %q", projectID)
 	}
 	matchesIgnore, err := r.ancestryMatches(ignore, ancestorPath)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to process ignore list")
 	}
 	if matchesIgnore {
+		log.Printf("ancestorPath: %q matches ignore list", ancestorPath)
 		return false, nil
 	}
 	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to process target list")
+		return false, errors.Wrapf(err, "failed to process target list")
 	}
 	return matchesTarget, nil
 }
