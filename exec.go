@@ -146,8 +146,6 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			}
 		}
 		return nil
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return errors.Wrapf(err, "failed to Unmarshal Snapshot Disk values: %q", m.Data)
 	}
