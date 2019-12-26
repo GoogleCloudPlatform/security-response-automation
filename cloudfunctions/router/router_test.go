@@ -36,16 +36,6 @@ import (
 
 func TestRouter(t *testing.T) {
 	const (
-		somethingElse = `{
-			"jsonPayload": {
-				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
-				}
-			},
-			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-		}`
 		validBadIP = `{
 			"jsonPayload": {
 				"properties": {
