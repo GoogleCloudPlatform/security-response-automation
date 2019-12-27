@@ -506,14 +506,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 func publish(ctx context.Context, services *Services, action, topic, projectID string, target, exclude []string, values interface{}) error {
 	ok, err := services.Resource.CheckMatches(ctx, projectID, target, exclude)
 	if err != nil {
-		return errors.Wrapf(err, "failed to check matches for %q", action)
+		return errors.Wrapf(err, "failed to check matches for target and exclude lists %q", action)
 	}
 	if !ok {
 		return fmt.Errorf("project %q is not within the target or is excluded", projectID)
 	}
 	b, err := json.Marshal(&values)
 	if err != nil {
-		return errors.Wrapf(err, "failed to unmarshal when running %q", action)
+		return errors.Wrapf(err, "failed to marshal values when running %q", action)
 	}
 	if _, err := services.PubSub.Publish(ctx, topic, &pubsub.Message{
 		Data: b,
