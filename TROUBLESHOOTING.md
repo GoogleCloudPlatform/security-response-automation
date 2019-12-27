@@ -18,9 +18,9 @@ or you can move the project under one of the folder.
 - The service account `automation-service-account@<automation-project>.gserviceaccount.com` no longer has
 the role *Browser* on the folder: You can re-run terraform or add it manually on Google Cloud Console
 
-## 2) Error "googleapi: Error 403: Required '*PERMISSION*' permission for '*RESOURCE*', forbidden"
+## 2) Error "googleapi: Error 403: Required '*PERMISSION*' permission for '*RESOURCE*', forbidden" or "googleapi: Error 403: *SERVICE-ACCOUNT* does not have *PERMISSION* access to *RESOURCE*, forbidden"
 
-If you see this error it means that the service account `automation-service-account@<automation-project>.gserviceaccount.com`
+If you see this error it means that the service account `automation-service-account@<automation-project>.gserviceaccount.com`/*SERVICE-ACCOUNT*
 does not have the roles need to perform one of the automations.
 
 Check the beginning of the error message `failed to execute <AUTOMATION> automation with values`

@@ -272,7 +272,7 @@ func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err2 != nil {
-			return errors.Wrapf(err2, "failed to execute aaaaaaaa automation with values: %+v", values)
+			return errors.Wrapf(err2, "failed to execute close public dataset automation with values: %+v", values)
 		}
 		return nil
 	default:
