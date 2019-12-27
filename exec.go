@@ -35,14 +35,19 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 var (
 	svcs      *services.Global
 	projectID = os.Getenv("GCP_PROJECT")
+	ps        *services.PubSub
 )
+
+const outputTopic = "threat-findings-output"
 
 func init() {
 	ctx := context.Background()
@@ -54,6 +59,11 @@ func init() {
 	if err != nil {
 		log.Fatalf("failed to initialize services: %q", err)
 	}
+}
+
+// Services contains the services needed for this function.
+type Services struct {
+	PubSub *services.PubSub
 }
 
 // Router is the entry point for the router Cloud Function.
@@ -119,25 +129,33 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	var values createsnapshot.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		output, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
+		res, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
 			Host:   svcs.Host,
 			Logger: svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		for _, dest := range values.Output {
-			switch dest {
-			case "turbinia":
-				log.Println("turbinia output is enabled, sending each copied disk to turbinia")
-				turbiniaProjectID := values.Turbinia.ProjectID
-				turbiniaTopicName := values.Turbinia.Topic
-				turbiniaZone := values.Turbinia.Zone
-				diskNames := output.DiskNames
-				if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskNames); err != nil {
+		for _, o := range values.Output {
+			for _, d := range res.DiskNames {
+				om := &output.ChannelMessage{
+					SourceInfo:     o,
+					AutomationName: "create_snapshot",
+					Subject:        values.RuleName,
+					Message:        d,
+				}
+				b, err := json.Marshal(om)
+				if err != nil {
+					return errors.Wrapf(err, "failed to unmarshal when running %q", o)
+				}
+				if _, err := ps.Publish(ctx, outputTopic, &pubsub.Message{
+					Data: b,
+				}); err != nil {
+					// TODO: review error return
+					//services.Logger.Error("failed to publish to %q for output %q", topic, o)
 					return err
 				}
-				svcs.Logger.Info("sent %d disks to turbinia", len(diskNames))
+				log.Printf("sent %q to output channel %q", om.Message, o)
 			}
 		}
 		return nil

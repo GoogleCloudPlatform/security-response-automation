@@ -41,26 +41,26 @@ type TurbiniaRequest struct {
 }
 
 // SendTurbinia will send the disks to Turbinia.
-func SendTurbinia(ctx context.Context, turbiniaProjectID, topic, zone string, diskNames []string) error {
+func SendTurbinia(ctx context.Context, turbiniaProjectID, topic, zone string, diskName string) error {
 	if turbiniaProjectID == "" || topic == "" || zone == "" {
-		return errors.New("missing turbinia config values")
+		return errors.New("missing channels config values")
 	}
 	m := &pubsub.Message{}
 	ps, err := InitPubSub(ctx, turbiniaProjectID)
 	if err != nil {
 		return err
 	}
-	for _, diskName := range diskNames {
-		b, err := buildRequest(turbiniaProjectID, zone, diskName)
-		if err != nil {
-			return err
-		}
-		m.Data = b
-		log.Printf("sending disk %q to turbinia project %q", diskName, turbiniaProjectID)
-		if _, err := ps.Publish(ctx, topic, m); err != nil {
-			return err
-		}
+	//for _, diskName := range diskNames {
+	b, err := buildRequest(turbiniaProjectID, zone, diskName)
+	if err != nil {
+		return err
 	}
+	m.Data = b
+	log.Printf("sending disk %q to channels project %q", diskName, turbiniaProjectID)
+	if _, err := ps.Publish(ctx, topic, m); err != nil {
+		return err
+	}
+	//}
 	return nil
 }
 

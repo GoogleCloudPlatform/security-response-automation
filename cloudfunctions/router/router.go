@@ -154,9 +154,6 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values := badIP.CreateSnapshot()
 				values.Output = automation.Properties.Output
 				values.DryRun = automation.Properties.DryRun
-				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
-				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
-				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

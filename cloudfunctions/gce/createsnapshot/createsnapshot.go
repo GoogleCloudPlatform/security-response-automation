@@ -44,12 +44,6 @@ type Values struct {
 	Instance  string
 	Zone      string
 	Output    []string
-
-	Turbinia struct {
-		ProjectID string
-		Topic     string
-		Zone      string
-	}
 }
 
 // Services contains the services needed for this function.
