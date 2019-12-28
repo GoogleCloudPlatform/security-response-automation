@@ -1,32 +1,35 @@
 # Troubleshooting Security Response Automation
 
-This guide is for troubleshooting errors that may occur with the Security Response Automation cloud functions
+This guide is for troubleshooting errors that may occur with the Security Response Automation cloud functions.
 
-## 1) Error "googleapi: Error 403: The caller does not have permission, forbidden" and "failed to get project ancestry path for project X"
+## 1) Error 403
 
-If you see this error it means that the service account `automation-service-account@<automation-project>.gserviceaccount.com` does not have the
-*Browser* role and Security Response Automation cannot check if it is allowed to remediate issues on the project based in the project id.
+Error 403 messages refer to the service account `automation-service-account@<automation-project>.gserviceaccount.com`.
+In this case the service account is missing one of the required roles for the automation executed.
 
-The service account needs the role *Browser* - `roles/browser` on the project or folder that contains the project.
-This role is granted to the service account on the folders provided on the terraform variable `folder-ids`.
-Seeing this message indicates that the project related to the finding been processed is not under
-the folders on the list or that the role has been removed from the service account.
-
-- The Project is not under one of the folder configured folder: You can grant role *Browser* - `roles/browser`
-to service account `automation-service-account@<automation-project>.gserviceaccount.com` on the project
-or you can move the project under one of the folder.
-- The service account `automation-service-account@<automation-project>.gserviceaccount.com` no longer has
-the role *Browser* on the folder: You can re-run terraform or add it manually on Google Cloud Console
-
-## 2) Error "googleapi: Error 403: Required '*PERMISSION*' permission for '*RESOURCE*', forbidden" or "googleapi: Error 403: *SERVICE-ACCOUNT* does not have *PERMISSION* access to *RESOURCE*, forbidden"
-
-If you see this error it means that the service account `automation-service-account@<automation-project>.gserviceaccount.com`/*SERVICE-ACCOUNT*
-does not have the roles need to perform one of the automations.
-
-Check the beginning of the error message `failed to execute <AUTOMATION> automation with values`
-or the field `resource.labels.function_name` in the log entry
-to find out which is the automation that is falling.
+- `"failed to get project ancestry path for project X"`: this message occurs in the `router` cloud function. it means that the service account
+is missing role *Browser* - `roles/browser` on the project or folder that contains the project.
+- `"failed to publish to "threat-findings..." ... rpc error: code = PermissionDenied desc = User not authorized to perform this action."`:
+this message also occurs in the `router` cloud function. it means that the service account is missing role *Pub/Sub Editor* - `roles/pubsub.editor`
+on the automation project.
+- `"failed to execute <AUTOMATION> automation with values"`: in the other cases, the start of the error message will hint on the `AUTOMATION` that failed.
+You can also look at the field `resource.labels.function_name` in the log entry to find out which automation failed.
 
 You can find in `automations.md` which are the required roles for the service account for this automation.
-You can follow the same instructions to fix it as listed on the first item
-of this guide, that fixes the missing *Browser* role.
+You will need to grant the required roles to the service for the automation to work.
+The error message will also contain the project in which the service account needs the permission, like `... ProjectID:decent-ellipse-00000 ...`
+or `... on project "decent-ellipse-00000" ...`
+
+If the project is under one of the folders provided on the terraform variable `folder-ids`,
+the service account should have the right role, granted by the terraform script on deploy.
+Re-run terraform(*recomended*) or add the roles manually on Google Cloud Console to fix this error.
+
+If the project is *not* under one of the folders provided on the terraform variable `folder-ids`,
+you can grant role the required role to service account `automation-service-account@<automation-project>.gserviceaccount.com`
+on the project or you can move the project under one of the folders.
+
+## 2) "got rule "X" with 0 automations"
+
+This log entry means that a known finding of rule *X* was received but no automation was configured for it in the file `cloudfunctions/router/config.yaml`.
+
+This may be the expected result if no automation was configured for it. If an automation was configured please check the config file to validate its format.
