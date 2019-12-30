@@ -7,10 +7,10 @@ This guide is for troubleshooting errors that may occur with the Security Respon
 Error 403 messages refer to the service account `automation-service-account@<automation-project>.gserviceaccount.com`.
 In this case the service account is missing one of the required roles for the automation executed.
 
-- `"failed to get project ancestry path for project X"`: this message occurs in the `router` cloud function. it means that the service account
+- `"failed to get project ancestry path for project X"`: this message occurs in the `router` cloud function. It means that the service account
 is missing role *Browser* - `roles/browser` on the project or folder that contains the project.
 - `"failed to publish to "threat-findings..." ... rpc error: code = PermissionDenied desc = User not authorized to perform this action."`:
-this message also occurs in the `router` cloud function. it means that the service account is missing role *Pub/Sub Editor* - `roles/pubsub.editor`
+this message also occurs in the `router` cloud function. It means that the service account is missing role *Pub/Sub Editor* - `roles/pubsub.editor`
 on the automation project.
 - `"failed to execute <AUTOMATION> automation with values"`: in the other cases, the start of the error message will hint on the `AUTOMATION` that failed.
 You can also look at the field `resource.labels.function_name` in the log entry to find out which automation failed.
@@ -32,4 +32,5 @@ on the project or you can move the project under one of the folders.
 
 This log entry means that a known finding of rule *X* was received but no automation was configured for it in the file `cloudfunctions/router/config.yaml`.
 
-This may be the expected result if no automation was configured for it. If an automation was configured please check the config file to validate its format.
+This may be the expected result if no automation was configured for it.
+If an automation was configured please check the config file to validate its format and if the automation names are correct.

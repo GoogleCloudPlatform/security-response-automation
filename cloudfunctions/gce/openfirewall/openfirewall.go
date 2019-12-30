@@ -69,14 +69,14 @@ func blockSSH(ctx context.Context, logr *services.Logger, fw *services.Firewall,
 func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, values *Values) error {
 	r, err := fw.FirewallRule(ctx, values.ProjectID, values.FirewallID)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get firewall information on %+v", values)
+		return errors.Wrapf(err, "failed to get firewall information on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	op, err := fw.DisableFirewallRule(ctx, values.ProjectID, values.FirewallID, r.Name)
 	if err != nil {
-		return errors.Wrapf(err, "failed while performing Disable Firewall Rule on %+v", values)
+		return errors.Wrapf(err, "failed while performing Disable Firewall Rule on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	if errs := fw.WaitGlobal(values.ProjectID, op); len(errs) > 0 {
-		return errors.Wrapf(errs[0], "failed while waiting execution of Disable Firewall Rule on %+v", values)
+		return errors.Wrapf(errs[0], "failed while waiting execution of Disable Firewall Rule on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	logr.Info("disabled firewall %q in project %q.", r.Name, values.ProjectID)
 	return nil
@@ -85,14 +85,14 @@ func disable(ctx context.Context, logr *services.Logger, fw *services.Firewall, 
 func delete(ctx context.Context, logr *services.Logger, fw *services.Firewall, values *Values) error {
 	r, err := fw.FirewallRule(ctx, values.ProjectID, values.FirewallID)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get firewall information on %+v", values)
+		return errors.Wrapf(err, "failed to get firewall information on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	op, err := fw.DeleteFirewallRule(ctx, values.ProjectID, values.FirewallID)
 	if err != nil {
-		return errors.Wrapf(err, "failed while performing Delete Firewall Rule on %+v", values)
+		return errors.Wrapf(err, "failed while performing Delete Firewall Rule on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	if errs := fw.WaitGlobal(values.ProjectID, op); len(errs) > 0 {
-		return errors.Wrapf(errs[0], "failed while waiting execution of Delete Firewall Rule on %+v", values)
+		return errors.Wrapf(errs[0], "failed while waiting execution of Delete Firewall Rule on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	logr.Info("deleted firewall %q in project %q.", r.Name, values.ProjectID)
 	return nil
@@ -101,10 +101,10 @@ func delete(ctx context.Context, logr *services.Logger, fw *services.Firewall, v
 func updateRange(ctx context.Context, logr *services.Logger, fw *services.Firewall, values *Values) error {
 	r, err := fw.FirewallRule(ctx, values.ProjectID, values.FirewallID)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get firewall information on %+v", values)
+		return errors.Wrapf(err, "failed to get firewall information on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	if err := fw.UpdateFirewallRuleSourceRange(ctx, values.ProjectID, values.FirewallID, r.Name, values.SourceRanges); err != nil {
-		return errors.Wrapf(err, "failed while performing Update Firewall Rule Source Range on %+v", values)
+		return errors.Wrapf(err, "failed while performing Update Firewall Rule Source Range on firewall %q in project %q", values.FirewallID, values.ProjectID)
 	}
 	logr.Info("updated source range firewall %q in project %q.", r.Name, values.ProjectID)
 	return nil

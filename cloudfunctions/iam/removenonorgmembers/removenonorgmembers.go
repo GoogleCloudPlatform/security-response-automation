@@ -42,7 +42,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 	}
 	removed, err := services.Resource.ProjectOnlyKeepUsersFromDomains(ctx, values.ProjectID, values.AllowDomains)
 	if err != nil {
-		return errors.Wrapf(err, "failed while performing Project Only Keep Users From Domains on %+v", values)
+		return errors.Wrapf(err, "failed while performing Project Only Keep Users From Domains on %q", values.ProjectID)
 	}
 	services.Logger.Info("successfully removed %q from %s", removed, values.ProjectID)
 	return nil

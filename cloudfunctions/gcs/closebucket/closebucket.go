@@ -44,7 +44,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.Resource.RemoveMembersFromBucket(ctx, values.BucketName, publicUsers); err != nil {
-		return errors.Wrapf(err, "failed while performing Remove Members From Bucket on %+v", values)
+		return errors.Wrapf(err, "failed while performing Remove Members From Bucket %q", values.BucketName)
 	}
 	services.Logger.Info("removed public members from bucket %q in project %q", values.BucketName, values.ProjectID)
 	return nil
