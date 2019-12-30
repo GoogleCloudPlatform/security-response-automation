@@ -127,6 +127,10 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	var values createsnapshot.Values
+	ps, err := services.InitPubSub(ctx, projectID)
+	if err != nil {
+		return err
+	}
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		res, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
@@ -136,6 +140,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("available outputs: %q", values.Output)
 		for _, o := range values.Output {
 			for _, d := range res.DiskNames {
 				om := &output.ChannelMessage{
@@ -148,12 +153,11 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 				if err != nil {
 					return errors.Wrapf(err, "failed to unmarshal when running %q", o)
 				}
+				log.Printf("sending message to: %q", outputTopic)
 				if _, err := ps.Publish(ctx, outputTopic, &pubsub.Message{
 					Data: b,
 				}); err != nil {
-					// TODO: review error return
-					//services.Logger.Error("failed to publish to %q for output %q", topic, o)
-					return err
+					return errors.Wrapf(err, "failed to publish to %q for output %q", outputTopic, o)
 				}
 				log.Printf("sent %q to output channel %q", om.Message, o)
 			}
@@ -410,4 +414,30 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
+}
+
+// Output is the entry point for the output Cloud Function.
+//
+// This Cloud Function will receive the notification message and redirect to available channels.
+func Output(ctx context.Context, m pubsub.Message) error {
+	var message output.ChannelMessage
+	err := json.Unmarshal(m.Data, &message)
+	if err != nil {
+		return err
+	}
+	conf, err := output.Config()
+	if err != nil {
+		return err
+	}
+	return output.Execute(ctx, &output.ChannelMessage{
+		CorrelationID:  message.CorrelationID,
+		Timestamp:      message.Timestamp,
+		AutomationName: message.AutomationName,
+		SourceInfo:     message.SourceInfo,
+		Priority:       message.Priority,
+		Status:         message.Status,
+		SensitiveInfo:  message.SensitiveInfo,
+		Subject:        message.Subject,
+		Message:        message.Message,
+	}, &output.Services{Configuration: conf, Logger: svcs.Logger})
 }

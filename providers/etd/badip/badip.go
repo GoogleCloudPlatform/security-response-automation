@@ -33,11 +33,6 @@ type Automation struct {
 		TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
 		TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
 		Output                  []string
-		Turbinia                struct {
-			ProjectID string
-			Topic     string
-			Zone      string
-		}
 	}
 }
 

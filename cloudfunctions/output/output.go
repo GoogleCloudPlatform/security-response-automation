@@ -2,13 +2,13 @@ package output
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
+	"io/ioutil"
 	"log"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/channels/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 )
 
 // Configuration maps channels attributes.
@@ -24,6 +24,20 @@ type Configuration struct {
 // Services contains the services needed for this function.
 type Services struct {
 	Configuration *Configuration
+	Logger        *services.Logger
+}
+
+// Config will return the output's configuration.
+func Config() (*Configuration, error) {
+	var c Configuration
+	b, err := ioutil.ReadFile("./cloudfunctions/output/config.yaml")
+	if err != nil {
+		return nil, err
+	}
+	if err := yaml.Unmarshal(b, &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
 //ChannelMessage contains the required values for this function.
@@ -39,29 +53,28 @@ type ChannelMessage struct {
 	Message        string
 }
 
-// ChannelRedirect will sent notification to the available channel.
-func ChannelRedirect(ctx context.Context, m pubsub.Message) error {
-	var values ChannelMessage
-	var os Services
-	if err := json.Unmarshal(m.Data, &values); err != nil {
-		switch values.SourceInfo {
-		case "channels":
+// Execute will orchestrate the notification to the available channel.
+func Execute(ctx context.Context, c *ChannelMessage, s *Services) error {
+	switch c.SourceInfo {
+	case "turbinia":
 
-			log.Printf("received: %+v", values)
+		log.Printf("received: %+v", c)
 
-			diskName := values.Message
-			turbiniaProjectID := os.Configuration.Spec.Channels.Turbinia.ProjectID
-			turbiniaTopicName := os.Configuration.Spec.Channels.Turbinia.Topic
-			turbiniaZone := os.Configuration.Spec.Channels.Turbinia.Zone
-			if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskName); err != nil {
-				return err
-			}
-			//svcs.Logger.Info("sent %d disks to channels", len(diskNames))
-			log.Printf("sent %q disk to channels", diskName)
-		default:
-			return err
+		diskName := c.Message
+		turbiniaProjectID := s.Configuration.Spec.Channels.Turbinia.ProjectID
+		turbiniaTopicName := s.Configuration.Spec.Channels.Turbinia.Topic
+		turbiniaZone := s.Configuration.Spec.Channels.Turbinia.Zone
+		if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskName); err != nil {
+			return errors.Wrapf(err, "failed while sending Turbinia request to %q on project %q",
+				turbiniaTopicName, turbiniaProjectID)
 		}
-		return nil
+		s.Logger.Info("sent %d disks to channels")
+	case "pagerduty":
+	case "slack":
+	case "sendgrid":
+	case "stackdriver":
+	default:
+		return errors.Errorf("Invalid channel option")
 	}
-	return errors.New("")
+	return nil
 }
