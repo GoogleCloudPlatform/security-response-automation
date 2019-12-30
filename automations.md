@@ -4,6 +4,10 @@
 
 Removes public access from Google Cloud Storage buckets.
 
+Required Roles
+
+- Storage Admin - `roles/storage.admin`
+
 Configuration
 
 - Action name `close_bucket`
@@ -11,6 +15,10 @@ Configuration
 #### Enable bucket only policy
 
 Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
+
+Required Roles
+
+- Storage Admin - `roles/storage.admin`
 
 Configuration
 
@@ -21,6 +29,10 @@ Configuration
 #### Revoke IAM grants
 
 Removes members from an IAM policy.
+
+Required Roles
+
+- Folder Admin - `roles/resourcemanager.folderAdmin`
 
 Configuration
 
@@ -33,6 +45,10 @@ Before a user is removed the user is checked against the below lists. These list
 #### Remove non-Organization members
 
 Removes non-organization members from resource level IAM policy.
+
+Required Roles
+
+- Folder Admin - `roles/resourcemanager.folderAdmin`
 
 Configuration
 
@@ -47,6 +63,10 @@ Before a user is removed, the user is checked against the below lists. These lis
 #### Create Snapshot
 
 Automatically create a snapshot of all disks associated with a GCE instance.
+
+Required Roles
+
+- Compute Admin - `roles/compute.admin`
 
 Configuration
 
@@ -68,6 +88,10 @@ The below keys are placed under the `turbinia` key:
 
 Removes all public IPs from an instance's network interface.
 
+Required Roles
+
+- Compute Instance Admin (v1) - `roles/compute.instanceAdmin.v1`
+
 Configuration
 
 - Action name `remove_public_ip`
@@ -75,6 +99,10 @@ Configuration
 #### Remediate Firewall
 
 Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
+
+Required Roles
+
+- Compute Security Admin - `roles/compute.securityAdmin`
 
 Configuration
 
@@ -90,6 +118,10 @@ Configuration
 
 Create a firewall rule to block SSH access from suspicious IPs.
 
+Required Roles
+
+- Compute Security Admin - `roles/compute.securityAdmin`
+
 Configuration
 
 - Action name `remediate_firewall`
@@ -99,6 +131,10 @@ Configuration
 #### Disable Kubernetes Dashboard addon
 
 Automatically disable the Kubernetes Dashboard addon.
+
+Required Roles
+
+- Kubernetes Engine Cluster Admin - `roles/container.clusterAdmin`
 
 Configuration
 
@@ -110,6 +146,10 @@ Configuration
 
 Close a public cloud SQL instance.
 
+Required Roles
+
+- Cloud SQL Editor - `roles/cloudsql.editor`
+
 Configuration
 
 - Action name `close_cloud_sql`
@@ -118,6 +158,10 @@ Configuration
 
 Update Cloud SQL instance to require SSL connections.
 
+Required Roles
+
+- Cloud SQL Editor - `roles/cloudsql.editor`
+
 Configuration
 
 - Action name `cloud_sql_require_ssl`
@@ -125,6 +169,10 @@ Configuration
 #### Update root password
 
 Update the root password of a Cloud SQL instance.
+
+Required Roles
+
+- Cloud SQL Editor - `roles/cloudsql.editor`
 
 Configuration
 
@@ -135,6 +183,10 @@ Configuration
 #### Close access to a public BigQuery dataset
 
 Removes public access from a BigQuery dataset.
+
+Required Roles
+
+- BigQuery Data Owner - `roles/bigquery.dataOwner`
 
 Configuration
 
