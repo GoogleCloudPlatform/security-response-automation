@@ -1,21 +1,5 @@
 # Automation Modules
 
-These are the available Cloud Functions modules:
-
-- router
-- close_public_bucket
-- enable_bucket_only_policy
-- revoke_iam_grants
-- create_disk_snapshot
-- open_firewall
-- remove_public_ip
-- close_public_dataset
-- close_public_cloud_sql
-- cloud-sql-require-ssl
-- disable_dashboard
-- update_password
-- enable_audit_logs
-
 ## Google Cloud Storage
 
 ### Remove public access
