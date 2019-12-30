@@ -15,7 +15,7 @@ on the automation project.
 - `"failed to execute <AUTOMATION> automation with values"`: in the other cases, the start of the error message will hint on the `AUTOMATION` that failed.
 You can also look at the field `resource.labels.function_name` in the log entry to find out which automation failed.
 
-You can find in `automations.md` which are the required roles for the service account for this automation.
+You can find in [automations](/automations.md) which are the required roles for the service account for this automation.
 You will need to grant the required roles to the service for the automation to work.
 The error message will also contain the project in which the service account needs the permission, like `... ProjectID:decent-ellipse-00000 ...`
 or `... on project "decent-ellipse-00000" ...`
