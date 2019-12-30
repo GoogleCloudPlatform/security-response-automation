@@ -22,7 +22,7 @@ or `... on project "decent-ellipse-00000" ...`
 
 If the project is under one of the folders provided on the terraform variable `folder-ids`,
 the service account should have the right role, granted by the terraform script on deploy.
-Re-run terraform(*recomended*) or add the roles manually on Google Cloud Console to fix this error.
+Re-run terraform(*recommended*) or add the roles manually on Google Cloud Console to fix this error.
 
 If the project is *not* under one of the folders provided on the terraform variable `folder-ids`,
 you can grant role the required role to service account `automation-service-account@<automation-project>.gserviceaccount.com`
