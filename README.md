@@ -16,7 +16,7 @@ You're in control:
 
 ### Configure automations
 
-Before installation we'll configure our automations, copy `./router/empty-config.yaml` to `./router/config.yaml`. Within this file we'll define a few steps to get started:
+Before installation we'll configure our automations, copy `./cloudfunctions/router/empty-config.yaml` to `./cloudfunctions/router/config.yaml`. Within this file we'll define a few steps to get started:
 
 - Which automations should apply to which findings.
 - Which projects to target these automations with.
@@ -38,9 +38,9 @@ excludes:
   - organizations/1234567890/folders/5656565656/*
 ```
 
-In the [automations](/automations.md) documentation we see that this automation is configured in [config.yaml](config.yaml) under the action name `revoke_iam`. In this example we'll configure Security Response Automation to apply this automation to Event Threat Detection's Anomalous IAM Grant findigns.
+In the [automations](/automations.md) documentation we see that this automation is configured in [./cloudfunctions/router/config.yaml](/cloudfunctions/router/config.yaml) under the action name `revoke_iam`. In this example we'll configure Security Response Automation to apply this automation to Event Threat Detection's Anomalous IAM Grant findings.
 
-It's important to note this automation requires the `allow_domains` to contain at least one valid domain. This is used to ensure SRA only removes domains not explictly allowed. It's also best practice to run SRA with `dry_run` enabled. This way you can let SRA generate StackDriver logs to see what actions it would have taken. Once you confirm this is as expected you can set `dry_run` to false and redeploy.
+It's important to note this automation requires the `allow_domains` to contain at least one valid domain. This is used to ensure SRA only removes domains not explicitly allowed. It's also best practice to run SRA with `dry_run` enabled. This way you can let SRA generate StackDriver logs to see what actions it would have taken. Once you confirm this is as expected you can set `dry_run` to false and redeploy.
 
 ```yaml
 apiVersion: security-response-automation.cloud.google.com/v1alpha1
@@ -137,25 +137,27 @@ terraform init
 // Install all automations.
 terraform apply
 
-// Install a single automations.
+// Install a single automation.
 terraform apply --target module.revoke_iam_grants
 ```
 
-These are the available Cloud Functions modules:
+These are the available automations modules:
 
-- router
-- close_public_bucket
-- enable_bucket_only_policy
-- revoke_iam_grants
-- create_disk_snapshot
-- open_firewall
-- remove_public_ip
-- close_public_dataset
-- close_public_cloud_sql
-- cloud-sql-require-ssl
-- disable_dashboard
-- update_password
-- enable_audit_logs
+- module.router
+- module.close_public_bucket
+- module.enable_bucket_only_policy
+- module.revoke_iam_grants
+- module.create_disk_snapshot
+- module.open_firewall
+- module.remove_public_ip
+- module.close_public_dataset
+- module.close_public_cloud_sql
+- module.cloud-sql-require-ssl
+- module.disable_dashboard
+- module.update_password
+- module.enable_audit_logs
+
+You **must** deploy `module.router` to be able to process Security Command Center notifications
 
 **NOTE**
 
