@@ -143,7 +143,7 @@ $ terraform apply --target module.revoke_iam_grants
 
 **NOTE**
 
-If you setup Security Command Center notifications it's important to remove the StackDriver export so automations are not triggered twice. This is done by running:
+If you set up Security Command Center notifications, you need to remove the StackDriver export so that automations are not triggered twice. To do this, run:
 
 ```shell
 $ gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
