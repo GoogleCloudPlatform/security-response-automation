@@ -74,7 +74,7 @@ Currently Event Threat Detection publishes to StackDriver and Security Command C
 
 **StackDriver**
 
-If you're only interested in processing ETD findings then your configuration is done for you automatically below using Terraform. You can skip the **Setup Security Command Center Notifications** section.
+If you only want to process Event Threat Detection findings, then your configuration is done for you automatically below using Terraform. You can skip the **Set up Security Command Center Notifications** section, and continue to **Configure Security Command Center Notifications**.
 
 **Set up Security Command Center Notifications**
 
