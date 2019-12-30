@@ -25,7 +25,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -53,7 +53,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -81,13 +81,13 @@ metadata:
   name: router
 spec:
   parameters:
-    sha:
+    etd:
       anomalous_iam:
         - action: iam_revoke
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
             allow_domains:
@@ -121,7 +121,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
             allow_domains: ["prod.foo.com", "google.com", "foo.com"]
@@ -164,11 +164,11 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
             target_snapshot_project_id: target-projectid
-            target_snapshot_zone: us-central1
+            target_snapshot_zone: us-central1-a
             output:
             turbinia:
               project_id: turbinia-project
@@ -199,10 +199,9 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
-            unknow: ["a","b"]
 ```
 
 ### Remediate Firewall
@@ -233,10 +232,9 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
-            # values for remediation_action: disable, delete, update_source_range
             remediation_action: update_source_range
             source_ranges:
               - "10.128.0.0/9"
@@ -265,7 +263,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -295,7 +293,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -325,7 +323,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -353,7 +351,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -381,7 +379,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
@@ -411,7 +409,7 @@ spec:
           target:
             - organizations/0000000000000/folders/000000000000/*
           exclude:
-            - organizations/1111111111111/folders/111111111111/*
+            - organizations/0000000000000/folders/111111111111/*
           properties:
             dry_run: false
 ```
