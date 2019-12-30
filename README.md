@@ -83,24 +83,24 @@ CSCC Notifications will enable you to receive SHA & ETD findings.
 Configure CSCC notifications
 
 ```shell
-$ export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
-$ export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
-  ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
-  TOPIC_ID=threat-findings
+export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
+export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
+ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
+TOPIC_ID=threat-findings
 
-$ gcloud beta organizations add-iam-policy-binding \
-	$ORGANIZATION_ID \
-	--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-	--role='roles/securitycenter.notificationConfigEditor'
+gcloud beta organizations add-iam-policy-binding \
+$ORGANIZATION_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+--role='roles/securitycenter.notificationConfigEditor'
 
-$ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-  --role='roles/pubsub.admin'
+gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+--role='roles/pubsub.admin'
 
-$ go run ./local/cli/main.go \
-  --command create \
-  --org-id=$ORGANIZATION_ID \
-  --topic=projects/$PROJECT_ID/topics/$TOPIC_ID
+go run ./local/cli/main.go \
+--command create \
+--org-id=$ORGANIZATION_ID \
+--topic=projects/$PROJECT_ID/topics/$TOPIC_ID
 
 // Note the output, specifically the generated `service_acount`:
 //
@@ -113,13 +113,13 @@ $ go run ./local/cli/main.go \
 //
 // Make sure to replace `SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
 
-$ gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
-  --member="serviceAccount:service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com" \
-  --role="roles/pubsub.publisher"
+gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
+--member="serviceAccount:service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com" \
+--role="roles/pubsub.publisher"
 
-$ gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
-  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-  --role='roles/pubsub.admin'
+gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+--role='roles/pubsub.admin'
 ```
 
 ### Installation
@@ -131,22 +131,38 @@ you have:
 - Terraform version 0.12.17
 
 ```shell
-$ gcloud auth application-default login
-$ terraform init
+gcloud auth application-default login
+terraform init
 
 // Install all automations.
-$ terraform apply
+terraform apply
 
 // Install a single automations.
-$ terraform apply --target module.revoke_iam_grants
+terraform apply --target module.revoke_iam_grants
 ```
+
+These are the available Cloud Functions modules:
+
+- router
+- close_public_bucket
+- enable_bucket_only_policy
+- revoke_iam_grants
+- create_disk_snapshot
+- open_firewall
+- remove_public_ip
+- close_public_dataset
+- close_public_cloud_sql
+- cloud-sql-require-ssl
+- disable_dashboard
+- update_password
+- enable_audit_logs
 
 **NOTE**
 
 If you setup CSCC notifications it's important to remove the StackDriver export so automations are not triggered twice. This is done by running:
 
 ```shell
-$ gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
+gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
 ```
 
 TIP: Instead of entering variables every time you can create `terraform.tfvars`
@@ -162,7 +178,7 @@ Terraform will create or destroy everything by default. To redeploy a single Clo
 ```shell
 // revoke_iam_grants is the name of the Terraform module in `./main.tf`.
 // IAMRevoke is the exported Cloud Function name in `exec.go`.
-$ scripts/deploy.sh revoke_iam_grants IAMRevoke $PROJECT_ID
+scripts/deploy.sh revoke_iam_grants IAMRevoke $PROJECT_ID
 ```
 
 ### Logging
