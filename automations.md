@@ -24,8 +24,10 @@ spec:
         - action: close_bucket
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -52,8 +54,10 @@ spec:
         - action: enable_bucket_only_policy
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -86,8 +90,10 @@ spec:
         - action: iam_revoke
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
             allow_domains:
@@ -120,8 +126,10 @@ spec:
         - action: remove_non_org_members
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
             allow_domains: ["prod.foo.com", "google.com", "foo.com"]
@@ -163,8 +171,10 @@ spec:
         - action: gce_create_disk_snapshot
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
             target_snapshot_project_id: target-projectid
@@ -198,8 +208,10 @@ spec:
         - action: remove_public_ip
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -231,8 +243,10 @@ spec:
         - action: remediate_firewall
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
             remediation_action: update_source_range
@@ -262,8 +276,10 @@ spec:
         - action: remediate_firewall
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -292,8 +308,10 @@ spec:
         - action: disable_dashboard
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -322,8 +340,10 @@ spec:
         - action: close_cloud_sql
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -350,8 +370,10 @@ spec:
         - action: cloud_sql_require_ssl
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -378,8 +400,10 @@ spec:
         - action: cloud_sql_update_password
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
@@ -408,8 +432,10 @@ spec:
         - action: close_public_dataset
           target:
             - organizations/0000000000000/folders/000000000000/*
+            - organizations/0000000000000/folders/111111111111/projects/applied-project
           exclude:
-            - organizations/0000000000000/folders/111111111111/*
+            - organizations/0000000000000/folders/000000000000/projects/non-applied-project
+            - organizations/0000000000000/folders/111111111111/projects/also-non-applied-project
           properties:
             dry_run: false
 ```
