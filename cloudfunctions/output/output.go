@@ -68,7 +68,7 @@ func Execute(ctx context.Context, c *ChannelMessage, s *Services) error {
 			return errors.Wrapf(err, "failed while sending Turbinia request to %q on project %q",
 				turbiniaTopicName, turbiniaProjectID)
 		}
-		s.Logger.Info("sent %d disks to channels")
+		s.Logger.Info("sent %d disks to Turbinia")
 	case "pagerduty":
 	case "slack":
 	case "sendgrid":

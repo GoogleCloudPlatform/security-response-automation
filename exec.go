@@ -44,7 +44,6 @@ import (
 var (
 	svcs      *services.Global
 	projectID = os.Getenv("GCP_PROJECT")
-	ps        *services.PubSub
 )
 
 const outputTopic = "threat-findings-output"
