@@ -70,17 +70,17 @@ The service account is configured separately within [main.tf](/main.tf). Here we
 
 #### Forward findings to Pub/Sub
 
-Currently Event Threat Detection publishes to StackDriver and CSCC, Security Health Analytics publishes to CSCC only. We're currently in the process of moving to CSCC notifications but for completeness sake we'll list instructions for StackDriver (legacy) and CSCC notifications.
+Currently Event Threat Detection publishes to StackDriver and Security Command Center, Security Health Analytics publishes to Security Command Center only. We're currently in the process of moving to Security Command Center notifications but for completeness sake we'll list instructions for StackDriver (legacy) and Security Command Center notifications.
 
 **StackDriver**
 
-If you're only interested in processing ETD findings then your configuration is done for you automatically below using Terraform. You can skip the **Setup CSCC Notifications** section.
+If you only want to process Event Threat Detection findings, then your configuration is done for you automatically below using Terraform. You can skip the **Set up Security Command Center Notifications** section, and continue to **Configure Security Command Center Notifications**.
 
-**Setup CSCC Notifications**
+**Set up Security Command Center Notifications**
 
-CSCC Notifications will enable you to receive SHA & ETD findings.
+Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings. 
 
-Configure CSCC notifications
+Configure Security Command Center notifications
 
 ```shell
 export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
@@ -161,7 +161,7 @@ You **must** deploy `module.router` to be able to process Security Command Cente
 
 **NOTE**
 
-If you setup CSCC notifications it's important to remove the StackDriver export so automations are not triggered twice. This is done by running:
+If you set up Security Command Center notifications, you need to remove the StackDriver export so that automations are not triggered twice. To do this, run:
 
 ```shell
 gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
