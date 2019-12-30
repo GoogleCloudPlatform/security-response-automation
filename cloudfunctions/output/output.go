@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/channels"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/channels/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -16,7 +16,7 @@ type Configuration struct {
 	APIVersion string
 	Spec       struct {
 		Channels struct {
-			Turbinia channels.Attributes `yaml:"channels"`
+			Turbinia turbinia.Attributes `yaml:"channels"`
 		}
 	}
 }
