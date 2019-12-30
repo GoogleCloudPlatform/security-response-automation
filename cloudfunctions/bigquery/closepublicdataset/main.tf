@@ -11,22 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-resource "google_cloudfunctions_function" "disable-dashboard" {
-  name                  = "DisableDasboard"
-  description           = "Disable the Kubernetes dashboard addon"
+resource "google_cloudfunctions_function" "close-public-dataset" {
+  name                  = "ClosePublicDataset"
+  description           = "Removes public access of a BigQuery dataset."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
-  entry_point           = "DisableDashboard"
+  project               = var.setup.automation-project
+  region                = var.setup.region
+  entry_point           = "ClosePublicDataset"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
+    resource   = "threat-findings-close-public-dataset"
   }
 }
 
@@ -39,11 +38,24 @@ resource "google_folder_iam_member" "roles-viewer" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-#  Required to update the Kubernetes addon.
-resource "google_folder_iam_member" "roles-cluster-admin" {
+# Required to get and update dataset metadata.
+resource "google_folder_iam_member" "roles-bigquery-dataowner" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/container.clusterAdmin"
+  role   = "roles/bigquery.dataOwner"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-close-public-dataset"
+  project = var.setup.automation-project
+}
+
+resource "google_project_service" "bigquery_api" {
+  project                    = var.setup.automation-project
+  service                    = "bigquery.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }

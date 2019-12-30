@@ -6,8 +6,7 @@ Removes public access from Google Cloud Storage buckets.
 
 Configuration
 
-- Configured in settings.json under the `close_bucket` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `close_bucket`
 
 #### Enable bucket only policy
 
@@ -15,8 +14,7 @@ Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-
 
 Configuration
 
-- Configured in settings.json under the `enable_bucket_only_policy` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `enable_bucket_only_policy`
 
 ### IAM
 
@@ -32,15 +30,17 @@ Before a user is removed the user is checked against the below lists. These list
 
 - `allow_domains` An array of strings containing domain names to be matched. If the member added matches a domain in this list do not remove it. At least one domain is required in this list.
 
-**Remove non-Organization members**
+#### Remove non-Organization members
 
-Automatically removes non-organization users.
+Removes non-organization members from resource level IAM policy.
 
 Configuration
 
-- Configured in settings.json under the `remove_non_org_members` key.
-- See general [resource list](/README.md#resources) options.
-- `allow_domains` whitelist domains to be compared with organization to avoid some members removal.
+- Action name `remove_non_org_members`
+
+Before a user is removed, the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
+
+- `allow_domains` An array of strings containing domain names to be matched. If the member added matches a domain in this list do not remove it. At least one domain is required in this list.
 
 ### Google Compute Engine
 
@@ -70,19 +70,29 @@ Removes all public IPs from an instance's network interface.
 
 Configuration
 
-- Configured in settings.json under the `remove_public_ip` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `remove_public_ip`
 
-#### Remediate open firewall
+#### Remediate Firewall
 
 Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
 
 Configuration
 
-- Configured in settings.json under the `open_firewall` key.
-- See general [resource list](/README.md#resources) options.
-- `remediation_action`: one of `DISABLE`, `DELETE` or `UPDATE_RANGE`
-  - `source_ranges`: if the `remediation_action` is `UPDATE_RANGE` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+- Action name `remediate_firewall`
+- `remediation_action`: One of `disable`, `delete` or `update_source_range`.
+- `source_ranges`: If the `remediation_action` is `update_source_range` the list of IP ranges in [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) to replace the current `0.0.0.0/0` range.
+
+- `disable` Will disable the firewall, it means it will not delete the firewall but the firewall rule will not be enforced on the network.
+- `delete` Will delete the fire wall rule.
+- `update_source_range` Will use the `source_ranges` to update the source ranges used in the firewall.
+
+#### Block SSH Connections
+
+Create a firewall rule to block SSH access from suspicious IPs.
+
+Configuration
+
+- Action name `remediate_firewall`
 
 ### Google Kubernetes Engine
 
@@ -92,8 +102,7 @@ Automatically disable the Kubernetes Dashboard addon.
 
 Configuration
 
-- Configured in settings.json under the `disable_dashboard` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `disable_dashboard`
 
 ### Google Cloud SQL
 
@@ -103,8 +112,7 @@ Close a public cloud SQL instance.
 
 Configuration
 
-- Configured in settings.json under the `close_cloud_sql` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `close_cloud_sql`
 
 #### Require SSL connection to Cloud SQL
 
@@ -112,8 +120,15 @@ Update Cloud SQL instance to require SSL connections.
 
 Configuration
 
-- Configured in settings.json under the `cloud_sql_require_ssl` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `cloud_sql_require_ssl`
+
+#### Update root password
+
+Update the root password of a Cloud SQL instance.
+
+Configuration
+
+- Action name `cloud_sql_update_password`
 
 ### BigQuery
 
@@ -123,5 +138,4 @@ Removes public access from a BigQuery dataset.
 
 Configuration
 
-- Configured in settings.json under the `close_public_dataset` key.
-- See general [resource list](/README.md#resources) options.
+- Action name `close_public_dataset`

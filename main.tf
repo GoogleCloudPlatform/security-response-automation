@@ -38,11 +38,11 @@ module "router" {
   setup  = module.google-setup
 }
 
-# module "close_public_bucket" {
-#   source     = "./terraform/automations/close-public-bucket"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "close_public_bucket" {
+  source     = "./cloudfunctions/gcs/closebucket"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 module "revoke_iam_grants" {
   source     = "./cloudfunctions/iam/revoke"
@@ -58,59 +58,59 @@ module "create_disk_snapshot" {
   turbinia-topic-name = ""
 }
 
-# module "open_firewall" {
-#   source     = "./terraform/automations/disable-firewall"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "enable_bucket_only_policy" {
+  source     = "./cloudfunctions/gcs/enablebucketonlypolicy"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "remove_public_ip" {
-#   source     = "./terraform/automations/remove-public-ip"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "open_firewall" {
+  source     = "./cloudfunctions/gce/openfirewall"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "close_public_dataset" {
-#   source     = "./terraform/automations/close-public-dataset"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "remove_public_ip" {
+  source     = "./cloudfunctions/gce/removepublicip"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "enable_bucket_only_policy" {
-#   source     = "./terraform/automations/enable-bucket-only-policy"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "close_public_dataset" {
+  source     = "./cloudfunctions/bigquery/closepublicdataset"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "close_public_cloud_sql" {
-#   source     = "./terraform/automations/close-public-cloud-sql"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "close_public_cloud_sql" {
+  source     = "./cloudfunctions/cloud-sql/removepublic"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "cloud-sql-require-ssl" {
-#   source     = "./terraform/automations/cloud-sql-require-ssl"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "cloud-sql-require-ssl" {
+  source     = "./cloudfunctions/cloud-sql/requiressl"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "disable_dashboard" {
-#   source     = "./terraform/automations/disable-dashboard"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "disable_dashboard" {
+  source     = "./cloudfunctions/gke/disabledashboard"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "update_password" {
-#   source     = "./terraform/automations/update-password"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "update_password" {
+  source     = "./cloudfunctions/cloud-sql/updatepassword"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
-# module "enable_audit_logs" {
-#   source     = "./terraform/automations/enable-audit-logs"
-#   setup      = module.google-setup
-#   folder-ids = []
-# }
+module "enable_audit_logs" {
+  source     = "./cloudfunctions/iam/enableauditlogs"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
 
 // TODO: enable again and fix IAM roles
 //module "remove_non_org_members" {

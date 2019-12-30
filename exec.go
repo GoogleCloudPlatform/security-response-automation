@@ -18,7 +18,6 @@ package exec
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -74,6 +73,7 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	}, &router.Services{
 		PubSub:        ps,
 		Configuration: conf,
+		Logger:        svcs.Logger,
 		Resource:      svcs.Resource,
 	})
 }
@@ -141,8 +141,6 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			}
 		}
 		return nil
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -155,15 +153,13 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 //	- roles/storeage.admin to modify buckets.
 //
 func CloseBucket(ctx context.Context, m pubsub.Message) error {
-	switch values, err := closebucket.ReadFinding(m.Data); err {
+	var values closebucket.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return closebucket.Execute(ctx, values, &closebucket.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return closebucket.Execute(ctx, &values, &closebucket.Services{
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -176,36 +172,17 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.securityAdmin to modify firewall rules.
 //
 func OpenFirewall(ctx context.Context, m pubsub.Message) error {
-	switch values, err := openfirewall.ReadFinding(m.Data); err {
+	var values openfirewall.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		err := openfirewall.Execute(ctx, values, &openfirewall.Services{
-			Configuration: svcs.Configuration,
-			Firewall:      svcs.Firewall,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		err := openfirewall.Execute(ctx, &values, &openfirewall.Services{
+			Firewall: svcs.Firewall,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 		if err != nil {
 			return err
 		}
-		for _, dest := range svcs.Configuration.DisableFirewall.OutputDestinations {
-			switch dest {
-			case "pagerduty":
-				log.Println("will attempt to output to PagerDuty")
-				conf := svcs.Configuration.PagerDuty
-				if !conf.Enabled {
-					log.Println("pagerDuty not enabled")
-					continue
-				}
-				pd := services.InitPagerDuty(conf.APIKey)
-				title := "Open firewall detected"
-				body := fmt.Sprintf("automatically took action: %q", svcs.Configuration.DisableFirewall.RemediationAction)
-				if err := pd.CreateIncident(ctx, conf.From, conf.ServiceID, title, body); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	case services.ErrUnsupportedFinding:
 		return nil
 	default:
 		return err
@@ -221,15 +198,13 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 //	- roles/resourcemanager.organizationAdmin to get org info and policies and set policies.
 //
 func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removenonorgmembers.ReadFinding(m.Data); err {
+	var values removenonorgmembers.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removenonorgmembers.Execute(ctx, values, &removenonorgmembers.Services{
-			Logger:        svcs.Logger,
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
+		return removenonorgmembers.Execute(ctx, &values, &removenonorgmembers.Services{
+			Logger:   svcs.Logger,
+			Resource: svcs.Resource,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -245,16 +220,14 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 //	- roles/compute.instanceAdmin.v1 to get instance data and delete access config.
 //
 func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublicip.ReadFinding(m.Data); err {
+	var values removepublicip.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublicip.Execute(ctx, values, &removepublicip.Services{
-			Configuration: svcs.Configuration,
-			Host:          svcs.Host,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return removepublicip.Execute(ctx, &values, &removepublicip.Services{
+			Host:     svcs.Host,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -270,20 +243,17 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 //	- roles/bigquery.dataOwner to get and update dataset metadata.
 //
 func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
-	switch values, err := closepublicdataset.ReadFinding(m.Data); err {
+	var values closepublicdataset.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		bigquery, err := services.InitBigQuery(ctx, values.ProjectID)
 		if err != nil {
 			return err
 		}
-		return closepublicdataset.Execute(ctx, values, &closepublicdataset.Services{
-			Configuration: svcs.Configuration,
-			BigQuery:      bigquery,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return closepublicdataset.Execute(ctx, &values, &closepublicdataset.Services{
+			BigQuery: bigquery,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -298,15 +268,13 @@ func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
 //	- roles/storage.admin to change the Bucket policy mode.
 //
 func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
-	switch values, err := enablebucketonlypolicy.ReadFinding(m.Data); err {
+	var values enablebucketonlypolicy.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return enablebucketonlypolicy.Execute(ctx, values, &enablebucketonlypolicy.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return enablebucketonlypolicy.Execute(ctx, &values, &enablebucketonlypolicy.Services{
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -322,16 +290,14 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
-	switch values, err := removepublic.ReadFinding(m.Data); err {
+	var values removepublic.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublic.Execute(ctx, values, &removepublic.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return removepublic.Execute(ctx, &values, &removepublic.Services{
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -347,16 +313,14 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.editor to get instance data and delete access config.
 //
 func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
-	switch values, err := requiressl.ReadFinding(m.Data); err {
+	var values requiressl.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return requiressl.Execute(ctx, values, &requiressl.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return requiressl.Execute(ctx, &values, &requiressl.Services{
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
-	case services.ErrUnsupportedFinding:
-		return nil
 	default:
 		return err
 	}
@@ -372,15 +336,13 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 //	- roles/container.clusterAdmin update cluster addon.
 //
 func DisableDashboard(ctx context.Context, m pubsub.Message) error {
-	switch values, err := disabledashboard.ReadFinding(m.Data); err {
-	case services.ErrUnsupportedFinding:
-		return nil
+	var values disabledashboard.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return disabledashboard.Execute(ctx, values, &disabledashboard.Services{
-			Configuration: svcs.Configuration,
-			Container:     svcs.Container,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return disabledashboard.Execute(ctx, &values, &disabledashboard.Services{
+			Container: svcs.Container,
+			Resource:  svcs.Resource,
+			Logger:    svcs.Logger,
 		})
 	default:
 		return err
@@ -397,14 +359,12 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 //	- roles/editor to get/update resource policy to specific project.
 //
 func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
-	switch values, err := enableauditlogs.ReadFinding(m.Data); err {
-	case services.ErrUnsupportedFinding:
-		return nil
+	var values enableauditlogs.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return enableauditlogs.Execute(ctx, values, &enableauditlogs.Services{
-			Configuration: svcs.Configuration,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return enableauditlogs.Execute(ctx, &values, &enableauditlogs.Services{
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err
@@ -421,13 +381,13 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 //	- roles/cloudsql.admin to update a user password.
 //
 func UpdatePassword(ctx context.Context, m pubsub.Message) error {
-	switch values, err := updatepassword.ReadFinding(m.Data); err {
+	var values updatepassword.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return updatepassword.Execute(ctx, values, &updatepassword.Services{
-			Configuration: svcs.Configuration,
-			CloudSQL:      svcs.CloudSQL,
-			Resource:      svcs.Resource,
-			Logger:        svcs.Logger,
+		return updatepassword.Execute(ctx, &values, &updatepassword.Services{
+			CloudSQL: svcs.CloudSQL,
+			Resource: svcs.Resource,
+			Logger:   svcs.Logger,
 		})
 	default:
 		return err

@@ -8,3 +8,15 @@ spec:
       bad_ip:
       anomalous_iam:
       ssh_brute_force:
+    sha:
+      public_bucket_acl:
+      bucket_policy_only_disabled:
+      public_sql_instance:
+      ssl_not_enforced:
+      sql_no_root_password:
+      public_ip_address:
+      open_firewall:
+      bigquery_public_dataset:
+      audit_logging_disabled:
+      web_ui_enabled:
+      non_org_members:

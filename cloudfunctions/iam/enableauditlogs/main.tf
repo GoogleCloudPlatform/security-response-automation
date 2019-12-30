@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-resource "google_cloudfunctions_function" "close-bucket" {
-  name                  = "CloseBucket"
-  description           = "Removes users that enable public viewing of GCS buckets."
+resource "google_cloudfunctions_function" "enable-audit-logs" {
+  name                  = "EnableAuditLogs"
+  description           = "Remediate projects with data access audit logging disabled"
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
@@ -21,32 +21,34 @@ resource "google_cloudfunctions_function" "close-bucket" {
   timeout               = 60
   project               = var.setup.automation-project
   region                = var.setup.region
-  entry_point           = "CloseBucket"
+  entry_point           = "EnableAuditLogs"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = var.setup.cscc-notifications-topic-prefix}-topi
-  }
-
-  environment_variables = {
-    folder_ids = join(",", var.folder-ids)
+    resource   = "threat-findings-enable-audit-logs"
   }
 }
 
-# Required to retrieve ancestry for projects within this folder.
+# Required to retrieve ancestry for projects within this folder and get/set IAM policies.
 resource "google_folder_iam_member" "roles-viewer" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/viewer"
+  role   = "roles/editor"
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# Required to modify buckets within this folder.
-resource "google_folder_iam_member" "roles-storage-admin" {
+#  Required to get and patch policies on projects resources within this folder.
+resource "google_folder_iam_member" "roles-rm-admin" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/storage.admin"
+  role   = "roles/resourcemanager.folderAdmin"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-enable-audit-logs"
+  project = var.setup.automation-project
 }

@@ -11,22 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-resource "google_cloudfunctions_function" "remove-public-ip" {
-  name                  = "RemovePublicIP"
-  description           = "Removes all the external IP addresses of a GCE instance."
+resource "google_cloudfunctions_function" "enable-bucket-only-policy" {
+  name                  = "EnableBucketOnlyPolicy"
+  description           = "Enable bucket only IAM policy on GCS buckets."
   runtime               = "go111"
   available_memory_mb   = 128
-  source_archive_bucket = "${var.setup.gcf-bucket-name}"
-  source_archive_object = "${var.setup.gcf-object-name}"
+  source_archive_bucket = var.setup.gcf-bucket-name
+  source_archive_object = var.setup.gcf-object-name
   timeout               = 60
-  project               = "${var.setup.automation-project}"
-  region                = "${var.setup.region}"
-  entry_point           = "RemovePublicIP"
+  project               = var.setup.automation-project
+  region                = var.setup.region
+  entry_point           = "EnableBucketOnlyPolicy"
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "${var.setup.cscc-notifications-topic-prefix}-topic"
+    resource   = "threat-findings-enable-bucket-only-policy"
   }
+}
+
+# PubSub topic to trigger this automation.
+resource "google_pubsub_topic" "topic" {
+  name    = "threat-findings-enable-bucket-only-policy"
+  project = var.setup.automation-project
 }
 
 # Required to retrieve ancestry for projects within this folder.
@@ -38,11 +44,18 @@ resource "google_folder_iam_member" "roles-viewer" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-# Required to delete the access config (IP) from the network interface of the GCE instance.
-resource "google_folder_iam_member" "roles-instance-admin-v1" {
+# Required to modify buckets within this folder.
+resource "google_folder_iam_member" "roles-storage-admin" {
   count = length(var.folder-ids)
 
   folder = "folders/${var.folder-ids[count.index]}"
-  role   = "roles/compute.instanceAdmin.v1"
+  role   = "roles/storage.admin"
   member = "serviceAccount:${var.setup.automation-service-account}"
+}
+
+resource "google_project_service" "storage_api" {
+  project                    = var.setup.automation-project
+  service                    = "storage-api.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }
