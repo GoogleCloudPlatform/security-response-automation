@@ -172,6 +172,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "iam_revoke":
@@ -192,6 +193,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -213,6 +215,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_bucket":
@@ -233,6 +236,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "enable_bucket_only_policy":
@@ -253,6 +257,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_cloud_sql":
@@ -273,6 +278,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "cloud_sql_require_ssl":
@@ -293,6 +299,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "cloud_sql_update_password":
@@ -317,6 +324,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remove_public_ip":
@@ -337,6 +345,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -359,6 +368,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -381,6 +391,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remediate_firewall":
@@ -403,6 +414,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "close_public_dataset":
@@ -423,6 +435,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "enable_audit_logs":
@@ -443,6 +456,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "disable_dashboard":
@@ -463,6 +477,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
 			case "remove_non_org_members":
