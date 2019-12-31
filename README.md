@@ -78,7 +78,7 @@ If you only want to process Event Threat Detection findings, then your configura
 
 **Set up Security Command Center Notifications**
 
-Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings. 
+Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings.
 
 Configure Security Command Center notifications
 
