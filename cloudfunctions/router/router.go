@@ -506,7 +506,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 func publish(ctx context.Context, services *Services, action, topic, projectID string, target, exclude []string, values interface{}) error {
 	ok, err := services.Resource.CheckMatches(ctx, projectID, target, exclude)
 	if err != nil {
-		return errors.Wrapf(err, "failed to check matches for target and exclude lists %q", action)
+		return errors.Wrapf(err, "failed to check if project %q is within the target or is excluded", projectID)
 	}
 	if !ok {
 		return fmt.Errorf("project %q is not within the target or is excluded", projectID)

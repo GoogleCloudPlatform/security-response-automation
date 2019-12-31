@@ -37,8 +37,7 @@ resource "google_project_iam_member" "router-pubsub-writer" {
 
 # Required to retrieve ancestry for projects within this folder.
 resource "google_folder_iam_member" "roles-browser" {
-  count = length(var.folder-ids)
-
+  count  = length(var.folder-ids)
   folder = "folders/${var.folder-ids[count.index]}"
   role   = "roles/browser"
   member = "serviceAccount:${var.setup.automation-service-account}"
