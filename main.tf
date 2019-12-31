@@ -34,8 +34,9 @@ module "google-setup" {
 }
 
 module "router" {
-  source = "./cloudfunctions/router/"
-  setup  = module.google-setup
+  source     = "./cloudfunctions/router/"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
 }
 
 module "close_public_bucket" {
