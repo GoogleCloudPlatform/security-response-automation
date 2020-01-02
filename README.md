@@ -11,10 +11,10 @@ You're in control:
 
 - Service account runs with lowest permission needed granted at granularity you specify.
 - You control which projects are enforced by each automation.
-- Every action is logged to StackDriver and is easy auditable.
+- Every action is logged to StackDriver and is easily auditable.
 - Can be run in monitor mode where actions are logged only.
 
-### Configure automations
+## Configure automations
 
 Before installation we'll configure our automations, copy `./cloudfunctions/router/empty-config.yaml` to `./cloudfunctions/router/config.yaml`. Within this file we'll define a few steps to get started:
 
@@ -24,23 +24,7 @@ Before installation we'll configure our automations, copy `./cloudfunctions/rout
 - Enable/disable dry run(monitor) mode
 - Fill in any needed variables.
 
-## Restricting projects
-
-Every automation accepts a `target` and `exclude` array that accepts an ancestry pattern that is compared against the incoming project. For example lets say you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use folder ID `5656565656` that you want to leave alone. If you have projects outside of folders you can specify them too.
-
-In this case your configuration could look like:
-
-```yaml
-target:
-  - organizations/1234567890/folders/424242424242/*
-  - organizations/1234567890/projects/77981237242
-excludes:
-  - organizations/1234567890/folders/5656565656/*
-```
-
-In the [automations](/automations.md) documentation we see that this automation is configured in [./cloudfunctions/router/config.yaml](/cloudfunctions/router/config.yaml) under the action name `revoke_iam`. In this example we'll configure Security Response Automation to apply this automation to Event Threat Detection's Anomalous IAM Grant findings.
-
-It's important to note this automation requires the `allow_domains` to contain at least one valid domain. This is used to ensure SRA only removes domains not explicitly allowed. It's also best practice to run SRA with `dry_run` enabled. This way you can let SRA generate StackDriver logs to see what actions it would have taken. Once you confirm this is as expected you can set `dry_run` to false and redeploy.
+Every automation has a configuration similar to the following example:
 
 ```yaml
 apiVersion: security-response-automation.cloud.google.com/v1alpha1
@@ -53,32 +37,46 @@ spec:
       anomalous_iam:
         - action: iam_revoke
           target:
-            - organizations/1234567890/folders/424242424242/*
-          exclude:
+            - organizations/1234567891011/folders/424242424242/*
+            - organizations/1234567891011/projects/applied-project
+          excludes:
+            - organizations/1234567891011/folders/424242424242/projects/non-applied-project
+            - organizations/1234567891011/folders/565656565656/*
           properties:
-            dry_run: false
+            dry_run: true
             allow_domains:
               - foo.com
 ```
 
-#### Configuring permissions
+The first important parameter is the finding source type. Currently Security Response Automation supports two types: Security Health Analytics (`sha`) and  Event Threat Detection (`etd`).
+
+Below the finding source type you can add multiple automations, each with its own action to be done, their list of projects or folders that will or will not be affected (`target` and `exclude`) and their properties. In this example we  configured this automation to Event Threat Detection's Anomalous IAM Grant findings under the action name `revoke_iam`.
+
+The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the above example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use folder ID `565656565656` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
+
+The last part are the properties. For default all automations have at least the `dry_run` mode that can let you generate StackDriver logs to see what actions it would have taken. The best practice is to run with `dry_run` enabled, because you can confirm the actions as expected before executing them. After that you can set `dry_run` to `false` and redeploy.
+
+The above example introduces an specific example of another property, the `allow_domains`. It is used to ensure that this automation only removes domains not explicitly allowed. To see examples of how to configure the other automations access the
+[automations](/automations.md) documentation.
+
+## Configuring permissions
 
 The service account is configured separately within [main.tf](/main.tf). Here we inform Terraform which folders we're enforcing so the required roles are automatically granted. You have a few choices for how to configure this step:
 
 - **Recommended** Specify a list of folder IDs that SRA could grant its service account the necessary roles to. This ensures SRA only has the access it needs at the folders where it's being used. This list will be asked below in the **Installation** section.
 - Grant permissions on your own either per project or at the organizational level.
 
-#### Forward findings to Pub/Sub
+## Forward findings to Pub/Sub
 
 Currently Event Threat Detection publishes to StackDriver and Security Command Center, Security Health Analytics publishes to Security Command Center only. We're currently in the process of moving to Security Command Center notifications but for completeness sake we'll list instructions for StackDriver (legacy) and Security Command Center notifications.
 
-**StackDriver**
+### StackDriver
 
-If you only want to process Event Threat Detection findings, then your configuration is done for you automatically below using Terraform. You can skip the **Set up Security Command Center Notifications** section, and continue to **Configure Security Command Center Notifications**.
+If you only want to process Event Threat Detection findings, then your configuration is done for you automatically below using Terraform. You can skip the **Set up Security Command Center Notifications** section.
 
-**Set up Security Command Center Notifications**
+### Set up Security Command Center Notifications
 
-Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings. 
+Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings.
 
 Configure Security Command Center notifications
 
@@ -122,7 +120,7 @@ gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
 --role='roles/pubsub.admin'
 ```
 
-### Installation
+## Installation
 
 Following these instructions will deploy all automations. Before you get started be sure
 you have:
@@ -159,7 +157,7 @@ These are the available automations modules:
 
 You **must** deploy `module.router` to be able to process Security Command Center notifications
 
-**NOTE**
+**NOTE**:
 
 If you set up Security Command Center notifications, you need to remove the StackDriver export so that automations are not triggered twice. To do this, run:
 
