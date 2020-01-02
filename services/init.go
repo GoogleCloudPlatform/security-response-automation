@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/googlecloudplatform/security-response-automation/clients"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -25,32 +25,32 @@ type Global struct {
 func New(ctx context.Context) (*Global, error) {
 	host, err := initHost(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Host service")
+		return nil, err
 	}
 
 	log, err := initLog(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Logger service")
+		return nil, err
 	}
 
 	res, err := initResource(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Resource service")
+		return nil, err
 	}
 
 	fw, err := initFirewall(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Firewall service")
+		return nil, err
 	}
 
 	cont, err := initContainer(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Container service")
+		return nil, err
 	}
 
 	sql, err := initCloudSQL(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize Cloud SQL service")
+		return nil, err
 	}
 
 	return &Global{
@@ -73,7 +73,7 @@ func InitPagerDuty(apiKey string) *PagerDuty {
 func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
 	bq, err := clients.NewBigQuery(ctx, authFile, projectID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to initialize BigQuery client on: %q", projectID)
+		return nil, fmt.Errorf("failed to initialize bigquery client: %q", err)
 	}
 	return NewBigQuery(bq), nil
 }
@@ -82,7 +82,7 @@ func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
 func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
 	pubsub, err := clients.NewPubSub(ctx, authFile, projectID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to initialize PubSub client on: %q", projectID)
+		return nil, fmt.Errorf("failed to initialize pubsub client: %q", err)
 	}
 	return NewPubSub(pubsub), nil
 }
@@ -90,7 +90,7 @@ func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
 func initHost(ctx context.Context) (*Host, error) {
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize compute client")
+		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
 	return NewHost(cs), nil
 }
@@ -98,7 +98,7 @@ func initHost(ctx context.Context) (*Host, error) {
 func initLog(ctx context.Context) (*Logger, error) {
 	logClient, err := clients.NewLogger(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize logger client")
+		return nil, fmt.Errorf("failed to initialize logger client: %q", err)
 	}
 	return NewLogger(logClient), nil
 }
@@ -106,11 +106,11 @@ func initLog(ctx context.Context) (*Logger, error) {
 func initResource(ctx context.Context) (*Resource, error) {
 	crm, err := clients.NewCloudResourceManager(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize cloud resource manager client")
+		return nil, fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
 	}
 	stg, err := clients.NewStorage(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize storage client")
+		return nil, fmt.Errorf("failed to initialize storage client: %q", err)
 	}
 	return NewResource(crm, stg), nil
 }
@@ -118,7 +118,7 @@ func initResource(ctx context.Context) (*Resource, error) {
 func initFirewall(ctx context.Context) (*Firewall, error) {
 	cs, err := clients.NewCompute(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize compute client")
+		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
 	return NewFirewall(cs), nil
 }
@@ -126,7 +126,7 @@ func initFirewall(ctx context.Context) (*Firewall, error) {
 func initContainer(ctx context.Context) (*Container, error) {
 	cc, err := clients.NewContainer(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize container client")
+		return nil, fmt.Errorf("failed to initialize container client: %q", err)
 	}
 	return NewContainer(cc), nil
 }
@@ -134,7 +134,7 @@ func initContainer(ctx context.Context) (*Container, error) {
 func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 	cs, err := clients.NewCloudSQL(ctx, authFile)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize sql client")
+		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
 	return NewCloudSQL(cs), nil
 }

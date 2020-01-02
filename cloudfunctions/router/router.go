@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"regexp"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd/anomalousiam"
@@ -52,8 +51,6 @@ var findings = []Namer{
 	&loggingscanner.Finding{},
 	&iamscanner.Finding{},
 }
-
-var newLineRegex = regexp.MustCompile(`\r?\n`)
 
 // Namer represents findings that export their name.
 type Namer interface {
@@ -162,7 +159,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish to Turbinia.Topic %q on project %q: %q", values.Turbinia.Topic, values.Turbinia.ProjectID, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -183,7 +180,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -205,7 +202,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = "block_ssh"
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -226,7 +223,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -247,7 +244,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -268,7 +265,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -289,7 +286,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -314,7 +311,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -335,7 +332,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -358,7 +355,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = automation.Properties.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -381,7 +378,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = automation.Properties.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -404,7 +401,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.Action = automation.Properties.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -425,7 +422,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -446,7 +443,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -467,7 +464,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -489,7 +486,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.AllowDomains = automation.Properties.AllowDomains
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish action %q for rule %q: %q", automation.Action, name, err)
+					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
 			default:
@@ -498,7 +495,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		}
 
 	default:
-		return fmt.Errorf("rule %q not found. Finding: %+v", name, replaceNewLines(string(values.Finding)))
+		return fmt.Errorf("rule %q not found", name)
 	}
 	return nil
 }
@@ -519,12 +516,8 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 		Data: b,
 	}); err != nil {
 		services.Logger.Error("failed to publish to %q for action %q", topic, action)
-		return errors.Wrapf(err, "failed to publish to %q for action %q", topic, action)
+		return err
 	}
 	log.Printf("sent to pubsub topic: %q", topic)
 	return nil
-}
-
-func replaceNewLines(text string) string {
-	return newLineRegex.ReplaceAllString(text, " ")
 }
