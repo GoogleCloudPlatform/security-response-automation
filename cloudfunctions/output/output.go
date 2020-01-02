@@ -16,7 +16,7 @@ type Configuration struct {
 	APIVersion string
 	Spec       struct {
 		Channels struct {
-			Turbinia turbinia.Attributes `yaml:"channels"`
+			Turbinia turbinia.Attributes `yaml:"turbinia"`
 		}
 	}
 }
