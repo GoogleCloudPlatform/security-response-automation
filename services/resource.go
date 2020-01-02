@@ -277,7 +277,7 @@ func (r *Resource) CheckMatches(ctx context.Context, projectID string, target, i
 	}
 	matchesTarget, err := r.ancestryMatches(target, ancestorPath)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to process target list")
+		return false, errors.Wrap(err, "failed to process target list")
 	}
 	return matchesTarget, nil
 }
