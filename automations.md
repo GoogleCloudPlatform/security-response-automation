@@ -8,10 +8,8 @@ Removes public access from Google Cloud Storage buckets.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `public_bucket_acl`
-
 - Action name: `close_bucket`
 
 Properties:
@@ -27,10 +25,8 @@ Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `bucket_policy_only_disabled`
-
 - Action name: `enable_bucket_only_policy`
 
 Properties:
@@ -48,10 +44,8 @@ Removes members from an IAM policy.
 
 Configuration
 
-- Finding source type: `etd`
-
+- Finding source provider: `etd`
 - Finding: `anomalous_iam`
-
 - Action name: `iam_revoke`
 
 Before a user is removed the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
@@ -73,10 +67,8 @@ Removes non-organization members from resource level IAM policy.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `non_org_members`
-
 - Action name: `remove_non_org_members`
 
 Before a user is removed, the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
@@ -101,10 +93,8 @@ Automatically create a snapshot of all disks associated with a GCE instance.
 
 Configuration
 
-- Finding source type: `etd`
-
+- Finding source provider: `etd`
 - Finding: `bad_ip`
-
 - action `gce_create_disk_snapshot`
 
 Properties:
@@ -140,10 +130,8 @@ Removes all public IPs from an instance's network interface.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `public_ip_address`
-
 - Action name `remove_public_ip`
 
 Properties:
@@ -159,10 +147,8 @@ Remediate an [Open Firewall](https://cloud.google.com/security-command-center/do
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `open_firewall`
-
 - Action name `remediate_firewall`
 
 Properties:
@@ -187,13 +173,11 @@ Create a firewall rule to block SSH access from suspicious IPs.
 
 Configuration
 
-- Finding source type: `etd`
-
+- Finding source provider: `etd`
 - Finding: `ssh_brute_force`
-
 - Action name `remediate_firewall`
 
-Example:
+Properties:
 
 ```yaml
 properties:
@@ -208,10 +192,8 @@ Automatically disable the Kubernetes Dashboard addon.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `web_ui_enabled`
-
 - Action name `disable_dashboard`
 
 Properties:
@@ -229,10 +211,8 @@ Close a public cloud SQL instance.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `public_sql_instance`
-
 - Action name `close_cloud_sql`
 
 Properties:
@@ -248,10 +228,8 @@ Update Cloud SQL instance to require SSL connections.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `ssl_not_enforced`
-
 - Action name `cloud_sql_require_ssl`
 
 Properties:
@@ -267,10 +245,8 @@ Update the root password of a Cloud SQL instance.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `sql_no_root_password`
-
 - Action name `cloud_sql_update_password`
 
 Properties:
@@ -288,10 +264,8 @@ Removes public access from a BigQuery dataset.
 
 Configuration
 
-- Finding source type: `sha`
-
+- Finding source provider: `sha`
 - Finding: `bigquery_public_dataset`
-
 - Action name `close_public_dataset`
 
 Properties:
