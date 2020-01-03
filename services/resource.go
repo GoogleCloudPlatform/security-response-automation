@@ -105,7 +105,7 @@ func (r *Resource) RemoveUsersProject(ctx context.Context, projectID string, rem
 func (r *Resource) RemoveMembersFromBucket(ctx context.Context, bucketName string, members []string) error {
 	p, err := r.storage.BucketPolicy(ctx, bucketName)
 	if err != nil {
-		return errors.Wrapf(err, "failed getting BucketPolicy from %q", bucketName)
+		return errors.Wrap(err, "failed getting BucketPolicy")
 	}
 	// Save what we need to remove in a map so we don't mutate a slice while we iterate over it.
 	toRemove := make(map[iam.RoleName]map[string]bool)
@@ -136,7 +136,7 @@ func (r *Resource) RemoveMembersFromBucket(ctx context.Context, bucketName strin
 func (r *Resource) EnableAuditLogs(ctx context.Context, projectID string) (*crm.Policy, error) {
 	res, err := r.crm.GetPolicyProject(ctx, projectID)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get project policy on %q", projectID)
+		return nil, errors.Wrap(err, "failed to get project policy")
 	}
 	isDefault := false
 	enableAll := &crm.AuditConfig{
@@ -159,7 +159,7 @@ func (r *Resource) EnableAuditLogs(ctx context.Context, projectID string) (*crm.
 
 	result, err := r.crm.SetPolicyProjectWithMask(ctx, projectID, res, "auditConfigs")
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to update project policy on %q", projectID)
+		return nil, errors.Wrap(err, "failed to update project policy")
 	}
 	return result, nil
 }

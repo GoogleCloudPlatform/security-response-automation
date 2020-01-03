@@ -41,7 +41,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
-		return errors.Wrapf(err, "failed while performing enforce SSL for Cloud SQL instance %q on project %q", values.InstanceName, values.ProjectID)
+		return errors.Wrapf(err, "failed for Cloud SQL instance %q on project %q", values.InstanceName, values.ProjectID)
 	}
 	services.Logger.Info("enforced SSL on Cloud SQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 	return nil

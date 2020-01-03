@@ -45,7 +45,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if _, err := services.Resource.EnableAuditLogs(ctx, values.ProjectID); err != nil {
-		return errors.Wrapf(err, "failed while performing enable Audit Logs on project %q", values.ProjectID)
+		return errors.Wrapf(err, "failed on project %q", values.ProjectID)
 	}
 	services.Logger.Info("audit logs was enabled on %q", values.ProjectID)
 	return nil

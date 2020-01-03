@@ -43,7 +43,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.CloudSQL.UpdateUserPassword(ctx, values.ProjectID, values.InstanceName, values.Host, values.UserName, values.Password); err != nil {
-		return errors.Wrapf(err, "failed while performing update root password for Cloud SQL instance %q on project %q", values.InstanceName, values.ProjectID)
+		return errors.Wrapf(err, "failed for Cloud SQL instance %q on project %q", values.InstanceName, values.ProjectID)
 	}
 	services.Logger.Info("updated root password for Cloud SQL instance %q on project %q.", values.InstanceName, values.ProjectID)
 	return nil

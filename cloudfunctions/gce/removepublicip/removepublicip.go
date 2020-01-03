@@ -41,7 +41,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.Host.RemoveExternalIPs(ctx, values.ProjectID, values.InstanceZone, values.InstanceID); err != nil {
-		return errors.Wrap(err, "failed to remove public ip")
+		return errors.Wrapf(err, "failed for instance %q, in zone %q in project %q.", values.InstanceID, values.InstanceZone, values.ProjectID)
 	}
 	services.Logger.Info("removed public IP address for instance %q, in zone %q in project %q.", values.InstanceID, values.InstanceZone, values.ProjectID)
 	return nil

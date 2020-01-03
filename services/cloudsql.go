@@ -54,10 +54,10 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 		},
 	})
 	if err != nil {
-		return errors.Wrapf(err, "failed to patch cloud SQL instance: %q on project %q", instance, projectID)
+		return errors.Wrap(err, "failed to patch")
 	}
 	if err := s.wait(projectID, op); err != nil {
-		return errors.Wrapf(err, "failed waiting for patch cloud SQL instance: %q on project %q", instance, projectID)
+		return errors.Wrap(err, "failed waiting for patch")
 	}
 	return nil
 }
@@ -66,10 +66,10 @@ func (s *CloudSQL) RequireSSL(ctx context.Context, projectID string, instance st
 func (s *CloudSQL) UpdateUserPassword(ctx context.Context, projectID, instance, host, name, password string) error {
 	op, err := s.client.UpdateUser(ctx, projectID, instance, host, name, &sqladmin.User{Password: password})
 	if err != nil {
-		return errors.Wrapf(err, "failed to update user password instance: %q on project %q", instance, projectID)
+		return errors.Wrap(err, "failed to update user password")
 	}
 	if err := s.wait(projectID, op); err != nil {
-		return errors.Wrapf(err, "failed waiting for update user password instance: %q on project %q", instance, projectID)
+		return errors.Wrap(err, "failed waiting for update user password")
 	}
 	return nil
 }
@@ -105,10 +105,10 @@ func (s *CloudSQL) ClosePublicAccess(ctx context.Context, projectID, instance st
 		},
 	})
 	if err != nil {
-		return errors.Wrapf(err, "failed to patch cloud SQL instance: %q on project %q", instance, projectID)
+		return errors.Wrap(err, "failed to patch")
 	}
 	if err := s.wait(projectID, op); err != nil {
-		return errors.Wrapf(err, "failed waiting for patch cloud SQL instance: %q on project %q", instance, projectID)
+		return errors.Wrap(err, "failed waiting for patch")
 	}
 	return nil
 }

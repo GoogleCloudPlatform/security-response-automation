@@ -41,7 +41,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return nil
 	}
 	if err := services.BigQuery.RemoveDatasetPublicAccess(ctx, values.ProjectID, values.DatasetID); err != nil {
-		return errors.Wrapf(err, "error removing bigquery dataset %q public access in project %q", values.DatasetID, values.ProjectID)
+		return errors.Wrapf(err, "failed on dataset %q in project %q", values.DatasetID, values.ProjectID)
 	}
 	services.Logger.Info("removed public access on bigquery dataset %q in project %q", values.DatasetID, values.ProjectID)
 	return nil

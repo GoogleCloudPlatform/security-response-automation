@@ -41,7 +41,7 @@ func Execute(ctx context.Context, values *Values, service *Services) error {
 		return nil
 	}
 	if _, err := service.Container.DisableDashboard(ctx, values.ProjectID, values.Zone, values.ClusterID); err != nil {
-		return errors.Wrapf(err, "failed while performing Disable Dashboard on cluster %q in project %q", values.ClusterID, values.ProjectID)
+		return errors.Wrapf(err, "failed on cluster %q in project %q", values.ClusterID, values.ProjectID)
 	}
 	service.Logger.Info("successfully disabled dashboard from cluster %q in project %q", values.ClusterID, values.ProjectID)
 	return nil

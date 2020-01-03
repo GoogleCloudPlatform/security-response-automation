@@ -114,8 +114,8 @@ module "enable_audit_logs" {
 }
 
 // TODO: enable again and fix IAM roles
-//module "remove_non_org_members" {
-//  source     = "./cloudfunctions/iam/removenonorgmembers"
-//  setup      = module.google-setup
-//  folder-ids = var.folder-ids
-//}
+module "remove_non_org_members" {
+  source     = "./cloudfunctions/iam/removenonorgmembers"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}

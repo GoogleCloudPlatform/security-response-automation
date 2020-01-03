@@ -43,13 +43,13 @@ func NewBigQuery(cs BigQueryClient) *BigQuery {
 func (bq *BigQuery) RemoveDatasetPublicAccess(ctx context.Context, projectID, datasetID string) error {
 	md, err := bq.client.DatasetMetadata(ctx, projectID, datasetID)
 	if err != nil {
-		return errors.Wrapf(err, "failed to get metadata for bigquery dataset %q in project %q", datasetID, projectID)
+		return errors.Wrap(err, "failed to get metadata")
 	}
 	dm := bigquery.DatasetMetadataToUpdate{
 		Access: removePublicUsers(md),
 	}
 	if _, err := bq.client.OverwriteDatasetMetadata(ctx, projectID, datasetID, dm); err != nil {
-		return errors.Wrapf(err, "failed to remove public access on bigquery dataset %q in project %q", datasetID, projectID)
+		return errors.Wrap(err, "failed to remove public access")
 	}
 	return nil
 }

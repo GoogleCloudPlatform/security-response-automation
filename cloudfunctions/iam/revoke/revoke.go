@@ -49,14 +49,14 @@ type Services struct {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	members, err := toRemove(values.ExternalMembers, values.AllowDomains)
 	if err != nil {
-		return errors.Wrapf(err, "failed to process members to remove. ExternalMembers: %+v, AllowDomains: %+v", values.ExternalMembers, values.AllowDomains)
+		return errors.Wrapf(err, "failed to process members to remove. ExternalMembers: %+v", values.ExternalMembers)
 	}
 	if values.DryRun {
 		services.Logger.Info("dry_run on, would have removed %q from %q", members, values.ProjectID)
 		return nil
 	}
 	if err := services.Resource.RemoveUsersProject(ctx, values.ProjectID, members); err != nil {
-		return errors.Wrapf(err, "failed while performing Remove Users %+v from Project %q", members, values.ProjectID)
+		return errors.Wrapf(err, "failed to remove Users %+v from Project %q", members, values.ProjectID)
 	}
 	services.Logger.Info("successfully removed %q from %s", members, values.ProjectID)
 	return nil
