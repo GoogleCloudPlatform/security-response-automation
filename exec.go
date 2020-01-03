@@ -428,15 +428,5 @@ func Output(ctx context.Context, m pubsub.Message) error {
 	if err != nil {
 		return err
 	}
-	return output.Execute(ctx, &output.ChannelMessage{
-		CorrelationID:  message.CorrelationID,
-		Timestamp:      message.Timestamp,
-		AutomationName: message.AutomationName,
-		SourceInfo:     message.SourceInfo,
-		Priority:       message.Priority,
-		Status:         message.Status,
-		SensitiveInfo:  message.SensitiveInfo,
-		Subject:        message.Subject,
-		Message:        message.Message,
-	}, &output.Services{Configuration: conf, Logger: svcs.Logger})
+	return output.Execute(ctx, &message, &output.Services{Configuration: conf, Logger: svcs.Logger})
 }
