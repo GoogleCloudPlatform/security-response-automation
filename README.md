@@ -54,23 +54,23 @@ Each provider lists findings which contain a list of automations to be applied t
 
 etd:
 
-- bad_ip:
-- anomalous_iam:
-- ssh_brute_force:
+- bad_ip
+- anomalous_iam
+- ssh_brute_force
 
 sha:
 
-- public_bucket_acl:
-- bucket_policy_only_disabled:
-- public_sql_instance:
-- ssl_not_enforced:
-- sql_no_root_password:
-- public_ip_address:
-- open_firewall:
-- bigquery_public_dataset:
-- audit_logging_disabled:
-- web_ui_enabled:
-- non_org_members:
+- public_bucket_acl
+- bucket_policy_only_disabled
+- public_sql_instance
+- ssl_not_enforced
+- sql_no_root_password
+- public_ip_address
+- open_firewall
+- bigquery_public_dataset
+- audit_logging_disabled
+- web_ui_enabled
+- non_org_members
 
 The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use subfolder ID `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
 
