@@ -123,7 +123,7 @@ func Config() (*Configuration, error) {
 		return nil, err
 	}
 	if err := yaml.Unmarshal(b, &c); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to unmarshal config.yaml")
 	}
 	return &c, nil
 }
@@ -510,7 +510,7 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 	}
 	b, err := json.Marshal(&values)
 	if err != nil {
-		return errors.Wrapf(err, "failed to marshal values when running %q", action)
+		return errors.Wrapf(err, "failed to marshal when running %q", action)
 	}
 	if _, err := services.PubSub.Publish(ctx, topic, &pubsub.Message{
 		Data: b,
