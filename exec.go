@@ -63,11 +63,11 @@ func init() {
 func Router(ctx context.Context, m pubsub.Message) error {
 	ps, err := services.InitPubSub(ctx, projectID)
 	if err != nil {
-		return errors.Wrapf(err, "failed to initialize PubSub client on %q", projectID)
+		return err
 	}
 	conf, err := router.Config()
 	if err != nil {
-		return errors.Wrap(err, "failed to load config file cloudfunctions/router/config.yaml")
+		return err
 	}
 	return router.Execute(ctx, &router.Values{
 		Finding: m.Data,
@@ -102,11 +102,11 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute IAM revoke automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute IAM revoke")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal IAM Revoke values: %q", m.Data)
+		return err
 	}
 }
 
@@ -129,7 +129,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			Logger: svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute create snapshot automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute create snapshot")
 		}
 		for _, dest := range values.Output {
 			switch dest {
@@ -147,7 +147,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Snapshot Disk values: %q", m.Data)
+		return err
 	}
 }
 
@@ -166,11 +166,11 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute close bucket automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute close bucket")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Close Bucket values: %q", m.Data)
+		return err
 	}
 }
 
@@ -190,11 +190,11 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute open firewall automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute open firewall")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Open Firewall values: %q", m.Data)
+		return err
 	}
 }
 
@@ -215,11 +215,11 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 			Resource: svcs.Resource,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute remove nonorg members automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute remove nonorg members")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Remove NonOrganization Members values: %q", m.Data)
+		return err
 	}
 }
 
@@ -242,11 +242,11 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute remove public IP automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute remove public IP")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Remove Public IP values: %q", m.Data)
+		return err
 	}
 }
 
@@ -272,11 +272,11 @@ func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err2 != nil {
-			return errors.Wrapf(err2, "failed to execute close public dataset automation with values: %+v", values)
+			return errors.Wrap(err2, "failed to execute close public dataset")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Close Public Dataset values: %q", m.Data)
+		return err
 	}
 }
 
@@ -297,11 +297,11 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute enable bucket only policy automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute enable bucket only policy")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Enable BucketOnly Policy values: %q", m.Data)
+		return err
 	}
 }
 
@@ -324,11 +324,11 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute remove public cloud SQL automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute remove public cloud SQL")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Close Cloud SQL values: %q", m.Data)
+		return err
 	}
 }
 
@@ -351,11 +351,11 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute require SSL automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute require SSL")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Cloud SQL Require SSL values: %q", m.Data)
+		return err
 	}
 }
 
@@ -378,11 +378,11 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 			Logger:    svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute disable dashboard automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute disable dashboard")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Disable Dashboard values: %q", m.Data)
+		return err
 	}
 }
 
@@ -404,11 +404,11 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute enable audit logs automation with values: %+v", values)
+			return errors.Wrap(err, "failed to execute enable audit logs")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Enable Audit Logs values: %q", m.Data)
+		return err
 	}
 }
 
@@ -431,10 +431,10 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 			Logger:   svcs.Logger,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "failed to execute update password automation with ProjectID: %q, InstanceName: %q, Host: %q , UserName: %q and password: ******", values.ProjectID, values.InstanceName, values.Host, values.UserName)
+			return errors.Wrap(err, "failed to execute update password")
 		}
 		return nil
 	default:
-		return errors.Wrapf(err, "failed to Unmarshal Update Password values: %q", m.Data)
+		return err
 	}
 }
