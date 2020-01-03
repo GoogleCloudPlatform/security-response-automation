@@ -1,6 +1,6 @@
 # Security Response Automation
 
-Take automated actions on your Cloud Security Command Center findings:
+Take automated actions on your Security Command Center findings:
 
 - Automatically create disk snapshots to enable forensic investigations.
 - Revoke IAM grants that violate your desired policy.
@@ -20,9 +20,9 @@ Before installation we'll configure our automations, copy `./cloudfunctions/rout
 
 - Which automations should apply to which findings.
 - Which projects to target these automations with.
-- Which projects to exclude.
-- Enable/disable dry run(monitor) mode
-- Fill in any needed variables.
+- Optionally specify Which projects should be excluded.
+- Whether or not run in monitor mode (dry_run) where changes are logged but not performed.
+- Specify automation configuration properties.
 
 Every automation has a configuration similar to the following example:
 
@@ -48,36 +48,15 @@ spec:
               - foo.com
 ```
 
-The first parameter represents the finding provider, `sha` (Security Health Analytics) and `etd` (Event Threat Detection).
+The first parameter represents the finding provider, `sha` (Security Health Analytics) or `etd` (Event Threat Detection).
 
-Each provider lists findings which contain a list of automations to be applied to those findings. In this example we apply the `revoke_iam` automation to Event Threat Detection's Anomalous IAM Grant finding. The current list of supported findings is:
+Each provider lists findings which contain a list of automations to be applied to those findings. In this example we apply the `revoke_iam` automation to Event Threat Detection's Anomalous IAM Grant finding. For a full list of automations and their supported findings see [automations.md](automations.md).
 
-etd:
+The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use a sub folder `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
 
-- bad_ip
-- anomalous_iam
-- ssh_brute_force
+All automations have at least the `dry_run` mode that can let you generate StackDriver logs to see what actions would have been taken. This is recommend to confirm the actions taken are as expected before actually executing them.
 
-sha:
-
-- public_bucket_acl
-- bucket_policy_only_disabled
-- public_sql_instance
-- ssl_not_enforced
-- sql_no_root_password
-- public_ip_address
-- open_firewall
-- bigquery_public_dataset
-- audit_logging_disabled
-- web_ui_enabled
-- non_org_members
-
-The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use subfolder ID `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
-
-The last part are the properties. For default all automations have at least the `dry_run` mode that can let you generate StackDriver logs to see what actions it would have taken. The best practice is to run with `dry_run` enabled, because you can confirm the actions as expected before executing them. After that you can set `dry_run` to `false` and redeploy.
-
-The above example introduces an specific example of another property, the `allow_domains`. It is used to ensure that this automation only removes domains not explicitly allowed. To see examples of how to configure the other automations access the
-[automations](/automations.md) documentation.
+The `allow_domains` property is specific to the iam_revoke automation. To see examples of how to configure the other automations see the full [documentation](/automations.md).
 
 ## Configuring permissions
 
@@ -143,7 +122,7 @@ gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
 ## Installation
 
 Following these instructions will deploy all automations. Before you get started be sure
-you have:
+you have the following installed:
 
 - Go version 1.11
 - Terraform version 0.12.17
@@ -151,31 +130,10 @@ you have:
 ```shell
 gcloud auth application-default login
 terraform init
-
-// Install all automations.
 terraform apply
-
-// Install a single automation.
-terraform apply --target module.revoke_iam_grants
 ```
 
-These are the available automations modules:
-
-- module.router
-- module.close_public_bucket
-- module.enable_bucket_only_policy
-- module.revoke_iam_grants
-- module.create_disk_snapshot
-- module.open_firewall
-- module.remove_public_ip
-- module.close_public_dataset
-- module.close_public_cloud_sql
-- module.cloud-sql-require-ssl
-- module.disable_dashboard
-- module.update_password
-- module.enable_audit_logs
-
-You **must** deploy `module.router` to be able to process Security Command Center notifications
+If you don't want to install all automations you can specify certain automations individually by running `terraform apply --target module.revoke_iam_grants`. The module name for each automation is found in [main.tf](main.tf). Note the `module.router` is required to be installed.
 
 **NOTE**:
 
