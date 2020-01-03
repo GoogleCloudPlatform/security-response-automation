@@ -41,18 +41,38 @@ spec:
             - organizations/1234567891011/projects/applied-project
           excludes:
             - organizations/1234567891011/folders/424242424242/projects/non-applied-project
-            - organizations/1234567891011/folders/565656565656/*
+            - organizations/1234567891011/folders/424242424242/folders/565656565656/*
           properties:
             dry_run: true
             allow_domains:
               - foo.com
 ```
 
-The first important parameter is the finding source type. Currently Security Response Automation supports two types: Security Health Analytics (`sha`) and  Event Threat Detection (`etd`).
+The first parameter represents the finding provider, `sha` (Security Health Analytics) and `etd` (Event Threat Detection).
 
-Below the finding source type you can add multiple automations, each with its own action to be done, their list of projects or folders that will or will not be affected (`target` and `exclude`) and their properties. In this example we  configured this automation to Event Threat Detection's Anomalous IAM Grant findings under the action name `revoke_iam`.
+Each provider lists findings which contain a list of automations to be applied to those findings. In this example we apply the `revoke_iam` automation to Event Threat Detection's Anomalous IAM Grant finding. The current list of supported findings is:
 
-The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the above example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use folder ID `565656565656` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
+etd:
+
+- bad_ip:
+- anomalous_iam:
+- ssh_brute_force:
+
+sha:
+
+- public_bucket_acl:
+- bucket_policy_only_disabled:
+- public_sql_instance:
+- ssl_not_enforced:
+- sql_no_root_password:
+- public_ip_address:
+- open_firewall:
+- bigquery_public_dataset:
+- audit_logging_disabled:
+- web_ui_enabled:
+- non_org_members:
+
+The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use subfolder ID `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
 
 The last part are the properties. For default all automations have at least the `dry_run` mode that can let you generate StackDriver logs to see what actions it would have taken. The best practice is to run with `dry_run` enabled, because you can confirm the actions as expected before executing them. After that you can set `dry_run` to `false` and redeploy.
 
