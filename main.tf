@@ -117,7 +117,7 @@ module "output" {
 }
 
 module "output_turbinia" {
-  source              = "./cloudfunctions/output/notifyturbinia"
+  source              = "./cloudfunctions/output/turbinia"
   setup               = module.google-setup
   folder-ids          = var.folder-ids
   turbinia-project-id = ""

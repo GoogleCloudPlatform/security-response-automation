@@ -14,8 +14,8 @@ package turbinia
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Attributes are requirements for Turbinia configuration.
-type Attributes struct {
+// Values are requirements for Turbinia configuration.
+type Values struct {
 	ProjectID string `yaml:"project_id"`
 	Topic     string
 	Zone      string

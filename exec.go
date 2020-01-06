@@ -36,7 +36,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/notifyturbinia"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
@@ -436,16 +436,16 @@ func Output(ctx context.Context, m pubsub.Message) error {
 	return output.Execute(ctx, &message, &output.Services{Configuration: conf, Logger: svcs.Logger, PubSub: ps})
 }
 
-//NotifyTurbinia sends data to Turbinia.
-func NotifyTurbinia(ctx context.Context, m pubsub.Message) error {
-	var values notifyturbinia.Values
+// Turbinia sends data to Turbinia.
+func Turbinia(ctx context.Context, m pubsub.Message) error {
+	var values turbinia.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		ps, err := services.InitPubSub(ctx, values.ProjectID)
 		if err != nil {
 			return err
 		}
-		return notifyturbinia.Execute(ctx, &values, &notifyturbinia.Services{PubSub: ps, Logger: svcs.Logger})
+		return turbinia.Execute(ctx, &values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
 	default:
 		return err
 	}

@@ -21,8 +21,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/notifyturbinia"
-	"github.com/googlecloudplatform/security-response-automation/providers/outputs/turbinia"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -37,7 +36,7 @@ type Configuration struct {
 	APIVersion string
 	Spec       struct {
 		Outputs struct {
-			Turbinia turbinia.Attributes `yaml:"turbinia"`
+			Turbinia turbinia.Values `yaml:"turbinia"`
 		}
 	}
 }
@@ -62,7 +61,7 @@ func Config() (*Configuration, error) {
 	return &c, nil
 }
 
-//ChannelMessage contains the required values for this function.
+// ChannelMessage contains the required values for this function.
 type ChannelMessage struct {
 	CorrelationID  string
 	Timestamp      string
@@ -80,7 +79,7 @@ func Execute(ctx context.Context, c *ChannelMessage, s *Services) error {
 	switch c.SourceInfo {
 	case "turbinia":
 		log.Printf("executing output %q", c.SourceInfo)
-		values := &notifyturbinia.Values{
+		values := &turbinia.Values{
 			ProjectID: s.Configuration.Spec.Outputs.Turbinia.ProjectID,
 			Topic:     s.Configuration.Spec.Outputs.Turbinia.Topic,
 			Zone:      s.Configuration.Spec.Outputs.Turbinia.Zone,

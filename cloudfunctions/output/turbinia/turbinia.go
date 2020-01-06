@@ -1,4 +1,4 @@
-package notifyturbinia
+package turbinia
 
 // Copyright 2020 Google LLC
 //
@@ -40,31 +40,27 @@ type TurbiniaRequest struct {
 	Evidence  []GoogleCloudDisk `json:"evidence"`
 }
 
-//Services contains the services needed for this function.
+// Services contains the services needed for this function.
 type Services struct {
 	PubSub *services.PubSub
 	Logger *services.Logger
 }
 
-//Values contains the required values needed for this function.
+// Values contains the required values needed for this function.
 type Values struct {
 	ProjectID, Topic, Zone, DiskName string
 }
 
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, s *Services) error {
-	turbiniaProjectID := values.ProjectID
-	topic := values.Topic
-	zone := values.Zone
-	diskName := values.DiskName
 	m := &pubsub.Message{}
-	b, err := buildRequest(turbiniaProjectID, zone, diskName)
+	b, err := buildRequest(values.ProjectID, values.Zone, values.DiskName)
 	if err != nil {
 		return err
 	}
 	m.Data = b
-	log.Printf("sending disk %q to Turbinia project %q", diskName, turbiniaProjectID)
-	if _, err := s.PubSub.Publish(ctx, topic, m); err != nil {
+	log.Printf("sending disk %q to Turbinia project %q", values.DiskName, values.ProjectID)
+	if _, err := s.PubSub.Publish(ctx, values.Topic, m); err != nil {
 		return err
 	}
 	return nil
