@@ -19,10 +19,9 @@ You're in control:
 Before installation we'll configure our automations, copy `./cloudfunctions/router/empty-config.yaml` to `./cloudfunctions/router/config.yaml`. Within this file we'll define a few steps to get started:
 
 - Which automations should apply to which findings.
-- Which projects to target these automations with.
-- Optionally specify Which projects should be excluded.
-- Whether or not run in monitor mode (dry_run) where changes are logged but not performed.
-- Specify automation configuration properties.
+- Which projects to target these automations with and which to exclude.
+- Whether or not run in monitor mode (dry_run) where changes are only logged and not performed.
+- Specify per automation configuration properties.
 
 Every automation has a configuration similar to the following example:
 
@@ -52,9 +51,9 @@ The first parameter represents the finding provider, `sha` (Security Health Anal
 
 Each provider lists findings which contain a list of automations to be applied to those findings. In this example we apply the `revoke_iam` automation to Event Threat Detection's Anomalous IAM Grant finding. For a full list of automations and their supported findings see [automations.md](automations.md).
 
-The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use a sub folder `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
+The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the above example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use a sub folder `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
 
-All automations have at least the `dry_run` mode that can let you generate StackDriver logs to see what actions would have been taken. This is recommend to confirm the actions taken are as expected before actually executing them.
+All automations have the `dry_run` property that allow to see what actions would have been taken. This is recommend to confirm the actions taken are as expected. Once you have confirmed this by viewing logs in StackDriver you can change this property to false then redeploy the automations.
 
 The `allow_domains` property is specific to the iam_revoke automation. To see examples of how to configure the other automations see the full [documentation](/automations.md).
 

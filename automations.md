@@ -1,6 +1,6 @@
 # Automations
 
-_Common propeties_
+**Common propeties**
 
 All automations accept a `dry_run` value to ensure no changes are made to your environment. Changes that would have been made are logged to StackDriver. For each below configuration this `dry_run` property will be omitted. Only properties unique to the automation will be listed.
 
@@ -9,11 +9,13 @@ properties:
   dry_run: false
 ```
 
-_Action name_
-The action name is used when mapping an automation to a finding. For example, if we wanted to remove public access from any buckets detected as public from Security Health Analytics:
+**action**
 
-- Below we see _Remove public access_ supports `sha` findings of type `public_bucket_acl`. This is the scanner that detects open buckets.
-- We then see the automation is referred to by name of `close_bucket`.
+The action property is used to map an automation to a finding. For example, if we wanted to remove public access from Google Cloud Storage buckets detected as public from Security Health Analytics we would do the following:
+
+- Below we see the **Remove public access** automation supports `sha` findings of type `public_bucket_acl`. This is the scanner that detects open buckets.
+- We then see the automation is referred to by an action name of `close_bucket`.
+- We'll add parameter for `sha` then the finding type `public_bucket_acl` then we configure what automations to apply to that finding.
 - Putting it altogether would look something like this:
 
 ```yaml
