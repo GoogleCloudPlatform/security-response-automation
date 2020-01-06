@@ -36,6 +36,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/notifyturbinia"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
@@ -144,7 +145,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			for _, d := range res.DiskNames {
 				om := &output.ChannelMessage{
 					SourceInfo:     o,
-					AutomationName: "create_snapshot",
+					AutomationName: "gce_create_disk_snapshot",
 					Subject:        values.RuleName,
 					Message:        d,
 				}
@@ -424,9 +425,28 @@ func Output(ctx context.Context, m pubsub.Message) error {
 	if err != nil {
 		return err
 	}
+	ps, err := services.InitPubSub(ctx, projectID)
+	if err != nil {
+		return err
+	}
 	conf, err := output.Config()
 	if err != nil {
 		return err
 	}
-	return output.Execute(ctx, &message, &output.Services{Configuration: conf, Logger: svcs.Logger})
+	return output.Execute(ctx, &message, &output.Services{Configuration: conf, Logger: svcs.Logger, PubSub: ps})
+}
+
+//NotifyTurbinia sends data to Turbinia.
+func NotifyTurbinia(ctx context.Context, m pubsub.Message) error {
+	var values notifyturbinia.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
+	case nil:
+		ps, err := services.InitPubSub(ctx, values.ProjectID)
+		if err != nil {
+			return err
+		}
+		return notifyturbinia.Execute(ctx, &values, &notifyturbinia.Services{PubSub: ps, Logger: svcs.Logger})
+	default:
+		return err
+	}
 }

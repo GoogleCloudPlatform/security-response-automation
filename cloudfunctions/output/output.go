@@ -2,14 +2,21 @@ package output
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/channels/turbinia"
+	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/notifyturbinia"
+	"github.com/googlecloudplatform/security-response-automation/providers/channels/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
+
+var topics = map[string]struct{ Topic string }{
+	"turbinia": {Topic: "notify-channel-turbinia"},
+}
 
 // Configuration maps channels attributes.
 type Configuration struct {
@@ -25,6 +32,7 @@ type Configuration struct {
 type Services struct {
 	Configuration *Configuration
 	Logger        *services.Logger
+	PubSub        *services.PubSub
 }
 
 // Config will return the output's configuration.
@@ -57,18 +65,28 @@ type ChannelMessage struct {
 func Execute(ctx context.Context, c *ChannelMessage, s *Services) error {
 	switch c.SourceInfo {
 	case "turbinia":
-
-		log.Printf("received: %+v", c)
-
-		diskName := c.Message
-		turbiniaProjectID := s.Configuration.Spec.Channels.Turbinia.ProjectID
-		turbiniaTopicName := s.Configuration.Spec.Channels.Turbinia.Topic
-		turbiniaZone := s.Configuration.Spec.Channels.Turbinia.Zone
-		if err := services.SendTurbinia(ctx, turbiniaProjectID, turbiniaTopicName, turbiniaZone, diskName); err != nil {
-			return errors.Wrapf(err, "failed while sending Turbinia request to %q on project %q",
-				turbiniaTopicName, turbiniaProjectID)
+		log.Printf("executing output %q", c.SourceInfo)
+		values := &notifyturbinia.Values{
+			ProjectID: s.Configuration.Spec.Channels.Turbinia.ProjectID,
+			Topic:     s.Configuration.Spec.Channels.Turbinia.Topic,
+			Zone:      s.Configuration.Spec.Channels.Turbinia.Zone,
+			DiskName:  c.Message,
 		}
-		s.Logger.Info("sent %d disks to Turbinia")
+		if values.ProjectID == "" || values.Topic == "" || values.Zone == "" {
+			return errors.New("missing Turbinia config values")
+		}
+		topic := topics[c.SourceInfo].Topic
+		b, err := json.Marshal(&values)
+		if err != nil {
+			return err
+		}
+		if _, err := s.PubSub.Publish(ctx, topic, &pubsub.Message{
+			Data: b,
+		}); err != nil {
+			s.Logger.Error("failed to publish to %q for channel %q", topic, c.SourceInfo)
+			return err
+		}
+		log.Printf("sent to pubsub topic: %q", topic)
 	case "pagerduty":
 	case "slack":
 	case "sendgrid":
