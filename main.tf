@@ -51,11 +51,9 @@ module "revoke_iam_grants" {
 }
 
 module "create_disk_snapshot" {
-  source              = "./cloudfunctions/gce/createsnapshot"
-  setup               = module.google-setup
-  folder-ids          = var.folder-ids
-  turbinia-project-id = ""
-  turbinia-topic-name = ""
+  source     = "./cloudfunctions/gce/createsnapshot"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
 }
 
 module "enable_bucket_only_policy" {
@@ -113,8 +111,17 @@ module "enable_audit_logs" {
 }
 
 module "output_channels" {
-  source = "./cloudfunctions/output/"
-  setup  = module.google-setup
+  source     = "./cloudfunctions/output/"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
+}
+
+module "output_channels_turbinia" {
+  source              = "./cloudfunctions/output/notifyturbinia"
+  setup               = module.google-setup
+  folder-ids          = var.folder-ids
+  turbinia-project-id = ""
+  turbinia-topic-name = ""
 }
 
 // TODO: enable again and fix IAM roles
