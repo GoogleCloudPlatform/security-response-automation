@@ -22,21 +22,21 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/notifyturbinia"
-	"github.com/googlecloudplatform/security-response-automation/providers/channels/turbinia"
+	"github.com/googlecloudplatform/security-response-automation/providers/outputs/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
 var topics = map[string]struct{ Topic string }{
-	"turbinia": {Topic: "notify-channel-turbinia"},
+	"turbinia": {Topic: "notify-turbinia"},
 }
 
-// Configuration maps channels attributes.
+// Configuration maps outputs attributes.
 type Configuration struct {
 	APIVersion string
 	Spec       struct {
-		Channels struct {
+		Outputs struct {
 			Turbinia turbinia.Attributes `yaml:"turbinia"`
 		}
 	}
@@ -81,9 +81,9 @@ func Execute(ctx context.Context, c *ChannelMessage, s *Services) error {
 	case "turbinia":
 		log.Printf("executing output %q", c.SourceInfo)
 		values := &notifyturbinia.Values{
-			ProjectID: s.Configuration.Spec.Channels.Turbinia.ProjectID,
-			Topic:     s.Configuration.Spec.Channels.Turbinia.Topic,
-			Zone:      s.Configuration.Spec.Channels.Turbinia.Zone,
+			ProjectID: s.Configuration.Spec.Outputs.Turbinia.ProjectID,
+			Topic:     s.Configuration.Spec.Outputs.Turbinia.Topic,
+			Zone:      s.Configuration.Spec.Outputs.Turbinia.Zone,
 			DiskName:  c.Message,
 		}
 		if values.ProjectID == "" || values.Topic == "" || values.Zone == "" {

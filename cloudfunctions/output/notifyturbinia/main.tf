@@ -25,19 +25,19 @@ resource "google_cloudfunctions_function" "notify-turbinia" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "notify-channel-turbinia"
+    resource   = "notify-output-turbinia"
   }
 }
 
 # Grant the service account permission to publish to this topic.
-resource "google_project_iam_member" "log-turbinia-pubsub" {
-  role    = "roles/pubsub.editor"
+resource "google_project_iam_member" "turbinia-pubsub" {
+  role    = "roles/pubsub.publisher"
   project = var.turbinia-project-id
   member  = "serviceAccount:${var.setup.automation-service-account}"
 }
 
 # PubSub topic to trigger this automation.
 resource "google_pubsub_topic" "topic" {
-  name    = "notify-channel-turbinia"
+  name    = "notify-output-turbinia"
   project = var.setup.automation-project
 }

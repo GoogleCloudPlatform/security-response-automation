@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "google_cloudfunctions_function" "output_channels" {
+resource "google_cloudfunctions_function" "output" {
   name                  = "Output"
-  description           = "Notification channels orchestration."
+  description           = "Output router."
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
@@ -31,7 +31,7 @@ resource "google_cloudfunctions_function" "output_channels" {
 }
 
 resource "google_project_iam_member" "router-pubsub-writer" {
-  role    = "roles/pubsub.editor"
+  role    = "roles/pubsub.publisher"
   project = var.setup.automation-project
   member  = "serviceAccount:${var.setup.automation-service-account}"
 }

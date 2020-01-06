@@ -418,7 +418,7 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 
 // Output is the entry point for the output Cloud Function.
 //
-// This Cloud Function will receive the notification message and redirect to available channels.
+// This Cloud Function will receive the notification message and redirect to available outputs.
 func Output(ctx context.Context, m pubsub.Message) error {
 	var message output.ChannelMessage
 	err := json.Unmarshal(m.Data, &message)
