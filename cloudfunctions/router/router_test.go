@@ -26,7 +26,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
-	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/iamscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
@@ -163,7 +162,7 @@ func TestRouter(t *testing.T) {
 	)
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
-	conf.Spec.Parameters.ETD.BadIP = []badip.Automation{
+	conf.Spec.Parameters.ETD.BadIP = []Automation{
 		{Action: "gce_create_disk_snapshot", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	createSnapshotValues := &createsnapshot.Values{

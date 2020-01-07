@@ -87,6 +87,26 @@ var topics = map[string]struct{ Topic string }{
 	"remove_non_org_members":    {Topic: "threat-findings-remove-non-org-members"},
 }
 
+// Automation represents configuration for an automation.
+type Automation struct {
+	Action     string
+	Target     []string
+	Exclude    []string
+	Properties struct {
+		DryRun         bool `yaml:"dry_run"`
+		CreateSnapshot struct {
+			TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
+			TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
+			Output                  []string
+			Turbinia                struct {
+				ProjectID string
+				Topic     string
+				Zone      string
+			}
+		} `yaml:"gce_create_snapshot"`
+	}
+}
+
 // Configuration maps findings to automations.
 type Configuration struct {
 	APIVersion string
@@ -94,7 +114,7 @@ type Configuration struct {
 		Name       string
 		Parameters struct {
 			ETD struct {
-				BadIP         []badip.Automation         `yaml:"bad_ip"`
+				BadIP         []Automation               `yaml:"bad_ip"`
 				AnomalousIAM  []anomalousiam.Automation  `yaml:"anomalous_iam"`
 				SSHBruteForce []sshbruteforce.Automation `yaml:"ssh_brute_force"`
 			}
@@ -152,13 +172,13 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			switch automation.Action {
 			case "gce_create_disk_snapshot":
 				values := badIP.CreateSnapshot()
-				values.Output = automation.Properties.Output
 				values.DryRun = automation.Properties.DryRun
-				values.DestProjectID = automation.Properties.TargetSnapshotProjectID
-				values.DestZone = automation.Properties.TargetSnapshotZone
-				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
-				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
-				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
+				values.Output = automation.Properties.CreateSnapshot.Output
+				values.DestProjectID = automation.Properties.CreateSnapshot.TargetSnapshotProjectID
+				values.DestZone = automation.Properties.CreateSnapshot.TargetSnapshotZone
+				values.Turbinia.ProjectID = automation.Properties.CreateSnapshot.Turbinia.ProjectID
+				values.Turbinia.Topic = automation.Properties.CreateSnapshot.Turbinia.Topic
+				values.Turbinia.Zone = automation.Properties.CreateSnapshot.Turbinia.Zone
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

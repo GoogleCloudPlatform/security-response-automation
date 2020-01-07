@@ -23,24 +23,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 )
 
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun                  bool   `yaml:"dry_run"`
-		TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
-		TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
-		Output                  []string
-		Turbinia                struct {
-			ProjectID string
-			Topic     string
-			Zone      string
-		}
-	}
-}
-
 // Name returns the rule name of the finding.
 func (f *Finding) Name(b []byte) string {
 	ff, err := New(b)
