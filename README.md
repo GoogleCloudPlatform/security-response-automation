@@ -72,7 +72,7 @@ The `target` and `exclude` arrays accepts an ancestry pattern that is compared a
   </tr>
   <tr>
    <td>organizations/123/projects/789</td>
-   <td>Apply to the project 789 in organization 123 that is **not within a folder**</td>
+   <td>Apply to the project 789 in organization 123 that is not within a folder</td>
   </tr>
   <tr>
    <td>organizations/123/&ast;/projects/789</td>
