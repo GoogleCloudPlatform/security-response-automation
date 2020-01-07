@@ -107,10 +107,10 @@ go run ./local/cli/main.go \
 // service_account:"service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com"
 // streaming_config:<filter:"state = \"ACTIVE\"" >
 //
-// Make sure to replace `SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
+// Make sure to replace `$SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
 
 gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
---member="serviceAccount:service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com" \
+--member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
 --role="roles/pubsub.publisher"
 
 gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
