@@ -1,6 +1,32 @@
 // This package will create a CSCC notification config that sends all active findings to the
 // specified Pub/Sub topic.
 //
+// Download the service account's key and save to `./credentials/auth.json`. Set this as your
+// default credentials by running:
+//
+// `export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/credentials.auth.json`
+//
+// To authorize this client you'll need to create a service account with the following roles:
+//
+// 	```
+// 	gcloud beta organizations add-iam-policy-binding \
+//	$ORGANIZATION_ID \
+//	--member="serviceAccount:$ACCOUNT" \
+//	--role='roles/securitycenter.notificationConfigEditor'
+// 	```
+//
+// The account you run the above gcloud command must have Organization Admin privileges. Once a new
+// notification config is created you'll receive the name of the automatically generated service
+// account associated with CSCC notifications. You'll then need to grant that service account publish
+// writes to create Pub/Sub messages.
+//
+// ```
+//	gcloud beta pubsub topics add-iam-policy-binding \
+//	projects/$PROJECT_ID/topics/$TOPIC_ID \
+//	--member="serviceAccount:service-997507777601@gcp-sa-scc-notification.iam.gserviceaccount.com" \
+//	--role="roles/pubsub.admin"
+// ```
+//
 // Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

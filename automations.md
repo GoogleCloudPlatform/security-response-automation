@@ -1,39 +1,4 @@
-# Automations
-
-**Common propeties**
-
-All automations accept a `dry_run` value to ensure no changes are made to your environment. Changes that would have been made are logged to StackDriver. For each below configuration this `dry_run` property will be omitted. Only properties unique to the automation will be listed.
-
-```yaml
-properties:
-  dry_run: false
-```
-
-**action**
-
-The action property is used to map an automation to a finding. For example, if we wanted to remove public access from Google Cloud Storage buckets detected as public from Security Health Analytics we would do the following:
-
-- Below we see the **Remove public access** automation supports `sha` findings of type `public_bucket_acl`. This is the scanner that detects open buckets.
-- We then see the automation is referred to by an action name of `close_bucket`.
-- We'll add parameter for `sha` then the finding type `public_bucket_acl` then we configure what automations to apply to that finding.
-- Putting it altogether would look something like this:
-
-```yaml
-apiVersion: security-response-automation.cloud.google.com/v1alpha1
-kind: Remediation
-metadata:
-  name: router
-spec:
-  parameters:
-    sha:
-      public_bucket_acl:
-        - action: close_bucket
-          target:
-            - organizations/1037840971520/*
-          exclude:
-          properties:
-            dry_run: false
-```
+# Automation Modules
 
 ## Google Cloud Storage
 
@@ -41,25 +6,35 @@ spec:
 
 Removes public access from Google Cloud Storage buckets.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `public_bucket_acl`
+- Finding source provider: `sha`
+- Finding: `public_bucket_acl`
+- Action name: `close_bucket`
 
-Action name:
+Properties:
 
-- `close_bucket`
+```yaml
+properties:
+  dry_run: false
+```
 
 ### Enable bucket only policy
 
-Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) for Google Cloud Storage buckets.
+Enable [Bucket Policy Only](https://cloud.google.com/storage/docs/bucket-policy-only) in Google Cloud Storage buckets.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `bucket_policy_only_disabled`
+- Finding source provider: `sha`
+- Finding: `bucket_policy_only_disabled`
+- Action name: `enable_bucket_only_policy`
 
-Action name:
+Properties:
 
-- `enable_bucket_only_policy`
+```yaml
+properties:
+  dry_run: false
+```
 
 ## IAM
 
@@ -67,13 +42,11 @@ Action name:
 
 Removes members from an IAM policy.
 
-Supported findings:
+Configuration
 
-- Provider: `etd` Finding: `anomalous_iam`
-
-Action name:
-
-- `iam_revoke`
+- Finding source provider: `etd`
+- Finding: `anomalous_iam`
+- Action name: `iam_revoke`
 
 Before a user is removed the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
 
@@ -92,13 +65,11 @@ properties:
 
 Removes non-organization members from resource level IAM policy.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `non_org_members`
-
-Action name:
-
-- `remove_non_org_members`
+- Finding source provider: `sha`
+- Finding: `non_org_members`
+- Action name: `remove_non_org_members`
 
 Before a user is removed, the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
 
@@ -111,10 +82,7 @@ Example:
 ```yaml
 properties:
   dry_run: false
-  allow_domains:
-    - prod.foo.com
-    - google.com
-    - foo.com
+  allow_domains: ["prod.foo.com", "google.com", "foo.com"]
 ```
 
 ## Google Compute Engine
@@ -123,13 +91,11 @@ properties:
 
 Automatically create a snapshot of all disks associated with a GCE instance.
 
-Supported findings:
+Configuration
 
-- Provider: `etd` Finding: `bad_ip`
-
-Action name:
-
-- `gce_create_disk_snapshot`
+- Finding source provider: `etd`
+- Finding: `bad_ip`
+- action `gce_create_disk_snapshot`
 
 Properties:
 
@@ -162,28 +128,28 @@ properties:
 
 Removes all public IPs from an instance's network interface.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `public_ip_address`
+- Finding source provider: `sha`
+- Finding: `public_ip_address`
+- Action name `remove_public_ip`
 
-Action name:
+Properties:
 
-- `remove_public_ip`
+```yaml
+properties:
+  dry_run: false
+```
 
 ### Remediate Firewall
 
-Remediate an [open firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
+Remediate an [Open Firewall](https://cloud.google.com/security-command-center/docs/how-to-remediate-security-health-analytics#open_firewall) rule.
 
 Configuration
 
-Supported findings:
-
-- Provider: `sha` Finding: `open_firewall`
-- Provider: `etd` Finding: `ssh_brute_force`
-
-Action name:
-
-- `remediate_firewall`
+- Finding source provider: `sha`
+- Finding: `open_firewall`
+- Action name `remediate_firewall`
 
 Properties:
 
@@ -198,7 +164,24 @@ properties:
   dry_run: false
   remediation_action: update_source_range
   source_ranges:
-    - 10.128.0.0/9
+    - "10.128.0.0/9"
+```
+
+### Block SSH Connections
+
+Create a firewall rule to block SSH access from suspicious IPs.
+
+Configuration
+
+- Finding source provider: `etd`
+- Finding: `ssh_brute_force`
+- Action name `remediate_firewall`
+
+Properties:
+
+```yaml
+properties:
+  dry_run: false
 ```
 
 ## Google Kubernetes Engine
@@ -207,13 +190,18 @@ properties:
 
 Automatically disable the Kubernetes Dashboard addon.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `web_ui_enabled`
+- Finding source provider: `sha`
+- Finding: `web_ui_enabled`
+- Action name `disable_dashboard`
 
-Action name:
+Properties:
 
-- `disable_dashboard`
+```yaml
+properties:
+  dry_run: false
+```
 
 ## Google Cloud SQL
 
@@ -221,37 +209,52 @@ Action name:
 
 Close a public cloud SQL instance.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `public_sql_instance`
+- Finding source provider: `sha`
+- Finding: `public_sql_instance`
+- Action name `close_cloud_sql`
 
-Action name:
+Properties:
 
-- `close_cloud_sql`
+```yaml
+properties:
+  dry_run: false
+```
 
 ### Require SSL connection to Cloud SQL
 
 Update Cloud SQL instance to require SSL connections.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `ssl_not_enforced`
+- Finding source provider: `sha`
+- Finding: `ssl_not_enforced`
+- Action name `cloud_sql_require_ssl`
 
-Action name:
+Properties:
 
-- `cloud_sql_require_ssl`
+```yaml
+properties:
+  dry_run: false
+```
 
 ### Update root password
 
 Update the root password of a Cloud SQL instance.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `sql_no_root_password`
+- Finding source provider: `sha`
+- Finding: `sql_no_root_password`
+- Action name `cloud_sql_update_password`
 
-Action name:
+Properties:
 
-- `cloud_sql_update_password`
+```yaml
+properties:
+  dry_run: false
+```
 
 ## BigQuery
 
@@ -259,10 +262,15 @@ Action name:
 
 Removes public access from a BigQuery dataset.
 
-Supported findings:
+Configuration
 
-- Provider: `sha` Finding: `bigquery_public_dataset`
+- Finding source provider: `sha`
+- Finding: `bigquery_public_dataset`
+- Action name `close_public_dataset`
 
-Action name:
+Properties:
 
-- `close_public_dataset`
+```yaml
+properties:
+  dry_run: false
+```
