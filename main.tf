@@ -121,7 +121,6 @@ module "output_turbinia" {
   setup               = module.google-setup
   folder-ids          = var.folder-ids
   turbinia-project-id = ""
-  turbinia-topic-name = ""
 }
 
 // TODO: enable again and fix IAM roles
