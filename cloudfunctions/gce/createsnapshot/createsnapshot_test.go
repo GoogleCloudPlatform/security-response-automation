@@ -178,10 +178,11 @@ func TestCreateSnapshot(t *testing.T) {
 			computeStub.StubbedListDisks = &compute.DiskList{Items: tt.existingProjectDisks}
 			computeStub.StubbedListProjectSnapshots = tt.existingDiskSnapshots
 			values := &Values{
-				ProjectID: tt.configuredSnapshotTarget,
-				RuleName:  "bad_ip",
-				Instance:  "instance1",
-				Zone:      "test-zone",
+				ProjectID:     "project-id-123",
+				DestProjectID: tt.configuredSnapshotTarget,
+				RuleName:      "bad_ip",
+				Instance:      "instance1",
+				Zone:          "test-zone",
 			}
 			if _, err := Execute(ctx, values, &Services{
 				Host:   svcs.Host,

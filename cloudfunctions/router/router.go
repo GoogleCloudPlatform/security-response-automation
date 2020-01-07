@@ -154,6 +154,8 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values := badIP.CreateSnapshot()
 				values.Output = automation.Properties.Output
 				values.DryRun = automation.Properties.DryRun
+				values.DestProjectID = automation.Properties.TargetSnapshotProjectID
+				values.DestZone = automation.Properties.TargetSnapshotZone
 				values.Turbinia.ProjectID = automation.Properties.Turbinia.ProjectID
 				values.Turbinia.Topic = automation.Properties.Turbinia.Topic
 				values.Turbinia.Zone = automation.Properties.Turbinia.Zone
