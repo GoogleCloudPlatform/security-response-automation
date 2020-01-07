@@ -276,6 +276,7 @@ func TestCheckMatches(t *testing.T) {
 		{name: "project in target and in ignore", mustMatch: false, target: "organizations/456/folders/123/projects/" + projectID, ignore: "organizations/456/folders/123/projects/" + projectID},
 		{name: "project not in target and in ignore", mustMatch: false, target: "organizations/456/folders/123/projects/yet-other-project", ignore: "organizations/456/folders/123/projects/" + projectID},
 		{name: "org not in target and not in ignore", mustMatch: false, target: "", ignore: ""},
+		{name: "specify project in any folder", mustMatch: true, target: "organizations/456/*/projects/test-project", ignore: "organizations/456/folders/12/*"},
 	}
 
 	for _, tt := range tests {
