@@ -51,7 +51,26 @@ The first parameter represents the finding provider, `sha` (Security Health Anal
 
 Each provider lists findings which contain a list of automations to be applied to those findings. In this example we apply the `revoke_iam` automation to Event Threat Detection's Anomalous IAM Grant finding. For a full list of automations and their supported findings see [automations.md](automations.md).
 
-The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. In the above example you have a folder `424242424242` that contains sensitive projects that you want to enforce. However your developers use a sub folder `565656565656` and project `non-applied-project` that you want to leave alone. If you have projects outside of folders you can specify them too like the `applied-project`.
+The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. The target and exclude patterns are both considered however the excludes takes precedence. The ancestry pattern allows you to specify granularity at the organization, folder and project level.
+
+<table>
+  <tr>
+   <td>Pattern</td>
+   <td>Description</td>
+  </tr>
+  <tr>
+   <td>organizations/123</td>
+   <td>All projects under the organization 123</td>
+  </tr>
+  <tr>
+   <td>organizations/123/folders/456</td>
+   <td>Any project in folder 456 in organization 123</td>
+  </tr>
+  <tr>
+   <td>organizations/123/folders/456/projects/789</td>
+   <td>Apply to the 789 in folder 456 in organization 123</td>
+  </tr>
+</table>
 
 All automations have the `dry_run` property that allow to see what actions would have been taken. This is recommend to confirm the actions taken are as expected. Once you have confirmed this by viewing logs in StackDriver you can change this property to false then redeploy the automations.
 
