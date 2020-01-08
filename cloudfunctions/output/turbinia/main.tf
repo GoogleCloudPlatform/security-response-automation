@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "turbinia" {
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "notify-output-turbinia"
+    resource   = "notify-turbinia"
   }
 }
 
@@ -38,6 +38,6 @@ resource "google_project_iam_member" "turbinia-pubsub" {
 
 # PubSub topic to trigger this automation.
 resource "google_pubsub_topic" "topic" {
-  name    = "notify-output-turbinia"
+  name    = "notify-turbinia"
   project = var.setup.automation-project
 }
