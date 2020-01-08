@@ -16,7 +16,6 @@ package output
 
 import (
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"log"
 
@@ -43,9 +42,8 @@ type Configuration struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	Configuration *Configuration
-	Logger        *services.Logger
-	PubSub        *services.PubSub
+	Logger *services.Logger
+	PubSub *services.PubSub
 }
 
 // Config will return the output's configuration.
@@ -61,42 +59,22 @@ func Config() (*Configuration, error) {
 	return &c, nil
 }
 
-// ChannelMessage contains the required values for this function.
-type ChannelMessage struct {
-	CorrelationID  string
-	Timestamp      string
-	AutomationName string
-	SourceInfo     string
-	Priority       string
-	Status         string
-	SensitiveInfo  bool
-	Subject        string
-	Message        string
+// Values are requirements for this function.
+type Values struct {
+	OutputID      string
+	OutputMessage []byte
 }
 
 // Execute will orchestrate the notification to the available channel.
-func Execute(ctx context.Context, c *ChannelMessage, s *Services) error {
-	switch c.SourceInfo {
+func Execute(ctx context.Context, v *Values, s *Services) error {
+	switch v.OutputID {
 	case "turbinia":
-		log.Printf("executing output %q", c.SourceInfo)
-		values := &turbinia.Values{
-			ProjectID: s.Configuration.Spec.Outputs.Turbinia.ProjectID,
-			Topic:     s.Configuration.Spec.Outputs.Turbinia.Topic,
-			Zone:      s.Configuration.Spec.Outputs.Turbinia.Zone,
-			DiskName:  c.Message,
-		}
-		if values.ProjectID == "" || values.Topic == "" || values.Zone == "" {
-			return errors.New("missing Turbinia config values")
-		}
-		topic := topics[c.SourceInfo].Topic
-		b, err := json.Marshal(&values)
-		if err != nil {
-			return err
-		}
+		log.Printf("executing output %q", v.OutputID)
+		topic := topics[v.OutputID].Topic
 		if _, err := s.PubSub.Publish(ctx, topic, &pubsub.Message{
-			Data: b,
+			Data: v.OutputMessage,
 		}); err != nil {
-			s.Logger.Error("failed to publish to %q for channel %q", topic, c.SourceInfo)
+			s.Logger.Error("failed to publish to %q for channel %q", topic, v.OutputID)
 			return err
 		}
 		log.Printf("sent to pubsub topic: %q", topic)

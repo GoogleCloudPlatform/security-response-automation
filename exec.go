@@ -61,11 +61,6 @@ func init() {
 	}
 }
 
-// Services contains the services needed for this function.
-type Services struct {
-	PubSub *services.PubSub
-}
-
 // Router is the entry point for the router Cloud Function.
 //
 // This Cloud Function will receive all findings and route them to configured automation.
@@ -142,25 +137,25 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		}
 		log.Printf("available outputs: %q", values.Output)
 		for _, o := range values.Output {
-			for _, d := range res.DiskNames {
-				om := &output.ChannelMessage{
-					SourceInfo:     o,
-					AutomationName: "gce_create_disk_snapshot",
-					Subject:        values.RuleName,
-					Message:        d,
-				}
-				b, err := json.Marshal(om)
-				if err != nil {
-					return errors.Wrapf(err, "failed to unmarshal when running %q", o)
-				}
-				log.Printf("sending message to: %q", outputTopic)
-				if _, err := ps.Publish(ctx, outputTopic, &pubsub.Message{
-					Data: b,
-				}); err != nil {
-					return errors.Wrapf(err, "failed to publish to %q for output %q", outputTopic, o)
-				}
-				log.Printf("sent %q to output channel %q", om.Message, o)
+			r, err := json.Marshal(res)
+			if err != nil {
+				return errors.Wrapf(err, "failed to marshal when running %q", r)
 			}
+			v := &output.Values{
+				OutputID:      o,
+				OutputMessage: r,
+			}
+			b, err := json.Marshal(v)
+			if err != nil {
+				return errors.Wrapf(err, "failed to marshal when running %q", v)
+			}
+			log.Printf("sending message to: %q", outputTopic)
+			if _, err := ps.Publish(ctx, outputTopic, &pubsub.Message{
+				Data: b,
+			}); err != nil {
+				return errors.Wrapf(err, "failed to publish to %q for output %q", outputTopic, o)
+			}
+			log.Printf("sent %q to output %q", v.OutputMessage, o)
 		}
 		return nil
 	default:
@@ -420,8 +415,8 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 //
 // This Cloud Function will receive the notification message and redirect to available outputs.
 func Output(ctx context.Context, m pubsub.Message) error {
-	var message output.ChannelMessage
-	err := json.Unmarshal(m.Data, &message)
+	var values output.Values
+	err := json.Unmarshal(m.Data, &values)
 	if err != nil {
 		return err
 	}
@@ -429,23 +424,32 @@ func Output(ctx context.Context, m pubsub.Message) error {
 	if err != nil {
 		return err
 	}
-	conf, err := output.Config()
-	if err != nil {
-		return err
-	}
-	return output.Execute(ctx, &message, &output.Services{Configuration: conf, Logger: svcs.Logger, PubSub: ps})
+	return output.Execute(ctx, &values, &output.Services{Logger: svcs.Logger, PubSub: ps})
 }
 
 // Turbinia sends data to Turbinia.
 func Turbinia(ctx context.Context, m pubsub.Message) error {
-	var values turbinia.Values
-	switch err := json.Unmarshal(m.Data, &values); err {
+	var data createsnapshot.Output
+	switch err := json.Unmarshal(m.Data, &data); err {
 	case nil:
+		conf, err := output.Config()
+		if err != nil {
+			return err
+		}
+		values := &turbinia.Values{
+			ProjectID: conf.Spec.Outputs.Turbinia.ProjectID,
+			Topic:     conf.Spec.Outputs.Turbinia.Topic,
+			Zone:      conf.Spec.Outputs.Turbinia.Zone,
+			DiskNames: data.DiskNames,
+		}
+		if values.ProjectID == "" || values.Topic == "" || values.Zone == "" {
+			return errors.New("missing Turbinia config values")
+		}
 		ps, err := services.InitPubSub(ctx, values.ProjectID)
 		if err != nil {
 			return err
 		}
-		return turbinia.Execute(ctx, &values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
+		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
 	default:
 		return err
 	}
