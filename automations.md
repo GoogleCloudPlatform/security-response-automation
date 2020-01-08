@@ -137,8 +137,7 @@ Configuration settings for this automation are under the `gce_create_snapshot` k
 
 - `target_snapshot_project_id`: Project ID where disk snapshots should be sent to. If outputting to Turbinia this should be the same as `turbinia_project_id`.
 - `target_snapshot_project_zone`: Zone where disk snapshots should be sent to. If outputting to Turbinia this should be the same as `turbinia_zone`.
-- `output`: Repeated set of optional output destinations after the function has executed.
-- `turbinia` Will notify Turbinia when a snapshot is created. Currently only `turbinia` is supported.
+- `output`: Repeated set of optional output destinations after the function has executed. Currently only `turbinia` is supported.
 
 Required if output contains `turbinia`:
 
