@@ -77,15 +77,16 @@ Action name:
 
 Before a user is removed the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
 
-Properties:
+Configuration settings for this automation are under the `revoke_iam` key:
 
 - `allow_domains`: An array of strings containing domain names to be matched. If the member added matches a domain in this list do not remove it. At least one domain is required in this list.
 
 ```yaml
 properties:
   dry_run: false
-  allow_domains:
-    - google.com
+  revoke_iam:
+    allow_domains:
+      - google.com
 ```
 
 ### Remove non-Organization members
@@ -102,7 +103,7 @@ Action name:
 
 Before a user is removed, the user is checked against the below lists. These lists are meant to be mutually exclusive however this is not enforced. These lists allow you to specify exactly what domain names are disallowed or conversely which domains are allowed.
 
-Properties:
+Configuration settings for this automation are under the `non_org_members` key:
 
 - `allow_domains`: An array of strings containing domain names to be matched. If the member added matches a domain in this list do not remove it. At least one domain is required in this list.
 
@@ -111,10 +112,11 @@ Example:
 ```yaml
 properties:
   dry_run: false
-  allow_domains:
-    - prod.foo.com
-    - google.com
-    - foo.com
+  non_org_members:
+    allow_domains:
+      - prod.foo.com
+      - google.com
+      - foo.com
 ```
 
 ## Google Compute Engine
@@ -131,12 +133,12 @@ Action name:
 
 - `gce_create_disk_snapshot`
 
-Properties:
+Configuration settings for this automation are under the `gce_create_snapshot` key:
 
 - `target_snapshot_project_id`: Project ID where disk snapshots should be sent to. If outputting to Turbinia this should be the same as `turbinia_project_id`.
 - `target_snapshot_project_zone`: Zone where disk snapshots should be sent to. If outputting to Turbinia this should be the same as `turbinia_zone`.
 - `output`: Repeated set of optional output destinations after the function has executed.
-- `turbinia` Will notify Turbinia when a snapshot is created.
+- `turbinia` Will notify Turbinia when a snapshot is created. Currently only `turbinia` is supported.
 
 Required if output contains `turbinia`:
 
@@ -149,13 +151,15 @@ The below keys are placed under the `turbinia` key:
 ```yaml
 properties:
   dry_run: false
-  target_snapshot_project_id: target-projectid
-  target_snapshot_zone: us-central1-a
-  output:
-  turbinia:
-    project_id: turbinia-project
-    topic: turbinia-topic
-    zone: us-central1-a
+  gce_create_snapshot:
+    target_snapshot_project_id: target-projectid
+    target_snapshot_zone: us-central1-a
+    output:
+      - turbinia
+    turbinia:
+      project_id: turbinia-project
+      topic: turbinia-topic
+      zone: us-central1-a
 ```
 
 ### Remove public IPs from an instance
@@ -185,7 +189,7 @@ Action name:
 
 - `remediate_firewall`
 
-Properties:
+Configuration settings for this automation are under the `open_firewall` key:
 
 - `remediation_action`: One of `disable`, `delete` or `update_source_range`.
   - `disable` Will disable the firewall, it means it will not delete the firewall but the firewall rule will not be enforced on the network.
@@ -196,9 +200,10 @@ Properties:
 ```yaml
 properties:
   dry_run: false
-  remediation_action: update_source_range
-  source_ranges:
-    - 10.128.0.0/9
+  open_firewall:
+    remediation_action: update_source_range
+    source_ranges:
+      - 10.128.0.0/9
 ```
 
 ## Google Kubernetes Engine

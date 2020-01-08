@@ -93,7 +93,10 @@ type Automation struct {
 	Target     []string
 	Exclude    []string
 	Properties struct {
-		DryRun         bool `yaml:"dry_run"`
+		DryRun    bool `yaml:"dry_run"`
+		RevokeIAM struct {
+			AllowDomains []string `yaml:"allow_domains"`
+		} `yaml:"revoke_iam"`
 		CreateSnapshot struct {
 			TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
 			TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
@@ -104,6 +107,13 @@ type Automation struct {
 				Zone      string
 			}
 		} `yaml:"gce_create_snapshot"`
+		OpenFirewall struct {
+			SourceRanges      []string `yaml:"source_ranges"`
+			RemediationAction string   `yaml:"remediation_action"`
+		} `yaml:"open_firewall"`
+		NonOrgMembers struct {
+			AllowDomains []string `yaml:"allow_domains"`
+		} `yaml:"non_org_members"`
 	}
 }
 
@@ -114,22 +124,22 @@ type Configuration struct {
 		Name       string
 		Parameters struct {
 			ETD struct {
-				BadIP         []Automation               `yaml:"bad_ip"`
-				AnomalousIAM  []anomalousiam.Automation  `yaml:"anomalous_iam"`
-				SSHBruteForce []sshbruteforce.Automation `yaml:"ssh_brute_force"`
+				BadIP         []Automation `yaml:"bad_ip"`
+				AnomalousIAM  []Automation `yaml:"anomalous_iam"`
+				SSHBruteForce []Automation `yaml:"ssh_brute_force"`
 			}
 			SHA struct {
-				PublicBucketACL         []storagescanner.Automation         `yaml:"public_bucket_acl"`
-				BucketPolicyOnlyDisable []storagescanner.Automation         `yaml:"bucket_policy_only_disabled"`
-				PublicSQLInstance       []sqlscanner.Automation             `yaml:"public_sql_instance"`
-				SSLNotEnforced          []sqlscanner.Automation             `yaml:"ssl_not_enforced"`
-				SQLNoRootPassword       []sqlscanner.Automation             `yaml:"sql_no_root_password"`
-				PublicIPAddress         []computeinstancescanner.Automation `yaml:"public_ip_address"`
-				OpenFirewall            []firewallscanner.Automation        `yaml:"open_firewall"`
-				PublicDataset           []datasetscanner.Automation         `yaml:"bigquery_public_dataset"`
-				AuditLoggingDisabled    []loggingscanner.Automation         `yaml:"audit_logging_disabled"`
-				WebUIEnabled            []containerscanner.Automation       `yaml:"web_ui_enabled"`
-				NonOrgMembers           []iamscanner.Automation             `yaml:"non_org_members"`
+				PublicBucketACL         []Automation `yaml:"public_bucket_acl"`
+				BucketPolicyOnlyDisable []Automation `yaml:"bucket_policy_only_disabled"`
+				PublicSQLInstance       []Automation `yaml:"public_sql_instance"`
+				SSLNotEnforced          []Automation `yaml:"ssl_not_enforced"`
+				SQLNoRootPassword       []Automation `yaml:"sql_no_root_password"`
+				PublicIPAddress         []Automation `yaml:"public_ip_address"`
+				OpenFirewall            []Automation `yaml:"open_firewall"`
+				PublicDataset           []Automation `yaml:"bigquery_public_dataset"`
+				AuditLoggingDisabled    []Automation `yaml:"audit_logging_disabled"`
+				WebUIEnabled            []Automation `yaml:"web_ui_enabled"`
+				NonOrgMembers           []Automation `yaml:"non_org_members"`
 			}
 		}
 	}
@@ -200,6 +210,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "iam_revoke":
 				values := anomalousIAM.IAMRevoke()
 				values.DryRun = automation.Properties.DryRun
+				values.AllowDomains = automation.Properties.RevokeIAM.AllowDomains
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -373,8 +384,8 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "remediate_firewall":
 				values := firewallScanner.OpenFirewall()
 				values.DryRun = automation.Properties.DryRun
-				values.SourceRanges = automation.Properties.SourceRanges
-				values.Action = automation.Properties.RemediationAction
+				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
+				values.Action = automation.Properties.OpenFirewall.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -396,8 +407,8 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "remediate_firewall":
 				values := firewallScanner.OpenFirewall()
 				values.DryRun = automation.Properties.DryRun
-				values.SourceRanges = automation.Properties.SourceRanges
-				values.Action = automation.Properties.RemediationAction
+				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
+				values.Action = automation.Properties.OpenFirewall.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -419,8 +430,8 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "remediate_firewall":
 				values := firewallScanner.OpenFirewall()
 				values.DryRun = automation.Properties.DryRun
-				values.SourceRanges = automation.Properties.SourceRanges
-				values.Action = automation.Properties.RemediationAction
+				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
+				values.Action = automation.Properties.OpenFirewall.RemediationAction
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -505,7 +516,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "remove_non_org_members":
 				values := iamScanner.RemoveNonOrgMembers()
 				values.DryRun = automation.Properties.DryRun
-				values.AllowDomains = automation.Properties.AllowDomains
+				values.AllowDomains = automation.Properties.NonOrgMembers.AllowDomains
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

@@ -2,21 +2,12 @@ package datasetscanner
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 )
-
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun bool `yaml:"dry_run"`
-	}
-}
 
 // Finding represents this finding structure by SHA scanner.
 type Finding struct {
@@ -29,7 +20,10 @@ func (f *Finding) Name(b []byte) string {
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return ""
 	}
-	return finding.GetFinding().GetCategory()
+	if finding.GetFinding().GetSourceProperties().GetScannerName() != "DATASET_SCANNER" {
+		return ""
+	}
+	return strings.ToLower(finding.GetFinding().GetCategory())
 }
 
 // New returns a new finding.

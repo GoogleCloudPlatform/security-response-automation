@@ -29,10 +29,16 @@ func (f *Finding) Name(b []byte) string {
 	if err != nil {
 		return ""
 	}
+	name := ""
 	if ff.useCSCC {
-		return ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+		name = ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+	} else {
+		name = ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 	}
-	return ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
+	if name != "bad_ip" {
+		return ""
+	}
+	return name
 }
 
 // Finding represents a bad IP finding.
