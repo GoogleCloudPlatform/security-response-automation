@@ -9,16 +9,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/sha"
 )
 
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun bool `yaml:"dry_run"`
-	}
-}
-
 // Finding represents this finding.
 type Finding struct {
 	computeInstanceScanner *pb.ComputeInstanceScanner
@@ -28,6 +18,9 @@ type Finding struct {
 func (f *Finding) Name(b []byte) string {
 	var finding pb.ComputeInstanceScanner
 	if err := json.Unmarshal(b, &finding); err != nil {
+		return ""
+	}
+	if finding.GetFinding().GetSourceProperties().GetScannerName() != "COMPUTE_INSTANCE_SCANNER" {
 		return ""
 	}
 	return strings.ToLower(finding.GetFinding().GetCategory())

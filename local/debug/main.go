@@ -97,6 +97,41 @@ const (
 		},
 		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 	}`
+	iamCSCC = `{ 
+		"notificationConfigName": "organizations/1037840971520/notificationConfigs/sampleConfigId",
+		"finding": {
+		  "name": "organizations/1037840971520/sources/15233230630886231666/findings/e7efb1a8c89d435c99f0f5c24346f296",
+		  "parent": "organizations/1037840971520/sources/15233230630886231666",
+		  "resourceName": "//cloudresourcemanager.googleapis.com/projects/459837319394",
+		  "state": "ACTIVE",
+		  "category": "Persistence: IAM Anomalous Grant",
+		  "sourceProperties": {
+			"properties_principalEmail": "tom3fitzgerald@gmail.com",
+			"properties_bindingDeltas_0_action": "ADD",
+			"detectionCategory_ruleName": "iam_anomalous_grant",
+			"properties_project_id": "ae-threat-detection",
+			"properties_bindingDeltas_0_role": "roles/editor",
+			"eventTime": "2020-01-08T04:43:33.353Z",
+			"properties_bindingDeltas_0_member": "user:foo123@gmail.com",
+			"sourceId_projectNumber": "459837319394",
+			"affectedResources_0_gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/459837319394",
+			"detectionCategory_subRuleName": "external_member_added_to_policy",
+			"properties_externalMembers_0": "user:foo123@gmail.com",
+			"evidence_0_sourceLogId_timestamp": "2020-01-08T04:43:32.394Z",
+			"detectionPriority": "HIGH",
+			"detectionCategory_technique": "persistence",
+			"findingId": "e7efb1a8c89d435c99f0f5c24346f296",
+			"sourceId_customerOrganizationNumber": "1037840971520",
+			"evidence_0_sourceLogId_insertId": "-qcvb95e1l5ma",
+			"detectionCategory_indicator": "audit_log"
+		  },
+		  "securityMarks": {
+			"name": "organizations/1037840971520/sources/15233230630886231666/findings/e7efb1a8c89d435c99f0f5c24346f296/securityMarks"
+		  },
+		  "eventTime": "2020-01-08T04:43:33.353Z",
+		  "createTime": "2020-01-08T04:43:34.148Z"
+		}
+	  }`
 	iam = `{
 		"jsonPayload": {
 		  "affectedResources": [
@@ -200,7 +235,10 @@ func main() {
 	// if err := exec.OpenFirewall(ctx, pubsub.Message{Data: []byte(sshBruteForce)}); err != nil {
 	// 	log.Fatal(err)
 	// }
-	if err := exec.Router(ctx, pubsub.Message{Data: []byte(publicBucket)}); err != nil {
+	// if err := exec.Router(ctx, pubsub.Message{Data: []byte(publicBucket)}); err != nil {
+	// 	log.Fatal(err)
+	// }
+	if err := exec.Router(ctx, pubsub.Message{Data: []byte(badIPCSCC)}); err != nil {
 		log.Fatal(err)
 	}
 }

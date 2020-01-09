@@ -43,8 +43,9 @@ spec:
             - organizations/1234567891011/folders/424242424242/folders/565656565656/*
           properties:
             dry_run: true
-            allow_domains:
-              - foo.com
+            anomalous_iam:
+              allow_domains:
+                - foo.com
 ```
 
 The first parameter represents the finding provider, `sha` (Security Health Analytics) or `etd` (Event Threat Detection).

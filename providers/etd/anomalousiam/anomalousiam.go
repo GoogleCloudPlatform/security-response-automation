@@ -8,21 +8,13 @@ import (
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 )
 
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun       bool     `yaml:"dry_run"`
-		AllowDomains []string `yaml:"allow_domains"`
-	}
-}
-
-// Name returns the rule name of the finding.
+// Name verifies and returns the rule name of the finding.
 func (f *Finding) Name(b []byte) string {
 	var finding pb.AnomalousIAMGrant
 	if err := json.Unmarshal(b, &finding); err != nil {
+		return ""
+	}
+	if finding.GetJsonPayload().GetDetectionCategory().GetRuleName() != "iam_anomalous_grant" {
 		return ""
 	}
 	return finding.GetJsonPayload().GetDetectionCategory().GetRuleName()

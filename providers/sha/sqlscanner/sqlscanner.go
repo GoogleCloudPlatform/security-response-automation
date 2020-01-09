@@ -19,16 +19,6 @@ const (
 	userName = "root"
 )
 
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun bool `yaml:"dry_run"`
-	}
-}
-
 // Finding represents this finding.
 type Finding struct {
 	sqlScanner *pb.SqlScanner
@@ -38,6 +28,9 @@ type Finding struct {
 func (f *Finding) Name(b []byte) string {
 	var finding pb.SqlScanner
 	if err := json.Unmarshal(b, &finding); err != nil {
+		return ""
+	}
+	if finding.GetFinding().GetSourceProperties().GetScannerName() != "SQL_SCANNER" {
 		return ""
 	}
 	return strings.ToLower(finding.GetFinding().GetCategory())
