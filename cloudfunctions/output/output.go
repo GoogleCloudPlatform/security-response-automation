@@ -27,7 +27,7 @@ import (
 )
 
 var topics = map[string]struct{ Topic string }{
-	"turbinia": {Topic: "notify-turbinia"},
+	"turbinia": {Topic: "output-turbinia"},
 }
 
 // Configuration maps outputs attributes.
@@ -61,20 +61,20 @@ func Config() (*Configuration, error) {
 
 // Values are requirements for this function.
 type Values struct {
-	OutputID      string
-	OutputMessage []byte
+	Name    string
+	Message []byte
 }
 
 // Execute will orchestrate the notification to the available channel.
 func Execute(ctx context.Context, v *Values, s *Services) error {
-	switch v.OutputID {
+	switch v.Name {
 	case "turbinia":
-		log.Printf("executing output %q", v.OutputID)
-		topic := topics[v.OutputID].Topic
+		log.Printf("executing output %q", v.Name)
+		topic := topics[v.Name].Topic
 		if _, err := s.PubSub.Publish(ctx, topic, &pubsub.Message{
-			Data: v.OutputMessage,
+			Data: v.Message,
 		}); err != nil {
-			s.Logger.Error("failed to publish to %q for channel %q", topic, v.OutputID)
+			s.Logger.Error("failed to publish to %q for channel %q", topic, v.Name)
 			return err
 		}
 		log.Printf("sent to pubsub topic: %q", topic)

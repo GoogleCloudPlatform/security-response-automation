@@ -13,7 +13,7 @@
 # limitations under the License.
 resource "google_cloudfunctions_function" "turbinia" {
   name                  = "Turbinia"
-  description           = "Send a message to Turbinia about some threat automation action taken."
+  description           = "Sends disks to Turbinia."
   runtime               = "go111"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name

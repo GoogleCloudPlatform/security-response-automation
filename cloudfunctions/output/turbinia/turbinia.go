@@ -56,15 +56,15 @@ type Values struct {
 
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, s *Services) error {
-	m := &pubsub.Message{}
 	for _, d := range values.DiskNames {
 		b, err := buildRequest(values.ProjectID, values.Zone, d)
 		if err != nil {
 			return err
 		}
-		m.Data = b
 		log.Printf("sending disk %q to Turbinia project %q", d, values.ProjectID)
-		if _, err := s.PubSub.Publish(ctx, values.Topic, m); err != nil {
+		if _, err := s.PubSub.Publish(ctx, values.Topic, &pubsub.Message{
+			Data: b,
+		}); err != nil {
 			return err
 		}
 	}

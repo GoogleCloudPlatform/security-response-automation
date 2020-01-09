@@ -137,25 +137,16 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		}
 		log.Printf("available outputs: %q", values.Output)
 		for _, o := range values.Output {
-			r, err := json.Marshal(res)
+			m, err := json.Marshal(res)
 			if err != nil {
-				return errors.Wrapf(err, "failed to marshal when running %q", r)
+				return errors.Wrapf(err, "failed to marshal when running %q", m)
 			}
 			v := &output.Values{
-				OutputID:      o,
-				OutputMessage: r,
+				Name:    o,
+				Message: m,
 			}
-			b, err := json.Marshal(v)
-			if err != nil {
-				return errors.Wrapf(err, "failed to marshal when running %q", v)
-			}
-			log.Printf("sending message to: %q", outputTopic)
-			if _, err := ps.Publish(ctx, outputTopic, &pubsub.Message{
-				Data: b,
-			}); err != nil {
-				return errors.Wrapf(err, "failed to publish to %q for output %q", outputTopic, o)
-			}
-			log.Printf("sent %q to output %q", v.OutputMessage, o)
+			log.Printf("sending %q to output %q", v.Message, o)
+			output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
 		}
 		return nil
 	default:
