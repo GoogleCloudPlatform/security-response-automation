@@ -47,8 +47,6 @@ var (
 	projectID = os.Getenv("GCP_PROJECT")
 )
 
-const outputTopic = "threat-findings-output"
-
 func init() {
 	ctx := context.Background()
 	var err error
@@ -400,22 +398,6 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
-}
-
-// Output is the entry point for the output Cloud Function.
-//
-// This Cloud Function will receive the notification message and redirect to available outputs.
-func Output(ctx context.Context, m pubsub.Message) error {
-	var values output.Values
-	err := json.Unmarshal(m.Data, &values)
-	if err != nil {
-		return err
-	}
-	ps, err := services.InitPubSub(ctx, projectID)
-	if err != nil {
-		return err
-	}
-	return output.Execute(ctx, &values, &output.Services{Logger: svcs.Logger, PubSub: ps})
 }
 
 // Turbinia sends data to Turbinia.

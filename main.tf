@@ -110,12 +110,6 @@ module "enable_audit_logs" {
   folder-ids = var.folder-ids
 }
 
-module "output" {
-  source     = "./cloudfunctions/output/"
-  setup      = module.google-setup
-  folder-ids = var.folder-ids
-}
-
 module "output_turbinia" {
   source              = "./cloudfunctions/output/turbinia"
   setup               = module.google-setup
