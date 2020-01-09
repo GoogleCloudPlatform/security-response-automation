@@ -65,7 +65,7 @@ type Values struct {
 	Message []byte
 }
 
-// Execute will orchestrate the notification to the available channel.
+// Execute will orchestrate the notification to the available output.
 func Execute(ctx context.Context, v *Values, s *Services) error {
 	switch v.Name {
 	case "turbinia":
@@ -74,7 +74,7 @@ func Execute(ctx context.Context, v *Values, s *Services) error {
 		if _, err := s.PubSub.Publish(ctx, topic, &pubsub.Message{
 			Data: v.Message,
 		}); err != nil {
-			s.Logger.Error("failed to publish to %q for channel %q", topic, v.Name)
+			s.Logger.Error("failed to publish to %q for %q", topic, v.Name)
 			return err
 		}
 		log.Printf("sent to pubsub topic: %q", topic)
@@ -83,7 +83,7 @@ func Execute(ctx context.Context, v *Values, s *Services) error {
 	case "sendgrid":
 	case "stackdriver":
 	default:
-		return errors.Errorf("Invalid channel option")
+		return errors.Errorf("Invalid output option")
 	}
 	return nil
 }
