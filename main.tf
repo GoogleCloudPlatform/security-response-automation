@@ -34,8 +34,9 @@ module "google-setup" {
 }
 
 module "router" {
-  source = "./cloudfunctions/router/"
-  setup  = module.google-setup
+  source     = "./cloudfunctions/router/"
+  setup      = module.google-setup
+  folder-ids = var.folder-ids
 }
 
 module "close_public_bucket" {
@@ -119,7 +120,7 @@ module "output_turbinia" {
 
 // TODO: enable again and fix IAM roles
 //module "remove_non_org_members" {
-//  source = "./cloudfunctions/iam/removenonorgmembers"
-//  setup  = module.google-setup
+//  source     = "./cloudfunctions/iam/removenonorgmembers"
+//  setup      = module.google-setup
 //  folder-ids = var.folder-ids
 //}

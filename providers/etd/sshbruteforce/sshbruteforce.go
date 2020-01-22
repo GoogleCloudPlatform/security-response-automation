@@ -7,16 +7,6 @@ import (
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 )
 
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun bool `yaml:"dry_run"`
-	}
-}
-
 // Finding represents this finding.
 type Finding struct {
 	sshBruteForce *pb.SshBruteForce
@@ -26,6 +16,9 @@ type Finding struct {
 func (f *Finding) Name(b []byte) string {
 	var finding pb.SshBruteForce
 	if err := json.Unmarshal(b, &finding); err != nil {
+		return ""
+	}
+	if finding.GetJsonPayload().GetDetectionCategory().GetRuleName() != "ssh_brute_force" {
 		return ""
 	}
 	return finding.GetJsonPayload().GetDetectionCategory().GetRuleName()

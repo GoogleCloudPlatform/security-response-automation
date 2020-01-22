@@ -44,6 +44,10 @@ type Values struct {
 	Instance  string
 	Zone      string
 	Output    []string
+	// DestProjectID is the optional project ID where the newly created snapshot should be copied to.
+	DestProjectID string
+	// DestZone is the optional zone where the newly created snapshot should be copied to.
+	DestZone string
 }
 
 // Services contains the services needed for this function.
@@ -72,7 +76,6 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 	var output Output
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 	disksCopied := []string{}
-	dstProjectID := values.ProjectID
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
 	disks, err := services.Host.ListInstanceDisks(ctx, values.ProjectID, values.Zone, values.Instance)
 	if err != nil {
@@ -120,13 +123,13 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 		}
 		log.Printf("set labels for snapshot %q for disk %q", snapshotName, disk.Name)
 
-		if dstProjectID != "" {
-			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, dstProjectID, values.Zone)
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, dstProjectID, values.Zone, snapshotName); err != nil {
-				return nil, errors.Wrapf(err, "failed to copy disk to %q", dstProjectID)
+		if values.DestProjectID != "" {
+			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, values.DestProjectID, values.DestZone)
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, values.DestProjectID, values.DestZone, snapshotName); err != nil {
+				return nil, errors.Wrapf(err, "failed to copy disk to %q", values.DestProjectID)
 			}
 			disksCopied = append(disksCopied, snapshotName)
-			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, dstProjectID, values.Zone)
+			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, values.DestProjectID, values.DestZone)
 		}
 	}
 	log.Printf("completed")

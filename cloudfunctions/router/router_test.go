@@ -26,11 +26,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
-	"github.com/googlecloudplatform/security-response-automation/providers/etd/badip"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/datasetscanner"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/iamscanner"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/loggingscanner"
-	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -163,7 +158,7 @@ func TestRouter(t *testing.T) {
 	)
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
-	conf.Spec.Parameters.ETD.BadIP = []badip.Automation{
+	conf.Spec.Parameters.ETD.BadIP = []Automation{
 		{Action: "gce_create_disk_snapshot", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	createSnapshotValues := &createsnapshot.Values{
@@ -174,7 +169,7 @@ func TestRouter(t *testing.T) {
 	}
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
 
-	conf.Spec.Parameters.SHA.PublicBucketACL = []storagescanner.Automation{
+	conf.Spec.Parameters.SHA.PublicBucketACL = []Automation{
 		{Action: "close_bucket", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	closeBucketValues := &closebucket.Values{
@@ -191,7 +186,7 @@ func TestRouter(t *testing.T) {
 
 	r := services.NewResource(crmStub, storageStub)
 
-	conf.Spec.Parameters.SHA.PublicDataset = []datasetscanner.Automation{
+	conf.Spec.Parameters.SHA.PublicDataset = []Automation{
 		{Action: "close_public_dataset", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	closePublicDatasetValues := &closepublicdataset.Values{
@@ -201,7 +196,7 @@ func TestRouter(t *testing.T) {
 	}
 	closePublicDataset, _ := json.Marshal(closePublicDatasetValues)
 
-	conf.Spec.Parameters.SHA.AuditLoggingDisabled = []loggingscanner.Automation{
+	conf.Spec.Parameters.SHA.AuditLoggingDisabled = []Automation{
 		{Action: "enable_audit_logs", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	enableAuditLogsValues := &enableauditlogs.Values{
@@ -210,7 +205,7 @@ func TestRouter(t *testing.T) {
 	}
 	enableAuditLog, _ := json.Marshal(enableAuditLogsValues)
 
-	conf.Spec.Parameters.SHA.NonOrgMembers = []iamscanner.Automation{
+	conf.Spec.Parameters.SHA.NonOrgMembers = []Automation{
 		{Action: "remove_non_org_members", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
 	removeNonOrgMembersValues := &removenonorgmembers.Values{

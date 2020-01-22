@@ -8,17 +8,6 @@ import (
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/sha/protos"
 )
 
-// Automation defines the configuration for this finding.
-type Automation struct {
-	Action     string
-	Target     []string
-	Exclude    []string
-	Properties struct {
-		DryRun       bool     `yaml:"dry_run"`
-		AllowDomains []string `yaml:"allow_domains"`
-	}
-}
-
 // Finding represents this finding structure by SHA scanner.
 type Finding struct {
 	iamScanner *pb.IamScanner
@@ -37,6 +26,9 @@ func New(b []byte) (*Finding, error) {
 func (f *Finding) Name(b []byte) string {
 	var finding pb.IamScanner
 	if err := json.Unmarshal(b, &finding); err != nil {
+		return ""
+	}
+	if finding.GetFinding().GetSourceProperties().GetScannerName() != "IAM_SCANNER" {
 		return ""
 	}
 	return strings.ToLower(finding.GetFinding().GetCategory())
