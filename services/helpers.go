@@ -47,3 +47,9 @@ func GeneratePassword() (string, error) {
 	sha := sha256.Sum256(b)
 	return hex.EncodeToString(sha[:]), nil
 }
+
+// GenerateHash generates a hash of a given string.
+func GenerateHash(s string) string {
+	sha := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(sha[:])
+}
