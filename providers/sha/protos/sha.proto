@@ -138,6 +138,15 @@ message SqlScanner {
 
 message ContainerScanner {
 
+    message Marks {
+        string sraRemediated = 1;
+    }
+
+    message SecurityMarks {
+        string name = 1;
+        Marks marks = 2;
+    }
+
     message SourceProperties {
         string projectID = 1;
         string ScannerName = 2;
@@ -148,6 +157,8 @@ message ContainerScanner {
       string category = 2;
       string resourceName = 3;
       string state = 4;
+      SecurityMarks securityMarks = 5;
+      string eventTime = 6;
     }
 
     string notificationConfigName = 1;
