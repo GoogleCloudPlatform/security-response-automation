@@ -41,5 +41,11 @@ func (f *Finding) DisableDashboard() *disabledashboard.Values {
 		ProjectID: f.containerscanner.GetFinding().GetSourceProperties().GetProjectID(),
 		Zone:      sha.ClusterZone(f.containerscanner.GetFinding().GetResourceName()),
 		ClusterID: sha.ClusterID(f.containerscanner.GetFinding().GetResourceName()),
+		Hash:      f.containerscanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
 	}
+}
+
+// EventTime returns the eventTime of the finding.
+func (f *Finding) EventTime() string {
+	return f.containerscanner.GetFinding().GetEventTime()
 }

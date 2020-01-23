@@ -29,7 +29,13 @@ func TestReadFindingDisableDashboard(t *testing.T) {
 					"Explanation": "The Kubernetes web UI is backed by a highly privileged Kubernetes Service Account, which can be abused if compromised. If you are already using the GCP console, the Kubernetes web UI extends your attack surface unnecessarily. Learn more about how to disable the Kubernetes web UI and other techniques for hardening your Kubernetes clusters at https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster#disable_kubernetes_dashboard"
 				},
 				"securityMarks": {
-					"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274/securityMarks"
+					"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274/securityMarks",
+					"marks": {
+						"sratest1": "true",
+                        "sratest2": "false",
+						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+                        "sratest3": "true"
+                    }
 				},
 				"eventTime": "2019-10-01T01:20:20.151Z",
 				"createTime": "2019-03-05T22:21:01.836Z"
@@ -38,10 +44,12 @@ func TestReadFindingDisableDashboard(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, projectID, zone, clusterID string
+		hash                             string
 		bytes                            []byte
 		expectedError                    error
 	}{
-		{name: "read", projectID: "test-cat-findings-clseclab", zone: "us-central1-a", clusterID: "ex-abuse-cluster-3", bytes: []byte(webUIFinding), expectedError: nil},
+		{name: "read", projectID: "test-cat-findings-clseclab", zone: "us-central1-a", clusterID: "ex-abuse-cluster-3",
+			hash: "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf", bytes: []byte(webUIFinding), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -59,6 +67,9 @@ func TestReadFindingDisableDashboard(t *testing.T) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Zone, tt.zone)
 			}
 			if err == nil && r != nil && values.ClusterID != tt.clusterID {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ClusterID, tt.clusterID)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ClusterID, tt.clusterID)
 			}
 		})

@@ -34,6 +34,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/sqlscanner"
 	"github.com/googlecloudplatform/security-response-automation/providers/sha/storagescanner"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	srv "github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
@@ -495,6 +496,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "disable_dashboard":
 				values := containerScanner.DisableDashboard()
 				values.DryRun = automation.Properties.DryRun
+				newHash := srv.GenerateHash(containerScanner.EventTime())
+				if values.Hash != "" && newHash == values.Hash {
+					services.Logger.Info("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", values.Hash)
+					continue
+				}
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
