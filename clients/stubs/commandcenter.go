@@ -18,7 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
+	"github.com/googleapis/gax-go/v2"
+	scc "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 )
 
 // ErrEntityNonExistent is an error throw if the entity was not found.
@@ -26,14 +27,14 @@ var ErrEntityNonExistent = fmt.Errorf("rpc error: code = NotFound desc = Request
 
 // SecurityCommandCenterStub provides a stub for the Security Command center client.
 type SecurityCommandCenterStub struct {
-	GetUpdateSecurityMarksRequest *sccpb.UpdateSecurityMarksRequest
+	GetUpdateSecurityMarksRequest *scc.UpdateSecurityMarksRequest
 }
 
-// AddSecurityMarks adds Security Marks to a finding or asset.
-func (s *SecurityCommandCenterStub) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
-	s.GetUpdateSecurityMarksRequest = request
-	if request.SecurityMarks.GetName() == "nonexistent/securityMarks" {
+// UpdateSecurityMarks in an Asset or Finding
+func (s *SecurityCommandCenterStub) UpdateSecurityMarks(ctx context.Context, req *scc.UpdateSecurityMarksRequest, opts ...gax.CallOption) (*scc.SecurityMarks, error) {
+	s.GetUpdateSecurityMarksRequest = req
+	if req.SecurityMarks.GetName() == "nonexistent/securityMarks" {
 		return nil, ErrEntityNonExistent
 	}
-	return &sccpb.SecurityMarks{}, nil
+	return &scc.SecurityMarks{}, nil
 }

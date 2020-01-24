@@ -19,10 +19,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	scc "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 
-	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
-	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	"google.golang.org/genproto/protobuf/field_mask"
 )
 
@@ -32,8 +31,8 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 		securityMark     map[string]string
 		serviceID        string
 		expectedError    error
-		expectedResponse *sccpb.SecurityMarks
-		expectedRequest  *sccpb.UpdateSecurityMarksRequest
+		expectedResponse *scc.SecurityMarks
+		expectedRequest  *scc.UpdateSecurityMarksRequest
 	}{
 
 		{
@@ -41,12 +40,12 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			securityMark:     map[string]string{"automationTest": "true"},
 			serviceID:        "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599",
 			expectedError:    nil,
-			expectedResponse: &sccpb.SecurityMarks{},
-			expectedRequest: &sccpb.UpdateSecurityMarksRequest{
+			expectedResponse: &scc.SecurityMarks{},
+			expectedRequest: &scc.UpdateSecurityMarksRequest{
 				UpdateMask: &field_mask.FieldMask{
 					Paths: []string{"marks.automationTest"},
 				},
-				SecurityMarks: &crm.SecurityMarks{
+				SecurityMarks: &scc.SecurityMarks{
 					Name:  "organizations/1055058813388/sources/2299436883026055247/findings/f909c48ed690424397eb3c3242062599/securityMarks",
 					Marks: map[string]string{"automationTest": "true"},
 				},
@@ -58,11 +57,11 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			serviceID:        "nonexistent",
 			expectedError:    stubs.ErrEntityNonExistent,
 			expectedResponse: nil,
-			expectedRequest: &sccpb.UpdateSecurityMarksRequest{
+			expectedRequest: &scc.UpdateSecurityMarksRequest{
 				UpdateMask: &field_mask.FieldMask{
 					Paths: []string{"marks.automationTestFailing"},
 				},
-				SecurityMarks: &crm.SecurityMarks{
+				SecurityMarks: &scc.SecurityMarks{
 					Name:  "nonexistent/securityMarks",
 					Marks: map[string]string{"automationTestFailing": "true"},
 				},
@@ -75,7 +74,7 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			commandCenterStub := &stubs.SecurityCommandCenterStub{}
 			ctx := context.Background()
 			c := NewCommandCenter(commandCenterStub)
-			r, err := c.AddSecurityMarks(ctx, tt.serviceID, tt.securityMark)
+			r, err := c.UpdateSecurityMarks(ctx, tt.serviceID, tt.securityMark)
 
 			if diff := cmp.Diff(commandCenterStub.GetUpdateSecurityMarksRequest, tt.expectedRequest); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)

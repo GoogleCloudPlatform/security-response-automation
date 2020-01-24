@@ -17,13 +17,14 @@ package services
 import (
 	"context"
 
-	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
+	"github.com/googleapis/gax-go/v2"
+	scc "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/genproto/protobuf/field_mask"
 )
 
 // CommandCenterClient contains minimum interface required by the command center service.
 type CommandCenterClient interface {
-	AddSecurityMarks(context.Context, *crm.UpdateSecurityMarksRequest) (*crm.SecurityMarks, error)
+	UpdateSecurityMarks(ctx context.Context, req *scc.UpdateSecurityMarksRequest, opts ...gax.CallOption) (*scc.SecurityMarks, error)
 }
 
 // CommandCenter service.
@@ -31,23 +32,22 @@ type CommandCenter struct {
 	client CommandCenterClient
 }
 
-// NewCommandCenter returns a commmand center service.
+// NewCommandCenter returns a command center service.
 func NewCommandCenter(cc CommandCenterClient) *CommandCenter {
 	return &CommandCenter{client: cc}
 }
 
-// AddSecurityMarks to a finding or asset.
-func (r *CommandCenter) AddSecurityMarks(ctx context.Context, serviceID string, securityMarks map[string]string) (*crm.SecurityMarks, error) {
+// UpdateSecurityMarks in an Asset or Finding
+func (r *CommandCenter) UpdateSecurityMarks(ctx context.Context, serviceID string, securityMarks map[string]string) (*scc.SecurityMarks, error) {
 	var paths []string
 	for k := range securityMarks {
 		paths = append(paths, "marks."+k)
 	}
-
-	return r.client.AddSecurityMarks(ctx, &crm.UpdateSecurityMarksRequest{
+	return r.client.UpdateSecurityMarks(ctx, &scc.UpdateSecurityMarksRequest{
 		UpdateMask: &field_mask.FieldMask{
 			Paths: paths,
 		},
-		SecurityMarks: &crm.SecurityMarks{
+		SecurityMarks: &scc.SecurityMarks{
 			Name:  serviceID + "/securityMarks",
 			Marks: securityMarks,
 		},

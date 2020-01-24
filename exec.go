@@ -22,6 +22,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
+	securitycenter "github.com/googlecloudplatform/security-response-automation/clients/cscc/apiv1p1alpha1"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
@@ -68,13 +69,20 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	if err != nil {
 		return err
 	}
+	c, err := securitycenter.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+	scc := services.NewCommandCenter(c)
+
 	return router.Execute(ctx, &router.Values{
 		Finding: m.Data,
 	}, &router.Services{
-		PubSub:        ps,
-		Configuration: conf,
-		Logger:        svcs.Logger,
-		Resource:      svcs.Resource,
+		PubSub:                ps,
+		Configuration:         conf,
+		Logger:                svcs.Logger,
+		Resource:              svcs.Resource,
+		SecurityCommandCenter: scc,
 	})
 }
 
