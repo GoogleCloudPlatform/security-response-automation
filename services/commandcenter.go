@@ -18,7 +18,7 @@ import (
 	"context"
 
 	"github.com/googleapis/gax-go/v2"
-	scc "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
+	scc "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	"google.golang.org/genproto/protobuf/field_mask"
 )
 

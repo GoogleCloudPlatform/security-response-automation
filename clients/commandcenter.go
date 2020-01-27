@@ -19,9 +19,10 @@ import (
 	"context"
 	"fmt"
 
+	commandcenter "cloud.google.com/go/securitycenter/apiv1beta1"
 	"github.com/googleapis/gax-go/v2"
-	commandcenter "github.com/googlecloudplatform/security-response-automation/clients/cscc/apiv1p1alpha1"
-	sccpb "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
+	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
+
 	"google.golang.org/api/option"
 )
 

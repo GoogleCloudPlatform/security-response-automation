@@ -19,8 +19,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	scc "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
+	scc "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 
 	"google.golang.org/genproto/protobuf/field_mask"
 )
