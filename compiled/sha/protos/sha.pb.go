@@ -67,6 +67,92 @@ func (m *StorageScanner) GetFinding() *StorageScanner_Finding {
 	return nil
 }
 
+type StorageScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *StorageScanner_Marks) Reset()         { *m = StorageScanner_Marks{} }
+func (m *StorageScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*StorageScanner_Marks) ProtoMessage()    {}
+func (*StorageScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{0, 0}
+}
+
+func (m *StorageScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StorageScanner_Marks.Unmarshal(m, b)
+}
+func (m *StorageScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StorageScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *StorageScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StorageScanner_Marks.Merge(m, src)
+}
+func (m *StorageScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_StorageScanner_Marks.Size(m)
+}
+func (m *StorageScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_StorageScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StorageScanner_Marks proto.InternalMessageInfo
+
+func (m *StorageScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type StorageScanner_SecurityMarks struct {
+	Name                 string                `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *StorageScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *StorageScanner_SecurityMarks) Reset()         { *m = StorageScanner_SecurityMarks{} }
+func (m *StorageScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*StorageScanner_SecurityMarks) ProtoMessage()    {}
+func (*StorageScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{0, 1}
+}
+
+func (m *StorageScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StorageScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *StorageScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StorageScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *StorageScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StorageScanner_SecurityMarks.Merge(m, src)
+}
+func (m *StorageScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_StorageScanner_SecurityMarks.Size(m)
+}
+func (m *StorageScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_StorageScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StorageScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *StorageScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *StorageScanner_SecurityMarks) GetMarks() *StorageScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type StorageScanner_SourceProperties struct {
 	ProjectId            string   `protobuf:"bytes,1,opt,name=projectId,proto3" json:"projectId,omitempty"`
 	ScannerName          string   `protobuf:"bytes,2,opt,name=ScannerName,proto3" json:"ScannerName,omitempty"`
@@ -79,7 +165,7 @@ func (m *StorageScanner_SourceProperties) Reset()         { *m = StorageScanner_
 func (m *StorageScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*StorageScanner_SourceProperties) ProtoMessage()    {}
 func (*StorageScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{0, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{0, 2}
 }
 
 func (m *StorageScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -119,6 +205,8 @@ type StorageScanner_Finding struct {
 	ResourceName         string                           `protobuf:"bytes,2,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
 	Category             string                           `protobuf:"bytes,3,opt,name=category,proto3" json:"category,omitempty"`
 	State                string                           `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	SecurityMarks        *StorageScanner_SecurityMarks    `protobuf:"bytes,5,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                           `protobuf:"bytes,6,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
 	XXX_unrecognized     []byte                           `json:"-"`
 	XXX_sizecache        int32                            `json:"-"`
@@ -128,7 +216,7 @@ func (m *StorageScanner_Finding) Reset()         { *m = StorageScanner_Finding{}
 func (m *StorageScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*StorageScanner_Finding) ProtoMessage()    {}
 func (*StorageScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{0, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{0, 3}
 }
 
 func (m *StorageScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -173,6 +261,20 @@ func (m *StorageScanner_Finding) GetCategory() string {
 func (m *StorageScanner_Finding) GetState() string {
 	if m != nil {
 		return m.State
+	}
+	return ""
+}
+
+func (m *StorageScanner_Finding) GetSecurityMarks() *StorageScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *StorageScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
 	}
 	return ""
 }
@@ -224,6 +326,92 @@ func (m *FirewallScanner) GetFinding() *FirewallScanner_Finding {
 	return nil
 }
 
+type FirewallScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *FirewallScanner_Marks) Reset()         { *m = FirewallScanner_Marks{} }
+func (m *FirewallScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*FirewallScanner_Marks) ProtoMessage()    {}
+func (*FirewallScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{1, 0}
+}
+
+func (m *FirewallScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FirewallScanner_Marks.Unmarshal(m, b)
+}
+func (m *FirewallScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FirewallScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *FirewallScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FirewallScanner_Marks.Merge(m, src)
+}
+func (m *FirewallScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_FirewallScanner_Marks.Size(m)
+}
+func (m *FirewallScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_FirewallScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FirewallScanner_Marks proto.InternalMessageInfo
+
+func (m *FirewallScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type FirewallScanner_SecurityMarks struct {
+	Name                 string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *FirewallScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *FirewallScanner_SecurityMarks) Reset()         { *m = FirewallScanner_SecurityMarks{} }
+func (m *FirewallScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*FirewallScanner_SecurityMarks) ProtoMessage()    {}
+func (*FirewallScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{1, 1}
+}
+
+func (m *FirewallScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FirewallScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *FirewallScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FirewallScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *FirewallScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FirewallScanner_SecurityMarks.Merge(m, src)
+}
+func (m *FirewallScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_FirewallScanner_SecurityMarks.Size(m)
+}
+func (m *FirewallScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_FirewallScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FirewallScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *FirewallScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *FirewallScanner_SecurityMarks) GetMarks() *FirewallScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type FirewallScanner_SourceProperties struct {
 	ProjectId            string   `protobuf:"bytes,1,opt,name=projectId,proto3" json:"projectId,omitempty"`
 	Allowed              string   `protobuf:"bytes,2,opt,name=allowed,proto3" json:"allowed,omitempty"`
@@ -240,7 +428,7 @@ func (m *FirewallScanner_SourceProperties) Reset()         { *m = FirewallScanne
 func (m *FirewallScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*FirewallScanner_SourceProperties) ProtoMessage()    {}
 func (*FirewallScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{1, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{1, 2}
 }
 
 func (m *FirewallScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -308,6 +496,8 @@ type FirewallScanner_Finding struct {
 	Category             string                            `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
 	ResourceName         string                            `protobuf:"bytes,3,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
 	State                string                            `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	SecurityMarks        *FirewallScanner_SecurityMarks    `protobuf:"bytes,5,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                            `protobuf:"bytes,6,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
 	XXX_unrecognized     []byte                            `json:"-"`
 	XXX_sizecache        int32                             `json:"-"`
@@ -317,7 +507,7 @@ func (m *FirewallScanner_Finding) Reset()         { *m = FirewallScanner_Finding
 func (m *FirewallScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*FirewallScanner_Finding) ProtoMessage()    {}
 func (*FirewallScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{1, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{1, 3}
 }
 
 func (m *FirewallScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -362,6 +552,20 @@ func (m *FirewallScanner_Finding) GetResourceName() string {
 func (m *FirewallScanner_Finding) GetState() string {
 	if m != nil {
 		return m.State
+	}
+	return ""
+}
+
+func (m *FirewallScanner_Finding) GetSecurityMarks() *FirewallScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *FirewallScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
 	}
 	return ""
 }
@@ -413,6 +617,92 @@ func (m *ComputeInstanceScanner) GetFinding() *ComputeInstanceScanner_Finding {
 	return nil
 }
 
+type ComputeInstanceScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ComputeInstanceScanner_Marks) Reset()         { *m = ComputeInstanceScanner_Marks{} }
+func (m *ComputeInstanceScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*ComputeInstanceScanner_Marks) ProtoMessage()    {}
+func (*ComputeInstanceScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{2, 0}
+}
+
+func (m *ComputeInstanceScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ComputeInstanceScanner_Marks.Unmarshal(m, b)
+}
+func (m *ComputeInstanceScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ComputeInstanceScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *ComputeInstanceScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ComputeInstanceScanner_Marks.Merge(m, src)
+}
+func (m *ComputeInstanceScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_ComputeInstanceScanner_Marks.Size(m)
+}
+func (m *ComputeInstanceScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_ComputeInstanceScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ComputeInstanceScanner_Marks proto.InternalMessageInfo
+
+func (m *ComputeInstanceScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type ComputeInstanceScanner_SecurityMarks struct {
+	Name                 string                        `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *ComputeInstanceScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *ComputeInstanceScanner_SecurityMarks) Reset()         { *m = ComputeInstanceScanner_SecurityMarks{} }
+func (m *ComputeInstanceScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*ComputeInstanceScanner_SecurityMarks) ProtoMessage()    {}
+func (*ComputeInstanceScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{2, 1}
+}
+
+func (m *ComputeInstanceScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ComputeInstanceScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *ComputeInstanceScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ComputeInstanceScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *ComputeInstanceScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ComputeInstanceScanner_SecurityMarks.Merge(m, src)
+}
+func (m *ComputeInstanceScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_ComputeInstanceScanner_SecurityMarks.Size(m)
+}
+func (m *ComputeInstanceScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_ComputeInstanceScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ComputeInstanceScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *ComputeInstanceScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *ComputeInstanceScanner_SecurityMarks) GetMarks() *ComputeInstanceScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type ComputeInstanceScanner_SourceProperties struct {
 	ProjectID            string   `protobuf:"bytes,1,opt,name=projectID,proto3" json:"projectID,omitempty"`
 	ScannerName          string   `protobuf:"bytes,2,opt,name=ScannerName,proto3" json:"ScannerName,omitempty"`
@@ -427,7 +717,7 @@ func (m *ComputeInstanceScanner_SourceProperties) Reset() {
 func (m *ComputeInstanceScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*ComputeInstanceScanner_SourceProperties) ProtoMessage()    {}
 func (*ComputeInstanceScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{2, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{2, 2}
 }
 
 func (m *ComputeInstanceScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -467,6 +757,8 @@ type ComputeInstanceScanner_Finding struct {
 	Category             string                                   `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
 	ResourceName         string                                   `protobuf:"bytes,3,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
 	State                string                                   `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	SecurityMarks        *ComputeInstanceScanner_SecurityMarks    `protobuf:"bytes,5,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                                   `protobuf:"bytes,6,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                                 `json:"-"`
 	XXX_unrecognized     []byte                                   `json:"-"`
 	XXX_sizecache        int32                                    `json:"-"`
@@ -476,7 +768,7 @@ func (m *ComputeInstanceScanner_Finding) Reset()         { *m = ComputeInstanceS
 func (m *ComputeInstanceScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*ComputeInstanceScanner_Finding) ProtoMessage()    {}
 func (*ComputeInstanceScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{2, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{2, 3}
 }
 
 func (m *ComputeInstanceScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -521,6 +813,20 @@ func (m *ComputeInstanceScanner_Finding) GetResourceName() string {
 func (m *ComputeInstanceScanner_Finding) GetState() string {
 	if m != nil {
 		return m.State
+	}
+	return ""
+}
+
+func (m *ComputeInstanceScanner_Finding) GetSecurityMarks() *ComputeInstanceScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *ComputeInstanceScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
 	}
 	return ""
 }
@@ -572,6 +878,92 @@ func (m *DatasetScanner) GetFinding() *DatasetScanner_Finding {
 	return nil
 }
 
+type DatasetScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DatasetScanner_Marks) Reset()         { *m = DatasetScanner_Marks{} }
+func (m *DatasetScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*DatasetScanner_Marks) ProtoMessage()    {}
+func (*DatasetScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{3, 0}
+}
+
+func (m *DatasetScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DatasetScanner_Marks.Unmarshal(m, b)
+}
+func (m *DatasetScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DatasetScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *DatasetScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DatasetScanner_Marks.Merge(m, src)
+}
+func (m *DatasetScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_DatasetScanner_Marks.Size(m)
+}
+func (m *DatasetScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_DatasetScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DatasetScanner_Marks proto.InternalMessageInfo
+
+func (m *DatasetScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type DatasetScanner_SecurityMarks struct {
+	Name                 string                `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *DatasetScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *DatasetScanner_SecurityMarks) Reset()         { *m = DatasetScanner_SecurityMarks{} }
+func (m *DatasetScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*DatasetScanner_SecurityMarks) ProtoMessage()    {}
+func (*DatasetScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{3, 1}
+}
+
+func (m *DatasetScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DatasetScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *DatasetScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DatasetScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *DatasetScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DatasetScanner_SecurityMarks.Merge(m, src)
+}
+func (m *DatasetScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_DatasetScanner_SecurityMarks.Size(m)
+}
+func (m *DatasetScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_DatasetScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DatasetScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *DatasetScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *DatasetScanner_SecurityMarks) GetMarks() *DatasetScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type DatasetScanner_SourceProperties struct {
 	ProjectID            string   `protobuf:"bytes,1,opt,name=projectID,proto3" json:"projectID,omitempty"`
 	ScannerName          string   `protobuf:"bytes,2,opt,name=ScannerName,proto3" json:"ScannerName,omitempty"`
@@ -584,7 +976,7 @@ func (m *DatasetScanner_SourceProperties) Reset()         { *m = DatasetScanner_
 func (m *DatasetScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*DatasetScanner_SourceProperties) ProtoMessage()    {}
 func (*DatasetScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{3, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{3, 2}
 }
 
 func (m *DatasetScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -624,6 +1016,8 @@ type DatasetScanner_Finding struct {
 	Category             string                           `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
 	ResourceName         string                           `protobuf:"bytes,3,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
 	State                string                           `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	SecurityMarks        *DatasetScanner_SecurityMarks    `protobuf:"bytes,5,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                           `protobuf:"bytes,6,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
 	XXX_unrecognized     []byte                           `json:"-"`
 	XXX_sizecache        int32                            `json:"-"`
@@ -633,7 +1027,7 @@ func (m *DatasetScanner_Finding) Reset()         { *m = DatasetScanner_Finding{}
 func (m *DatasetScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*DatasetScanner_Finding) ProtoMessage()    {}
 func (*DatasetScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{3, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{3, 3}
 }
 
 func (m *DatasetScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -678,6 +1072,20 @@ func (m *DatasetScanner_Finding) GetResourceName() string {
 func (m *DatasetScanner_Finding) GetState() string {
 	if m != nil {
 		return m.State
+	}
+	return ""
+}
+
+func (m *DatasetScanner_Finding) GetSecurityMarks() *DatasetScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *DatasetScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
 	}
 	return ""
 }
@@ -729,6 +1137,92 @@ func (m *IamScanner) GetFinding() *IamScanner_Finding {
 	return nil
 }
 
+type IamScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *IamScanner_Marks) Reset()         { *m = IamScanner_Marks{} }
+func (m *IamScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*IamScanner_Marks) ProtoMessage()    {}
+func (*IamScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{4, 0}
+}
+
+func (m *IamScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IamScanner_Marks.Unmarshal(m, b)
+}
+func (m *IamScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IamScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *IamScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IamScanner_Marks.Merge(m, src)
+}
+func (m *IamScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_IamScanner_Marks.Size(m)
+}
+func (m *IamScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_IamScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IamScanner_Marks proto.InternalMessageInfo
+
+func (m *IamScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type IamScanner_SecurityMarks struct {
+	Name                 string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *IamScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *IamScanner_SecurityMarks) Reset()         { *m = IamScanner_SecurityMarks{} }
+func (m *IamScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*IamScanner_SecurityMarks) ProtoMessage()    {}
+func (*IamScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{4, 1}
+}
+
+func (m *IamScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IamScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *IamScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IamScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *IamScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IamScanner_SecurityMarks.Merge(m, src)
+}
+func (m *IamScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_IamScanner_SecurityMarks.Size(m)
+}
+func (m *IamScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_IamScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IamScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *IamScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *IamScanner_SecurityMarks) GetMarks() *IamScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type IamScanner_SourceProperties struct {
 	ProjectID            string   `protobuf:"bytes,1,opt,name=projectID,proto3" json:"projectID,omitempty"`
 	OffendingIamRoles    string   `protobuf:"bytes,2,opt,name=offendingIamRoles,proto3" json:"offendingIamRoles,omitempty"`
@@ -742,7 +1236,7 @@ func (m *IamScanner_SourceProperties) Reset()         { *m = IamScanner_SourcePr
 func (m *IamScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*IamScanner_SourceProperties) ProtoMessage()    {}
 func (*IamScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{4, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{4, 2}
 }
 
 func (m *IamScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -790,6 +1284,8 @@ type IamScanner_Finding struct {
 	Parent               string                       `protobuf:"bytes,3,opt,name=parent,proto3" json:"parent,omitempty"`
 	State                string                       `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
 	ResourceName         string                       `protobuf:"bytes,5,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
+	SecurityMarks        *IamScanner_SecurityMarks    `protobuf:"bytes,6,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                       `protobuf:"bytes,7,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
 	XXX_unrecognized     []byte                       `json:"-"`
 	XXX_sizecache        int32                        `json:"-"`
@@ -799,7 +1295,7 @@ func (m *IamScanner_Finding) Reset()         { *m = IamScanner_Finding{} }
 func (m *IamScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*IamScanner_Finding) ProtoMessage()    {}
 func (*IamScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{4, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{4, 3}
 }
 
 func (m *IamScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -855,6 +1351,20 @@ func (m *IamScanner_Finding) GetResourceName() string {
 	return ""
 }
 
+func (m *IamScanner_Finding) GetSecurityMarks() *IamScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *IamScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
+	}
+	return ""
+}
+
 type SqlScanner struct {
 	NotificationConfigName string              `protobuf:"bytes,1,opt,name=notificationConfigName,proto3" json:"notificationConfigName,omitempty"`
 	Finding                *SqlScanner_Finding `protobuf:"bytes,2,opt,name=finding,proto3" json:"finding,omitempty"`
@@ -902,6 +1412,92 @@ func (m *SqlScanner) GetFinding() *SqlScanner_Finding {
 	return nil
 }
 
+type SqlScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SqlScanner_Marks) Reset()         { *m = SqlScanner_Marks{} }
+func (m *SqlScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*SqlScanner_Marks) ProtoMessage()    {}
+func (*SqlScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{5, 0}
+}
+
+func (m *SqlScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SqlScanner_Marks.Unmarshal(m, b)
+}
+func (m *SqlScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SqlScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *SqlScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SqlScanner_Marks.Merge(m, src)
+}
+func (m *SqlScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_SqlScanner_Marks.Size(m)
+}
+func (m *SqlScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_SqlScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SqlScanner_Marks proto.InternalMessageInfo
+
+func (m *SqlScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type SqlScanner_SecurityMarks struct {
+	Name                 string            `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *SqlScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *SqlScanner_SecurityMarks) Reset()         { *m = SqlScanner_SecurityMarks{} }
+func (m *SqlScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*SqlScanner_SecurityMarks) ProtoMessage()    {}
+func (*SqlScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{5, 1}
+}
+
+func (m *SqlScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SqlScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *SqlScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SqlScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *SqlScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SqlScanner_SecurityMarks.Merge(m, src)
+}
+func (m *SqlScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_SqlScanner_SecurityMarks.Size(m)
+}
+func (m *SqlScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_SqlScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SqlScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *SqlScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *SqlScanner_SecurityMarks) GetMarks() *SqlScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type SqlScanner_SourceProperties struct {
 	ProjectID            string   `protobuf:"bytes,1,opt,name=projectID,proto3" json:"projectID,omitempty"`
 	ScannerName          string   `protobuf:"bytes,2,opt,name=ScannerName,proto3" json:"ScannerName,omitempty"`
@@ -914,7 +1510,7 @@ func (m *SqlScanner_SourceProperties) Reset()         { *m = SqlScanner_SourcePr
 func (m *SqlScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*SqlScanner_SourceProperties) ProtoMessage()    {}
 func (*SqlScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{5, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{5, 2}
 }
 
 func (m *SqlScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -954,6 +1550,8 @@ type SqlScanner_Finding struct {
 	Category             string                       `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
 	ResourceName         string                       `protobuf:"bytes,3,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
 	State                string                       `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	SecurityMarks        *SqlScanner_SecurityMarks    `protobuf:"bytes,5,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                       `protobuf:"bytes,6,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
 	XXX_unrecognized     []byte                       `json:"-"`
 	XXX_sizecache        int32                        `json:"-"`
@@ -963,7 +1561,7 @@ func (m *SqlScanner_Finding) Reset()         { *m = SqlScanner_Finding{} }
 func (m *SqlScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*SqlScanner_Finding) ProtoMessage()    {}
 func (*SqlScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{5, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{5, 3}
 }
 
 func (m *SqlScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -1008,6 +1606,20 @@ func (m *SqlScanner_Finding) GetResourceName() string {
 func (m *SqlScanner_Finding) GetState() string {
 	if m != nil {
 		return m.State
+	}
+	return ""
+}
+
+func (m *SqlScanner_Finding) GetSecurityMarks() *SqlScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *SqlScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
 	}
 	return ""
 }
@@ -1318,6 +1930,92 @@ func (m *LoggingScanner) GetFinding() *LoggingScanner_Finding {
 	return nil
 }
 
+type LoggingScanner_Marks struct {
+	SraRemediated        string   `protobuf:"bytes,1,opt,name=sraRemediated,proto3" json:"sraRemediated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LoggingScanner_Marks) Reset()         { *m = LoggingScanner_Marks{} }
+func (m *LoggingScanner_Marks) String() string { return proto.CompactTextString(m) }
+func (*LoggingScanner_Marks) ProtoMessage()    {}
+func (*LoggingScanner_Marks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{7, 0}
+}
+
+func (m *LoggingScanner_Marks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoggingScanner_Marks.Unmarshal(m, b)
+}
+func (m *LoggingScanner_Marks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoggingScanner_Marks.Marshal(b, m, deterministic)
+}
+func (m *LoggingScanner_Marks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoggingScanner_Marks.Merge(m, src)
+}
+func (m *LoggingScanner_Marks) XXX_Size() int {
+	return xxx_messageInfo_LoggingScanner_Marks.Size(m)
+}
+func (m *LoggingScanner_Marks) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoggingScanner_Marks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoggingScanner_Marks proto.InternalMessageInfo
+
+func (m *LoggingScanner_Marks) GetSraRemediated() string {
+	if m != nil {
+		return m.SraRemediated
+	}
+	return ""
+}
+
+type LoggingScanner_SecurityMarks struct {
+	Name                 string                `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Marks                *LoggingScanner_Marks `protobuf:"bytes,2,opt,name=marks,proto3" json:"marks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *LoggingScanner_SecurityMarks) Reset()         { *m = LoggingScanner_SecurityMarks{} }
+func (m *LoggingScanner_SecurityMarks) String() string { return proto.CompactTextString(m) }
+func (*LoggingScanner_SecurityMarks) ProtoMessage()    {}
+func (*LoggingScanner_SecurityMarks) Descriptor() ([]byte, []int) {
+	return fileDescriptor_42ce1b275ac7c5c9, []int{7, 1}
+}
+
+func (m *LoggingScanner_SecurityMarks) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LoggingScanner_SecurityMarks.Unmarshal(m, b)
+}
+func (m *LoggingScanner_SecurityMarks) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LoggingScanner_SecurityMarks.Marshal(b, m, deterministic)
+}
+func (m *LoggingScanner_SecurityMarks) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoggingScanner_SecurityMarks.Merge(m, src)
+}
+func (m *LoggingScanner_SecurityMarks) XXX_Size() int {
+	return xxx_messageInfo_LoggingScanner_SecurityMarks.Size(m)
+}
+func (m *LoggingScanner_SecurityMarks) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoggingScanner_SecurityMarks.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoggingScanner_SecurityMarks proto.InternalMessageInfo
+
+func (m *LoggingScanner_SecurityMarks) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *LoggingScanner_SecurityMarks) GetMarks() *LoggingScanner_Marks {
+	if m != nil {
+		return m.Marks
+	}
+	return nil
+}
+
 type LoggingScanner_SourceProperties struct {
 	ProjectID            string   `protobuf:"bytes,1,opt,name=projectID,proto3" json:"projectID,omitempty"`
 	ScannerName          string   `protobuf:"bytes,2,opt,name=ScannerName,proto3" json:"ScannerName,omitempty"`
@@ -1330,7 +2028,7 @@ func (m *LoggingScanner_SourceProperties) Reset()         { *m = LoggingScanner_
 func (m *LoggingScanner_SourceProperties) String() string { return proto.CompactTextString(m) }
 func (*LoggingScanner_SourceProperties) ProtoMessage()    {}
 func (*LoggingScanner_SourceProperties) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{7, 0}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{7, 2}
 }
 
 func (m *LoggingScanner_SourceProperties) XXX_Unmarshal(b []byte) error {
@@ -1370,6 +2068,8 @@ type LoggingScanner_Finding struct {
 	Category             string                           `protobuf:"bytes,2,opt,name=category,proto3" json:"category,omitempty"`
 	ResourceName         string                           `protobuf:"bytes,3,opt,name=resourceName,proto3" json:"resourceName,omitempty"`
 	State                string                           `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	SecurityMarks        *LoggingScanner_SecurityMarks    `protobuf:"bytes,5,opt,name=securityMarks,proto3" json:"securityMarks,omitempty"`
+	EventTime            string                           `protobuf:"bytes,6,opt,name=eventTime,proto3" json:"eventTime,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                         `json:"-"`
 	XXX_unrecognized     []byte                           `json:"-"`
 	XXX_sizecache        int32                            `json:"-"`
@@ -1379,7 +2079,7 @@ func (m *LoggingScanner_Finding) Reset()         { *m = LoggingScanner_Finding{}
 func (m *LoggingScanner_Finding) String() string { return proto.CompactTextString(m) }
 func (*LoggingScanner_Finding) ProtoMessage()    {}
 func (*LoggingScanner_Finding) Descriptor() ([]byte, []int) {
-	return fileDescriptor_42ce1b275ac7c5c9, []int{7, 1}
+	return fileDescriptor_42ce1b275ac7c5c9, []int{7, 3}
 }
 
 func (m *LoggingScanner_Finding) XXX_Unmarshal(b []byte) error {
@@ -1428,23 +2128,49 @@ func (m *LoggingScanner_Finding) GetState() string {
 	return ""
 }
 
+func (m *LoggingScanner_Finding) GetSecurityMarks() *LoggingScanner_SecurityMarks {
+	if m != nil {
+		return m.SecurityMarks
+	}
+	return nil
+}
+
+func (m *LoggingScanner_Finding) GetEventTime() string {
+	if m != nil {
+		return m.EventTime
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*StorageScanner)(nil), "StorageScanner")
+	proto.RegisterType((*StorageScanner_Marks)(nil), "StorageScanner.Marks")
+	proto.RegisterType((*StorageScanner_SecurityMarks)(nil), "StorageScanner.SecurityMarks")
 	proto.RegisterType((*StorageScanner_SourceProperties)(nil), "StorageScanner.SourceProperties")
 	proto.RegisterType((*StorageScanner_Finding)(nil), "StorageScanner.Finding")
 	proto.RegisterType((*FirewallScanner)(nil), "FirewallScanner")
+	proto.RegisterType((*FirewallScanner_Marks)(nil), "FirewallScanner.Marks")
+	proto.RegisterType((*FirewallScanner_SecurityMarks)(nil), "FirewallScanner.SecurityMarks")
 	proto.RegisterType((*FirewallScanner_SourceProperties)(nil), "FirewallScanner.SourceProperties")
 	proto.RegisterType((*FirewallScanner_Finding)(nil), "FirewallScanner.Finding")
 	proto.RegisterType((*ComputeInstanceScanner)(nil), "ComputeInstanceScanner")
+	proto.RegisterType((*ComputeInstanceScanner_Marks)(nil), "ComputeInstanceScanner.Marks")
+	proto.RegisterType((*ComputeInstanceScanner_SecurityMarks)(nil), "ComputeInstanceScanner.SecurityMarks")
 	proto.RegisterType((*ComputeInstanceScanner_SourceProperties)(nil), "ComputeInstanceScanner.SourceProperties")
 	proto.RegisterType((*ComputeInstanceScanner_Finding)(nil), "ComputeInstanceScanner.Finding")
 	proto.RegisterType((*DatasetScanner)(nil), "DatasetScanner")
+	proto.RegisterType((*DatasetScanner_Marks)(nil), "DatasetScanner.Marks")
+	proto.RegisterType((*DatasetScanner_SecurityMarks)(nil), "DatasetScanner.SecurityMarks")
 	proto.RegisterType((*DatasetScanner_SourceProperties)(nil), "DatasetScanner.SourceProperties")
 	proto.RegisterType((*DatasetScanner_Finding)(nil), "DatasetScanner.Finding")
 	proto.RegisterType((*IamScanner)(nil), "IamScanner")
+	proto.RegisterType((*IamScanner_Marks)(nil), "IamScanner.Marks")
+	proto.RegisterType((*IamScanner_SecurityMarks)(nil), "IamScanner.SecurityMarks")
 	proto.RegisterType((*IamScanner_SourceProperties)(nil), "IamScanner.SourceProperties")
 	proto.RegisterType((*IamScanner_Finding)(nil), "IamScanner.Finding")
 	proto.RegisterType((*SqlScanner)(nil), "SqlScanner")
+	proto.RegisterType((*SqlScanner_Marks)(nil), "SqlScanner.Marks")
+	proto.RegisterType((*SqlScanner_SecurityMarks)(nil), "SqlScanner.SecurityMarks")
 	proto.RegisterType((*SqlScanner_SourceProperties)(nil), "SqlScanner.SourceProperties")
 	proto.RegisterType((*SqlScanner_Finding)(nil), "SqlScanner.Finding")
 	proto.RegisterType((*ContainerScanner)(nil), "ContainerScanner")
@@ -1453,6 +2179,8 @@ func init() {
 	proto.RegisterType((*ContainerScanner_SourceProperties)(nil), "ContainerScanner.SourceProperties")
 	proto.RegisterType((*ContainerScanner_Finding)(nil), "ContainerScanner.Finding")
 	proto.RegisterType((*LoggingScanner)(nil), "LoggingScanner")
+	proto.RegisterType((*LoggingScanner_Marks)(nil), "LoggingScanner.Marks")
+	proto.RegisterType((*LoggingScanner_SecurityMarks)(nil), "LoggingScanner.SecurityMarks")
 	proto.RegisterType((*LoggingScanner_SourceProperties)(nil), "LoggingScanner.SourceProperties")
 	proto.RegisterType((*LoggingScanner_Finding)(nil), "LoggingScanner.Finding")
 }
@@ -1460,49 +2188,57 @@ func init() {
 func init() { proto.RegisterFile("sha/protos/sha.proto", fileDescriptor_42ce1b275ac7c5c9) }
 
 var fileDescriptor_42ce1b275ac7c5c9 = []byte{
-	// 701 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x97, 0xcf, 0x6e, 0x13, 0x31,
-	0x10, 0xc6, 0x95, 0x7f, 0x2d, 0x9d, 0xd2, 0xd2, 0x9a, 0xaa, 0x84, 0xa8, 0x12, 0x21, 0x42, 0xa8,
-	0x87, 0x76, 0x2b, 0x5a, 0x09, 0x89, 0x73, 0x4b, 0x45, 0xa4, 0xb6, 0x42, 0x9b, 0xbe, 0x80, 0xd9,
-	0x4c, 0xb6, 0x86, 0xc4, 0x0e, 0xb6, 0xdb, 0xaa, 0x37, 0x1e, 0x02, 0xc4, 0x33, 0x70, 0x80, 0x1b,
-	0x17, 0x6e, 0xbc, 0x0b, 0x57, 0x4e, 0x3c, 0x00, 0x28, 0xde, 0x6d, 0x77, 0xd7, 0xce, 0x4a, 0x89,
-	0xa2, 0x34, 0xdc, 0xd6, 0x33, 0xeb, 0xf1, 0xe4, 0xfb, 0x7d, 0xf6, 0x3a, 0xb0, 0xa6, 0xce, 0xe8,
-	0x4e, 0x5f, 0x0a, 0x2d, 0xd4, 0x8e, 0x3a, 0xa3, 0x9e, 0x79, 0x6c, 0xfc, 0x2d, 0xc2, 0x72, 0x4b,
-	0x0b, 0x49, 0x43, 0x6c, 0x05, 0x94, 0x73, 0x94, 0xe4, 0x39, 0xac, 0x73, 0xa1, 0x59, 0x87, 0x05,
-	0x54, 0x33, 0xc1, 0xf7, 0x05, 0xef, 0xb0, 0xf0, 0x84, 0xf6, 0xb0, 0x5a, 0xa8, 0x17, 0x36, 0x17,
-	0xfc, 0x9c, 0x2c, 0x79, 0x06, 0xf3, 0x1d, 0xc6, 0xdb, 0x8c, 0x87, 0xd5, 0x62, 0xbd, 0xb0, 0xb9,
-	0xb8, 0xfb, 0xc0, 0xcb, 0x56, 0xf6, 0x0e, 0xa3, 0xb4, 0x7f, 0xfd, 0x5e, 0xcd, 0x87, 0x95, 0x96,
-	0x38, 0x97, 0x01, 0xbe, 0x96, 0xa2, 0x8f, 0x52, 0x33, 0x54, 0x64, 0x03, 0x16, 0xfa, 0x52, 0xbc,
-	0xc5, 0x40, 0x37, 0xdb, 0xf1, 0x8a, 0x49, 0x80, 0xd4, 0x61, 0x31, 0xae, 0x66, 0x3a, 0x2a, 0x9a,
-	0x7c, 0x3a, 0x54, 0xfb, 0x5a, 0x80, 0xf9, 0x78, 0x21, 0x72, 0x04, 0x2b, 0xca, 0xaa, 0x6f, 0x4a,
-	0x2e, 0xee, 0xd6, 0xed, 0xde, 0xec, 0x3e, 0x7c, 0x67, 0x26, 0x69, 0xc0, 0x5d, 0x89, 0x51, 0x34,
-	0xb5, 0x78, 0x26, 0x46, 0x6a, 0x70, 0x27, 0xa0, 0x1a, 0x43, 0x21, 0xaf, 0xaa, 0x25, 0x93, 0xbf,
-	0x19, 0x93, 0x35, 0xa8, 0x28, 0x4d, 0x35, 0x56, 0xcb, 0x26, 0x11, 0x0d, 0x1a, 0x9f, 0xca, 0x70,
-	0xef, 0x90, 0x49, 0xbc, 0xa4, 0xdd, 0xee, 0xa4, 0x08, 0x76, 0x6d, 0x04, 0x55, 0xcf, 0x2a, 0xed,
-	0x32, 0xf8, 0x55, 0x18, 0x1b, 0x42, 0x15, 0xe6, 0x69, 0xb7, 0x2b, 0x2e, 0xb1, 0x1d, 0x6b, 0x70,
-	0x3d, 0x24, 0x4f, 0x61, 0x39, 0x7e, 0x6c, 0xf6, 0x7d, 0xca, 0x43, 0x8c, 0x45, 0xb0, 0xa2, 0x64,
-	0x0b, 0x56, 0x69, 0xa0, 0xd9, 0x85, 0xf9, 0x01, 0xa7, 0x92, 0x85, 0x21, 0xca, 0x58, 0x16, 0x37,
-	0x31, 0x80, 0x1e, 0x49, 0x1c, 0x95, 0xac, 0x44, 0xd0, 0x53, 0x21, 0xdb, 0x16, 0x73, 0xae, 0x2d,
-	0xbe, 0xa5, 0x6c, 0x71, 0x9c, 0x6b, 0x8b, 0xc7, 0x8e, 0x5e, 0x23, 0xf8, 0x22, 0xcd, 0xbc, 0x68,
-	0x31, 0xb7, 0x3d, 0x53, 0x1a, 0xe2, 0x99, 0xe1, 0xbe, 0xf8, 0x5c, 0x82, 0xf5, 0x7d, 0xd1, 0xeb,
-	0x9f, 0x6b, 0x6c, 0x72, 0xa5, 0x29, 0x0f, 0x26, 0xde, 0xa1, 0x2f, 0x6c, 0x7b, 0x3c, 0xf2, 0x86,
-	0xaf, 0x30, 0xf6, 0x4e, 0x3d, 0xb0, 0x4d, 0x72, 0x30, 0xc2, 0x4e, 0xfd, 0x9e, 0x42, 0x72, 0x9a,
-	0x8b, 0x64, 0x33, 0xaf, 0xc7, 0x99, 0x91, 0x19, 0x9c, 0x99, 0x07, 0x54, 0x53, 0x85, 0x7a, 0x0a,
-	0x67, 0x66, 0xb6, 0xf2, 0xed, 0x90, 0x18, 0xf5, 0xcc, 0xb4, 0x7a, 0x9b, 0x19, 0x81, 0x1f, 0x25,
-	0x80, 0x26, 0xed, 0x4d, 0xaa, 0xfe, 0xb6, 0xad, 0xfe, 0x7d, 0x2f, 0xa9, 0xea, 0x2a, 0xff, 0xa1,
-	0x30, 0xb6, 0xf4, 0x5b, 0xb0, 0x2a, 0x3a, 0x1d, 0x34, 0xf3, 0x9b, 0xb4, 0xe7, 0x8b, 0x2e, 0xaa,
-	0x58, 0x07, 0x37, 0x61, 0x83, 0x2a, 0xb9, 0xa0, 0x7e, 0xa6, 0x40, 0xbd, 0xca, 0x05, 0xb5, 0x91,
-	0xfe, 0x19, 0x13, 0x42, 0x5a, 0x87, 0xb9, 0x3e, 0x95, 0xc8, 0x75, 0xdc, 0x4e, 0x3c, 0x1a, 0x0e,
-	0xc6, 0x41, 0x5a, 0x71, 0x91, 0x36, 0xfe, 0x14, 0x01, 0x5a, 0xef, 0xbb, 0x53, 0x80, 0x97, 0x54,
-	0xbd, 0x9d, 0x6d, 0xf3, 0x65, 0x44, 0x1a, 0xa9, 0xbe, 0x66, 0xb6, 0x65, 0x7e, 0x97, 0x61, 0x65,
-	0x5f, 0x70, 0x4d, 0x19, 0x47, 0x39, 0xa9, 0xf6, 0x7b, 0xb6, 0xf6, 0x0f, 0x3d, 0xbb, 0xb6, 0x4b,
-	0x60, 0x1b, 0x2a, 0xc7, 0x54, 0xbe, 0x53, 0xe4, 0x09, 0x2c, 0x29, 0x49, 0x7d, 0xec, 0x61, 0x9b,
-	0x51, 0x8d, 0xd7, 0x17, 0x8c, 0x6c, 0xb0, 0xe6, 0xc3, 0x52, 0x0b, 0x83, 0x73, 0xc9, 0xf4, 0x55,
-	0x34, 0x8d, 0x40, 0x99, 0x27, 0xad, 0x99, 0x67, 0xb2, 0x0d, 0x95, 0xde, 0x20, 0x79, 0x73, 0x7a,
-	0x3a, 0x6d, 0x98, 0xb9, 0x7e, 0xf4, 0xd6, 0x54, 0x4c, 0xf0, 0xb1, 0x98, 0x98, 0xe0, 0x24, 0xd7,
-	0x04, 0x0d, 0xb7, 0xb3, 0x59, 0x59, 0x81, 0xbc, 0x84, 0x25, 0x95, 0x56, 0xd6, 0xec, 0xd2, 0xe8,
-	0x32, 0x60, 0xb7, 0x98, 0x7e, 0xcd, 0xcf, 0xce, 0x1a, 0x08, 0x87, 0x17, 0xc8, 0xf5, 0x29, 0xbb,
-	0xb9, 0x71, 0x25, 0x01, 0xf3, 0x91, 0x3c, 0x12, 0x61, 0xc8, 0x78, 0x38, 0x85, 0x8f, 0x64, 0xb6,
-	0xf2, 0xff, 0xf5, 0x91, 0xb4, 0x7a, 0x9b, 0x15, 0xe6, 0x37, 0x73, 0xe6, 0x1f, 0xde, 0xde, 0xbf,
-	0x00, 0x00, 0x00, 0xff, 0xff, 0x55, 0x1d, 0x9b, 0xb8, 0xf9, 0x0d, 0x00, 0x00,
+	// 828 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x98, 0xcf, 0x4f, 0xdb, 0x3e,
+	0x14, 0xc0, 0xd5, 0xd2, 0xb4, 0x5f, 0x1e, 0x5f, 0x18, 0x64, 0xac, 0x84, 0x0a, 0x46, 0x57, 0xed,
+	0x07, 0xd2, 0xa0, 0x68, 0x20, 0x4d, 0xda, 0x89, 0x43, 0x3b, 0xb4, 0x6a, 0x80, 0x58, 0xca, 0x61,
+	0x57, 0x2f, 0x75, 0x83, 0xb7, 0xd6, 0xee, 0x1c, 0x03, 0xe2, 0xb6, 0xe3, 0xa4, 0x5d, 0xa6, 0x69,
+	0xda, 0x79, 0xff, 0xd1, 0xfe, 0x88, 0xed, 0xba, 0xbf, 0x60, 0x97, 0xa9, 0x49, 0xa0, 0xb1, 0x93,
+	0x4c, 0xa1, 0x51, 0x15, 0x6e, 0xc9, 0x7b, 0xc9, 0xcb, 0xa7, 0xf6, 0xc7, 0xcf, 0x56, 0x61, 0xd1,
+	0x39, 0x41, 0x5b, 0x03, 0xce, 0x04, 0x73, 0xb6, 0x9c, 0x13, 0x54, 0x77, 0x2f, 0x6b, 0x3f, 0x0b,
+	0x30, 0xd7, 0x16, 0x8c, 0x23, 0x1b, 0xb7, 0x2d, 0x44, 0x29, 0xe6, 0xfa, 0x53, 0x28, 0x53, 0x26,
+	0x48, 0x97, 0x58, 0x48, 0x10, 0x46, 0x1b, 0x8c, 0x76, 0x89, 0x7d, 0x88, 0xfa, 0xd8, 0xc8, 0x55,
+	0x73, 0xeb, 0xd3, 0x66, 0x4c, 0x56, 0x7f, 0x02, 0xa5, 0x2e, 0xa1, 0x1d, 0x42, 0x6d, 0x23, 0x5f,
+	0xcd, 0xad, 0xcf, 0x6c, 0x2f, 0xd5, 0xe5, 0xca, 0xf5, 0x3d, 0x2f, 0x6d, 0x5e, 0x3e, 0x57, 0xd9,
+	0x04, 0xed, 0x00, 0xf1, 0x77, 0x8e, 0x7e, 0x1f, 0x66, 0x1d, 0x8e, 0x4c, 0xdc, 0xc7, 0x1d, 0x82,
+	0x04, 0xee, 0xf8, 0x9f, 0x92, 0x83, 0x95, 0x23, 0x98, 0x6d, 0x63, 0xeb, 0x94, 0x13, 0x71, 0xe1,
+	0xbd, 0xa6, 0x43, 0x81, 0x8e, 0xc0, 0xdc, 0x6b, 0xfd, 0x31, 0x68, 0xfd, 0x61, 0xd2, 0x87, 0xb8,
+	0xa3, 0x42, 0xb8, 0x6f, 0x9a, 0xde, 0x33, 0x15, 0x13, 0xe6, 0xdb, 0xec, 0x94, 0x5b, 0xf8, 0x88,
+	0xb3, 0x01, 0xe6, 0x82, 0x60, 0x47, 0x5f, 0x81, 0xe9, 0x01, 0x67, 0x6f, 0xb1, 0x25, 0x5a, 0x97,
+	0x1c, 0xa3, 0x80, 0x5e, 0x85, 0x19, 0xbf, 0x92, 0x3b, 0x24, 0x79, 0x37, 0x1f, 0x0c, 0x55, 0x3e,
+	0xe7, 0xa1, 0xe4, 0xff, 0x52, 0x7d, 0x1f, 0xe6, 0x1d, 0xa5, 0xbe, 0x5b, 0x72, 0x66, 0xbb, 0xaa,
+	0x72, 0xa9, 0x1c, 0x66, 0xe8, 0x4d, 0xbd, 0x06, 0xff, 0x73, 0xec, 0x45, 0x03, 0x1f, 0x97, 0x62,
+	0x7a, 0x05, 0xfe, 0xb3, 0x90, 0xc0, 0x36, 0xe3, 0x17, 0xc6, 0x94, 0x9b, 0xbf, 0xba, 0xd7, 0x17,
+	0x41, 0x73, 0x04, 0x12, 0xd8, 0x28, 0xb8, 0x09, 0xef, 0x46, 0x6f, 0xc0, 0xac, 0x13, 0x1c, 0x55,
+	0x43, 0x73, 0x01, 0x57, 0x43, 0x80, 0xc1, 0x87, 0x4c, 0xf9, 0x9d, 0xe1, 0xa0, 0xe1, 0x33, 0x4c,
+	0xc5, 0x31, 0xe9, 0x63, 0xa3, 0xe8, 0x0d, 0xda, 0x55, 0xa0, 0xf6, 0x47, 0x83, 0x5b, 0x7b, 0x84,
+	0xe3, 0x73, 0xd4, 0xeb, 0xa5, 0xd5, 0x6c, 0x5b, 0xd5, 0xcc, 0xa8, 0x2b, 0xa5, 0x53, 0x7b, 0xf6,
+	0x2a, 0x89, 0x67, 0x1b, 0xb2, 0x67, 0xe5, 0x10, 0x85, 0x24, 0xda, 0xaf, 0xdc, 0xb5, 0x4d, 0x33,
+	0xa0, 0x84, 0x7a, 0x3d, 0x76, 0x8e, 0x3b, 0xfe, 0x44, 0x5f, 0xde, 0xea, 0x0f, 0x61, 0xce, 0xbf,
+	0x6c, 0x0d, 0x4c, 0x44, 0x6d, 0xec, 0xcf, 0xb4, 0x12, 0xd5, 0x37, 0x60, 0x01, 0x59, 0x82, 0x9c,
+	0xb9, 0x43, 0x78, 0xcc, 0x89, 0x6d, 0x63, 0xee, 0xcf, 0x7d, 0x38, 0x31, 0x34, 0xdb, 0xf3, 0xc8,
+	0x2b, 0xa9, 0x79, 0x66, 0x07, 0x42, 0xaa, 0xfb, 0xc5, 0xb0, 0xfb, 0x5f, 0x02, 0xee, 0x1f, 0xc4,
+	0xba, 0x7f, 0x2f, 0x34, 0x56, 0x09, 0xe4, 0x0f, 0x8a, 0x9d, 0x57, 0xc4, 0x56, 0x17, 0xc6, 0x54,
+	0xc4, 0xc2, 0x88, 0x96, 0xbf, 0x19, 0x2d, 0xff, 0xdd, 0x30, 0xe1, 0xf8, 0xf6, 0x7f, 0xd2, 0xa0,
+	0xdc, 0x60, 0xfd, 0xc1, 0xa9, 0xc0, 0x2d, 0xea, 0x08, 0x44, 0xad, 0xd4, 0xbd, 0xf6, 0x99, 0xba,
+	0x08, 0xd6, 0xea, 0xd1, 0x5f, 0x48, 0xbd, 0x16, 0x5e, 0x27, 0x59, 0x0b, 0x3b, 0xf2, 0x5a, 0x58,
+	0x8d, 0x83, 0xb9, 0x4e, 0xef, 0x6d, 0xaa, 0x2b, 0xa2, 0x99, 0xa0, 0xf7, 0x7e, 0x0f, 0xf8, 0x77,
+	0x1c, 0xeb, 0xdf, 0x7a, 0x1c, 0x5f, 0x66, 0x1a, 0xbe, 0x8c, 0xd6, 0xf0, 0x41, 0x2c, 0xe8, 0xf8,
+	0x36, 0x0e, 0x77, 0xfc, 0x26, 0x12, 0xc8, 0xc1, 0x62, 0x02, 0x3b, 0xbe, 0x5c, 0x39, 0xa3, 0x1d,
+	0x5f, 0x81, 0x98, 0xb8, 0x75, 0x49, 0x77, 0x7c, 0x85, 0x2b, 0x33, 0xdb, 0x62, 0x77, 0x7c, 0x15,
+	0x70, 0x7c, 0xcb, 0xbe, 0x69, 0x00, 0x2d, 0xd4, 0x4f, 0x6b, 0xd8, 0xa6, 0x6a, 0xd8, 0xed, 0xfa,
+	0xa8, 0x6a, 0x6a, 0xbb, 0xf6, 0x93, 0xd8, 0xf5, 0x48, 0xb6, 0x6b, 0x21, 0x08, 0x20, 0x99, 0xf5,
+	0x21, 0x77, 0x6d, 0xb5, 0x36, 0x60, 0x81, 0x75, 0xbb, 0xd8, 0x85, 0x6f, 0xa1, 0xbe, 0xc9, 0x7a,
+	0xd8, 0xf1, 0xe7, 0x39, 0x9c, 0x50, 0x45, 0x9c, 0xfa, 0x77, 0xfb, 0x7b, 0x11, 0x2b, 0xe2, 0x4a,
+	0xf0, 0x27, 0xa4, 0x94, 0xb0, 0x0c, 0xc5, 0x01, 0xe2, 0x98, 0x0a, 0x1f, 0xc7, 0xbf, 0x8b, 0x11,
+	0x4f, 0x55, 0x56, 0x8b, 0x50, 0x76, 0x57, 0x95, 0xb3, 0xe8, 0x42, 0x2f, 0x4b, 0xd0, 0x89, 0xc5,
+	0x2c, 0xa9, 0x62, 0xfe, 0x28, 0x00, 0xb4, 0xdf, 0xf7, 0x26, 0x20, 0xe6, 0xa8, 0x6a, 0x46, 0x62,
+	0x06, 0x00, 0x26, 0xde, 0xf2, 0x3e, 0x26, 0x34, 0x2d, 0xc0, 0x94, 0x59, 0xbb, 0xdb, 0x8d, 0x6e,
+	0x77, 0xcb, 0x12, 0xdc, 0xf8, 0xad, 0xee, 0x77, 0x01, 0xe6, 0x1b, 0x8c, 0x0a, 0x44, 0x28, 0xe6,
+	0x69, 0xbd, 0xda, 0x51, 0xbd, 0x5a, 0xae, 0xab, 0xb5, 0x53, 0xdb, 0x65, 0x26, 0xb1, 0x6b, 0x53,
+	0xb6, 0x6b, 0x29, 0x8c, 0x31, 0x71, 0xc7, 0xbe, 0x06, 0x1c, 0x3b, 0x8c, 0x75, 0xac, 0x16, 0x26,
+	0xcb, 0xcc, 0xb4, 0xe7, 0xd1, 0xa6, 0xad, 0x45, 0x20, 0xa6, 0x3b, 0xc0, 0xed, 0x33, 0xdb, 0x26,
+	0xd4, 0x9e, 0xc0, 0x01, 0x4e, 0xae, 0x9c, 0xd1, 0x01, 0x4e, 0x81, 0xb8, 0x31, 0x07, 0x38, 0x85,
+	0xeb, 0xe6, 0x1d, 0xe0, 0x54, 0xc0, 0xb1, 0x2d, 0x7b, 0x53, 0x74, 0xff, 0x1f, 0xdc, 0xf9, 0x1b,
+	0x00, 0x00, 0xff, 0xff, 0xda, 0x49, 0x14, 0xb0, 0x37, 0x14, 0x00, 0x00,
 }
