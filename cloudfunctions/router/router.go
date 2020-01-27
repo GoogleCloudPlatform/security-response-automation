@@ -40,22 +40,24 @@ import (
 )
 
 var findings = []Namer{
-	&anomalousiam.Finding{},
-	&badip.Finding{},
-	&sshbruteforce.Finding{},
-	&storagescanner.Finding{},
-	&sqlscanner.Finding{},
+	// &anomalousiam.Finding{},
+	// &badip.Finding{},
+	// &sshbruteforce.Finding{},
+	// &storagescanner.Finding{},
+	// &sqlscanner.Finding{},
 	&containerscanner.Finding{},
-	&computeinstancescanner.Finding{},
-	&firewallscanner.Finding{},
-	&datasetscanner.Finding{},
-	&loggingscanner.Finding{},
-	&iamscanner.Finding{},
+	// &computeinstancescanner.Finding{},
+	// &firewallscanner.Finding{},
+	// &datasetscanner.Finding{},
+	// &loggingscanner.Finding{},
+	// &iamscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
 type Namer interface {
 	Name([]byte) string
+	StringToBeHashed() string
+	SraRemediated([]byte) string
 }
 
 // Services contains the services needed for this function.
@@ -160,20 +162,26 @@ func Config() (*Configuration, error) {
 }
 
 // ruleName will attempt to deserialize all findings until a name is extracted.
-func ruleName(b []byte) string {
+func ruleName(b []byte) (string, string) {
 	for _, finding := range findings {
+		sraRemediated := finding.SraRemediated(b)
+		newHash := srv.GenerateHash(finding.StringToBeHashed())
+		if sraRemediated != "" && newHash == sraRemediated {
+			log.Printf("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", sraRemediated)
+			continue
+		}
 		if n := finding.Name(b); n != "" {
-			return n
+			return n, newHash
 		}
 	}
-	return ""
+	return "", ""
 }
 
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	// TODO: add hash into Values
 	// TODO: add finding name into Values
-	switch name := ruleName(values.Finding); name {
+	switch name, newHash := ruleName(values.Finding); name {
 	case "bad_ip":
 		automations := services.Configuration.Spec.Parameters.ETD.BadIP
 		badIP, err := badip.New(values.Finding)
@@ -498,11 +506,6 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "disable_dashboard":
 				values := containerScanner.DisableDashboard()
 				values.DryRun = automation.Properties.DryRun
-				newHash := srv.GenerateHash(containerScanner.EventTime())
-				if values.Hash != "" && newHash == values.Hash {
-					services.Logger.Info("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", values.Hash)
-					continue
-				}
 				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {

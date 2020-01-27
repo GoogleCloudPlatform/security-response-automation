@@ -45,7 +45,16 @@ func (f *Finding) DisableDashboard() *disabledashboard.Values {
 	}
 }
 
-// EventTime returns the eventTime of the finding.
-func (f *Finding) EventTime() string {
-	return f.containerscanner.GetFinding().GetEventTime()
+// StringToBeHashed returns the string that will be used to generate the mark hash finding.
+func (f *Finding) StringToBeHashed() string {
+	return f.containerscanner.GetFinding().GetEventTime() + f.containerscanner.GetFinding().GetSecurityMarks().GetName()
+}
+
+// SraRemediated returns the sraRemediate mark of the finding.
+func (f *Finding) SraRemediated(b []byte) string {
+	// var finding pb.ContainerScanner
+	if err := json.Unmarshal(b, &f.containerscanner); err != nil {
+		return ""
+	}
+	return f.containerscanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
 }
