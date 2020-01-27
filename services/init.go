@@ -13,12 +13,13 @@ const (
 
 // Global holds all initialized services.
 type Global struct {
-	Logger    *Logger
-	Resource  *Resource
-	Host      *Host
-	Firewall  *Firewall
-	Container *Container
-	CloudSQL  *CloudSQL
+	Logger                *Logger
+	Resource              *Resource
+	Host                  *Host
+	Firewall              *Firewall
+	Container             *Container
+	CloudSQL              *CloudSQL
+	SecurityCommandCenter *CommandCenter
 }
 
 // New returns an initialized Global struct.
@@ -53,13 +54,19 @@ func New(ctx context.Context) (*Global, error) {
 		return nil, err
 	}
 
+	scc, err := initSecurityCommandCenter(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Global{
-		Host:      host,
-		Logger:    log,
-		Resource:  res,
-		Firewall:  fw,
-		Container: cont,
-		CloudSQL:  sql,
+		Host:                  host,
+		Logger:                log,
+		Resource:              res,
+		Firewall:              fw,
+		Container:             cont,
+		CloudSQL:              sql,
+		SecurityCommandCenter: scc,
 	}, nil
 }
 
@@ -137,4 +144,12 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
 	return NewCloudSQL(cs), nil
+}
+
+func initSecurityCommandCenter(ctx context.Context) (*CommandCenter, error) {
+	scc, err := clients.NewSecurityCommandCenter(ctx, authFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize scc client: %q", err)
+	}
+	return NewCommandCenter(scc), nil
 }

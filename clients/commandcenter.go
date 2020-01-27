@@ -19,9 +19,10 @@ import (
 	"context"
 	"fmt"
 
-	commandcenter "cloud.google.com/go/securitycenter/apiv1beta1"
+	"github.com/googleapis/gax-go/v2"
+	commandcenter "github.com/googlecloudplatform/security-response-automation/clients/cscc/apiv1p1alpha1"
+	sccpb "github.com/googlecloudplatform/security-response-automation/clients/cscc/v1p1alpha1"
 	"google.golang.org/api/option"
-	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
 
 // SecurityCommandCenter client.
@@ -31,19 +32,14 @@ type SecurityCommandCenter struct {
 
 // NewSecurityCommandCenter returns and initializes a SecurityCommandCenter client.
 func NewSecurityCommandCenter(ctx context.Context, authFile string) (*SecurityCommandCenter, error) {
-	scc, err := commandcenter.NewClient(ctx, option.WithCredentialsFile(authFile))
+	cc, err := commandcenter.NewClient(ctx, option.WithCredentialsFile(authFile))
 	if err != nil {
 		return nil, fmt.Errorf("failed to init scc: %q", err)
 	}
-	return &SecurityCommandCenter{service: scc}, nil
+	return &SecurityCommandCenter{service: cc}, nil
 }
 
-// UpdateFinding updates a finding in SCC.
-func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccpb.UpdateFindingRequest) (*sccpb.Finding, error) {
-	return s.service.UpdateFinding(ctx, request)
-}
-
-// AddSecurityMarks adds security mark to a finding or asset.
-func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
-	return s.service.UpdateSecurityMarks(ctx, request)
+// UpdateSecurityMarks in an Asset or Finding
+func (s *SecurityCommandCenter) UpdateSecurityMarks(ctx context.Context, req *sccpb.UpdateSecurityMarksRequest, opts ...gax.CallOption) (*sccpb.SecurityMarks, error) {
+	return s.service.UpdateSecurityMarks(ctx, req)
 }

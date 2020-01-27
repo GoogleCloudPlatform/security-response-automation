@@ -38,12 +38,12 @@ func NewCommandCenter(cc CommandCenterClient) *CommandCenter {
 }
 
 // UpdateSecurityMarks in an Asset or Finding
-func (r *CommandCenter) UpdateSecurityMarks(ctx context.Context, serviceID string, securityMarks map[string]string) (*scc.SecurityMarks, error) {
+func (cc *CommandCenter) UpdateSecurityMarks(ctx context.Context, serviceID string, securityMarks map[string]string) (*scc.SecurityMarks, error) {
 	var paths []string
 	for k := range securityMarks {
 		paths = append(paths, "marks."+k)
 	}
-	return r.client.UpdateSecurityMarks(ctx, &scc.UpdateSecurityMarksRequest{
+	return cc.client.UpdateSecurityMarks(ctx, &scc.UpdateSecurityMarksRequest{
 		UpdateMask: &field_mask.FieldMask{
 			Paths: paths,
 		},

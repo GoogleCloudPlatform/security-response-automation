@@ -22,7 +22,6 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
-	securitycenter "github.com/googlecloudplatform/security-response-automation/clients/cscc/apiv1p1alpha1"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
@@ -38,6 +37,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -69,20 +69,14 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	if err != nil {
 		return err
 	}
-	c, err := securitycenter.NewClient(ctx)
-	if err != nil {
-		return err
-	}
-	scc := services.NewCommandCenter(c)
 
 	return router.Execute(ctx, &router.Values{
 		Finding: m.Data,
 	}, &router.Services{
-		PubSub:                ps,
-		Configuration:         conf,
-		Logger:                svcs.Logger,
-		Resource:              svcs.Resource,
-		SecurityCommandCenter: scc,
+		PubSub:        ps,
+		Configuration: conf,
+		Logger:        svcs.Logger,
+		Resource:      svcs.Resource,
 	})
 }
 
@@ -347,11 +341,20 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 	var values disabledashboard.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return disabledashboard.Execute(ctx, &values, &disabledashboard.Services{
+		if err = disabledashboard.Execute(ctx, &values, &disabledashboard.Services{
 			Container: svcs.Container,
 			Resource:  svcs.Resource,
 			Logger:    svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		m := make(map[string]string)
+		m["sra_remediated"] = values.Hash
+		findingName := values.Name
+		if _, err := svcs.SecurityCommandCenter.UpdateSecurityMarks(ctx, findingName, m); err != nil {
+			return errors.Wrapf(err, "failed to update security marks into %q", findingName)
+		}
+		return err
 	default:
 		return err
 	}

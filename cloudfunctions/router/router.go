@@ -60,11 +60,10 @@ type Namer interface {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub                *services.PubSub
-	Configuration         *Configuration
-	Logger                *services.Logger
-	Resource              *services.Resource
-	SecurityCommandCenter *services.CommandCenter
+	PubSub        *services.PubSub
+	Configuration *Configuration
+	Logger        *services.Logger
+	Resource      *services.Resource
 }
 
 // Values contains the required values for this function.
@@ -172,6 +171,8 @@ func ruleName(b []byte) string {
 
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
+	// TODO: add hash into Values
+	// TODO: add finding name into Values
 	switch name := ruleName(values.Finding); name {
 	case "bad_ip":
 		automations := services.Configuration.Spec.Parameters.ETD.BadIP
@@ -537,14 +538,6 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 
 	default:
 		return fmt.Errorf("rule %q not found", name)
-	}
-	m := make(map[string]string)
-	// TODO: replace hash
-	m["sra_remediated"] = "hash"
-	// TODO: replace finding name
-	id := "organizations/123/sources/456/findings/789"
-	if _, err := services.SecurityCommandCenter.UpdateSecurityMarks(ctx, id, m); err != nil {
-		return errors.Wrapf(err, "failed to update security marks into %q", id)
 	}
 	return nil
 }

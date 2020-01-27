@@ -25,6 +25,7 @@ type Values struct {
 	ProjectID, Zone, ClusterID string
 	DryRun                     bool
 	Hash                       string
+	Name                       string
 }
 
 // Services contains the services needed for this function.
