@@ -348,13 +348,7 @@ func DisableDashboard(ctx context.Context, m pubsub.Message) error {
 		}); err != nil {
 			return err
 		}
-		m := make(map[string]string)
-		m["sra_remediated"] = values.Hash
-		findingName := values.Name
-		if _, err := svcs.SecurityCommandCenter.UpdateSecurityMarks(ctx, findingName, m); err != nil {
-			return errors.Wrapf(err, "failed to update security marks into %q", findingName)
-		}
-		return err
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -403,4 +397,13 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
+}
+
+func updateMarks(ctx context.Context, name string, hash string) error {
+	m := make(map[string]string)
+	m["sra_remediated"] = hash
+	if _, err := svcs.SecurityCommandCenter.UpdateSecurityMarks(ctx, name, m); err != nil {
+		return errors.Wrapf(err, "failed to update security marks into %q", name)
+	}
+	return nil
 }
