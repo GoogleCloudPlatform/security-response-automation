@@ -37,6 +37,8 @@ func (f *Finding) EnableBucketOnlyPolicy() *enablebucketonlypolicy.Values {
 	return &enablebucketonlypolicy.Values{
 		ProjectID:  f.storageScanner.GetFinding().GetSourceProperties().GetProjectId(),
 		BucketName: sha.BucketName(f.storageScanner.GetFinding().GetResourceName()),
+		Hash:       f.storageScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:       f.storageScanner.GetFinding().GetName(),
 	}
 }
 

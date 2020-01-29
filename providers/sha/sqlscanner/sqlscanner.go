@@ -46,6 +46,8 @@ func (f *Finding) RemovePublic() *removepublic.Values {
 	return &removepublic.Values{
 		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		Hash:         f.sqlScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:         f.sqlScanner.GetFinding().GetName(),
 	}
 }
 
@@ -71,6 +73,8 @@ func (f *Finding) RequireSSL() *requiressl.Values {
 	return &requiressl.Values{
 		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		Hash:         f.sqlScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:         f.sqlScanner.GetFinding().GetName(),
 	}
 }
 
