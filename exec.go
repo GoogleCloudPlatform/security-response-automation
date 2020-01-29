@@ -158,10 +158,13 @@ func CloseBucket(ctx context.Context, m pubsub.Message) error {
 	var values closebucket.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return closebucket.Execute(ctx, &values, &closebucket.Services{
+		if err = closebucket.Execute(ctx, &values, &closebucket.Services{
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -185,7 +188,7 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		return nil
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -203,10 +206,13 @@ func RemoveNonOrganizationMembers(ctx context.Context, m pubsub.Message) error {
 	var values removenonorgmembers.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removenonorgmembers.Execute(ctx, &values, &removenonorgmembers.Services{
+		if err = removenonorgmembers.Execute(ctx, &values, &removenonorgmembers.Services{
 			Logger:   svcs.Logger,
 			Resource: svcs.Resource,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -225,11 +231,14 @@ func RemovePublicIP(ctx context.Context, m pubsub.Message) error {
 	var values removepublicip.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublicip.Execute(ctx, &values, &removepublicip.Services{
+		if err = removepublicip.Execute(ctx, &values, &removepublicip.Services{
 			Host:     svcs.Host,
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -252,10 +261,13 @@ func ClosePublicDataset(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		return closepublicdataset.Execute(ctx, &values, &closepublicdataset.Services{
+		if err = closepublicdataset.Execute(ctx, &values, &closepublicdataset.Services{
 			BigQuery: bigquery,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -273,10 +285,13 @@ func EnableBucketOnlyPolicy(ctx context.Context, m pubsub.Message) error {
 	var values enablebucketonlypolicy.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return enablebucketonlypolicy.Execute(ctx, &values, &enablebucketonlypolicy.Services{
+		if err = enablebucketonlypolicy.Execute(ctx, &values, &enablebucketonlypolicy.Services{
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -295,11 +310,14 @@ func CloseCloudSQL(ctx context.Context, m pubsub.Message) error {
 	var values removepublic.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return removepublic.Execute(ctx, &values, &removepublic.Services{
+		if err = removepublic.Execute(ctx, &values, &removepublic.Services{
 			CloudSQL: svcs.CloudSQL,
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -318,11 +336,14 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 	var values requiressl.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return requiressl.Execute(ctx, &values, &requiressl.Services{
+		if err = requiressl.Execute(ctx, &values, &requiressl.Services{
 			CloudSQL: svcs.CloudSQL,
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -367,10 +388,13 @@ func EnableAuditLogs(ctx context.Context, m pubsub.Message) error {
 	var values enableauditlogs.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return enableauditlogs.Execute(ctx, &values, &enableauditlogs.Services{
+		if err = enableauditlogs.Execute(ctx, &values, &enableauditlogs.Services{
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
@@ -401,7 +425,7 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 
 func updateMarks(ctx context.Context, name string, hash string) error {
 	m := make(map[string]string)
-	m["sra_remediated"] = hash
+	m["sraRemediated"] = hash
 	if _, err := svcs.SecurityCommandCenter.UpdateSecurityMarks(ctx, name, m); err != nil {
 		return errors.Wrapf(err, "failed to update security marks into %q", name)
 	}
