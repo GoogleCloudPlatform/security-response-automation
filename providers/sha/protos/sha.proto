@@ -240,7 +240,7 @@ message LoggingScanner {
     message SecurityMarks {
         Marks marks = 1;
     }
-    
+
     message SourceProperties {
         string projectID = 1;
         string ScannerName = 2;
