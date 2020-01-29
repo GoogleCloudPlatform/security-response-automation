@@ -43,21 +43,22 @@ var findings = []Namer{
 	// &anomalousiam.Finding{},
 	// &badip.Finding{},
 	// &sshbruteforce.Finding{},
-	// &storagescanner.Finding{},
-	// &sqlscanner.Finding{},
+	&storagescanner.Finding{},
+	&sqlscanner.Finding{},
 	&containerscanner.Finding{},
-	// &computeinstancescanner.Finding{},
-	// &firewallscanner.Finding{},
-	// &datasetscanner.Finding{},
-	// &loggingscanner.Finding{},
-	// &iamscanner.Finding{},
+	&computeinstancescanner.Finding{},
+	&firewallscanner.Finding{},
+	&datasetscanner.Finding{},
+	&loggingscanner.Finding{},
+	&iamscanner.Finding{},
 }
 
 // Namer represents findings that export their name.
 type Namer interface {
-	Name([]byte) string
+	RuleName() string
 	StringToBeHashed() string
-	SraRemediated([]byte) string
+	SraRemediated() string
+	Deserialize([]byte) error
 }
 
 // Services contains the services needed for this function.
@@ -161,18 +162,23 @@ func Config() (*Configuration, error) {
 	return &c, nil
 }
 
-// ruleName will attempt to deserialize all findings until a name is extracted.
-func ruleName(b []byte) (string, string) {
+// verifyFinding will attempt to deserialize all findings until a rule name is extracted and a newHash is generated.
+func verifyFinding(b []byte) (string, string) {
 	for _, finding := range findings {
-		sraRemediated := finding.SraRemediated(b)
+		if err := finding.Deserialize(b); err != nil {
+			continue
+		}
+		ruleName := finding.RuleName()
+		if ruleName == "" {
+			continue
+		}
+		sraRemediated := finding.SraRemediated()
 		newHash := srv.GenerateHash(finding.StringToBeHashed())
 		if sraRemediated != "" && newHash == sraRemediated {
 			log.Printf("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", sraRemediated)
 			continue
 		}
-		if n := finding.Name(b); n != "" {
-			return n, newHash
-		}
+		return ruleName, newHash
 	}
 	return "", ""
 }
@@ -181,7 +187,7 @@ func ruleName(b []byte) (string, string) {
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	// TODO: add hash into Values
 	// TODO: add finding name into Values
-	switch name, newHash := ruleName(values.Finding); name {
+	switch name, newHash := verifyFinding(values.Finding); name {
 	case "bad_ip":
 		automations := services.Configuration.Spec.Parameters.ETD.BadIP
 		badIP, err := badip.New(values.Finding)
@@ -265,6 +271,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "close_bucket":
 				values := storageScanner.CloseBucket()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -286,6 +293,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "enable_bucket_only_policy":
 				values := storageScanner.EnableBucketOnlyPolicy()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -307,6 +315,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "close_cloud_sql":
 				values := sqlScanner.RemovePublic()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -328,6 +337,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "cloud_sql_require_ssl":
 				values := sqlScanner.RequireSSL()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -353,6 +363,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 					continue
 				}
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -374,6 +385,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "remove_public_ip":
 				values := computeInstanceScanner.RemovePublicIP()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -397,6 +409,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
 				values.Action = automation.Properties.OpenFirewall.RemediationAction
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -420,6 +433,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
 				values.Action = automation.Properties.OpenFirewall.RemediationAction
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -443,6 +457,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values.DryRun = automation.Properties.DryRun
 				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
 				values.Action = automation.Properties.OpenFirewall.RemediationAction
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -464,6 +479,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "close_public_dataset":
 				values := publicDataset.ClosePublicDataset()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -485,6 +501,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "enable_audit_logs":
 				values := loggingScanner.EnableAuditLogs()
 				values.DryRun = automation.Properties.DryRun
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
@@ -529,6 +546,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				values := iamScanner.RemoveNonOrgMembers()
 				values.DryRun = automation.Properties.DryRun
 				values.AllowDomains = automation.Properties.NonOrgMembers.AllowDomains
+				values.Hash = newHash
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)
