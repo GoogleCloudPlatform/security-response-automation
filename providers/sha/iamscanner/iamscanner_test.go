@@ -28,7 +28,10 @@ func TestReadFinding(t *testing.T) {
 				"Explanation": "A user outside of your organization has IAM permissions on a project or organization."
 			},
 			"securityMarks": {
-				"name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a/securityMarks"
+				"name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a/securityMarks",
+				"marks": {
+					"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
+				}
 			},
 			"eventTime": "2019-10-18T15:30:22.082Z",
 			"createTime": "2019-10-18T15:31:58.487Z"
@@ -38,10 +41,15 @@ func TestReadFinding(t *testing.T) {
 	for _, tt := range []struct {
 		name          string
 		projectID     string
+		hash          string
+		findingName   string
 		bytes         []byte
 		expectedError error
 	}{
-		{name: "read", projectID: "test-project", bytes: []byte(nonOrgMemberFinding), expectedError: nil},
+		{name: "read", projectID: "test-project",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
+			bytes:       []byte(nonOrgMemberFinding), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.bytes)
@@ -54,6 +62,12 @@ func TestReadFinding(t *testing.T) {
 			}
 			if err == nil && values != nil && values.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+			}
+			if err == nil && values != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && values != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}

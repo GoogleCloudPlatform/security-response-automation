@@ -31,7 +31,7 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 				"securityMarks": {
 					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
 					"marks": {
-						"babab": "3"
+						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
 					}
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
@@ -41,10 +41,15 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, bucket, projectID string
+		hash                    string
+		findingName             string
 		bytes                   []byte
 		expectedError           error
 	}{
-		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219", bytes: []byte(storageScanner), expectedError: nil},
+		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
+			bytes:       []byte(storageScanner), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -60,6 +65,12 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 			}
 			if r != nil && err == nil && values.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}
@@ -90,7 +101,7 @@ func TestReadFindingCloseBucket(t *testing.T) {
 				"securityMarks": {
 					"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8/securityMarks",
 					"marks": {
-						"babab": "3"
+						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
 					}
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
@@ -100,10 +111,15 @@ func TestReadFindingCloseBucket(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, bucket, projectID string
+		hash                    string
+		findingName             string
 		bytes                   []byte
 		expectedError           error
 	}{
-		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219", bytes: []byte(storageScanner), expectedError: nil},
+		{name: "read", bucket: "this-is-public-on-purpose", projectID: "aerial-jigsaw-235219",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
+			bytes:       []byte(storageScanner), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -120,6 +136,12 @@ func TestReadFindingCloseBucket(t *testing.T) {
 				}
 				if values.ProjectID != tt.projectID {
 					t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+				}
+				if values.Hash != tt.hash {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+				}
+				if values.Name != tt.findingName {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 				}
 			}
 

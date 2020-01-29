@@ -45,11 +45,14 @@ func TestReadFindingDisableDashboard(t *testing.T) {
 	for _, tt := range []struct {
 		name, projectID, zone, clusterID string
 		hash                             string
+		findingName                      string
 		bytes                            []byte
 		expectedError                    error
 	}{
 		{name: "read", projectID: "test-cat-findings-clseclab", zone: "us-central1-a", clusterID: "ex-abuse-cluster-3",
-			hash: "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf", bytes: []byte(webUIFinding), expectedError: nil},
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274",
+			bytes:       []byte(webUIFinding), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -70,7 +73,10 @@ func TestReadFindingDisableDashboard(t *testing.T) {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ClusterID, tt.clusterID)
 			}
 			if err == nil && r != nil && values.Hash != tt.hash {
-				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ClusterID, tt.clusterID)
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}

@@ -30,7 +30,10 @@ func TestReadFindingUpdatePassword(t *testing.T) {
 					"Explanation": "MySql database instances should have a strong password set for the root account."
 				},
 				"securityMarks": {
-					"name": "organizations/1055058813388/sources/1986930501971458034/findings/986d52793c4aefc976dd2f35c14b7726/securityMarks"
+					"name": "organizations/1055058813388/sources/1986930501971458034/findings/986d52793c4aefc976dd2f35c14b7726/securityMarks",
+					"marks": {
+						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
+					}
 				},
 				"eventTime": "2019-10-31T22:20:22.425Z",
 				"createTime": "2019-10-31T22:52:35.630Z"
@@ -39,10 +42,15 @@ func TestReadFindingUpdatePassword(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, instanceName, projectID, host, userName string
+		hash                                          string
+		findingName                                   string
 		bytes                                         []byte
 		expectedError                                 error
 	}{
-		{name: "read", projectID: "threat-auto-tests-07102019", instanceName: "test-no-password", host: "%", userName: "root", bytes: []byte(noRootPassword), expectedError: nil},
+		{name: "read", projectID: "threat-auto-tests-07102019", instanceName: "test-no-password",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/1055058813388/sources/1986930501971458034/findings/986d52793c4aefc976dd2f35c14b7726",
+			host:        "%", userName: "root", bytes: []byte(noRootPassword), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -67,6 +75,12 @@ func TestReadFindingUpdatePassword(t *testing.T) {
 			}
 			if err == nil && r != nil && values.Password == "" {
 				t.Errorf("%s failed: got:%q", tt.name, values.Password)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}
@@ -96,7 +110,10 @@ func TestReadFindingRequireSSL(t *testing.T) {
 				  "Explanation": "To avoid leaking sensitive data in transit through unencrypted communications, all incoming connections to your SQL database instance should use SSL. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ssl-instance"
 				},
 				"securityMarks": {
-				  "name": "organizations/119612413569/sources/7086426792249889955/findings/00079ac439b9c80604b895289fd0686c/securityMarks"
+				  "name": "organizations/119612413569/sources/7086426792249889955/findings/00079ac439b9c80604b895289fd0686c/securityMarks",
+				  "marks": {
+					"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
+				  }
 				},
 				"eventTime": "2019-10-25T23:20:25.280Z",
 				"createTime": "2019-10-03T17:20:24.389Z"
@@ -105,10 +122,15 @@ func TestReadFindingRequireSSL(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, InstanceName, projectID string
+		hash                          string
+		findingName                   string
 		bytes                         []byte
 		expectedError                 error
 	}{
-		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance", bytes: []byte(enforceSSL), expectedError: nil},
+		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/119612413569/sources/7086426792249889955/findings/00079ac439b9c80604b895289fd0686c",
+			bytes:       []byte(enforceSSL), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -124,6 +146,12 @@ func TestReadFindingRequireSSL(t *testing.T) {
 			}
 			if err == nil && r != nil && values.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}
@@ -153,7 +181,10 @@ func TestReadFindingRemovePublic(t *testing.T) {
 				  "Explanation": "You have added 0.0.0.0/0 as an allowed network. This prefix will allow any IPv4 client to pass the network firewall and make login attempts to your instance, including clients you did not intend to allow. Clients still need valid credentials to successfully log in to your instance. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ip"
 				},
 				"securityMarks": {
-				  "name": "organizations/119612413569/sources/7086426792249889955/findings/b7a48a4162ca2fb64627dd0a9a9756e1/securityMarks"
+				  "name": "organizations/119612413569/sources/7086426792249889955/findings/b7a48a4162ca2fb64627dd0a9a9756e1/securityMarks",
+				  "marks": {
+					"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
+				  }
 				},
 				"eventTime": "2019-10-11T23:20:26.221Z",
 				"createTime": "2019-10-03T17:20:24.331Z"
@@ -162,10 +193,15 @@ func TestReadFindingRemovePublic(t *testing.T) {
 	)
 	for _, tt := range []struct {
 		name, InstanceName, projectID string
+		hash                          string
+		findingName                   string
 		bytes                         []byte
 		expectedError                 error
 	}{
-		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance", bytes: []byte(openCloudSQL), expectedError: nil},
+		{name: "read", projectID: "sha-resources-20191002", InstanceName: "public-sql-instance",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/119612413569/sources/7086426792249889955/findings/b7a48a4162ca2fb64627dd0a9a9756e1",
+			bytes:       []byte(openCloudSQL), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -181,6 +217,12 @@ func TestReadFindingRemovePublic(t *testing.T) {
 			}
 			if err == nil && r != nil && values.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}

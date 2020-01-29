@@ -32,6 +32,7 @@ func TestReadFinding(t *testing.T) {
 				  "name": "organizations/1055058813388/sources/1986930501971458034/findings/d7ef72093c8c1e4c135d4c43fa847b83/securityMarks",
 				  "marks": {
 					"kieras-test": "true",
+					"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
 					"kieras-test2": "true"
 				  }
 				},
@@ -44,11 +45,16 @@ func TestReadFinding(t *testing.T) {
 		name          string
 		projectID     string
 		instanceZone  string
+		hash          string
+		findingName   string
 		instanceID    string
 		bytes         []byte
 		expectedError error
 	}{
-		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a", instanceID: "4312755253150365851", bytes: []byte(publicIPAddressFinding), expectedError: nil},
+		{name: "read", projectID: "sec-automation-dev", instanceZone: "us-central1-a",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/1055058813388/sources/1986930501971458034/findings/d7ef72093c8c1e4c135d4c43fa847b83",
+			instanceID:  "4312755253150365851", bytes: []byte(publicIPAddressFinding), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -67,6 +73,12 @@ func TestReadFinding(t *testing.T) {
 			}
 			if err == nil && r != nil && values.InstanceID != tt.instanceID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.InstanceID, tt.instanceID)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}

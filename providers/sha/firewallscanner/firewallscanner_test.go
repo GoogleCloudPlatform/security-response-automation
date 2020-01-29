@@ -37,7 +37,8 @@ func TestReadFinding(t *testing.T) {
 				"securityMarks": {
 					"name": "organizations/1055058813388/sources/1986930501971458034/findings/cea981dd340112213827902b408b497e/securityMarks",
 					"marks": {
-						"sccquery94c23b35ea0b4f8388268415a0dc6c1b": "true"
+						"sccquery94c23b35ea0b4f8388268415a0dc6c1b": "true",
+						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
 					}
 				},
 				"eventTime": "2019-09-19T16:58:39.276Z",
@@ -48,10 +49,15 @@ func TestReadFinding(t *testing.T) {
 	for _, tt := range []struct {
 		name, firewallID, projectID string
 		ranges                      []string
+		hash                        string
+		findingName                 string
 		bytes                       []byte
 		expectedError               error
 	}{
-		{name: "read sha", ranges: nil, projectID: "onboarding-project", firewallID: "6190685430815455733", bytes: []byte(openFirewallFinding), expectedError: nil},
+		{name: "read sha", ranges: nil, projectID: "onboarding-project", firewallID: "6190685430815455733",
+			hash:        "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf",
+			findingName: "organizations/1055058813388/sources/1986930501971458034/findings/cea981dd340112213827902b408b497e",
+			bytes:       []byte(openFirewallFinding), expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			r, err := New(tt.bytes)
@@ -70,6 +76,12 @@ func TestReadFinding(t *testing.T) {
 			}
 			if err == nil && r != nil && values.ProjectID != tt.projectID {
 				t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+			}
+			if err == nil && r != nil && values.Hash != tt.hash {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Hash, tt.hash)
+			}
+			if err == nil && r != nil && values.Name != tt.findingName {
+				t.Errorf("%s failed: got:%q want:%q", tt.name, values.Name, tt.findingName)
 			}
 		})
 	}
