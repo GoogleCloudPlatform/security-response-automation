@@ -14,16 +14,12 @@ type Finding struct {
 	containerscanner *pb.ContainerScanner
 }
 
-// Name returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.ContainerScanner
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName returns the rule name of the finding.
+func (f *Finding) RuleName() string {
+	if f.containerscanner.GetFinding().GetSourceProperties().GetScannerName() != "CONTAINER_SCANNER" {
 		return ""
 	}
-	if finding.GetFinding().GetSourceProperties().GetScannerName() != "CONTAINER_SCANNER" {
-		return ""
-	}
-	return strings.ToLower(finding.GetFinding().GetCategory())
+	return strings.ToLower(f.containerscanner.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
@@ -42,19 +38,24 @@ func (f *Finding) DisableDashboard() *disabledashboard.Values {
 		Zone:      sha.ClusterZone(f.containerscanner.GetFinding().GetResourceName()),
 		ClusterID: sha.ClusterID(f.containerscanner.GetFinding().GetResourceName()),
 		Hash:      f.containerscanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:      f.containerscanner.GetFinding().GetName(),
 	}
 }
 
 // StringToBeHashed returns the string that will be used to generate the mark hash finding.
 func (f *Finding) StringToBeHashed() string {
-	return f.containerscanner.GetFinding().GetEventTime() + f.containerscanner.GetFinding().GetSecurityMarks().GetName()
+	return f.containerscanner.GetFinding().GetEventTime() + f.containerscanner.GetFinding().GetName()
 }
 
 // SraRemediated returns the sraRemediate mark of the finding.
-func (f *Finding) SraRemediated(b []byte) string {
-	// var finding pb.ContainerScanner
-	if err := json.Unmarshal(b, &f.containerscanner); err != nil {
-		return ""
-	}
+func (f *Finding) SraRemediated() string {
 	return f.containerscanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.containerscanner); err != nil {
+		return err
+	}
+	return nil
 }

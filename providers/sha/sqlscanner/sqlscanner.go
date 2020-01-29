@@ -24,16 +24,12 @@ type Finding struct {
 	sqlScanner *pb.SqlScanner
 }
 
-// Name returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.SqlScanner
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName returns the rule name of the finding.
+func (f *Finding) RuleName() string {
+	if f.sqlScanner.GetFinding().GetSourceProperties().GetScannerName() != "SQL_SCANNER" {
 		return ""
 	}
-	if finding.GetFinding().GetSourceProperties().GetScannerName() != "SQL_SCANNER" {
-		return ""
-	}
-	return strings.ToLower(finding.GetFinding().GetCategory())
+	return strings.ToLower(f.sqlScanner.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
@@ -65,6 +61,8 @@ func (f *Finding) UpdatePassword() (*updatepassword.Values, error) {
 		Host:         hostWildcard,
 		UserName:     userName,
 		Password:     password,
+		Hash:         f.sqlScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:         f.sqlScanner.GetFinding().GetName(),
 	}, nil
 }
 
@@ -74,4 +72,22 @@ func (f *Finding) RequireSSL() *requiressl.Values {
 		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
 	}
+}
+
+// StringToBeHashed returns the string that will be used to generate the mark hash finding.
+func (f *Finding) StringToBeHashed() string {
+	return f.sqlScanner.GetFinding().GetEventTime() + f.sqlScanner.GetFinding().GetName()
+}
+
+// SraRemediated returns the sraRemediate mark of the finding.
+func (f *Finding) SraRemediated() string {
+	return f.sqlScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.sqlScanner); err != nil {
+		return err
+	}
+	return nil
 }

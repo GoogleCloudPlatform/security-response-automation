@@ -14,16 +14,12 @@ type Finding struct {
 	datasetScanner *pb.DatasetScanner
 }
 
-// Name returns the category of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.DatasetScanner
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName returns the category of the finding.
+func (f *Finding) RuleName() string {
+	if f.datasetScanner.GetFinding().GetSourceProperties().GetScannerName() != "DATASET_SCANNER" {
 		return ""
 	}
-	if finding.GetFinding().GetSourceProperties().GetScannerName() != "DATASET_SCANNER" {
-		return ""
-	}
-	return strings.ToLower(finding.GetFinding().GetCategory())
+	return strings.ToLower(f.datasetScanner.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
@@ -40,5 +36,25 @@ func (f *Finding) ClosePublicDataset() *closepublicdataset.Values {
 	return &closepublicdataset.Values{
 		ProjectID: f.datasetScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		DatasetID: sha.Dataset(f.datasetScanner.GetFinding().GetResourceName()),
+		Hash:      f.datasetScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:      f.datasetScanner.GetFinding().GetName(),
 	}
+}
+
+// StringToBeHashed returns the string that will be used to generate the mark hash finding.
+func (f *Finding) StringToBeHashed() string {
+	return f.datasetScanner.GetFinding().GetEventTime() + f.datasetScanner.GetFinding().GetName()
+}
+
+// SraRemediated returns the sraRemediate mark of the finding.
+func (f *Finding) SraRemediated() string {
+	return f.datasetScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.datasetScanner); err != nil {
+		return err
+	}
+	return nil
 }

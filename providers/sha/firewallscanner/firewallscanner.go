@@ -14,16 +14,12 @@ type Finding struct {
 	firewallScanner *pb.FirewallScanner
 }
 
-// Name returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.FirewallScanner
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName returns the rule name of the finding.
+func (f *Finding) RuleName() string {
+	if f.firewallScanner.GetFinding().GetSourceProperties().GetScannerName() != "FIREWALL_SCANNER" {
 		return ""
 	}
-	if finding.GetFinding().GetSourceProperties().GetScannerName() != "FIREWALL_SCANNER" {
-		return ""
-	}
-	return strings.ToLower(finding.GetFinding().GetCategory())
+	return strings.ToLower(f.firewallScanner.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
@@ -40,5 +36,25 @@ func (f *Finding) OpenFirewall() *openfirewall.Values {
 	return &openfirewall.Values{
 		ProjectID:  f.firewallScanner.GetFinding().GetSourceProperties().GetProjectId(),
 		FirewallID: sha.FirewallID(f.firewallScanner.GetFinding().GetResourceName()),
+		Hash:       f.firewallScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:       f.firewallScanner.GetFinding().GetName(),
 	}
+}
+
+// StringToBeHashed returns the string that will be used to generate the mark hash finding.
+func (f *Finding) StringToBeHashed() string {
+	return f.firewallScanner.GetFinding().GetEventTime() + f.firewallScanner.GetFinding().GetName()
+}
+
+// SraRemediated returns the sraRemediate mark of the finding.
+func (f *Finding) SraRemediated() string {
+	return f.firewallScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.firewallScanner); err != nil {
+		return err
+	}
+	return nil
 }

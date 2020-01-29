@@ -14,16 +14,12 @@ type Finding struct {
 	computeInstanceScanner *pb.ComputeInstanceScanner
 }
 
-// Name returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.ComputeInstanceScanner
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName returns the rule name of the finding.
+func (f *Finding) RuleName() string {
+	if f.computeInstanceScanner.GetFinding().GetSourceProperties().GetScannerName() != "COMPUTE_INSTANCE_SCANNER" {
 		return ""
 	}
-	if finding.GetFinding().GetSourceProperties().GetScannerName() != "COMPUTE_INSTANCE_SCANNER" {
-		return ""
-	}
-	return strings.ToLower(finding.GetFinding().GetCategory())
+	return strings.ToLower(f.computeInstanceScanner.GetFinding().GetCategory())
 }
 
 // New returns a new finding.
@@ -41,5 +37,25 @@ func (f *Finding) RemovePublicIP() *removepublicip.Values {
 		ProjectID:    f.computeInstanceScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceZone: sha.Zone(f.computeInstanceScanner.GetFinding().GetResourceName()),
 		InstanceID:   sha.Instance(f.computeInstanceScanner.GetFinding().GetResourceName()),
+		Hash:         f.computeInstanceScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+		Name:         f.computeInstanceScanner.GetFinding().GetName(),
 	}
+}
+
+// StringToBeHashed returns the string that will be used to generate the mark hash finding.
+func (f *Finding) StringToBeHashed() string {
+	return f.computeInstanceScanner.GetFinding().GetEventTime() + f.computeInstanceScanner.GetFinding().GetName()
+}
+
+// SraRemediated returns the sraRemediate mark of the finding.
+func (f *Finding) SraRemediated() string {
+	return f.computeInstanceScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.computeInstanceScanner); err != nil {
+		return err
+	}
+	return nil
 }
