@@ -176,7 +176,7 @@ func verifyFinding(b []byte) (string, string) {
 		newHash := srv.GenerateHash(finding.StringToBeHashed())
 		if sraRemediated != "" && newHash == sraRemediated {
 			log.Printf("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", sraRemediated)
-			continue
+			return "", newHash
 		}
 		return ruleName, newHash
 	}
@@ -558,7 +558,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		}
 
 	default:
-		return fmt.Errorf("rule %q not found", name)
+		if newHash == "" {
+			return fmt.Errorf("rule %q not found", name)
+		}
 	}
 	return nil
 }
