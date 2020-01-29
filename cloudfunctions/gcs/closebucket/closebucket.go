@@ -28,6 +28,8 @@ type Values struct {
 	BucketName string
 	ProjectID  string
 	DryRun     bool
+	Hash       string
+	Name       string
 }
 
 // Services contains the services needed for this function.

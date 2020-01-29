@@ -25,6 +25,8 @@ type Values struct {
 	ProjectID    string
 	AllowDomains []string
 	DryRun       bool
+	Hash         string
+	Name         string
 }
 
 // Services contains the services needed for this function.

@@ -35,6 +35,8 @@ type Services struct {
 type Values struct {
 	ProjectID string
 	DryRun    bool
+	Hash      string
+	Name      string
 }
 
 // Execute is the entry point for the Cloud Function to enable audit logs for a specific project.

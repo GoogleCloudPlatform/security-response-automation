@@ -29,6 +29,8 @@ type Values struct {
 	FirewallID   string
 	SourceRanges []string
 	DryRun       bool
+	Hash         string
+	Name         string
 }
 
 // Services contains the services needed for this function.
