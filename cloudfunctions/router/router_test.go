@@ -176,6 +176,8 @@ func TestRouter(t *testing.T) {
 		ProjectID:  "test-project",
 		BucketName: "this-is-public-on-purpose",
 		DryRun:     false,
+		Hash:       "f6509a6ca7277a5ae755746a7d3c087ecaf49fcc739dd1e9c79ed4e979642055",
+		Name:       "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 	}
 	closeBucket, _ := json.Marshal(closeBucketValues)
 
@@ -193,6 +195,8 @@ func TestRouter(t *testing.T) {
 		ProjectID: "test-project",
 		DatasetID: "public_dataset123",
 		DryRun:    false,
+		Hash:      "d4f5574e7967d0ca829ccdb4dc9fea6d92b63909e8207b75a69a6cf19314da2c",
+		Name:      "organizations/154584661726/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7",
 	}
 	closePublicDataset, _ := json.Marshal(closePublicDatasetValues)
 
@@ -202,6 +206,8 @@ func TestRouter(t *testing.T) {
 	enableAuditLogsValues := &enableauditlogs.Values{
 		ProjectID: "test-project",
 		DryRun:    false,
+		Hash:      "ae689a35e9c59ab14d59341cc0f8df5dd1846496cfe975255f2e5a6ae4788433",
+		Name:      "organizations/154584661726/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074",
 	}
 	enableAuditLog, _ := json.Marshal(enableAuditLogsValues)
 
@@ -211,6 +217,8 @@ func TestRouter(t *testing.T) {
 	removeNonOrgMembersValues := &removenonorgmembers.Values{
 		ProjectID: "test-project",
 		DryRun:    false,
+		Hash:      "9419efc34fb3c2664c9bb68f3fee02b0c9fc2a18bae214dfd209085312d83e7a",
+		Name:      "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
 	}
 	removeNonOrgMembers, _ := json.Marshal(removeNonOrgMembersValues)
 
