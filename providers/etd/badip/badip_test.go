@@ -69,7 +69,7 @@ func TestBadIP(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%q failed: %q", tt.name, err)
 			}
-			if name := f.Name(tt.finding); name != tt.ruleName {
+			if name := f.RuleName(); name != tt.ruleName {
 				t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
 			}
 		})
