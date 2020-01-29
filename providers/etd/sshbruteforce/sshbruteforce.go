@@ -12,16 +12,12 @@ type Finding struct {
 	sshBruteForce *pb.SshBruteForce
 }
 
-// Name returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.SshBruteForce
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName returns the rule name of the finding.
+func (f *Finding) RuleName() string {
+	if f.sshBruteForce.GetJsonPayload().GetDetectionCategory().GetRuleName() != "ssh_brute_force" {
 		return ""
 	}
-	if finding.GetJsonPayload().GetDetectionCategory().GetRuleName() != "ssh_brute_force" {
-		return ""
-	}
-	return finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
+	return f.sshBruteForce.GetJsonPayload().GetDetectionCategory().GetRuleName()
 }
 
 // New returns a new finding.
@@ -49,4 +45,12 @@ func (f *Finding) OpenFirewall() *openfirewall.Values {
 		ProjectID:    f.sshBruteForce.GetJsonPayload().GetProperties().GetProjectId(),
 		SourceRanges: sourceIPRanges(f.sshBruteForce),
 	}
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.sshBruteForce); err != nil {
+		return err
+	}
+	return nil
 }

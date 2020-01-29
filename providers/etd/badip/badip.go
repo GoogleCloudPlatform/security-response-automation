@@ -23,17 +23,13 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 )
 
-// Name returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	ff, err := New(b)
-	if err != nil {
-		return ""
-	}
+// RuleName returns the rule name of the finding.
+func (f *Finding) RuleName() string {
 	name := ""
-	if ff.useCSCC {
-		name = ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+	if f.useCSCC {
+		name = f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
 	} else {
-		name = ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
+		name = f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 	}
 	if name != "bad_ip" {
 		return ""
@@ -80,4 +76,19 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 		Instance:  etd.Instance(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 		Zone:      etd.Zone(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 	}
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	err := json.Unmarshal(b, &f.badIP)
+	if err == nil {
+		if f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName() != "" {
+			return nil
+		}
+	}
+	if err := json.Unmarshal(b, &f.badIPCSCC); err != nil {
+		return err
+	}
+	f.useCSCC = true
+	return nil
 }

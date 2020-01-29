@@ -8,16 +8,12 @@ import (
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 )
 
-// Name verifies and returns the rule name of the finding.
-func (f *Finding) Name(b []byte) string {
-	var finding pb.AnomalousIAMGrant
-	if err := json.Unmarshal(b, &finding); err != nil {
+// RuleName verifies and returns the rule name of the finding.
+func (f *Finding) RuleName() string {
+	if f.anomalousIAM.GetJsonPayload().GetDetectionCategory().GetRuleName() != "iam_anomalous_grant" {
 		return ""
 	}
-	if finding.GetJsonPayload().GetDetectionCategory().GetRuleName() != "iam_anomalous_grant" {
-		return ""
-	}
-	return finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
+	return f.anomalousIAM.GetJsonPayload().GetDetectionCategory().GetRuleName()
 }
 
 // New returns a new finding.
@@ -40,4 +36,12 @@ func (f *Finding) IAMRevoke() *revoke.Values {
 		ProjectID:       f.anomalousIAM.GetJsonPayload().GetProperties().GetProjectId(),
 		ExternalMembers: f.anomalousIAM.GetJsonPayload().GetProperties().GetExternalMembers(),
 	}
+}
+
+// Deserialize deserializes the finding in object.
+func (f *Finding) Deserialize(b []byte) error {
+	if err := json.Unmarshal(b, &f.anomalousIAM); err != nil {
+		return err
+	}
+	return nil
 }
