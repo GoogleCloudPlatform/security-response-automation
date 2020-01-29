@@ -39,10 +39,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var findings = []Namer{
-	// &anomalousiam.Finding{},
-	// &badip.Finding{},
-	// &sshbruteforce.Finding{},
+var sccFindings = []SCCFindings{
+	&badip.Finding{},
 	&storagescanner.Finding{},
 	&sqlscanner.Finding{},
 	&containerscanner.Finding{},
@@ -53,11 +51,23 @@ var findings = []Namer{
 	&iamscanner.Finding{},
 }
 
-// Namer represents findings that export their name.
-type Namer interface {
-	RuleName() string
+// SCCFindings represents findings from Security Command Center.
+type SCCFindings interface {
+	Category() string
 	StringToBeHashed() string
 	SraRemediated() string
+	Deserialize([]byte) error
+}
+
+var sdFindings = []SDFindings{
+	&anomalousiam.Finding{},
+	&badip.Finding{},
+	&sshbruteforce.Finding{},
+}
+
+// SDFindings represents findings from Stackdriver logs.
+type SDFindings interface {
+	RuleName() string
 	Deserialize([]byte) error
 }
 
@@ -162,14 +172,14 @@ func Config() (*Configuration, error) {
 	return &c, nil
 }
 
-// verifyFinding will attempt to deserialize all findings until a rule name is extracted and a newHash is generated.
-func verifyFinding(b []byte) (string, string) {
-	for _, finding := range findings {
+// verifySCCFindings will attempt to deserialize all findings until a rule name is extracted and a newHash is generated.
+func verifySCCFindings(b []byte) (string, string) {
+	for _, finding := range sccFindings {
 		if err := finding.Deserialize(b); err != nil {
 			continue
 		}
-		ruleName := finding.RuleName()
-		if ruleName == "" {
+		category := finding.Category()
+		if category == "" {
 			continue
 		}
 		sraRemediated := finding.SraRemediated()
@@ -178,16 +188,33 @@ func verifyFinding(b []byte) (string, string) {
 			log.Printf("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", sraRemediated)
 			return "", newHash
 		}
-		return ruleName, newHash
+		return category, newHash
 	}
 	return "", ""
 }
 
+// verifySDFindings will attempt to deserialize all findings until a rule name is extracted and a newHash is generated.
+func verifySDFindings(b []byte) string {
+	for _, finding := range sdFindings {
+		if err := finding.Deserialize(b); err != nil {
+			continue
+		}
+		ruleName := finding.RuleName()
+		if ruleName == "" {
+			continue
+		}
+		return ruleName
+	}
+	return ""
+}
+
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	// TODO: add hash into Values
-	// TODO: add finding name into Values
-	switch name, newHash := verifyFinding(values.Finding); name {
+	name, newHash := verifySCCFindings(values.Finding)
+	if name == "" {
+		name = verifySDFindings(values.Finding)
+	}
+	switch name {
 	case "bad_ip":
 		automations := services.Configuration.Spec.Parameters.ETD.BadIP
 		badIP, err := badip.New(values.Finding)

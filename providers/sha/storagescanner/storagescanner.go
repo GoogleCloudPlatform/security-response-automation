@@ -15,8 +15,8 @@ type Finding struct {
 	storageScanner *pb.StorageScanner
 }
 
-// RuleName returns the rule name of the finding.
-func (f *Finding) RuleName() string {
+// Category returns the rule name of the finding.
+func (f *Finding) Category() string {
 	if f.storageScanner.GetFinding().GetSourceProperties().GetScannerName() != "STORAGE_SCANNER" {
 		return ""
 	}

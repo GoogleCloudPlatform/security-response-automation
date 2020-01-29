@@ -14,8 +14,8 @@ type Finding struct {
 	datasetScanner *pb.DatasetScanner
 }
 
-// RuleName returns the category of the finding.
-func (f *Finding) RuleName() string {
+// Category returns the category of the finding.
+func (f *Finding) Category() string {
 	if f.datasetScanner.GetFinding().GetSourceProperties().GetScannerName() != "DATASET_SCANNER" {
 		return ""
 	}

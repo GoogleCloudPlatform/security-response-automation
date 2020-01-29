@@ -22,8 +22,8 @@ func New(b []byte) (*Finding, error) {
 	return &f, nil
 }
 
-// RuleName returns the category of the finding.
-func (f *Finding) RuleName() string {
+// Category returns the category of the finding.
+func (f *Finding) Category() string {
 	if f.loggingscanner.GetFinding().GetSourceProperties().GetScannerName() != "LOGGING_SCANNER" {
 		return ""
 	}

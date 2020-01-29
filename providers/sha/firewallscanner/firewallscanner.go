@@ -14,8 +14,8 @@ type Finding struct {
 	firewallScanner *pb.FirewallScanner
 }
 
-// RuleName returns the rule name of the finding.
-func (f *Finding) RuleName() string {
+// Category returns the rule name of the finding.
+func (f *Finding) Category() string {
 	if f.firewallScanner.GetFinding().GetSourceProperties().GetScannerName() != "FIREWALL_SCANNER" {
 		return ""
 	}

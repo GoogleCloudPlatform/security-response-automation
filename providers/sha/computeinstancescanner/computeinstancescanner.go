@@ -14,8 +14,8 @@ type Finding struct {
 	computeInstanceScanner *pb.ComputeInstanceScanner
 }
 
-// RuleName returns the rule name of the finding.
-func (f *Finding) RuleName() string {
+// Category returns the rule name of the finding.
+func (f *Finding) Category() string {
 	if f.computeInstanceScanner.GetFinding().GetSourceProperties().GetScannerName() != "COMPUTE_INSTANCE_SCANNER" {
 		return ""
 	}

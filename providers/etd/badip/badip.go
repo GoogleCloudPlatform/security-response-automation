@@ -23,18 +23,28 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/providers/etd"
 )
 
-// RuleName returns the rule name of the finding.
+// RuleName returns the rule name of the Stackdriver finding.
 func (f *Finding) RuleName() string {
 	name := ""
-	if f.useCSCC {
-		name = f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
-	} else {
+	if !f.useCSCC {
 		name = f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 	}
 	if name != "bad_ip" {
 		return ""
 	}
 	return name
+}
+
+// Category returns the rule name of the SCC finding.
+func (f *Finding) Category() string {
+	category := ""
+	if f.useCSCC {
+		category = f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+	}
+	if category != "bad_ip" {
+		return ""
+	}
+	return category
 }
 
 // Finding represents a bad IP finding.
@@ -68,6 +78,8 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 			RuleName:  f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
 			Instance:  etd.Instance(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
 			Zone:      etd.Zone(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
+			Hash:      f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated(),
+			Name:      f.badIPCSCC.GetFinding().GetName(),
 		}
 	}
 	return &createsnapshot.Values{
@@ -76,6 +88,19 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 		Instance:  etd.Instance(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 		Zone:      etd.Zone(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 	}
+}
+
+// StringToBeHashed returns the string that will be used to generate the mark hash finding.
+func (f *Finding) StringToBeHashed() string {
+	return f.badIPCSCC.GetFinding().GetEventTime() + f.badIPCSCC.GetFinding().GetName()
+}
+
+// SraRemediated returns the sraRemediate mark of the finding.
+func (f *Finding) SraRemediated() string {
+	if f.useCSCC {
+		return f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+	}
+	return ""
 }
 
 // Deserialize deserializes the finding in object.
