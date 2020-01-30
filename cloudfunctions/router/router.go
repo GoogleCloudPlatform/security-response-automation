@@ -211,7 +211,7 @@ func verifySDFindings(b []byte) string {
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	name, newHash := verifySCCFindings(values.Finding)
-	if name == "" {
+	if name == "" && newHash == "" {
 		name = verifySDFindings(values.Finding)
 	}
 	switch name {

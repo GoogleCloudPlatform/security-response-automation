@@ -155,6 +155,36 @@ func TestRouter(t *testing.T) {
 			"createTime": "2019-10-18T15:31:58.487Z"
            }
 		}`
+		remediatedFinding = `{
+			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"finding": {
+				"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274",
+				"parent": "organizations/119612413569/sources/7086426792249889955",
+				"resourceName": "//container.googleapis.com/projects/test-cat-findings-clseclab/zones/us-central1-a/clusters/ex-abuse-cluster-3",
+				"state": "ACTIVE",
+				"category": "WEB_UI_ENABLED",
+				"externalUri": "https://console.cloud.google.com/kubernetes/clusters/details/us-central1-a/ex-abuse-cluster-3?project=test-cat-findings-clseclab",
+				"sourceProperties": {
+					"ReactivationCount": 0,
+					"ExceptionInstructions": "Add the security mark \"allow_web_ui_enabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+					"SeverityLevel": "High",
+					"Recommendation": "Go to https://console.cloud.google.com/kubernetes/clusters/details/us-central1-a/ex-abuse-cluster-3?project=test-cat-findings-clseclab then click \"Edit\", click \"Add-ons\", and disable \"Kubernetes dashboard\". Note that a cluster cannot be modified while it is reconfiguring itself.",
+					"ProjectId": "test-cat-findings-clseclab",
+					"AssetCreationTime": "2018-09-26T23:57:19+00:00",
+					"ScannerName": "CONTAINER_SCANNER",
+					"ScanRunId": "2019-09-30T18:20:20.151-07:00",
+					"Explanation": "The Kubernetes web UI is backed by a highly privileged Kubernetes Service Account, which can be abused if compromised. If you are already using the GCP console, the Kubernetes web UI extends your attack surface unnecessarily. Learn more about how to disable the Kubernetes web UI and other techniques for hardening your Kubernetes clusters at https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster#disable_kubernetes_dashboard"
+				},
+				"securityMarks": {
+					"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274/securityMarks",
+					"marks": {
+						"sraRemediated": "50492dc07ec3d961ee8b91fe4addec203ccf23d309eb7d2994dc15aa7f36a6b2"
+                    }
+				},
+				"eventTime": "2019-10-01T01:20:20.151Z",
+				"createTime": "2019-03-05T22:21:01.836Z"
+			}
+		}`
 	)
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
@@ -232,6 +262,7 @@ func TestRouter(t *testing.T) {
 		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
 		{name: "audit_logging_disabled", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
 		{name: "non_org_members", finding: []byte(validNonOrgMembers), mapTo: removeNonOrgMembers},
+		{name: "remediated_finding", finding: []byte(remediatedFinding)},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
@@ -249,8 +280,10 @@ func TestRouter(t *testing.T) {
 			}); err != nil {
 				t.Fatalf("%q failed: %q", tt.name, err)
 			}
-			if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
-				t.Errorf("%q failed, difference:%+v", tt.name, diff)
+			if psStub.PublishedMessage != nil {
+				if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
+					t.Errorf("%q failed, difference:%+v", tt.name, diff)
+				}
 			}
 		})
 	}
