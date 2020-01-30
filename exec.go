@@ -128,6 +128,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
+		updateMarks(ctx, values.Name, values.Hash)
 		for _, dest := range values.Output {
 			switch dest {
 			case "turbinia":
@@ -416,11 +417,14 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	var values updatepassword.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return updatepassword.Execute(ctx, &values, &updatepassword.Services{
+		if err := updatepassword.Execute(ctx, &values, &updatepassword.Services{
 			CloudSQL: svcs.CloudSQL,
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
-		})
+		}); err != nil {
+			return err
+		}
+		return updateMarks(ctx, values.Name, values.Hash)
 	default:
 		return err
 	}
