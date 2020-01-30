@@ -172,12 +172,9 @@ func Config() (*Configuration, error) {
 
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	name, newHash, err := sccFindingValues(values.Finding)
+	name, newHash, err := findingValues(values)
 	if err != nil {
 		return err
-	}
-	if name == "" && newHash == "" {
-		name = sdFindingValues(values.Finding)
 	}
 	switch name {
 	case "bad_ip":
@@ -552,6 +549,17 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		return fmt.Errorf("rule %q not found", name)
 	}
 	return nil
+}
+
+func findingValues(values *Values) (string, string, error) {
+	name, newHash, err := sccFindingValues(values.Finding)
+	if err != nil {
+		return "", "", err
+	}
+	if name == "" && newHash == "" {
+		name = sdFindingValues(values.Finding)
+	}
+	return name, newHash, nil
 }
 
 func publish(ctx context.Context, services *Services, action, topic, projectID string, target, exclude []string, values interface{}) error {
