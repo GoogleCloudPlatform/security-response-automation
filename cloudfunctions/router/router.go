@@ -172,7 +172,7 @@ func Config() (*Configuration, error) {
 	return &c, nil
 }
 
-// verifySCCFindings will attempt to deserialize all findings until a rule name is extracted and a newHash is generated.
+// verifySCCFindings will attempt to deserialize all findings until a category is extracted and a newHash is generated.
 func verifySCCFindings(b []byte) (string, string) {
 	for _, finding := range sccFindings {
 		if err := finding.Deserialize(b); err != nil {
@@ -193,7 +193,7 @@ func verifySCCFindings(b []byte) (string, string) {
 	return "", ""
 }
 
-// verifySDFindings will attempt to deserialize all findings until a rule name is extracted and a newHash is generated.
+// verifySDFindings will attempt to deserialize all findings until a rule name is extracted.
 func verifySDFindings(b []byte) string {
 	for _, finding := range sdFindings {
 		if err := finding.Deserialize(b); err != nil {

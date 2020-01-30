@@ -24,7 +24,7 @@ type Finding struct {
 	sqlScanner *pb.SqlScanner
 }
 
-// Category returns the rule name of the finding.
+// Category returns the category of the finding.
 func (f *Finding) Category() string {
 	if f.sqlScanner.GetFinding().GetSourceProperties().GetScannerName() != "SQL_SCANNER" {
 		return ""

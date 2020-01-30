@@ -14,7 +14,7 @@ type Finding struct {
 	containerscanner *pb.ContainerScanner
 }
 
-// Category returns the rule name of the finding.
+// Category returns the category of the finding.
 func (f *Finding) Category() string {
 	if f.containerscanner.GetFinding().GetSourceProperties().GetScannerName() != "CONTAINER_SCANNER" {
 		return ""

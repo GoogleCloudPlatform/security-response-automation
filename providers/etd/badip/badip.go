@@ -35,7 +35,7 @@ func (f *Finding) RuleName() string {
 	return name
 }
 
-// Category returns the rule name of the SCC finding.
+// Category returns the category of the SCC finding.
 func (f *Finding) Category() string {
 	category := ""
 	if f.useCSCC {
