@@ -24,6 +24,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gcs/closebucket"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
@@ -41,6 +42,28 @@ const (
 				"detectionCategory": {
 					"ruleName": "bad_ip"
 				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
+	ValidSSHBruteForce = `{
+			"jsonPayload": {
+				"properties": {
+					"project_id": "onboarding-project",
+					"loginAttempts": [{
+						"authResult": "FAIL",
+						"sourceIp": "10.200.0.2",
+						"userName": "okokok",
+						"vmName": "ssh-password-auth-debian-9"
+						}, {
+						"authResult": "SUCCESS",
+						"sourceIp": "10.200.0.3",
+						"userName": "okokok",
+						"vmName": "ssh-password-auth-debian-9"
+						}]
+			  },
+			  "detectionCategory": {
+				"ruleName": "ssh_brute_force"
+			  }
 			},
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
@@ -201,6 +224,20 @@ func TestRouter(t *testing.T) {
 	}
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
 
+	conf.Spec.Parameters.ETD.SSHBruteForce = []Automation{
+		{Action: "remediate_firewall", Target: []string{"organizations/456/folders/123/projects/test-project"}},
+	}
+	openFirewallValues := &openfirewall.Values{
+		Action:       "block_ssh",
+		ProjectID:    "onboarding-project",
+		FirewallID:   "",
+		SourceRanges: []string{"10.200.0.2/32", "10.200.0.3/32"},
+		DryRun:       false,
+		Hash:         "",
+		Name:         "",
+	}
+	openFirewall, _ := json.Marshal(openFirewallValues)
+
 	conf.Spec.Parameters.SHA.PublicBucketACL = []Automation{
 		{Action: "close_bucket", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
@@ -259,6 +296,7 @@ func TestRouter(t *testing.T) {
 		mapTo   []byte
 		finding []byte
 	}{
+		{name: "ssh_brute_force", finding: []byte(ValidSSHBruteForce), mapTo: openFirewall},
 		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
 		{name: "public_bucket_acl", finding: []byte(validPublicBucket), mapTo: closeBucket},
 		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
