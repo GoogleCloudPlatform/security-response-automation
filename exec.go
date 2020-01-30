@@ -188,7 +188,10 @@ func OpenFirewall(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		return updateMarks(ctx, values.Name, values.Hash)
+		if values.Name != "" && values.Hash != "" {
+			return updateMarks(ctx, values.Name, values.Hash)
+		}
+		return nil
 	default:
 		return err
 	}
