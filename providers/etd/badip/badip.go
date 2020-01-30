@@ -24,27 +24,25 @@ import (
 )
 
 // RuleName returns the rule name of the Stackdriver finding.
-func (f *Finding) RuleName() string {
-	name := ""
-	if !f.useCSCC {
-		name = f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
-	}
-	if name != "bad_ip" {
+func (f *Finding) RuleName(b []byte) string {
+	if err := json.Unmarshal(b, &f.badIP); err != nil {
 		return ""
 	}
-	return name
+	if f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName() != "bad_ip" {
+		return ""
+	}
+	return f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 }
 
 // Category returns the category of the SCC finding.
-func (f *Finding) Category() string {
-	category := ""
-	if f.useCSCC {
-		category = f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
-	}
-	if category != "bad_ip" {
+func (f *Finding) Category(b []byte) string {
+	if err := json.Unmarshal(b, &f.badIP); err != nil {
 		return ""
 	}
-	return category
+	if f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName() != "bad_ip" {
+		return ""
+	}
+	return f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
 }
 
 // Finding represents a bad IP finding.
@@ -101,19 +99,4 @@ func (f *Finding) SraRemediated() string {
 		return f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
 	}
 	return ""
-}
-
-// Deserialize deserializes the finding in object.
-func (f *Finding) Deserialize(b []byte) error {
-	err := json.Unmarshal(b, &f.badIP)
-	if err == nil {
-		if f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName() != "" {
-			return nil
-		}
-	}
-	if err := json.Unmarshal(b, &f.badIPCSCC); err != nil {
-		return err
-	}
-	f.useCSCC = true
-	return nil
 }

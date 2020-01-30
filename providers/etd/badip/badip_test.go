@@ -85,10 +85,10 @@ func TestBadIP(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%q failed: %q", tt.name, err)
 			}
-			if ruleName := f.RuleName(); ruleName != tt.ruleName {
+			if ruleName := f.RuleName(tt.finding); ruleName != tt.ruleName {
 				t.Errorf("%q got:%q want:%q", tt.name, ruleName, tt.ruleName)
 			}
-			if category := f.Category(); category != tt.category {
+			if category := f.Category(tt.finding); category != tt.category {
 				t.Errorf("%q got:%q want:%q", tt.name, category, tt.category)
 			}
 			values := f.CreateSnapshot()

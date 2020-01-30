@@ -15,7 +15,10 @@ type Finding struct {
 }
 
 // Category returns the category of the finding.
-func (f *Finding) Category() string {
+func (f *Finding) Category(b []byte) string {
+	if err := json.Unmarshal(b, &f.firewallScanner); err != nil {
+		return ""
+	}
 	if f.firewallScanner.GetFinding().GetSourceProperties().GetScannerName() != "FIREWALL_SCANNER" {
 		return ""
 	}
@@ -49,12 +52,4 @@ func (f *Finding) StringToBeHashed() string {
 // SraRemediated returns the sraRemediate mark of the finding.
 func (f *Finding) SraRemediated() string {
 	return f.firewallScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
-}
-
-// Deserialize deserializes the finding in object.
-func (f *Finding) Deserialize(b []byte) error {
-	if err := json.Unmarshal(b, &f.firewallScanner); err != nil {
-		return err
-	}
-	return nil
 }

@@ -23,7 +23,10 @@ func New(b []byte) (*Finding, error) {
 }
 
 // Category returns the category of the finding.
-func (f *Finding) Category() string {
+func (f *Finding) Category(b []byte) string {
+	if err := json.Unmarshal(b, &f.iamScanner); err != nil {
+		return ""
+	}
 	if f.iamScanner.GetFinding().GetSourceProperties().GetScannerName() != "IAM_SCANNER" {
 		return ""
 	}
@@ -47,12 +50,4 @@ func (f *Finding) StringToBeHashed() string {
 // SraRemediated returns the sraRemediate mark of the finding.
 func (f *Finding) SraRemediated() string {
 	return f.iamScanner.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
-}
-
-// Deserialize deserializes the finding in object.
-func (f *Finding) Deserialize(b []byte) error {
-	if err := json.Unmarshal(b, &f.iamScanner); err != nil {
-		return err
-	}
-	return nil
 }

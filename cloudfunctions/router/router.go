@@ -53,10 +53,9 @@ var sccFindings = []SCCFindings{
 
 // SCCFindings represents findings from Security Command Center.
 type SCCFindings interface {
-	Category() string
+	Category(b []byte) string
 	StringToBeHashed() string
 	SraRemediated() string
-	Deserialize([]byte) error
 }
 
 var sdFindings = []SDFindings{
@@ -67,8 +66,7 @@ var sdFindings = []SDFindings{
 
 // SDFindings represents findings from Stackdriver logs.
 type SDFindings interface {
-	RuleName() string
-	Deserialize([]byte) error
+	RuleName(b []byte) string
 }
 
 // Services contains the services needed for this function.
@@ -581,17 +579,14 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 // sccFindingValues will attempt to deserialize all findings until a category is extracted and a newHash is generated.
 func sccFindingValues(b []byte) (string, string, error) {
 	for _, finding := range sccFindings {
-		if err := finding.Deserialize(b); err != nil {
-			continue
-		}
-		category := finding.Category()
+		category := finding.Category(b)
 		if category == "" {
 			continue
 		}
 		sraRemediated := finding.SraRemediated()
 		newHash := srv.GenerateHash(finding.StringToBeHashed())
 		if sraRemediated != "" && newHash == sraRemediated {
-			return category, newHash, fmt.Errorf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", sraRemediated)
+			return category, newHash, fmt.Errorf("remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", sraRemediated)
 		}
 		return category, newHash, nil
 	}
@@ -601,14 +596,9 @@ func sccFindingValues(b []byte) (string, string, error) {
 // sdFindingValues will attempt to deserialize all findings until a rule name is extracted.
 func sdFindingValues(b []byte) string {
 	for _, finding := range sdFindings {
-		if err := finding.Deserialize(b); err != nil {
-			continue
+		if ruleName := finding.RuleName(b); ruleName != "" {
+			return ruleName
 		}
-		ruleName := finding.RuleName()
-		if ruleName == "" {
-			continue
-		}
-		return ruleName
 	}
 	return ""
 }

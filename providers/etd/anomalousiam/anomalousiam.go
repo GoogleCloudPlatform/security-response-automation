@@ -9,7 +9,10 @@ import (
 )
 
 // RuleName verifies and returns the rule name of the finding.
-func (f *Finding) RuleName() string {
+func (f *Finding) RuleName(b []byte) string {
+	if err := json.Unmarshal(b, &f.anomalousIAM); err != nil {
+		return ""
+	}
 	if f.anomalousIAM.GetJsonPayload().GetDetectionCategory().GetRuleName() != "iam_anomalous_grant" {
 		return ""
 	}
@@ -36,12 +39,4 @@ func (f *Finding) IAMRevoke() *revoke.Values {
 		ProjectID:       f.anomalousIAM.GetJsonPayload().GetProperties().GetProjectId(),
 		ExternalMembers: f.anomalousIAM.GetJsonPayload().GetProperties().GetExternalMembers(),
 	}
-}
-
-// Deserialize deserializes the finding in object.
-func (f *Finding) Deserialize(b []byte) error {
-	if err := json.Unmarshal(b, &f.anomalousIAM); err != nil {
-		return err
-	}
-	return nil
 }

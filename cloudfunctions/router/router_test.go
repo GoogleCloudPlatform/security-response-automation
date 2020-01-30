@@ -305,10 +305,9 @@ func TestRouterErrors(t *testing.T) {
 		expectedErrMsg string
 	}{
 		{name: "remediated_finding", finding: []byte(remediatedWebUIEnabled),
-			expectedErrMsg: fmt.Sprintf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:50492dc07ec3d961ee8b91fe4addec203ccf23d309eb7d2994dc15aa7f36a6b2\"")},
+			expectedErrMsg: fmt.Sprintf("remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:50492dc07ec3d961ee8b91fe4addec203ccf23d309eb7d2994dc15aa7f36a6b2\"")},
 	} {
 		ctx := context.Background()
-
 		t.Run(tt.name, func(t *testing.T) {
 			err := Execute(ctx, &Values{
 				Finding: tt.finding,
@@ -317,7 +316,6 @@ func TestRouterErrors(t *testing.T) {
 				Configuration: conf,
 				Resource:      r,
 			})
-			print(err.Error())
 			if err == nil {
 				t.Fatalf("%q failed: no error happened", tt.name)
 			}

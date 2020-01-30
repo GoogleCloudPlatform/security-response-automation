@@ -128,7 +128,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		updateMarks(ctx, values.Name, values.Hash)
+		err = updateMarks(ctx, values.Name, values.Hash)
 		for _, dest := range values.Output {
 			switch dest {
 			case "turbinia":
@@ -143,7 +143,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 				svcs.Logger.Info("sent %d disks to turbinia", len(diskNames))
 			}
 		}
-		return nil
+		return err
 	default:
 		return err
 	}
