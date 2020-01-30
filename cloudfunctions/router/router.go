@@ -172,47 +172,11 @@ func Config() (*Configuration, error) {
 	return &c, nil
 }
 
-// verifySCCFindings will attempt to deserialize all findings until a category is extracted and a newHash is generated.
-func verifySCCFindings(b []byte) (string, string) {
-	for _, finding := range sccFindings {
-		if err := finding.Deserialize(b); err != nil {
-			continue
-		}
-		category := finding.Category()
-		if category == "" {
-			continue
-		}
-		sraRemediated := finding.SraRemediated()
-		newHash := srv.GenerateHash(finding.StringToBeHashed())
-		if sraRemediated != "" && newHash == sraRemediated {
-			log.Printf("Remediation ignored! Finding already processed and remediated. Finding Hash: %s", sraRemediated)
-			return "", newHash
-		}
-		return category, newHash
-	}
-	return "", ""
-}
-
-// verifySDFindings will attempt to deserialize all findings until a rule name is extracted.
-func verifySDFindings(b []byte) string {
-	for _, finding := range sdFindings {
-		if err := finding.Deserialize(b); err != nil {
-			continue
-		}
-		ruleName := finding.RuleName()
-		if ruleName == "" {
-			continue
-		}
-		return ruleName
-	}
-	return ""
-}
-
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	name, newHash := verifySCCFindings(values.Finding)
+	name, newHash := sccFindingValues(values.Finding)
 	if name == "" && newHash == "" {
-		name = verifySDFindings(values.Finding)
+		name = sdFindingValues(values.Finding)
 	}
 	switch name {
 	case "bad_ip":
@@ -583,11 +547,8 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
-
 	default:
-		if newHash == "" {
-			return fmt.Errorf("rule %q not found", name)
-		}
+		return fmt.Errorf("rule %q not found", name)
 	}
 	return nil
 }
@@ -612,4 +573,40 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 	}
 	log.Printf("sent to pubsub topic: %q", topic)
 	return nil
+}
+
+// sccFindingValues will attempt to deserialize all findings until a category is extracted and a newHash is generated.
+func sccFindingValues(b []byte) (string, string) {
+	for _, finding := range sccFindings {
+		if err := finding.Deserialize(b); err != nil {
+			continue
+		}
+		category := finding.Category()
+		if category == "" {
+			continue
+		}
+		sraRemediated := finding.SraRemediated()
+		newHash := srv.GenerateHash(finding.StringToBeHashed())
+		if sraRemediated != "" && newHash == sraRemediated {
+			log.Printf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", sraRemediated)
+			return "", newHash
+		}
+		return category, newHash
+	}
+	return "", ""
+}
+
+// sdFindingValues will attempt to deserialize all findings until a rule name is extracted.
+func sdFindingValues(b []byte) string {
+	for _, finding := range sdFindings {
+		if err := finding.Deserialize(b); err != nil {
+			continue
+		}
+		ruleName := finding.RuleName()
+		if ruleName == "" {
+			continue
+		}
+		return ruleName
+	}
+	return ""
 }
