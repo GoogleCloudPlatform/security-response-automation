@@ -17,6 +17,7 @@ package router
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -29,9 +30,8 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
-func TestRouter(t *testing.T) {
-	const (
-		validBadIP = `{
+const (
+	validBadIP = `{
 			"jsonPayload": {
 				"properties": {
 					"location": "us-central1",
@@ -44,7 +44,7 @@ func TestRouter(t *testing.T) {
 			},
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
-		validPublicBucket = `{
+	validPublicBucket = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
@@ -74,7 +74,7 @@ func TestRouter(t *testing.T) {
 				"createTime": "2019-09-23T17:20:27.934Z"
 			}
 		}`
-		validPublicDataset = `{
+	validPublicDataset = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
 			"finding": {
 				"name": "organizations/154584661726/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7",
@@ -101,7 +101,7 @@ func TestRouter(t *testing.T) {
 				"createTime": "2019-10-03T18:40:23.445Z"
 			}
 		}`
-		validAuditLogDisabled = `{
+	validAuditLogDisabled = `{
 		"finding": {
 			"name": "organizations/154584661726/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074",
 			"parent": "organizations/154584661726/sources/1986930501971458034",
@@ -129,7 +129,7 @@ func TestRouter(t *testing.T) {
 			"assetDisplayName": "test-project"
 		   }
 		}`
-		validNonOrgMembers = `{
+	validNonOrgMembers = `{
 		"finding": {
 			"name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
 			"parent": "organizations/1050000000008/sources/1986930501000008034",
@@ -155,7 +155,7 @@ func TestRouter(t *testing.T) {
 			"createTime": "2019-10-18T15:31:58.487Z"
            }
 		}`
-		remediatedFinding = `{
+	remediatedWebUIEnabled = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
 			"finding": {
 				"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274",
@@ -185,7 +185,9 @@ func TestRouter(t *testing.T) {
 				"createTime": "2019-03-05T22:21:01.836Z"
 			}
 		}`
-	)
+)
+
+func TestRouter(t *testing.T) {
 	conf := &Configuration{}
 	// BadIP findings should map to "gce_create_disk_snapshot".
 	conf.Spec.Parameters.ETD.BadIP = []Automation{
@@ -262,7 +264,6 @@ func TestRouter(t *testing.T) {
 		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
 		{name: "audit_logging_disabled", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
 		{name: "non_org_members", finding: []byte(validNonOrgMembers), mapTo: removeNonOrgMembers},
-		{name: "remediated_finding", finding: []byte(remediatedFinding)},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
@@ -287,4 +288,43 @@ func TestRouter(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRouterErrors(t *testing.T) {
+	conf := &Configuration{}
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
+	crmStub.GetAncestryResponse = ancestryResponse
+	r := services.NewResource(crmStub, storageStub)
+
+	for _, tt := range []struct {
+		name           string
+		mapTo          []byte
+		finding        []byte
+		expectedErrMsg string
+	}{
+		{name: "remediated_finding", finding: []byte(remediatedWebUIEnabled),
+			expectedErrMsg: fmt.Sprintf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:50492dc07ec3d961ee8b91fe4addec203ccf23d309eb7d2994dc15aa7f36a6b2\"")},
+	} {
+		ctx := context.Background()
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := Execute(ctx, &Values{
+				Finding: tt.finding,
+			}, &Services{
+				Logger:        services.NewLogger(&stubs.LoggerStub{}),
+				Configuration: conf,
+				Resource:      r,
+			})
+			print(err.Error())
+			if err == nil {
+				t.Fatalf("%q failed: no error happened", tt.name)
+			}
+			if diff := cmp.Diff(err.Error(), tt.expectedErrMsg); diff != "" {
+				t.Errorf("%q failed, difference:%+v", tt.name, diff)
+			}
+		})
+	}
+
 }

@@ -174,7 +174,10 @@ func Config() (*Configuration, error) {
 
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
-	name, newHash := sccFindingValues(values.Finding)
+	name, newHash, err := sccFindingValues(values.Finding)
+	if err != nil {
+		return err
+	}
 	if name == "" && newHash == "" {
 		name = sdFindingValues(values.Finding)
 	}
@@ -576,7 +579,7 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 }
 
 // sccFindingValues will attempt to deserialize all findings until a category is extracted and a newHash is generated.
-func sccFindingValues(b []byte) (string, string) {
+func sccFindingValues(b []byte) (string, string, error) {
 	for _, finding := range sccFindings {
 		if err := finding.Deserialize(b); err != nil {
 			continue
@@ -588,12 +591,11 @@ func sccFindingValues(b []byte) (string, string) {
 		sraRemediated := finding.SraRemediated()
 		newHash := srv.GenerateHash(finding.StringToBeHashed())
 		if sraRemediated != "" && newHash == sraRemediated {
-			log.Printf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", sraRemediated)
-			return "", newHash
+			return category, newHash, fmt.Errorf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", sraRemediated)
 		}
-		return category, newHash
+		return category, newHash, nil
 	}
-	return "", ""
+	return "", "", nil
 }
 
 // sdFindingValues will attempt to deserialize all findings until a rule name is extracted.
