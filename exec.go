@@ -402,10 +402,11 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 
 // Turbinia sends data to Turbinia.
 func Turbinia(ctx context.Context, m pubsub.Message) error {
-	var data createsnapshot.Output
+	var data output.OutputData
 	switch err := json.Unmarshal(m.Data, &data); err {
 	case nil:
 		conf, err := output.Config()
+		log.Printf("available Configs: %q", conf.Spec.Outputs.Turbinia.ProjectID)
 		if err != nil {
 			return err
 		}

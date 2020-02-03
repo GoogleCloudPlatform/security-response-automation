@@ -28,7 +28,7 @@ const turbiniaRequestType = "TurbiniaRequest"
 
 // GoogleCloudDisk represents a GCP disk.
 type GoogleCloudDisk struct {
-	Project  string `json:"project"`
+	Project  string `json:"project_id"`
 	Zone     string `json:"zone"`
 	DiskName string `json:"disk_name"`
 }
