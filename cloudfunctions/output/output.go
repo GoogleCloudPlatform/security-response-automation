@@ -30,9 +30,9 @@ var topics = map[string]struct{ Topic string }{
 }
 
 type OutputData struct {
-	From  string
+	From      string
 	DiskNames []string
-	Email string
+	Email     string
 }
 
 // Configuration maps outputs attributes.

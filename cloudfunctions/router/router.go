@@ -98,8 +98,8 @@ type Automation struct {
 			AllowDomains []string `,allow_domains`
 		} `yaml:"anomalous_iam"`
 		CreateSnapshot struct {
-			TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
-			TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
+			TargetSnapshotProjectID string   `yaml:"target_snapshot_project_id"`
+			TargetSnapshotZone      string   `yaml:"target_snapshot_zone"`
 			Output                  []string `outputs`
 			Turbinia                struct {
 				ProjectID string `yaml:"project"`

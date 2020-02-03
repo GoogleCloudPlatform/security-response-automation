@@ -30,7 +30,7 @@ const (
 	snapshotPrefix = "forensic-snapshots-"
 	// allowSnapshotOlderThanDuration defines how old a snapshot must be before we overwrite.
 	allowSnapshotOlderThanDuration = 5 * time.Minute
-	funcName = "createsnapshot"
+	funcName                       = "createsnapshot"
 )
 
 // labels to be saved with each disk snapshot created.
