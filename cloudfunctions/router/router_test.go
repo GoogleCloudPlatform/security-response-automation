@@ -44,6 +44,31 @@ func TestRouter(t *testing.T) {
 			},
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
+		validBadIPSCC = `{
+			"notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
+			"finding": {
+				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+				"parent": "organizations/0000000000000/sources/0000000000000000000",
+				"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
+				"state": "ACTIVE",
+				"category": "C2: Bad IP",
+				"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
+				"sourceProperties": {
+					"detectionCategory_ruleName": "bad_ip",
+					"properties_project_id": "test-project-15511551515",
+					"properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+					"properties_location": "us-central1-a"
+				},
+				"securityMarks": {
+					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
+					"marks": {
+						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
+					}
+				},
+				"eventTime": "2019-11-22T18:34:36.153Z",
+				"createTime": "2019-11-22T18:34:36.688Z"
+			}
+		}`
 		validPublicBucket = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
 			"finding": {
@@ -169,6 +194,17 @@ func TestRouter(t *testing.T) {
 	}
 	createSnapshot, _ := json.Marshal(createSnapshotValues)
 
+	sccCreateSnapshotValues := &createsnapshot.Values{
+		ProjectID: "test-project-15511551515",
+		RuleName:  "bad_ip",
+		Instance:  "bad-ip-caller",
+		Zone:      "us-central1-a",
+		DryRun:    false,
+		Hash:      "923ea281b1a02b9573d291310ded7b0885466d612e7d6a709176f180ffd2aa67",
+		Name:      "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+	}
+	sccCreateSnapshot, _ := json.Marshal(sccCreateSnapshotValues)
+
 	conf.Spec.Parameters.SHA.PublicBucketACL = []Automation{
 		{Action: "close_bucket", Target: []string{"organizations/456/folders/123/projects/test-project"}},
 	}
@@ -220,6 +256,7 @@ func TestRouter(t *testing.T) {
 		finding []byte
 	}{
 		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
+		{name: "bad_ip_scc", finding: []byte(validBadIPSCC), mapTo: sccCreateSnapshot},
 		{name: "public_bucket_acl", finding: []byte(validPublicBucket), mapTo: closeBucket},
 		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
 		{name: "audit_logging_disabled", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
