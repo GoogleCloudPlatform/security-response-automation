@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	commandcenter "cloud.google.com/go/securitycenter/apiv1beta1"
+	"github.com/googleapis/gax-go/v2"
 	"google.golang.org/api/option"
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
@@ -44,6 +45,6 @@ func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccp
 }
 
 // AddSecurityMarks adds security mark to a finding or asset.
-func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
+func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest, opts ...gax.CallOption) (*sccpb.SecurityMarks, error) {
 	return s.service.UpdateSecurityMarks(ctx, request)
 }
