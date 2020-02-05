@@ -43,6 +43,8 @@ type Values struct {
 	RuleName  string
 	Instance  string
 	Zone      string
+	Hash      string
+	Name      string
 	Output    []string
 
 	Turbinia struct {
