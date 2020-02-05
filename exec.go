@@ -37,6 +37,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -123,6 +124,10 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			Host:   svcs.Host,
 			Logger: svcs.Logger,
 		})
+		if err != nil {
+			return err
+		}
+		err = updateMarks(ctx, values.Name, values.Hash)
 		if err != nil {
 			return err
 		}
@@ -392,4 +397,17 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
+}
+
+// updateMarks updates the mark sraRemediated with a new hash.
+func updateMarks(ctx context.Context, name string, hash string) error {
+	if name == "" && hash == "" {
+		return nil
+	}
+	m := make(map[string]string)
+	m["sraRemediated"] = hash
+	if _, err := svcs.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
+		return errors.Wrapf(err, "failed to update security marks into %q", name)
+	}
+	return nil
 }
