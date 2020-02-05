@@ -120,6 +120,14 @@ message SshBruteForce {
 
 message BadIPSCC {
 
+        message Marks {
+            string sraRemediated = 1;
+        }
+
+        message SecurityMarks {
+            Marks marks = 1;
+        }
+
         message SourceProperties {
             string properties_project_id = 1;
             string properties_location = 2;
@@ -132,6 +140,9 @@ message BadIPSCC {
             string category = 2;
             string resourceName = 3;
             string state = 4;
+            SecurityMarks securityMarks = 5;
+            string eventTime = 6;
+            string name = 7;
         }
 
         string notificationConfigName = 1;
