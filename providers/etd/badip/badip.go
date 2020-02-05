@@ -17,10 +17,12 @@ package badip
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
 	"github.com/googlecloudplatform/security-response-automation/providers/etd"
+	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
 // Name returns the rule name of the finding.
@@ -61,6 +63,9 @@ func New(b []byte) (*Finding, error) {
 		return nil, err
 	}
 	f.useCSCC = true
+	if f.IsRemediated() {
+		return nil, fmt.Errorf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", f.sraRemediated())
+	}
 	return &f, nil
 }
 
@@ -72,6 +77,8 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 			RuleName:  f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
 			Instance:  etd.Instance(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
 			Zone:      etd.Zone(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
+			Hash:      f.NewHash(),
+			Name:      f.badIPCSCC.GetFinding().GetName(),
 		}
 	}
 	return &createsnapshot.Values{
@@ -80,4 +87,24 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 		Instance:  etd.Instance(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 		Zone:      etd.Zone(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 	}
+}
+
+// sraRemediated returns the mark sraRemediated.
+func (f *Finding) sraRemediated() string {
+	return f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated()
+}
+
+// NewHash returns a new hash based on fields of the finding.
+func (f *Finding) NewHash() string {
+	hash := f.badIPCSCC.GetFinding().GetEventTime() + f.badIPCSCC.GetFinding().GetName()
+	hash = services.GenerateHash(hash)
+	return hash
+}
+
+// IsRemediated returns if the finding was remediated before or not.
+func (f *Finding) IsRemediated() bool {
+	if f.useCSCC {
+		return f.sraRemediated() == f.NewHash()
+	}
+	return false
 }
