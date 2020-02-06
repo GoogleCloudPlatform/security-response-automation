@@ -17,14 +17,13 @@ package services
 import (
 	"context"
 
-	"github.com/googleapis/gax-go/v2"
 	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	"google.golang.org/genproto/protobuf/field_mask"
 )
 
 // CommandCenterClient contains minimum interface required by the command center service.
 type CommandCenterClient interface {
-	AddSecurityMarks(context.Context, *crm.UpdateSecurityMarksRequest, ...gax.CallOption) (*crm.SecurityMarks, error)
+	AddSecurityMarks(context.Context, *crm.UpdateSecurityMarksRequest) (*crm.SecurityMarks, error)
 }
 
 // CommandCenter service.

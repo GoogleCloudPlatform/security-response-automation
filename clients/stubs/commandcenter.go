@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/googleapis/gax-go/v2"
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
 
@@ -31,7 +30,7 @@ type SecurityCommandCenterStub struct {
 }
 
 // AddSecurityMarks adds Security Marks to a finding or asset.
-func (s *SecurityCommandCenterStub) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest, opts ...gax.CallOption) (*sccpb.SecurityMarks, error) {
+func (s *SecurityCommandCenterStub) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
 	s.GetUpdateSecurityMarksRequest = request
 	if request.SecurityMarks.GetName() == "nonexistent/securityMarks" {
 		return nil, ErrEntityNonExistent
