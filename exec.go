@@ -402,6 +402,7 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 // updateMarks updates the mark sraRemediated with a new hash.
 func updateMarks(ctx context.Context, name string, hash string) error {
 	if name == "" && hash == "" {
+		svcs.Logger.Info("Skipping update of sraRemediated mark. Finding is a Event Threat Detection from Stackdriver logs.")
 		return nil
 	}
 	m := make(map[string]string)
