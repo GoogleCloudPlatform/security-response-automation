@@ -141,6 +141,10 @@ gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TO
 --member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
 --role="roles/pubsub.publisher"
 
+gcloud pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/threat-findings \
+--member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
+--role="roles/securitycenter.notificationServiceAgent"
+
 gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
 --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
 --role='roles/pubsub.admin'
