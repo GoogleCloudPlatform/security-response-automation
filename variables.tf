@@ -17,3 +17,8 @@ variable "folder-ids" {
   type        = list(string)
   description = "Folder IDs to apply automations to."
 }
+
+variable "turbinia-project-id" {
+  type        = string
+  description = "Turbinia project id"
+}
