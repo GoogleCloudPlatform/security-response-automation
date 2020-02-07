@@ -1,0 +1,125 @@
+apiVersion: security-response-automation.cloud.google.com/v1alpha1
+kind: Remediation
+metadata:
+  name: router
+spec:
+  parameters:
+    etd:
+      bad_ip:
+        - action: gce_create_disk_snapshot
+          target:
+            - organizations/__ORGANIZATION_ID__/*
+          properties:
+            dry_run: false
+            target_snapshot_project_id: test-audit-log-260414
+            target_snapshot_zone: "__TURBINIA_SNAPSHOOT_ZONE__"
+            outputs: ['turbinia']
+            turbinia:
+              project_id: "__TURBINIA_PROJECT_ID__"
+              topic: "__TURBINIA_TOPIC_NAME__"
+              zone: "__TURBINIA_SNAPSHOOT_ZONE__"
+      anomalous_iam:
+        - action: iam_revoke
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+            allow_domains:
+              - google.com
+      ssh_brute_force:
+        - action: remediate_firewall
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+    sha:
+      audit_logging_disabled:
+        - action: enable_audit_logs
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          exclude:
+            - projects/345
+          properties:
+            dry_run: false
+      non_org_members:
+        - action: remove_non_org_members
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__
+          exclude:
+            - projects/345
+          properties:
+            dry_run: false
+            allow_domains: ["__DOMAIN_ALLOWED__"]
+      sql_no_root_password:
+        - action: cloud_sql_update_password
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+      ssl_not_enforced:
+        - action: cloud_sql_require_ssl
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+      public_sql_instance:
+        - action: close_cloud_sql
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+      open_firewall:
+        - action: remediate_firewall
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+            open_firewall:
+              # values for remediation_action: disable, delete, update_source_range
+              remediation_action: disable
+              source_ranges:
+                - "10.128.0.0/9"
+      open_rdp_port:
+        - action: remediate_firewall
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+            open_firewall:
+              # values for remediation_action: disable, delete, update_source_range
+              remediation_action: disable
+      open_ssh_port:
+        - action: remediate_firewall
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+            open_firewall:
+              # values for remediation_action: disable, delete, update_source_range
+              remediation_action: disable
+      public_ip_address:
+        - action: remove_public_ip
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+      public_bucket_acl:
+        - action: close_bucket
+          target:
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+            - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
+          properties:
+            dry_run: false
+  outputs:
+    turbinia:
+      project_id: "__TURBINIA_PROJECT_ID__"
+      topic: "__TURBINIA_TOPIC_NAME__"
+      zone: "__TURBINIA_SNAPSHOOT_ZONE__"
