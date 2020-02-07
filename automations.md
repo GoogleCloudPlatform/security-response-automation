@@ -153,12 +153,11 @@ properties:
   gce_create_snapshot:
     target_snapshot_project_id: target-projectid
     target_snapshot_zone: us-central1-a
-    output:
-      - turbinia
+    outputs: ['turbinia']
     turbinia:
-      project_id: turbinia-project
-      topic: turbinia-topic
-      zone: us-central1-a
+      project_id: "__TURBINIA_PROJECT_ID__"
+      topic: "__TURBINIA_TOPIC_NAME__"
+      zone: "__TURBINIA_SNAPSHOOT_ZONE__"
 ```
 
 ### Remove public IPs from an instance
@@ -270,3 +269,17 @@ Supported findings:
 Action name:
 
 - `close_public_dataset`
+
+## Outputs
+
+### Turbinia
+
+Sends disks names from Snapshoot remediation to Turbinia
+
+```yaml
+outputs:
+    turbinia:
+      project_id: "__TURBINIA_PROJECT_ID__"
+      topic: "__TURBINIA_TOPIC_NAME__"
+      zone: "__TURBINIA_SNAPSHOOT_ZONE__"
+```
