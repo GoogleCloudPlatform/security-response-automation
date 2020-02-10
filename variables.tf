@@ -20,5 +20,5 @@ variable "folder-ids" {
 
 variable "turbinia-project-id" {
   type        = string
-  description = "Turbinia project id"
+  description = "Project id where Turbinia is installed."
 }
