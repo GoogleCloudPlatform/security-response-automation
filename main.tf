@@ -114,7 +114,6 @@ module "enable_audit_logs" {
 module "output_turbinia" {
   source              = "./cloudfunctions/output/turbinia"
   setup               = module.google-setup
-  folder-ids          = var.folder-ids
   turbinia-project-id = var.turbinia-project-id
 }
 
