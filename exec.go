@@ -139,10 +139,8 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			if err != nil {
 				return errors.Wrapf(err, "failed to marshal when running %q", m)
 			}
-			v := &output.Values{
-				Name:    o,
-				Message: m,
-			}
+			v := &output.Values{Name: o, Message: m}
+
 			log.Printf("sending %q to output %q", v.Message, o)
 			err = output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
 			if err != nil {
