@@ -12,13 +12,14 @@ spec:
           properties:
             dry_run: false
             gce_create_snapshot:
-              target_snapshot_project_id: test-audit-log-260414
-              target_snapshot_zone: "__TURBINIA_SNAPSHOOT_ZONE__"
-              outputs: ['turbinia']
+              target_snapshot_project_id: target-projectid
+              target_snapshot_zone: target-zone
+              outputs:
+                - turbinia
               turbinia:
-                project: "__TURBINIA_PROJECT_ID__"
-                topic: "__TURBINIA_TOPIC_NAME__"
-                zone: "__TURBINIA_SNAPSHOOT_ZONE__"
+                project: turbinia-projectid
+                topic: turbinia-topic
+                zone: turbinia-zone
       anomalous_iam:
         - action: iam_revoke
           target:
@@ -54,7 +55,8 @@ spec:
           properties:
             dry_run: false
             non_org_members:
-              allow_domains: ["__DOMAIN_ALLOWED__"]
+              allow_domains:
+              - __DOMAIN_ALLOWED__
       sql_no_root_password:
         - action: cloud_sql_update_password
           target:
@@ -123,6 +125,6 @@ spec:
             dry_run: false
   outputs:
     turbinia:
-      project: "__TURBINIA_PROJECT_ID__"
-      topic: "__TURBINIA_TOPIC_NAME__"
-      zone: "__TURBINIA_SNAPSHOOT_ZONE__"
+      project: turbinia-projectid
+      topic: turbinia-topic
+      zone: turbinia-zone
