@@ -63,7 +63,7 @@ type Services struct {
 
 // Values contains the required values needed for this function.
 type Values struct {
-	ProjectID string `yaml:"project_id"`
+	Project   string
 	Topic     string
 	Zone      string
 	DiskNames []string
@@ -72,11 +72,11 @@ type Values struct {
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, s *Services) error {
 	for _, d := range values.DiskNames {
-		b, err := buildRequest(values.ProjectID, values.Zone, d)
+		b, err := buildRequest(values.Project, values.Zone, d)
 		if err != nil {
 			return err
 		}
-		log.Printf("sending disk %q to Turbinia project %q", d, values.ProjectID)
+		log.Printf("sending disk %q to Turbinia project %q", d, values.Project)
 		if _, err := s.PubSub.Publish(ctx, values.Topic, &pubsub.Message{
 			Data: b,
 		}); err != nil {

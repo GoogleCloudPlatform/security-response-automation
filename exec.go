@@ -404,27 +404,28 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 // Turbinia sends data to Turbinia.
 func Turbinia(ctx context.Context, m pubsub.Message) error {
 	var data []string
-	switch err := json.Unmarshal(m.Data, data); err {
+	switch err := json.Unmarshal(m.Data, &data); err {
 	case nil:
 		conf, err := output.Config()
 		if err != nil {
 			return err
 		}
 		values := &turbinia.Values{
-			ProjectID: conf.Spec.Outputs.Turbinia.ProjectID,
+			Project:   conf.Spec.Outputs.Turbinia.Project,
 			Topic:     conf.Spec.Outputs.Turbinia.Topic,
 			Zone:      conf.Spec.Outputs.Turbinia.Zone,
 			DiskNames: data,
 		}
-		if values.ProjectID == "" || values.Topic == "" || values.Zone == "" {
+		if values.Project == "" || values.Topic == "" || values.Zone == "" {
 			return errors.New("missing Turbinia config values")
 		}
-		ps, err := services.InitPubSub(ctx, values.ProjectID)
+		ps, err := services.InitPubSub(ctx, values.Project)
 		if err != nil {
 			return err
 		}
 		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
 	default:
+		log.Panicf("Error unmarshal message: %q", m.Data)
 		return err
 	}
 }
