@@ -45,9 +45,9 @@ func TestTurbinia(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if err := Execute(ctx, &Values{
-				ProjectID: tt.projectId,
-				Topic: tt.topic,
-				Zone: tt.zone,
+				Project:   tt.projectId,
+				Topic:     tt.topic,
+				Zone:      tt.zone,
 				DiskNames: tt.disknames,
 			}, &Services{
 				PubSub:        ps,
