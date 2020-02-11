@@ -403,11 +403,10 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 
 // Turbinia sends data to Turbinia.
 func Turbinia(ctx context.Context, m pubsub.Message) error {
-	var data output.OutputData
-	switch err := json.Unmarshal(m.Data, &data); err {
+	var data []string
+	switch err := json.Unmarshal(m.Data, data); err {
 	case nil:
 		conf, err := output.Config()
-		log.Printf("available Configs: %q", conf.Spec.Outputs.Turbinia.ProjectID)
 		if err != nil {
 			return err
 		}
@@ -415,7 +414,7 @@ func Turbinia(ctx context.Context, m pubsub.Message) error {
 			ProjectID: conf.Spec.Outputs.Turbinia.ProjectID,
 			Topic:     conf.Spec.Outputs.Turbinia.Topic,
 			Zone:      conf.Spec.Outputs.Turbinia.Zone,
-			DiskNames: data.DiskNames,
+			DiskNames: data,
 		}
 		if values.ProjectID == "" || values.Topic == "" || values.Zone == "" {
 			return errors.New("missing Turbinia config values")

@@ -90,7 +90,7 @@ func buildRequest(projectID, zone, diskName string) ([]byte, error) {
 	var req TurbiniaRequest
 	req.RequestID = uuid.New().String()
 	req.Type = turbiniaRequestType
-	req.Requester = "amandak@clsecteam.com"
+	req.Requester = "Security Response Automation"
 
 	req.Evidence = []GoogleCloudDisk{
 		{

@@ -29,12 +29,6 @@ var topics = map[string]struct{ Topic string }{
 	"turbinia": {Topic: "notify-turbinia"},
 }
 
-type OutputData struct {
-	From      string
-	DiskNames []string
-	Email     string
-}
-
 // Configuration maps outputs attributes.
 type Configuration struct {
 	APIVersion string
