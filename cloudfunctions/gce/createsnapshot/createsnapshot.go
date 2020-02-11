@@ -16,6 +16,7 @@ package createsnapshot
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -119,10 +120,11 @@ func Execute(ctx context.Context, values *Values, services *Services) ([]string,
 
 		if values.DestProjectID != "" {
 			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, values.DestProjectID, values.DestZone)
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, values.DestProjectID, values.DestZone, snapshotName); err != nil {
+			newDiskName := fmt.Sprintf("%s-%d", snapshotName, time.Now().Unix())
+			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, values.DestProjectID, values.DestZone, snapshotName, newDiskName); err != nil {
 				return nil, errors.Wrapf(err, "failed to copy disk to %q", values.DestProjectID)
 			}
-			disksCopied = append(disksCopied, snapshotName)
+			disksCopied = append(disksCopied, newDiskName)
 			services.Logger.Info("copied snapshot %q to %q in %q", snapshotName, values.DestProjectID, values.DestZone)
 		}
 	}
