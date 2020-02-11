@@ -93,18 +93,18 @@ type Automation struct {
 	Target     []string
 	Exclude    []string
 	Properties struct {
-		DryRun    bool `dry_run`
+		DryRun    bool `yaml:"dry_run"`
 		RevokeIAM struct {
-			AllowDomains []string `,allow_domains`
+			AllowDomains []string `yaml:",allow_domains"`
 		} `yaml:"anomalous_iam"`
 		CreateSnapshot struct {
 			TargetSnapshotProjectID string   `yaml:"target_snapshot_project_id"`
 			TargetSnapshotZone      string   `yaml:"target_snapshot_zone"`
-			Output                  []string `outputs`
+			Output                  []string `yaml:"outputs"`
 			Turbinia                struct {
-				ProjectID string `yaml:"project"`
-				Topic     string
-				Zone      string
+				Project string `yaml:"project"`
+				Topic   string
+				Zone    string
 			}
 		} `yaml:"bad_ip,inline"`
 		OpenFirewall struct {

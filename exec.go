@@ -144,7 +144,10 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 				Message: m,
 			}
 			log.Printf("sending %q to output %q", v.Message, o)
-			output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
+			err = output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
+			if err != nil {
+				return errors.Wrapf(err, "failed to send outputs to %s", ps)
+			}
 		}
 		return nil
 	default:

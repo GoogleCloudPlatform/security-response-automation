@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	output "github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	compute "google.golang.org/api/compute/v1"

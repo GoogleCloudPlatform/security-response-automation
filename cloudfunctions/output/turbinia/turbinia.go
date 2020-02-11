@@ -1,6 +1,6 @@
 package turbinia
 
-// Copyright 2020 Google LLC
+// Copyright 2019 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,16 +28,31 @@ const turbiniaRequestType = "TurbiniaRequest"
 
 // GoogleCloudDisk represents a GCP disk.
 type GoogleCloudDisk struct {
-	Project  string `json:"project_id"`
-	Zone     string `json:"zone"`
-	DiskName string `json:"disk_name"`
+	Project        string `json:"project"`
+	Zone           string `json:"zone"`
+	DiskName       string `json:"disk_name"`
+	Name           string `json:"name"`
+	RequestID      string `json:"request_id"`
+	Type           string `json:"type"`
+	Copyable       bool   `json:"copyable"`
+	CloudOnly      bool   `json:"cloud_only"`
+	LocalPath      string `json:"local_path"`
+	SavedPath      string `json:"saved_path"`
+	SavedPathType  string `json:"saved_path_type"`
+	ParentEvidence string `json:"parent_evidence"`
 }
+
+// Recipe struct to TurbiniaRequest
+type Recipe struct{}
 
 // TurbiniaRequest is a request to send to Turbinia.
 type TurbiniaRequest struct {
 	RequestID string            `json:"request_id"`
 	Type      string            `json:"type"`
 	Evidence  []GoogleCloudDisk `json:"evidence"`
+	Requester string            `json:"requester"`
+	Context   string            `json:"context"`
+	Recipe    Recipe            `json:"recipe"`
 }
 
 // Services contains the services needed for this function.
@@ -75,11 +90,18 @@ func buildRequest(projectID, zone, diskName string) ([]byte, error) {
 	var req TurbiniaRequest
 	req.RequestID = uuid.New().String()
 	req.Type = turbiniaRequestType
+	req.Requester = "amandak@clsecteam.com"
+
 	req.Evidence = []GoogleCloudDisk{
 		{
-			Project:  projectID,
-			Zone:     zone,
-			DiskName: diskName,
+			Project:   projectID,
+			Zone:      zone,
+			DiskName:  diskName,
+			CloudOnly: true,
+			Copyable:  true,
+			Name:      diskName,
+			Type:      "GoogleCloudDisk",
+			RequestID: req.RequestID,
 		},
 	}
 	return json.Marshal(req)
