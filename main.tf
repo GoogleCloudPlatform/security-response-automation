@@ -55,6 +55,7 @@ module "create_disk_snapshot" {
   source     = "./cloudfunctions/gce/createsnapshot"
   setup      = module.google-setup
   folder-ids = var.folder-ids
+  target-project-id = var.target-project-id
 }
 
 module "enable_bucket_only_policy" {

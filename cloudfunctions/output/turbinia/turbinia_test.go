@@ -16,8 +16,11 @@ package turbinia
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/uuid"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
@@ -28,35 +31,56 @@ func TestTurbinia(t *testing.T) {
 	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
 	crmStub.GetAncestryResponse = ancestryResponse
 
+	var req TurbiniaRequest
+	req.RequestID = uuid.New().String()
+	req.Type = turbiniaRequestType
+	req.Requester = "Security Response Automation"
+	req.Evidence= []GoogleCloudDisk{
+			{
+				Project:   "turbinia-test-20200210",
+				Zone:      "us-central1-a",
+				DiskName:  "forensic_test",
+				CloudOnly: true,
+				Copyable:  true,
+				Name:      "forensic_test",
+				Type:      "GoogleCloudDisk",
+				RequestID: req.RequestID,
+			},
+		}
+	jsonReq, _ := json.Marshal(req)
+
 	for _, tt := range []struct {
-		name    string
-		projectId  string
-		zone  string
-		topic string
-		disknames []string
+		name      string
+		projectId string
+		zone      string
+		topic     string
+		diskNames []string
+		requestId string
+		request   []byte
 	}{
-		{name: "turbinia only one disk", projectId: "turbinia-test-20200210", disknames: []string{"forensic_test"}, zone:"us-central1-a", topic: "turbinia"},
-		{name: "turbinia multiple disks", projectId: "turbinia-test-20200210", disknames: []string{"forensic_test", "bad_ip_snapshoot"}, zone:"us-central1-a", topic: "turbinia"},
+		{name: "turbinia only one disk", projectId: "turbinia-test-20200210",
+			diskNames: []string{"forensic_test"}, zone: "us-central1-a", topic: "turbinia",
+			request: jsonReq, requestId: req.RequestID,
+		},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
 		ps := services.NewPubSub(psStub)
 
 		t.Run(tt.name, func(t *testing.T) {
-
 			if err := Execute(ctx, &Values{
 				Project:   tt.projectId,
 				Topic:     tt.topic,
 				Zone:      tt.zone,
-				DiskNames: tt.disknames,
-			}, &Services{
-				PubSub:        ps,
-				Logger:        services.NewLogger(&stubs.LoggerStub{}),
-			}); err != nil {
-				t.Fatalf("%q failed: %q", tt.name, err)
+				DiskNames: tt.diskNames,
+				RequestId: tt.requestId,
+			}, &Services{PubSub: ps, Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
+				t.Errorf("%q failed: %q", tt.name, err)
+			}
+
+			if diff := cmp.Diff(tt.request, psStub.PublishedMessage.Data); diff != "" {
+				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})
 	}
-
-
 }

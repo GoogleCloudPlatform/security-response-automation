@@ -20,7 +20,6 @@ import (
 	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/google/uuid"
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
 
@@ -63,35 +62,33 @@ type Services struct {
 
 // Values contains the required values needed for this function.
 type Values struct {
-	Project   string
+	Project   string `yaml:"project_id"`
 	Topic     string
 	Zone      string
 	DiskNames []string
+	RequestId string
 }
 
 // Execute will send the disks to Turbinia.
-func Execute(ctx context.Context, values *Values, s *Services) error {
+func Execute(ctx context.Context, values *Values, services *Services) error {
 	for _, d := range values.DiskNames {
-		b, err := buildRequest(values.Project, values.Zone, d)
+		b, err := buildRequest(values.Project, values.Zone, d, values.RequestId)
 		if err != nil {
 			return err
 		}
 		log.Printf("sending disk %q to Turbinia project %q", d, values.Project)
-		if _, err := s.PubSub.Publish(ctx, values.Topic, &pubsub.Message{
-			Data: b,
-		}); err != nil {
+		if _, err := services.PubSub.Publish(ctx, values.Topic, &pubsub.Message{Data: b}); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func buildRequest(projectID, zone, diskName string) ([]byte, error) {
+func buildRequest(projectID, zone, diskName string, requestId string) ([]byte, error) {
 	var req TurbiniaRequest
-	req.RequestID = uuid.New().String()
+	req.RequestID = requestId
 	req.Type = turbiniaRequestType
 	req.Requester = "Security Response Automation"
-
 	req.Evidence = []GoogleCloudDisk{
 		{
 			Project:   projectID,

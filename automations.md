@@ -156,9 +156,9 @@ properties:
     outputs:
       - turbinia
     turbinia:
-      project: turbinia-projectid
+      project_id: turbinia-projectid
       topic: turbinia-topic
-      zone: turbinia-zone
+      zone: us-central1-a
 ```
 
 ### Remove public IPs from an instance
@@ -270,17 +270,3 @@ Supported findings:
 Action name:
 
 - `close_public_dataset`
-
-## Outputs
-
-### Turbinia
-
-Sends disks names from Snapshoot remediation to Turbinia
-
-```yaml
-outputs:
-  turbinia:
-    project: turbinia-projectid
-    topic: turbinia-topic
-    zone: turbinia-zone
-```

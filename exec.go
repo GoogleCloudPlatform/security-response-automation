@@ -22,6 +22,7 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/google/uuid"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
@@ -415,6 +416,7 @@ func Turbinia(ctx context.Context, m pubsub.Message) error {
 			Topic:     conf.Spec.Outputs.Turbinia.Topic,
 			Zone:      conf.Spec.Outputs.Turbinia.Zone,
 			DiskNames: data,
+			RequestId: uuid.New().String(),
 		}
 		if values.Project == "" || values.Topic == "" || values.Zone == "" {
 			return errors.New("missing Turbinia config values")
@@ -425,7 +427,6 @@ func Turbinia(ctx context.Context, m pubsub.Message) error {
 		}
 		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
 	default:
-		log.Panicf("Error unmarshal message: %q", m.Data)
 		return err
 	}
 }

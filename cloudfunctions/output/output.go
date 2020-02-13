@@ -18,6 +18,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"errors"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
@@ -65,19 +66,19 @@ type Values struct {
 	Message []byte
 }
 
-// Execute will orchestrate the notification to the available output.
-func Execute(ctx context.Context, v *Values, s *Services) error {
+// Execute will route & publish the incoming message to the appropriate output function.
+func Execute(ctx context.Context, v *Values, services *Services) error {
 	log.Printf("executing output %q", v.Name)
-	topic := topics[v.Name].Topic
-	if _, err := s.PubSub.Publish(ctx, topic, &pubsub.Message{
-		Data: v.Message,
-	}); err != nil {
-		s.Logger.Error("failed to publish to %q for %q - %q", topic, v.Name, err)
-		return err
+	if topic, ok := topics[v.Name]; ok {
+		if _, err := services.PubSub.Publish(ctx, topic.Topic, &pubsub.Message{Data: v.Message}); err != nil {
+			services.Logger.Error("failed to publish to %q for %q - %q", topic, v.Name, err)
+			return err
+		}
+
+		log.Printf("sent to pubsub topic: %q", topic.Topic)
+		return nil
 	}
-	log.Printf("sent to pubsub topic: %q", topic)
 
-	// return errors.ela s("Invalid output option")
-
-	return nil
+	services.Logger.Error("Invalid output option")
+	return errors.New("invalid output option")
 }

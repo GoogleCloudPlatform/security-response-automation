@@ -15,9 +15,10 @@ spec:
               target_snapshot_project_id: target-projectid
               target_snapshot_zone: target-zone
               outputs:
-                - turbinia
+                - turbiniagit
+                - email
               turbinia:
-                project: turbinia-projectid
+                project_id: turbinia-projectid
                 topic: turbinia-topic
                 zone: turbinia-zone
       anomalous_iam:

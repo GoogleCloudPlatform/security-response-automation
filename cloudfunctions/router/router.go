@@ -100,9 +100,9 @@ type Automation struct {
 		CreateSnapshot struct {
 			TargetSnapshotProjectID string   `yaml:"target_snapshot_project_id"`
 			TargetSnapshotZone      string   `yaml:"target_snapshot_zone"`
-			Output                  []string `yaml:"outputs"`
+			Outputs                 []string `yaml:"outputs"`
 			Turbinia                struct {
-				Project string
+				Project string `yaml:"project_id"`
 				Topic   string
 				Zone    string
 			}
@@ -183,7 +183,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "gce_create_disk_snapshot":
 				values := badIP.CreateSnapshot()
 				values.DryRun = automation.Properties.DryRun
-				values.Output = automation.Properties.CreateSnapshot.Output
+				values.Output = automation.Properties.CreateSnapshot.Outputs
 				values.DestProjectID = automation.Properties.CreateSnapshot.TargetSnapshotProjectID
 				values.DestZone = automation.Properties.CreateSnapshot.TargetSnapshotZone
 				topic := topics[automation.Action].Topic

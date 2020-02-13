@@ -29,16 +29,9 @@ resource "google_cloudfunctions_function" "turbinia" {
   }
 }
 
-# Grant the service account permission to publish to this topic.
+# Grant the service account permission to publish to turbinia topic.
 resource "google_project_iam_member" "turbinia-pubsub" {
   role    = "roles/pubsub.publisher"
-  project = var.turbinia-project-id
-  member  = "serviceAccount:${var.setup.automation-service-account}"
-}
-
-# Grant the service account permission create disks.
-resource "google_project_iam_member" "turbinia-create-disks" {
-  role    = "roles/compute.instanceAdmin"
   project = var.turbinia-project-id
   member  = "serviceAccount:${var.setup.automation-service-account}"
 }

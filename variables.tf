@@ -22,3 +22,8 @@ variable "turbinia-project-id" {
   type        = string
   description = "Project id where Turbinia is installed."
 }
+
+variable "target-project-id" {
+  type        = string
+  description = "Project id where snapshots disks will be created."
+}
