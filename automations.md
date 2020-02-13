@@ -152,7 +152,7 @@ properties:
   dry_run: false
   gce_create_snapshot:
     target_snapshot_project_id: target-projectid
-    target_snapshot_zone: target-zone
+    target_snapshot_zone: us-central1-a
     outputs:
       - turbinia
     turbinia:
