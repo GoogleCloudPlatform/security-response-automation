@@ -102,8 +102,10 @@ func TestBadIP(t *testing.T) {
 			if err != nil && tt.expectedErrMsg != "" && err.Error() != tt.expectedErrMsg {
 				t.Fatalf("%s failed: got:%q want:%q", tt.name, err, tt.expectedErrMsg)
 			}
-			if name := f.Name(tt.finding); name != tt.ruleName {
-				t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
+			if f != nil {
+				if name := f.Name(tt.finding); name != tt.ruleName {
+					t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
+				}
 			}
 		})
 	}
