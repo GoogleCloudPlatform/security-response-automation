@@ -127,8 +127,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		err = updateMarks(ctx, values.Name, values.Mark)
-		if err != nil {
+		if err := updateMarks(ctx, values.Name, values.Mark); err != nil {
 			return err
 		}
 		for _, dest := range values.Output {
