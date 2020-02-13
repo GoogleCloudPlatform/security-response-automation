@@ -76,7 +76,7 @@ func TestBadIP(t *testing.T) {
 				"securityMarks": {
 					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
 					"marks": {
-''						"sraRemediated": "2019-11-22T18:34:36.153Z"
+						"sraRemediated": "2019-11-22T18:34:36.153Z"
 					}
 				},
 				"eventTime": "2019-11-22T18:34:36.153Z",
