@@ -127,7 +127,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		err = updateMarks(ctx, values.Name, values.Hash)
+		err = updateMarks(ctx, values.Name, values.Mark)
 		if err != nil {
 			return err
 		}
@@ -399,14 +399,14 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	}
 }
 
-// updateMarks updates the mark sraRemediated with a new hash.
-func updateMarks(ctx context.Context, name string, hash string) error {
-	if name == "" && hash == "" {
+// updateMarks updates the mark sraRemediated with a new mark.
+func updateMarks(ctx context.Context, name string, mark string) error {
+	if name == "" && mark == "" {
 		svcs.Logger.Info("Skipping update of sraRemediated mark. Finding is a Event Threat Detection from Stackdriver logs.")
 		return nil
 	}
 	m := make(map[string]string)
-	m["sraRemediated"] = hash
+	m["sraRemediated"] = mark
 	if _, err := svcs.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
 		return errors.Wrapf(err, "failed to update security marks into %q", name)
 	}
