@@ -76,14 +76,14 @@ func TestBadIP(t *testing.T) {
 				"securityMarks": {
 					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
 					"marks": {
-						"sraRemediated": "923ea281b1a02b9573d291310ded7b0885466d612e7d6a709176f180ffd2aa67"
+''						"sraRemediated": "2019-11-22T18:34:36.153Z"
 					}
 				},
 				"eventTime": "2019-11-22T18:34:36.153Z",
 				"createTime": "2019-11-22T18:34:36.688Z"
 			}
 	  }`
-		errorMessage = "Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:923ea281b1a02b9573d291310ded7b0885466d612e7d6a709176f180ffd2aa67\""
+		errorMessage = "Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:2019-11-22T18:34:36.153Z\""
 	)
 
 	for _, tt := range []struct {

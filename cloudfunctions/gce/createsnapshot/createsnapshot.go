@@ -43,7 +43,7 @@ type Values struct {
 	RuleName  string
 	Instance  string
 	Zone      string
-	Hash      string
+	Mark      string
 	Name      string
 	Output    []string
 
