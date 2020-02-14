@@ -67,7 +67,7 @@ func createEmail(subject, from, body, sender string, to []string) *mail.SGMailV3
 	for _, e := range to {
 		p.AddTos(mail.NewEmail(e, e))
 	}
-	email.AddContent(mail.NewContent("text/plain", body))
+	email.AddContent(mail.NewContent("text/html", body))
 	email.AddPersonalizations(p)
 	return email
 }

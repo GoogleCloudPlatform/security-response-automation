@@ -118,6 +118,11 @@ module "output_turbinia" {
   turbinia-project-id = var.turbinia-project-id
 }
 
+module "output_sendgrid" {
+  source              = "./cloudfunctions/output/sendgrid"
+  setup               = module.google-setup
+}
+
 // TODO: enable again and fix IAM roles
 //module "remove_non_org_members" {
 //  source     = "./cloudfunctions/iam/removenonorgmembers"

@@ -23,7 +23,7 @@ import (
 	"github.com/sendgrid/rest"
 )
 
-const templatesPath = "../templates/"
+const templatesPath = "./templates/"
 
 var (
 	// errLoadTemplate error on load template file.

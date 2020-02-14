@@ -37,6 +37,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/sendgrid"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -324,11 +325,35 @@ func CloudSQLRequireSSL(ctx context.Context, m pubsub.Message) error {
 	var values requiressl.Values
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
-		return requiressl.Execute(ctx, &values, &requiressl.Services{
+		res, err := requiressl.Execute(ctx, &values, &requiressl.Services{
 			CloudSQL: svcs.CloudSQL,
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
 		})
+
+		if err != nil {
+			return err
+		}
+
+		ps, err := services.InitPubSub(ctx, projectID)
+		if err != nil {
+			return err
+		}
+		log.Printf("available outputs: %q", values.Outputs)
+		for _, o := range values.Outputs {
+			m, err := json.Marshal(res)
+			if err != nil {
+				return errors.Wrapf(err, "failed to marshal when running %q", m)
+			}
+			v := &output.Values{Name: o, Message: m}
+
+			log.Printf("sending %q to output %q", v.Message, o)
+			err = output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
+			if err != nil {
+				return errors.Wrapf(err, "failed to send outputs to %s", ps)
+			}
+		}
+		return nil
 	default:
 		return err
 	}
@@ -426,6 +451,34 @@ func Turbinia(ctx context.Context, m pubsub.Message) error {
 			return err
 		}
 		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
+	default:
+		return err
+	}
+}
+
+func Sendgrid(ctx context.Context, m pubsub.Message) error {
+	var data string
+	switch err := json.Unmarshal(m.Data, &data); err {
+	case nil:
+		conf, err := output.Config()
+		if err != nil {
+			return err
+		}
+		values := &sendgrid.Values{
+			Subject:   conf.Spec.Outputs.Sendgrid.Subject,
+			From:     conf.Spec.Outputs.Sendgrid.From,
+			To:      conf.Spec.Outputs.Sendgrid.To,
+			APIKey: conf.Spec.Outputs.Sendgrid.APIKey,
+			TemplatePath: conf.Spec.Outputs.Sendgrid.TemplatePath,
+			TemplateContent: sendgrid.TemplateContent{
+				Message:     data,
+			},
+		}
+		if values.From == "" || len(values.To) == 0 || values.APIKey == "" || values.TemplatePath == "" {
+			return errors.New("missing Sendgrid config values")
+		}
+		sg := services.InitEmail(values.APIKey)
+		return sendgrid.Execute(ctx, values, &sendgrid.Services{Email: sg, Logger: svcs.Logger})
 	default:
 		return err
 	}

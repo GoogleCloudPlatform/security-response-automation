@@ -16,6 +16,7 @@ package requiressl
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
@@ -24,6 +25,7 @@ import (
 type Values struct {
 	ProjectID, InstanceName string
 	DryRun                  bool
+	Outputs                 []string
 }
 
 // Services contains the services needed for this function.
@@ -34,14 +36,14 @@ type Services struct {
 }
 
 // Execute will remove any public ips in sql instance found within the provided folders.
-func Execute(ctx context.Context, values *Values, services *Services) error {
+func Execute(ctx context.Context, values *Values, services *Services) (string, error) {
 	if values.DryRun {
 		services.Logger.Info("dry_run on, enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
-		return nil
+		return "", nil
 	}
 	if err := services.CloudSQL.RequireSSL(ctx, values.ProjectID, values.InstanceName); err != nil {
-		return err
+		return fmt.Sprintf("Error enforcing SSL on sql instance %q in project %q.",values.InstanceName, values.ProjectID), err
 	}
 	services.Logger.Info("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID)
-	return nil
+	return fmt.Sprintf("enforced ssl on sql instance %q in project %q.", values.InstanceName, values.ProjectID), nil
 }

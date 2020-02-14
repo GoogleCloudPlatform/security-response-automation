@@ -16,11 +16,12 @@ package output
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"log"
-	"errors"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/sendgrid"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"gopkg.in/yaml.v2"
@@ -28,6 +29,7 @@ import (
 
 var topics = map[string]struct{ Topic string }{
 	"turbinia": {Topic: "notify-turbinia"},
+	"sendgrid": {Topic: "notify-sendgrid"},
 }
 
 // Configuration maps outputs attributes.
@@ -36,6 +38,7 @@ type Configuration struct {
 	Spec       struct {
 		Outputs struct {
 			Turbinia turbinia.Values `yaml:"turbinia"`
+			Sendgrid sendgrid.Values `yaml:"sendgrid"`
 		}
 	}
 }

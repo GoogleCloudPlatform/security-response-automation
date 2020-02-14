@@ -114,6 +114,9 @@ type Automation struct {
 		NonOrgMembers struct {
 			AllowDomains []string `yaml:"allow_domains"`
 		} `yaml:"non_org_members"`
+		CloudSqlRequireSSL struct {
+			Outputs []string `yaml:"outputs"`
+		} `yaml:"cloud_sql_require_ssl"`
 	}
 }
 
@@ -314,6 +317,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "cloud_sql_require_ssl":
 				values := sqlScanner.RequireSSL()
 				values.DryRun = automation.Properties.DryRun
+				values.Outputs = automation.Properties.CloudSqlRequireSSL.Outputs
 				topic := topics[automation.Action].Topic
 				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
 					services.Logger.Error("failed to publish: %q", err)

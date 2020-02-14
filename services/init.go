@@ -19,6 +19,7 @@ type Global struct {
 	Firewall  *Firewall
 	Container *Container
 	CloudSQL  *CloudSQL
+	Email     *Email
 }
 
 // New returns an initialized Global struct.
@@ -68,6 +69,13 @@ func InitPagerDuty(apiKey string) *PagerDuty {
 	pd := clients.NewPagerDuty(apiKey)
 	return NewPagerDuty(pd)
 }
+
+// InitEmail creates and initializes a new instance of Email
+func InitEmail(apiKey string) *Email {
+	sgc := clients.NewSendGridClient(apiKey)
+	return NewEmail(sgc)
+}
+
 
 // InitBigQuery creates and initializes a new instance of BigQuery.
 func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
