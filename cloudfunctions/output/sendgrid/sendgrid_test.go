@@ -1,4 +1,4 @@
-package turbinia
+package sendgrid
 
 // Copyright 2019 Google LLC
 //
@@ -15,10 +15,13 @@ package turbinia
 // limitations under the License.
 
 import (
+	"context"
 	"testing"
 
+	"github.com/googlecloudplatform/security-response-automation/clients"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"github.com/sendgrid/rest"
 )
 
 func TestSendgrid(t *testing.T) {
@@ -26,4 +29,42 @@ func TestSendgrid(t *testing.T) {
 	crmStub := &stubs.ResourceManagerStub{}
 	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
 	crmStub.GetAncestryResponse = ancestryResponse
+
+	tests := []struct {
+		name             string
+		expectedError    string
+		expectedResponse *rest.Response
+		message          string
+	}{
+		{
+			name:             "send email sendgrid client success",
+			expectedError:    "",
+			expectedResponse: &rest.Response{StatusCode: 200},
+			message:          "Automation xpto was successfully done",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			ctx := context.Background()
+
+			sendGrid := clients.NewSendGridClient("api-key")
+			sendGrid.Service = &stubs.SendGridStub{}
+
+			t.Run(tt.name, func(t *testing.T) {
+				if err := Execute(ctx, &Values{
+					Subject:         "Test",
+					From:            "automation@organization.com",
+					To:              []string {"test@organization.com"},
+					APIKey:          "api-key",
+					TemplatePath:    "successfull_remediation.tmpl",
+					TemplateContent: TemplateContent{Message:tt.message},
+				}, &Services{Email: services.NewEmail(sendGrid), Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
+					t.Errorf("%q failed: %q", tt.name, err)
+				}
+			})
+
+		})
+	}
 }
