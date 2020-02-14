@@ -16,6 +16,10 @@ package badip
 
 import (
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 )
 
 func TestBadIP(t *testing.T) {
@@ -49,8 +53,8 @@ func TestBadIP(t *testing.T) {
 			"jsonPayload": {
 				"properties": {
 					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
+					"project_id": "test-project-15511551515",
+					"instanceDetails": "/zones/us-central1-a/instances/bad-ip-caller"
 				},
 				"detectionCategory": {
 					"ruleName": "bad_ip"
@@ -85,16 +89,30 @@ func TestBadIP(t *testing.T) {
 	  }`
 		errorMessage = "remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: 2019-11-22T18:34:36.153Z\""
 	)
+	sdExpectedValues := &createsnapshot.Values{
+		ProjectID: "test-project-15511551515",
+		RuleName:  "bad_ip",
+		Instance:  "bad-ip-caller",
+		Zone:      "us-central1-a",
+	}
+	sccExpectedValues := &createsnapshot.Values{
+		ProjectID: "test-project-15511551515",
+		RuleName:  "bad_ip",
+		Instance:  "bad-ip-caller",
+		Zone:      "us-central1-a",
+		Mark:      "2019-11-22T18:34:36.153Z",
+		Name:      "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+	}
 	for _, tt := range []struct {
 		name           string
+		values         *createsnapshot.Values
 		ruleName       string
-		mapTo          []byte
 		finding        []byte
 		expectedErrMsg string
 	}{
-		{name: "bad_ip SD", finding: []byte(badIPStackdriver), ruleName: "bad_ip", expectedErrMsg: ""},
-		{name: "bad_ip CSCC", finding: []byte(badIPSCC), ruleName: "bad_ip", expectedErrMsg: ""},
-		{name: "bad_ip CSCC remediated", finding: []byte(remediatedBadIPSCC), ruleName: "", expectedErrMsg: errorMessage},
+		{name: "bad_ip SD", values: sdExpectedValues, finding: []byte(badIPStackdriver), ruleName: "bad_ip", expectedErrMsg: ""},
+		{name: "bad_ip CSCC", values: sccExpectedValues, finding: []byte(badIPSCC), ruleName: "bad_ip", expectedErrMsg: ""},
+		{name: "bad_ip CSCC remediated", values: nil, finding: []byte(remediatedBadIPSCC), ruleName: "", expectedErrMsg: errorMessage},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.finding)
@@ -102,6 +120,10 @@ func TestBadIP(t *testing.T) {
 				t.Fatalf("%s failed: got:%q want:%q", tt.name, err, tt.expectedErrMsg)
 			}
 			if f != nil {
+				values := f.CreateSnapshot()
+				if diff := cmp.Diff(values, tt.values); diff != "" {
+					t.Errorf("%q failed, difference:%+v", tt.name, diff)
+				}
 				if name := f.Name(tt.finding); name != tt.ruleName {
 					t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
 				}
