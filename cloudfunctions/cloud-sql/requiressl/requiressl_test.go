@@ -51,7 +51,7 @@ func TestCloudSQLRequireSSL(t *testing.T) {
 				ProjectID:    "sha-resources-20191002",
 				InstanceName: "public-sql-instance",
 			}
-			if err := Execute(ctx, values, &Services{
+			if _, err := Execute(ctx, values, &Services{
 				CloudSQL: svcs.CloudSQL,
 				Resource: svcs.Resource,
 				Logger:   svcs.Logger,
