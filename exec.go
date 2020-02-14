@@ -398,10 +398,10 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	}
 }
 
-// updateMarks updates the mark sraRemediated with a new mark.
+// updateMarks updates the mark sra-remediated-event-time with a new mark.
 func updateMarks(ctx context.Context, name string, mark string) error {
 	if name == "" && mark == "" {
-		svcs.Logger.Info("Skipping update of sraRemediated mark. Finding is a Event Threat Detection from Stackdriver logs.")
+		svcs.Logger.Info("Skipping update of sra-remediated-event-time mark. Finding is a Event Threat Detection from Stackdriver logs.")
 		return nil
 	}
 	m := make(map[string]string)

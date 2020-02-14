@@ -62,7 +62,7 @@ func TestRouter(t *testing.T) {
 				"securityMarks": {
 					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
 					"marks": {
-						"sraRemediated": "12dcb68e4b5b4e26cb66799cdbb5ae2d92b830428a50e13d1a282fa29a941caf"
+						"sra-remediated-event-time": "2019-11-22T18:34:00.000Z"
 					}
 				},
 				"eventTime": "2019-11-22T18:34:36.153Z",
