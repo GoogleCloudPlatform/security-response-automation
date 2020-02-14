@@ -17,13 +17,11 @@ package services
 import (
 	"bytes"
 	"html/template"
-	"path/filepath"
+	"path"
 
 	"github.com/pkg/errors"
 	"github.com/sendgrid/rest"
 )
-
-const templatesPath = "./templates/"
 
 var (
 	// errLoadTemplate error on load template file.
@@ -60,8 +58,8 @@ func (m *Email) Send(subject, from, body string, to []string) (*rest.Response, e
 }
 
 // RenderTemplate parses the content based on template.
-func (m *Email) RenderTemplate(templateName string, templateContent interface{}) (string, error) {
-	fileName := filepath.Join(templatesPath, templateName)
+func (m *Email) RenderTemplate(templateFullPath string, templateContent interface{}) (string, error) {
+	fileName := path.Join( templateFullPath)
 	file, err := template.ParseGlob(fileName)
 
 	if err != nil {
