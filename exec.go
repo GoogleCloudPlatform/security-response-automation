@@ -405,7 +405,7 @@ func updateMarks(ctx context.Context, name string, mark string) error {
 		return nil
 	}
 	m := make(map[string]string)
-	m["sraRemediated"] = mark
+	m["sra-remediated-event-time"] = mark
 	if _, err := svcs.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
 		return errors.Wrapf(err, "failed to update security marks into %q", name)
 	}

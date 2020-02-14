@@ -63,7 +63,7 @@ func New(b []byte) (*Finding, error) {
 	}
 	f.useCSCC = true
 	if f.AlreadyRemediated() {
-		return nil, fmt.Errorf("Remediation ignored! Finding already processed and remediated. Security Mark: \"sraRemediated:%s\"", f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated())
+		return nil, fmt.Errorf("remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: %s\"", f.sraRemediated())
 	}
 	return &f, nil
 }
@@ -88,10 +88,19 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 	}
 }
 
+// sraRemediated returns the mark sra-remediated-event-time.
+func (f *Finding) sraRemediated() string {
+	marks := f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
+	if marks != nil {
+		return marks["sra-remediated-event-time"]
+	}
+	return ""
+}
+
 // AlreadyRemediated returns if the finding was remediated before or not.
 func (f *Finding) AlreadyRemediated() bool {
 	if f.useCSCC {
-		return f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks().GetSraRemediated() == f.badIPCSCC.GetFinding().GetEventTime()
+		return f.sraRemediated() == f.badIPCSCC.GetFinding().GetEventTime()
 	}
 	return false
 }
