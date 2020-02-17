@@ -16,6 +16,7 @@ package sendgrid
 
 import (
 	"context"
+	"log"
 
 	"github.com/googlecloudplatform/security-response-automation/services"
 )
@@ -44,12 +45,14 @@ type TemplateContent struct {
 // Execute will send emails using Sendgrid.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 
+	log.Printf("rendering template %q", values.TemplatePath)
 	body, err := services.Email.RenderTemplate(values.TemplatePath, values.TemplateContent)
 	if err != nil {
 		services.Logger.Error("Error rendering template, %q", err)
 		return err
 	}
 
+	log.Printf("sending email to %q", values.To)
 	_, err = services.Email.Send(values.Subject, values.From, body, values.To)
 
 	if err != nil {

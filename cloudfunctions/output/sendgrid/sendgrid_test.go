@@ -63,7 +63,7 @@ func TestSendgrid(t *testing.T) {
 					From:            "automation@organization.com",
 					To:              []string {"test@organization.com"},
 					APIKey:          "api-key",
-					TemplatePath:    "../../../templates/successfull_remediation.tmpl",
+					TemplatePath:    "../../../templates/remediation_simple_email.tmpl",
 					TemplateContent: TemplateContent{Message:tt.message},
 				}, &Services{Email: services.NewEmail(sendGrid), Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
 					t.Errorf("%q failed: %q", tt.name, err)
