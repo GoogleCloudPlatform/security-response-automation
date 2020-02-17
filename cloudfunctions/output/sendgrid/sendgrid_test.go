@@ -50,7 +50,12 @@ func TestSendgrid(t *testing.T) {
 			ctx := context.Background()
 
 			sendGrid := clients.NewSendGridClient("api-key")
-			sendGrid.Service = &stubs.SendGridStub{}
+			sendGrid.Service = &stubs.SendGridStub{
+				StubbedSendErr: nil,
+				StubbedSend: &rest.Response {
+					StatusCode: 200,
+				},
+			}
 
 			t.Run(tt.name, func(t *testing.T) {
 				if err := Execute(ctx, &Values{
@@ -58,7 +63,7 @@ func TestSendgrid(t *testing.T) {
 					From:            "automation@organization.com",
 					To:              []string {"test@organization.com"},
 					APIKey:          "api-key",
-					TemplatePath:    "../../templates/successfull_remediation.tmpl",
+					TemplatePath:    "../../../templates/successfull_remediation.tmpl",
 					TemplateContent: TemplateContent{Message:tt.message},
 				}, &Services{Email: services.NewEmail(sendGrid), Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
 					t.Errorf("%q failed: %q", tt.name, err)
