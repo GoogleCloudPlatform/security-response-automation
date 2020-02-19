@@ -103,52 +103,9 @@ If you only want to process Event Threat Detection findings, then your configura
 ### Set up Security Command Center Notifications
 
 Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings.
-
-Configure Security Command Center notifications
-
-```shell
-export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
-export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
-ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
-TOPIC_ID=threat-findings
-
-gcloud beta organizations add-iam-policy-binding \
-$ORGANIZATION_ID \
---member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
---role='roles/securitycenter.notificationConfigEditor'
-
-gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
---member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
---role='roles/pubsub.admin'
-
-go run ./local/cli/main.go \
---command create \
---org-id=$ORGANIZATION_ID \
---topic=projects/$PROJECT_ID/topics/$TOPIC_ID
-
-// Note the output, specifically the generated `service_acount`:
-//
-// 2019/11/07 14:06:00 New NotificationConfig created: \
-// name:"organizations/1037840971520/notificationConfigs/sampleConfigId"
-// description:"Notifies active findings"
-// event_type:FINDING pubsub_topic:"projects/ae-threat-detection/topics/cscc-notifications-topic"
-// service_account:"service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com"
-// streaming_config:<filter:"state = \"ACTIVE\"" >
-//
-// Make sure to replace `$SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
-
-gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
---member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
---role="roles/pubsub.publisher"
-
-gcloud pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/threat-findings \
---member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
---role="roles/securitycenter.notificationServiceAgent"
-
-gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
---member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
---role='roles/pubsub.admin'
-```
+The [official documentation](https://cloud.google.com/security-command-center/docs/how-to-notifications/#create-notification-config)
+has all the steps needed to configure it in your organization, just remember to use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findings`
+where `$AUTOMATION_PROJECT_ID` is the project that the Security Response Automation is installed.
 
 ## Installation
 
