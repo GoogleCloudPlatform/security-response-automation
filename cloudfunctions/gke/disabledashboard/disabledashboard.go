@@ -24,6 +24,8 @@ import (
 type Values struct {
 	ProjectID, Zone, ClusterID string
 	DryRun                     bool
+	Mark                       string
+	Name                       string
 }
 
 // Services contains the services needed for this function.

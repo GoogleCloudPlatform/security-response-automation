@@ -2,6 +2,7 @@ package datasetscanner
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
@@ -32,6 +33,9 @@ func New(b []byte) (*Finding, error) {
 	if err := json.Unmarshal(b, &f.datasetScanner); err != nil {
 		return nil, err
 	}
+	if f.AlreadyRemediated() {
+		return nil, fmt.Errorf("remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: %s\"", f.sraRemediated())
+	}
 	return &f, nil
 }
 
@@ -40,5 +44,21 @@ func (f *Finding) ClosePublicDataset() *closepublicdataset.Values {
 	return &closepublicdataset.Values{
 		ProjectID: f.datasetScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		DatasetID: sha.Dataset(f.datasetScanner.GetFinding().GetResourceName()),
+		Mark:      f.datasetScanner.GetFinding().GetEventTime(),
+		Name:      f.datasetScanner.GetFinding().GetName(),
 	}
+}
+
+// sraRemediated returns the mark sra-remediated-event-time.
+func (f *Finding) sraRemediated() string {
+	marks := f.datasetScanner.GetFinding().GetSecurityMarks().GetMarks()
+	if marks != nil {
+		return marks["sra-remediated-event-time"]
+	}
+	return ""
+}
+
+// AlreadyRemediated returns if the finding was remediated before or not.
+func (f *Finding) AlreadyRemediated() bool {
+	return f.sraRemediated() == f.datasetScanner.GetFinding().GetEventTime()
 }

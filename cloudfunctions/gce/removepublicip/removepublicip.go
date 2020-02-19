@@ -25,6 +25,8 @@ import (
 type Values struct {
 	ProjectID, InstanceZone, InstanceID string
 	DryRun                              bool
+	Mark                                string
+	Name                                string
 }
 
 // Services contains the services needed for this function.

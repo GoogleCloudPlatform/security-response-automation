@@ -2,6 +2,7 @@ package sqlscanner
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
@@ -42,6 +43,9 @@ func New(b []byte) (*Finding, error) {
 	if err := json.Unmarshal(b, &f.sqlScanner); err != nil {
 		return nil, err
 	}
+	if f.AlreadyRemediated() {
+		return nil, fmt.Errorf("remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: %s\"", f.sraRemediated())
+	}
 	return &f, nil
 }
 
@@ -50,6 +54,8 @@ func (f *Finding) RemovePublic() *removepublic.Values {
 	return &removepublic.Values{
 		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		Mark:         f.sqlScanner.GetFinding().GetEventTime(),
+		Name:         f.sqlScanner.GetFinding().GetName(),
 	}
 }
 
@@ -65,6 +71,8 @@ func (f *Finding) UpdatePassword() (*updatepassword.Values, error) {
 		Host:         hostWildcard,
 		UserName:     userName,
 		Password:     password,
+		Mark:         f.sqlScanner.GetFinding().GetEventTime(),
+		Name:         f.sqlScanner.GetFinding().GetName(),
 	}, nil
 }
 
@@ -73,5 +81,21 @@ func (f *Finding) RequireSSL() *requiressl.Values {
 	return &requiressl.Values{
 		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
 		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		Mark:         f.sqlScanner.GetFinding().GetEventTime(),
+		Name:         f.sqlScanner.GetFinding().GetName(),
 	}
+}
+
+// sraRemediated returns the mark sra-remediated-event-time.
+func (f *Finding) sraRemediated() string {
+	marks := f.sqlScanner.GetFinding().GetSecurityMarks().GetMarks()
+	if marks != nil {
+		return marks["sra-remediated-event-time"]
+	}
+	return ""
+}
+
+// AlreadyRemediated returns if the finding was remediated before or not.
+func (f *Finding) AlreadyRemediated() bool {
+	return f.sraRemediated() == f.sqlScanner.GetFinding().GetEventTime()
 }

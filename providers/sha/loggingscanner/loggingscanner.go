@@ -2,6 +2,7 @@ package loggingscanner
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
@@ -18,6 +19,9 @@ func New(b []byte) (*Finding, error) {
 	var f Finding
 	if err := json.Unmarshal(b, &f.loggingscanner); err != nil {
 		return nil, err
+	}
+	if f.AlreadyRemediated() {
+		return nil, fmt.Errorf("remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: %s\"", f.sraRemediated())
 	}
 	return &f, nil
 }
@@ -38,5 +42,21 @@ func (f *Finding) Name(b []byte) string {
 func (f *Finding) EnableAuditLogs() *enableauditlogs.Values {
 	return &enableauditlogs.Values{
 		ProjectID: f.loggingscanner.GetFinding().GetSourceProperties().GetProjectID(),
+		Mark:      f.loggingscanner.GetFinding().GetEventTime(),
+		Name:      f.loggingscanner.GetFinding().GetName(),
 	}
+}
+
+// sraRemediated returns the mark sra-remediated-event-time.
+func (f *Finding) sraRemediated() string {
+	marks := f.loggingscanner.GetFinding().GetSecurityMarks().GetMarks()
+	if marks != nil {
+		return marks["sra-remediated-event-time"]
+	}
+	return ""
+}
+
+// AlreadyRemediated returns if the finding was remediated before or not.
+func (f *Finding) AlreadyRemediated() bool {
+	return f.sraRemediated() == f.loggingscanner.GetFinding().GetEventTime()
 }

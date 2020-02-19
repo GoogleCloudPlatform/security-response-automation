@@ -26,6 +26,8 @@ type Values struct {
 	ProjectID string
 	DatasetID string
 	DryRun    bool
+	Mark      string
+	Name      string
 }
 
 // Services contains the services needed for this function.

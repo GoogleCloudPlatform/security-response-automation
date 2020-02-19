@@ -212,6 +212,8 @@ func TestRouter(t *testing.T) {
 		ProjectID:  "test-project",
 		BucketName: "this-is-public-on-purpose",
 		DryRun:     false,
+		Mark:       "2019-09-23T17:20:27.204Z",
+		Name:       "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 	}
 	closeBucket, _ := json.Marshal(closeBucketValues)
 
@@ -229,6 +231,8 @@ func TestRouter(t *testing.T) {
 		ProjectID: "test-project",
 		DatasetID: "public_dataset123",
 		DryRun:    false,
+		Mark:      "2019-10-03T18:40:22.538Z",
+		Name:      "organizations/154584661726/sources/7086426792249889955/findings/8682cf07ec50f921172082270bdd96e7",
 	}
 	closePublicDataset, _ := json.Marshal(closePublicDatasetValues)
 
@@ -238,6 +242,8 @@ func TestRouter(t *testing.T) {
 	enableAuditLogsValues := &enableauditlogs.Values{
 		ProjectID: "test-project",
 		DryRun:    false,
+		Mark:      "2019-10-22T21:01:08.832Z",
+		Name:      "organizations/154584661726/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074",
 	}
 	enableAuditLog, _ := json.Marshal(enableAuditLogsValues)
 
@@ -247,6 +253,8 @@ func TestRouter(t *testing.T) {
 	removeNonOrgMembersValues := &removenonorgmembers.Values{
 		ProjectID: "test-project",
 		DryRun:    false,
+		Mark:      "2019-10-18T15:30:22.082Z",
+		Name:      "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
 	}
 	removeNonOrgMembers, _ := json.Marshal(removeNonOrgMembersValues)
 
@@ -283,4 +291,99 @@ func TestRouter(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRemediatedFindings(t *testing.T) {
+	const (
+		remediatedBadIPSCC = `{
+			"notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
+			"finding": {
+				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+				"parent": "organizations/0000000000000/sources/0000000000000000000",
+				"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
+				"state": "ACTIVE",
+				"category": "C2: Bad IP",
+				"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
+				"sourceProperties": {
+					"detectionCategory_ruleName": "bad_ip",
+					"properties_project_id": "test-project-15511551515",
+					"properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+					"properties_location": "us-central1-a"
+				},
+				"securityMarks": {
+					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
+					"marks": {
+						"sra-remediated-event-time": "2019-11-22T18:34:36.153Z"
+					}
+				},
+				"eventTime": "2019-11-22T18:34:36.153Z",
+				"createTime": "2019-11-22T18:34:36.688Z"
+			}
+	  	}`
+		errorMessageBadIP = "rule \"\" not found"
+		remediatedWebUI   = `{
+			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"finding": {
+				"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274",
+				"parent": "organizations/119612413569/sources/7086426792249889955",
+				"resourceName": "//container.googleapis.com/projects/test-cat-findings-clseclab/zones/us-central1-a/clusters/ex-abuse-cluster-3",
+				"state": "ACTIVE",
+				"category": "WEB_UI_ENABLED",
+				"externalUri": "https://console.cloud.google.com/kubernetes/clusters/details/us-central1-a/ex-abuse-cluster-3?project=test-cat-findings-clseclab",
+				"sourceProperties": {
+					"ReactivationCount": 0,
+					"ExceptionInstructions": "Add the security mark \"allow_web_ui_enabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+					"SeverityLevel": "High",
+					"Recommendation": "Go to https://console.cloud.google.com/kubernetes/clusters/details/us-central1-a/ex-abuse-cluster-3?project=test-cat-findings-clseclab then click \"Edit\", click \"Add-ons\", and disable \"Kubernetes dashboard\". Note that a cluster cannot be modified while it is reconfiguring itself.",
+					"ProjectId": "test-cat-findings-clseclab",
+					"AssetCreationTime": "2018-09-26T23:57:19+00:00",
+					"ScannerName": "CONTAINER_SCANNER",
+					"ScanRunId": "2019-09-30T18:20:20.151-07:00",
+					"Explanation": "The Kubernetes web UI is backed by a highly privileged Kubernetes Service Account, which can be abused if compromised. If you are already using the GCP console, the Kubernetes web UI extends your attack surface unnecessarily. Learn more about how to disable the Kubernetes web UI and other techniques for hardening your Kubernetes clusters at https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster#disable_kubernetes_dashboard"
+				},
+				"securityMarks": {
+					"name": "organizations/119612413569/sources/7086426792249889955/findings/18db063343328e25a3997efaa0126274/securityMarks",
+					"marks": {
+						"sra-remediated-event-time": "2019-10-01T01:20:20.151Z"
+				  	}
+				},
+				"eventTime": "2019-10-01T01:20:20.151Z",
+				"createTime": "2019-03-05T22:21:01.836Z"
+			}
+		}`
+		errorMessageWebUI = "remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: 2019-10-01T01:20:20.151Z\""
+	)
+	conf := &Configuration{}
+	crmStub := &stubs.ResourceManagerStub{}
+	storageStub := &stubs.StorageStub{}
+	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
+	crmStub.GetAncestryResponse = ancestryResponse
+	psStub := &stubs.PubSubStub{}
+	ps := services.NewPubSub(psStub)
+
+	r := services.NewResource(crmStub, storageStub)
+	s := &Services{
+		PubSub:        ps,
+		Logger:        services.NewLogger(&stubs.LoggerStub{}),
+		Configuration: conf,
+		Resource:      r,
+	}
+
+	for _, tt := range []struct {
+		name           string
+		expectedErrMsg string
+		finding        []byte
+	}{
+		{name: "bad_ip_scc", expectedErrMsg: errorMessageBadIP, finding: []byte(remediatedBadIPSCC)},
+		{name: "web_ui", expectedErrMsg: errorMessageWebUI, finding: []byte(remediatedWebUI)},
+	} {
+		ctx := context.Background()
+		t.Run(tt.name, func(t *testing.T) {
+			err := Execute(ctx, &Values{Finding: tt.finding}, s)
+			if err != nil && err.Error() != tt.expectedErrMsg {
+				t.Fatalf("%s failed: got:%q want:%q", tt.name, err, tt.expectedErrMsg)
+			}
+		})
+	}
+
 }
