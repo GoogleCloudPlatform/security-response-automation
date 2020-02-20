@@ -66,13 +66,13 @@ type Values struct {
 	Topic     string
 	Zone      string
 	DiskNames []string
-	RequestId string
+	RequestID string
 }
 
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	for _, d := range values.DiskNames {
-		b, err := buildRequest(values.Project, values.Zone, d, values.RequestId)
+		b, err := buildRequest(values.Project, values.Zone, d, values.RequestID)
 		if err != nil {
 			return err
 		}

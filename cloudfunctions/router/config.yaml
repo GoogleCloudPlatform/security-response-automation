@@ -15,7 +15,7 @@ spec:
               target_snapshot_project_id: target-projectid
               target_snapshot_zone: target-zone
               outputs:
-                - turbiniagit
+                - turbinia
                 - email
               turbinia:
                 project_id: turbinia-projectid
@@ -71,6 +71,9 @@ spec:
             - organizations/__ORGANIZATION_ID__/folders/__FOLDER_ID__/*
           properties:
             dry_run: false
+            cloud_sql_require_ssl:
+              outputs:
+                - sendgrid
       public_sql_instance:
         - action: close_cloud_sql
           target:
@@ -129,3 +132,10 @@ spec:
       project: turbinia-projectid
       topic: turbinia-topic
       zone: turbinia-zone
+    sendgrid:
+      subject: __EMAIL_SUBJECT__
+      from: __FROM_EMAIL__
+      to:
+        - __TO_EMAIL__
+      api_key: __API_KEY__
+      template_path: "./templates/remediation_simple_email.tmpl"

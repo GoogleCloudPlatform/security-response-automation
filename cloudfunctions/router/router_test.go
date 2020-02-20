@@ -229,12 +229,6 @@ func TestRouter(t *testing.T) {
 		psStub := &stubs.PubSubStub{}
 		ps := services.NewPubSub(psStub)
 
-		// conf, err := Config()
-		//
-		// if err != nil{
-		// 	t.Fatalf("%q failed: %q", tt.name, err)
-		// }
-
 		t.Run(tt.name, func(t *testing.T) {
 
 			if err := Execute(ctx, &Values{

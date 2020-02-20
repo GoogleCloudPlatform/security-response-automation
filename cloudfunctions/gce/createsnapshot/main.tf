@@ -47,14 +47,12 @@ resource "google_folder_iam_member" "roles-compute-admin" {
   member = "serviceAccount:${var.setup.automation-service-account}"
 }
 
-
-# Grant the service account permission create disks.
+# Grant the service account permission create disks in the target project ID.
 resource "google_project_iam_member" "turbinia-create-disks" {
   role    = "roles/compute.instanceAdmin"
   project = var.target-project-id
   member  = "serviceAccount:${var.setup.automation-service-account}"
 }
-
 
 # PubSub topic to trigger this automation.
 resource "google_pubsub_topic" "topic" {

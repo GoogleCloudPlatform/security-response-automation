@@ -35,18 +35,18 @@ func TestTurbinia(t *testing.T) {
 	req.RequestID = uuid.New().String()
 	req.Type = turbiniaRequestType
 	req.Requester = "Security Response Automation"
-	req.Evidence= []GoogleCloudDisk{
-			{
-				Project:   "turbinia-test-20200210",
-				Zone:      "us-central1-a",
-				DiskName:  "forensic_test",
-				CloudOnly: true,
-				Copyable:  true,
-				Name:      "forensic_test",
-				Type:      "GoogleCloudDisk",
-				RequestID: req.RequestID,
-			},
-		}
+	req.Evidence = []GoogleCloudDisk{
+		{
+			Project:   "turbinia-test-20200210",
+			Zone:      "us-central1-a",
+			DiskName:  "forensic_test",
+			CloudOnly: true,
+			Copyable:  true,
+			Name:      "forensic_test",
+			Type:      "GoogleCloudDisk",
+			RequestID: req.RequestID,
+		},
+	}
 	jsonReq, _ := json.Marshal(req)
 
 	for _, tt := range []struct {
@@ -73,7 +73,7 @@ func TestTurbinia(t *testing.T) {
 				Topic:     tt.topic,
 				Zone:      tt.zone,
 				DiskNames: tt.diskNames,
-				RequestId: tt.requestId,
+				RequestID: tt.requestId,
 			}, &Services{PubSub: ps, Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
