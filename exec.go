@@ -127,7 +127,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-		if err := updateMarks(ctx, values.Name, values.Mark); err != nil {
+		if err := markAsRemediated(ctx, values.Name, values.Mark); err != nil {
 			return err
 		}
 		for _, dest := range values.Output {
@@ -398,16 +398,22 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	}
 }
 
-// updateMarks updates the mark sra-remediated-event-time with a new mark.
-func updateMarks(ctx context.Context, name string, mark string) error {
-	if name == "" && mark == "" {
+// markAsRemediated updates the mark sra-remediated-event-time with a new mark.
+func markAsRemediated(ctx context.Context, name string, mark string) error {
+	if isETD(name, mark) {
 		svcs.Logger.Info("Skipping update of sra-remediated-event-time mark. Finding is a Event Threat Detection from Stackdriver logs.")
 		return nil
 	}
-	m := make(map[string]string)
-	m["sra-remediated-event-time"] = mark
+	m := map[string]string{"sra-remediated-event-time": mark}
 	if _, err := svcs.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
 		return errors.Wrapf(err, "failed to update security marks into %q", name)
 	}
 	return nil
+}
+
+func isETD(name string, mark string) bool {
+	if name == "" && mark == "" {
+		return true
+	}
+	return false
 }
