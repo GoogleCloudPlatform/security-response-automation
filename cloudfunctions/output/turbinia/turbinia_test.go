@@ -37,7 +37,7 @@ func TestTurbinia(t *testing.T) {
 	req.Requester = "Security Response Automation"
 	req.Evidence = []GoogleCloudDisk{
 		{
-			Project:   "turbinia-test-20200210",
+			Project:   "turbinia-tests-20200207",
 			Zone:      "us-central1-a",
 			DiskName:  "forensic_test",
 			CloudOnly: true,
@@ -55,7 +55,7 @@ func TestTurbinia(t *testing.T) {
 	}
 
 	conf := &Configuration{}
-	conf.Spec.Outputs.Turbinia.Project = "turbinia-test-20200210"
+	conf.Spec.Outputs.Turbinia.ProjectID = "turbinia-tests-20200207"
 	conf.Spec.Outputs.Turbinia.Topic = "turbinia"
 	conf.Spec.Outputs.Turbinia.Zone = "us-central1-a"
 

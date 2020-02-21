@@ -75,9 +75,9 @@ type Configuration struct {
 	Spec       struct {
 		Outputs struct {
 			Turbinia struct {
-				Project string
-				Zone    string
-				Topic   string
+				ProjectID string `yaml:"project_id"`
+				Zone      string
+				Topic     string
 			}
 		}
 	}
@@ -100,13 +100,13 @@ func Config() (*Configuration, error) {
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	for _, d := range values.DiskNames {
-		b, err := buildRequest(services.Configuration.Spec.Outputs.Turbinia.Project,
+		b, err := buildRequest(services.Configuration.Spec.Outputs.Turbinia.ProjectID,
 			services.Configuration.Spec.Outputs.Turbinia.Zone,
 			d, values.RequestID)
 		if err != nil {
 			return err
 		}
-		log.Printf("sending disk %q to Turbinia project %q", d, services.Configuration.Spec.Outputs.Turbinia.Project)
+		log.Printf("sending disk %q to Turbinia project %q", d, services.Configuration.Spec.Outputs.Turbinia.ProjectID)
 		if _, err := services.PubSub.Publish(ctx, services.Configuration.Spec.Outputs.Turbinia.Topic, &pubsub.Message{Data: b}); err != nil {
 			return err
 		}

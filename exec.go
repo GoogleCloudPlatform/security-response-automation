@@ -415,10 +415,10 @@ func Turbinia(ctx context.Context, m pubsub.Message) error {
 			DiskNames: outputs.DiskNames,
 			RequestID: uuid.New().String(),
 		}
-		if conf.Spec.Outputs.Turbinia.Project == "" || conf.Spec.Outputs.Turbinia.Topic == "" || conf.Spec.Outputs.Turbinia.Zone == "" {
+		if conf.Spec.Outputs.Turbinia.ProjectID == "" || conf.Spec.Outputs.Turbinia.Topic == "" || conf.Spec.Outputs.Turbinia.Zone == "" {
 			return errors.New("missing Turbinia config values")
 		}
-		ps, err := services.InitPubSub(ctx, conf.Spec.Outputs.Turbinia.Project)
+		ps, err := services.InitPubSub(ctx, conf.Spec.Outputs.Turbinia.ProjectID)
 		if err != nil {
 			return err
 		}
