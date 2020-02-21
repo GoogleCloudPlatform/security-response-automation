@@ -37,12 +37,6 @@ type Services struct {
 type Output struct {
 	// DiskNames optionally contains the names of the disks copied to a target project.
 	DiskNames []string
-	// Project references which project the remediation was taken, it can be used to send emails or create issues on pager duty
-	Project string
-	// Zone references which project the remediation was taken
-	Zone string
-	// Reason
-	Reason string
 }
 
 // Values are requirements for this function.
@@ -54,6 +48,7 @@ type Values struct {
 // Execute will route & publish the incoming message to the appropriate output function.
 func Execute(ctx context.Context, v *Values, services *Services) error {
 	log.Printf("executing output %q", v.Name)
+
 	if topic, ok := topics[v.Name]; ok {
 		if _, err := services.PubSub.Publish(ctx, topic.Topic, &pubsub.Message{Data: v.Message}); err != nil {
 			services.Logger.Error("failed to publish to %q for %q - %q", topic, v.Name, err)

@@ -136,11 +136,11 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		}
 		log.Printf("available outputs: %q", values.Outputs)
 		for _, o := range values.Outputs {
-			m, err := json.Marshal(res)
+			outputJson, err := json.Marshal(res)
 			if err != nil {
 				return errors.Wrapf(err, "failed to marshal when running %q", m)
 			}
-			v := &output.Values{Name: o, Message: m}
+			v := &output.Values{Name: o, Message: outputJson}
 
 			log.Printf("sending %q to output %q", v.Message, o)
 			err = output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
