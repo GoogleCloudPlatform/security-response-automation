@@ -412,8 +412,5 @@ func markAsRemediated(ctx context.Context, name string, mark string) error {
 }
 
 func isETD(name string, mark string) bool {
-	if name == "" && mark == "" {
-		return true
-	}
-	return false
+	return name == "" && mark == ""
 }
