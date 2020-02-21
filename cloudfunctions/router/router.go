@@ -177,6 +177,10 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		if badIP.AlreadyRemediated() {
+			log.Printf("finding already remediated")
+			return nil
+		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
