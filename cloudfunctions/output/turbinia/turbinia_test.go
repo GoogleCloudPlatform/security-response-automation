@@ -49,18 +49,25 @@ func TestTurbinia(t *testing.T) {
 	}
 	jsonReq, _ := json.Marshal(req)
 
+	val := &Values{
+		DiskNames: []string{"forensic_test"},
+		RequestID: req.RequestID,
+	}
+
+	conf := &Configuration{}
+	conf.Spec.Outputs.Turbinia.Project = "turbinia-test-20200210"
+	conf.Spec.Outputs.Turbinia.Topic = "turbinia"
+	conf.Spec.Outputs.Turbinia.Zone = "us-central1-a"
+
 	for _, tt := range []struct {
-		name      string
-		projectId string
-		zone      string
-		topic     string
-		diskNames []string
-		requestId string
-		request   []byte
+		name    string
+		values  *Values
+		request []byte
 	}{
-		{name: "turbinia only one disk", projectId: "turbinia-test-20200210",
-			diskNames: []string{"forensic_test"}, zone: "us-central1-a", topic: "turbinia",
-			request: jsonReq, requestId: req.RequestID,
+		{
+			name:    "turbinia only one disk",
+			values:  val,
+			request: jsonReq,
 		},
 	} {
 		ctx := context.Background()
@@ -68,17 +75,11 @@ func TestTurbinia(t *testing.T) {
 		ps := services.NewPubSub(psStub)
 
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Execute(ctx, &Values{
-				Project:   tt.projectId,
-				Topic:     tt.topic,
-				Zone:      tt.zone,
-				DiskNames: tt.diskNames,
-				RequestID: tt.requestId,
-			}, &Services{PubSub: ps, Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
+			if err := Execute(ctx, tt.values, &Services{Configuration: conf, PubSub: ps, Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
 
-			if diff := cmp.Diff(tt.request, psStub.PublishedMessage.Data); diff != "" {
+			if diff := cmp.Diff(string(tt.request), string(psStub.PublishedMessage.Data)); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 		})

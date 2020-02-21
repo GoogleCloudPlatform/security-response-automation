@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
 	"github.com/googlecloudplatform/security-response-automation/services"
 	"github.com/pkg/errors"
 	"google.golang.org/api/compute/v1"
@@ -68,7 +69,7 @@ type Services struct {
 // In order for the snapshot to be create the service account must be granted the correct
 // role on the affected project. At this time this grant is defined per project but should
 // be changed to support folder and organization level grants.
-func Execute(ctx context.Context, values *Values, services *Services) ([]string, error) {
+func Execute(ctx context.Context, values *Values, services *Services) (*output.Output, error) {
 	log.Printf("listing disk names within instance %q, in zone %q and project %q", values.Instance, values.Zone, values.ProjectID)
 	disksCopied := []string{}
 	rule := strings.Replace(values.RuleName, "_", "-", -1)
@@ -129,7 +130,7 @@ func Execute(ctx context.Context, values *Values, services *Services) ([]string,
 		}
 	}
 	log.Printf("completed")
-	return disksCopied, nil
+	return &output.Output{DiskNames: disksCopied}, nil
 }
 
 // canCreateSnapshot checks if we should create a snapshot along with a map of existing snapshots to be removed.

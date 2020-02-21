@@ -16,28 +16,15 @@ package output
 
 import (
 	"context"
-	"io/ioutil"
-	"log"
 	"errors"
+	"log"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"gopkg.in/yaml.v2"
 )
 
 var topics = map[string]struct{ Topic string }{
 	"turbinia": {Topic: "notify-turbinia"},
-}
-
-// Configuration maps outputs attributes.
-type Configuration struct {
-	APIVersion string
-	Spec       struct {
-		Outputs struct {
-			Turbinia turbinia.Values `yaml:"turbinia"`
-		}
-	}
 }
 
 // Services contains the services needed for this function.
@@ -46,18 +33,16 @@ type Services struct {
 	PubSub *services.PubSub
 }
 
-// Config will return the output's configuration.
-func Config() (*Configuration, error) {
-	var c Configuration
-	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
-	if err != nil {
-		log.Fatalf("error getting configuration file %s", err)
-		return nil, err
-	}
-	if err := yaml.Unmarshal(b, &c); err != nil {
-		return nil, err
-	}
-	return &c, nil
+// Output contains the output of this function.
+type Output struct {
+	// DiskNames optionally contains the names of the disks copied to a target project.
+	DiskNames []string
+	// Project references which project the remediation was taken, it can be used to send emails or create issues on pager duty
+	Project string
+	// Zone references which project the remediation was taken
+	Zone string
+	// Reason
+	Reason string
 }
 
 // Values are requirements for this function.

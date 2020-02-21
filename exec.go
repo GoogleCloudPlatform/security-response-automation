@@ -404,28 +404,25 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 
 // Turbinia sends data to Turbinia.
 func Turbinia(ctx context.Context, m pubsub.Message) error {
-	var diskNames []string
-	switch err := json.Unmarshal(m.Data, &diskNames); err {
+	var outputs output.Output
+	switch err := json.Unmarshal(m.Data, &outputs); err {
 	case nil:
-		conf, err := output.Config()
+		conf, err := turbinia.Config()
 		if err != nil {
 			return err
 		}
 		values := &turbinia.Values{
-			Project:   conf.Spec.Outputs.Turbinia.Project,
-			Topic:     conf.Spec.Outputs.Turbinia.Topic,
-			Zone:      conf.Spec.Outputs.Turbinia.Zone,
-			DiskNames: diskNames,
+			DiskNames: outputs.DiskNames,
 			RequestID: uuid.New().String(),
 		}
-		if values.Project == "" || values.Topic == "" || values.Zone == "" {
+		if conf.Spec.Outputs.Turbinia.Project == "" || conf.Spec.Outputs.Turbinia.Topic == "" || conf.Spec.Outputs.Turbinia.Zone == "" {
 			return errors.New("missing Turbinia config values")
 		}
-		ps, err := services.InitPubSub(ctx, values.Project)
+		ps, err := services.InitPubSub(ctx, conf.Spec.Outputs.Turbinia.Project)
 		if err != nil {
 			return err
 		}
-		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
+		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger, Configuration: conf})
 	default:
 		return err
 	}

@@ -17,10 +17,12 @@ package turbinia
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"gopkg.in/yaml.v2"
 )
 
 const turbiniaRequestType = "TurbiniaRequest"
@@ -56,28 +58,56 @@ type TurbiniaRequest struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub *services.PubSub
-	Logger *services.Logger
+	PubSub        *services.PubSub
+	Logger        *services.Logger
+	Configuration *Configuration
 }
 
 // Values contains the required values needed for this function.
 type Values struct {
-	Project   string `yaml:"project_id"`
-	Topic     string
-	Zone      string
 	DiskNames []string
 	RequestID string
+}
+
+// Configuration maps outputs attributes.
+type Configuration struct {
+	APIVersion string
+	Spec       struct {
+		Outputs struct {
+			Turbinia struct {
+				Project string
+				Zone    string
+				Topic   string
+			}
+		}
+	}
+}
+
+// Config will return the output's configuration.
+func Config() (*Configuration, error) {
+	var c Configuration
+	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
+	if err != nil {
+		log.Fatalf("error getting configuration file %s", err)
+		return nil, err
+	}
+	if err := yaml.Unmarshal(b, &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
 }
 
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	for _, d := range values.DiskNames {
-		b, err := buildRequest(values.Project, values.Zone, d, values.RequestID)
+		b, err := buildRequest(services.Configuration.Spec.Outputs.Turbinia.Project,
+			services.Configuration.Spec.Outputs.Turbinia.Zone,
+			d, values.RequestID)
 		if err != nil {
 			return err
 		}
-		log.Printf("sending disk %q to Turbinia project %q", d, values.Project)
-		if _, err := services.PubSub.Publish(ctx, values.Topic, &pubsub.Message{Data: b}); err != nil {
+		log.Printf("sending disk %q to Turbinia project %q", d, services.Configuration.Spec.Outputs.Turbinia.Project)
+		if _, err := services.PubSub.Publish(ctx, services.Configuration.Spec.Outputs.Turbinia.Topic, &pubsub.Message{Data: b}); err != nil {
 			return err
 		}
 	}
