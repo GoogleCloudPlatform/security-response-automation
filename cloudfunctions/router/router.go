@@ -183,7 +183,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "gce_create_disk_snapshot":
 				values := badIP.CreateSnapshot()
 				values.DryRun = automation.Properties.DryRun
-				values.Output = automation.Properties.CreateSnapshot.Outputs
+				values.Outputs = automation.Properties.CreateSnapshot.Outputs
 				values.DestProjectID = automation.Properties.CreateSnapshot.TargetSnapshotProjectID
 				values.DestZone = automation.Properties.CreateSnapshot.TargetSnapshotZone
 				topic := topics[automation.Action].Topic

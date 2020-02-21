@@ -46,7 +46,7 @@ type Values struct {
 	RuleName  string
 	Instance  string
 	Zone      string
-	Output    []string
+	Outputs   []string
 	// DestProjectID is the optional project ID where the newly created snapshot should be copied to.
 	DestProjectID string
 	// DestZone is the optional zone where the newly created snapshot should be copied to.
