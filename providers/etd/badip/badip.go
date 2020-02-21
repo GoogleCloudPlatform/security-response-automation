@@ -17,7 +17,6 @@ package badip
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	pb "github.com/googlecloudplatform/security-response-automation/compiled/etd/protos"
@@ -62,9 +61,6 @@ func New(b []byte) (*Finding, error) {
 		return nil, err
 	}
 	f.useCSCC = true
-	if f.AlreadyRemediated() {
-		return nil, fmt.Errorf("remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: %s\"", f.sraRemediated())
-	}
 	return &f, nil
 }
 
@@ -88,19 +84,11 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 	}
 }
 
-// sraRemediated returns the mark sra-remediated-event-time.
-func (f *Finding) sraRemediated() string {
-	marks := f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
-	if marks != nil {
-		return marks["sra-remediated-event-time"]
-	}
-	return ""
-}
-
 // AlreadyRemediated returns if the finding was remediated before or not.
 func (f *Finding) AlreadyRemediated() bool {
 	if f.useCSCC {
-		return f.sraRemediated() == f.badIPCSCC.GetFinding().GetEventTime()
+		remediated := f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks()["sra-remediated-event-time"]
+		return remediated == f.badIPCSCC.GetFinding().GetEventTime()
 	}
 	return false
 }

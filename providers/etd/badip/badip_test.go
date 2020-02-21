@@ -62,32 +62,6 @@ func TestBadIP(t *testing.T) {
 			},
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
-		remediatedBadIPSCC = `{
-			"notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
-			"finding": {
-				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
-				"parent": "organizations/0000000000000/sources/0000000000000000000",
-				"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
-				"state": "ACTIVE",
-				"category": "C2: Bad IP",
-				"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
-				"sourceProperties": {
-					"detectionCategory_ruleName": "bad_ip",
-					"properties_project_id": "test-project-15511551515",
-					"properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
-					"properties_location": "us-central1-a"
-				},
-				"securityMarks": {
-					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
-					"marks": {
-						"sra-remediated-event-time": "2019-11-22T18:34:36.153Z"
-					}
-				},
-				"eventTime": "2019-11-22T18:34:36.153Z",
-				"createTime": "2019-11-22T18:34:36.688Z"
-			}
-	  }`
-		errorMessage = "remediation ignored! Finding already processed and remediated. Security Mark: \"sra-remediated-event-time: 2019-11-22T18:34:36.153Z\""
 	)
 	sdExpectedValues := &createsnapshot.Values{
 		ProjectID: "test-project-15511551515",
@@ -112,7 +86,6 @@ func TestBadIP(t *testing.T) {
 	}{
 		{name: "bad_ip SD", values: sdExpectedValues, finding: []byte(badIPStackdriver), ruleName: "bad_ip", expectedErrMsg: ""},
 		{name: "bad_ip CSCC", values: sccExpectedValues, finding: []byte(badIPSCC), ruleName: "bad_ip", expectedErrMsg: ""},
-		{name: "bad_ip CSCC remediated", values: nil, finding: []byte(remediatedBadIPSCC), ruleName: "", expectedErrMsg: errorMessage},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.finding)
