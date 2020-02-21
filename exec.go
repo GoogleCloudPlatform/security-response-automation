@@ -138,7 +138,7 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		for _, o := range values.Outputs {
 			outputJson, err := json.Marshal(res)
 			if err != nil {
-				return errors.Wrapf(err, "failed to marshal when running %q", m)
+				return errors.Wrapf(err, "failed to marshal when running %q", outputJson)
 			}
 			v := &output.Values{Name: o, Message: outputJson}
 
