@@ -52,6 +52,9 @@ var findings = []Namer{
 	&iamscanner.Finding{},
 }
 
+// originalEventTime is the security mark key name used to hold the finding's event time.
+const originalEventTime = "sra-remediated-event-time"
+
 // Namer represents findings that export their name.
 type Namer interface {
 	Name([]byte) string
@@ -168,6 +171,10 @@ func ruleName(b []byte) string {
 	return ""
 }
 
+// TODO.
+func markAsRemediated() {
+}
+
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	switch name := ruleName(values.Finding); name {
@@ -177,7 +184,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
-		if badIP.AlreadyRemediated() {
+		securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
+		if remediated {
 			log.Printf("finding already remediated")
 			return nil
 		}
@@ -200,6 +209,11 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+		if badIP.UseCSCC {
+			if err := markAsRemediated(ctx, badIP.BadIPCSCC.GetFinding().GetName(), badIP.BadIPCSCC.GetFinding().GetEventTime()); err != nil {
+				return err
 			}
 		}
 	case "iam_anomalous_grant":

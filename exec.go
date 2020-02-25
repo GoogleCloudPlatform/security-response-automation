@@ -37,7 +37,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -125,9 +124,6 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 			Logger: svcs.Logger,
 		})
 		if err != nil {
-			return err
-		}
-		if err := markAsRemediated(ctx, values.Name, values.Mark); err != nil {
 			return err
 		}
 		for _, dest := range values.Output {
@@ -396,21 +392,4 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 	default:
 		return err
 	}
-}
-
-// markAsRemediated updates the mark sra-remediated-event-time with a new mark.
-func markAsRemediated(ctx context.Context, name string, mark string) error {
-	if isETD(name, mark) {
-		svcs.Logger.Info("Skipping update of sra-remediated-event-time mark. Finding is a Event Threat Detection from Stackdriver logs.")
-		return nil
-	}
-	m := map[string]string{"sra-remediated-event-time": mark}
-	if _, err := svcs.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
-		return errors.Wrapf(err, "failed to update security marks into %q", name)
-	}
-	return nil
-}
-
-func isETD(name string, mark string) bool {
-	return name == "" && mark == ""
 }

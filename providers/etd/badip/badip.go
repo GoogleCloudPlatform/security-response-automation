@@ -30,7 +30,7 @@ func (f *Finding) Name(b []byte) string {
 		return ""
 	}
 	name := ""
-	if ff.useCSCC {
+	if ff.UseCSCC {
 		name = ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
 	} else {
 		name = ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
@@ -43,9 +43,9 @@ func (f *Finding) Name(b []byte) string {
 
 // Finding represents a bad IP finding.
 type Finding struct {
-	useCSCC   bool
+	UseCSCC   bool
 	badIP     *pb.BadIP
-	badIPCSCC *pb.BadIPSCC
+	BadIPCSCC *pb.BadIPSCC
 }
 
 // New returns a new bad IP finding.
@@ -60,20 +60,18 @@ func New(b []byte) (*Finding, error) {
 	if err := json.Unmarshal(b, &f.badIPCSCC); err != nil {
 		return nil, err
 	}
-	f.useCSCC = true
+	f.UseCSCC = true
 	return &f, nil
 }
 
 // CreateSnapshot returns values for the create snapshot automation.
 func (f *Finding) CreateSnapshot() *createsnapshot.Values {
-	if f.useCSCC {
+	if f.UseCSCC {
 		return &createsnapshot.Values{
 			ProjectID: f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesProjectId(),
 			RuleName:  f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
 			Instance:  etd.Instance(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
 			Zone:      etd.Zone(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
-			Mark:      f.badIPCSCC.GetFinding().GetEventTime(),
-			Name:      f.badIPCSCC.GetFinding().GetName(),
 		}
 	}
 	return &createsnapshot.Values{
@@ -82,13 +80,4 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 		Instance:  etd.Instance(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 		Zone:      etd.Zone(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 	}
-}
-
-// AlreadyRemediated returns if the finding was remediated before or not.
-func (f *Finding) AlreadyRemediated() bool {
-	if f.useCSCC {
-		remediated := f.badIPCSCC.GetFinding().GetSecurityMarks().GetMarks()["sra-remediated-event-time"]
-		return remediated == f.badIPCSCC.GetFinding().GetEventTime()
-	}
-	return false
 }

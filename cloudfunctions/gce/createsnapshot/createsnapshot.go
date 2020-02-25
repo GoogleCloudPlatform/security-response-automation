@@ -43,8 +43,6 @@ type Values struct {
 	RuleName  string
 	Instance  string
 	Zone      string
-	Mark      string
-	Name      string
 	Output    []string
 
 	Turbinia struct {
