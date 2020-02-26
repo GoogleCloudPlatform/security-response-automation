@@ -172,7 +172,8 @@ func ruleName(b []byte) string {
 }
 
 // TODO.
-func markAsRemediated() {
+func markAsRemediated(ctx context.Context, name string, eventTime string) error {
+	return nil
 }
 
 // Execute will route the incoming finding to the appropriate remediations.
@@ -184,11 +185,13 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
-		securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
+		if badIP.BadIPCSCC != nil {
+			securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
+			remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
+			if remediated {
+				log.Printf("finding already remediated")
+				return nil
+			}
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {

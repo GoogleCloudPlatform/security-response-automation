@@ -31,7 +31,7 @@ func (f *Finding) Name(b []byte) string {
 	}
 	name := ""
 	if ff.UseCSCC {
-		name = ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+		name = ff.BadIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
 	} else {
 		name = ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 	}
@@ -57,7 +57,7 @@ func New(b []byte) (*Finding, error) {
 	if f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName() != "" {
 		return &f, nil
 	}
-	if err := json.Unmarshal(b, &f.badIPCSCC); err != nil {
+	if err := json.Unmarshal(b, &f.BadIPCSCC); err != nil {
 		return nil, err
 	}
 	f.UseCSCC = true
@@ -68,10 +68,10 @@ func New(b []byte) (*Finding, error) {
 func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 	if f.UseCSCC {
 		return &createsnapshot.Values{
-			ProjectID: f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesProjectId(),
-			RuleName:  f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
-			Instance:  etd.Instance(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
-			Zone:      etd.Zone(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
+			ProjectID: f.BadIPCSCC.GetFinding().GetSourceProperties().GetPropertiesProjectId(),
+			RuleName:  f.BadIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
+			Instance:  etd.Instance(f.BadIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
+			Zone:      etd.Zone(f.BadIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
 		}
 	}
 	return &createsnapshot.Values{

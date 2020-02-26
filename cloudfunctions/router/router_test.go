@@ -200,8 +200,6 @@ func TestRouter(t *testing.T) {
 		Instance:  "bad-ip-caller",
 		Zone:      "us-central1-a",
 		DryRun:    false,
-		Mark:      "2019-11-22T18:34:36.153Z",
-		Name:      "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
 	}
 	sccCreateSnapshot, _ := json.Marshal(sccCreateSnapshotValues)
 
