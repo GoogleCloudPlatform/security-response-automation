@@ -103,9 +103,49 @@ If you only want to process Event Threat Detection findings, then your configura
 ### Set up Security Command Center Notifications
 
 Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings.
-The [official documentation](https://cloud.google.com/security-command-center/docs/how-to-notifications/#create-notification-config)
-has all the steps needed to configure it in your organization, just remember to use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findings`
-where `$AUTOMATION_PROJECT_ID` is the project that the Security Response Automation is installed.
+
+The following commands are based on the [official documentation](https://cloud.google.com/security-command-center/docs/how-to-notifications/#create-notification-config) with the steps
+to create and configure the Security Command Center Notifications in your organization. Just remember to first install the Security Response Automation and to
+use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findings`.
+
+```shell
+# The Project ID of your project that you installed the automations.
+export $AUTOMATION_PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
+
+# The Service Account generated in the installation of the automations
+export SERVICE_ACCOUNT_EMAIL=automation-service-account@$$AUTOMATION_PROJECT_ID.iam.gserviceaccount.com \
+
+# The numeric ID of the organization
+export ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
+
+gcloud beta organizations add-iam-policy-binding \
+$ORGANIZATION_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+--role='roles/securitycenter.notificationConfigEditor'
+
+gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+--role='roles/pubsub.admin'
+
+
+# The topic to which the notifications are published
+PUBSUB_TOPIC="projects/$PROJECT_ID/topics/threat-findings"
+
+# The description for the NotificationConfig
+DESCRIPTION="Notifies for active findings"
+
+# Filters for active findings
+FILTER="state=\"ACTIVE"\"
+
+gcloud alpha scc notifications create notification-name \
+--organization "$ORGANIZATION_ID" \
+--description "$DESCRIPTION" \
+--pubsub-topic $PUBSUB_TOPIC \
+--event-type FINDING \
+--filter $FILTER
+```
+
+
 
 ## Installation
 
