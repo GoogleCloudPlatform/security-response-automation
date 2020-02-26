@@ -128,6 +128,9 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 --role='roles/pubsub.admin'
 
 
+# The Notifications ID
+NOTIFICATION_NAME=sra-notification
+
 # The topic to which the notifications are published
 PUBSUB_TOPIC="projects/$PROJECT_ID/topics/threat-findings"
 
@@ -137,7 +140,7 @@ DESCRIPTION="Notifies for active findings"
 # Filters for active findings
 FILTER="state=\"ACTIVE"\"
 
-gcloud alpha scc notifications create notification-name \
+gcloud alpha scc notifications create NOTIFICATION_NAME \
 --organization "$ORGANIZATION_ID" \
 --description "$DESCRIPTION" \
 --pubsub-topic $PUBSUB_TOPIC \
