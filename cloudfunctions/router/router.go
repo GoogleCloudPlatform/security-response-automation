@@ -62,10 +62,11 @@ type Namer interface {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub        *services.PubSub
-	Configuration *Configuration
-	Logger        *services.Logger
-	Resource      *services.Resource
+	PubSub                *services.PubSub
+	Configuration         *Configuration
+	Logger                *services.Logger
+	Resource              *services.Resource
+	SecurityCommandCenter *services.CommandCenter
 }
 
 // Values contains the required values for this function.
@@ -171,8 +172,12 @@ func ruleName(b []byte) string {
 	return ""
 }
 
-// TODO.
-func markAsRemediated(ctx context.Context, name string, eventTime string) error {
+// markAsRemediated updates the mark sra-remediated-event-time with a new eventTime.
+func markAsRemediated(ctx context.Context, name string, eventTime string, services *Services) error {
+	m := map[string]string{"sra-remediated-event-time": eventTime}
+	if _, err := services.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
+		return errors.Wrapf(err, "failed to update security marks into %q", name)
+	}
 	return nil
 }
 
@@ -215,7 +220,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			}
 		}
 		if badIP.UseCSCC {
-			if err := markAsRemediated(ctx, badIP.BadIPCSCC.GetFinding().GetName(), badIP.BadIPCSCC.GetFinding().GetEventTime()); err != nil {
+			if err := markAsRemediated(ctx, badIP.BadIPCSCC.GetFinding().GetName(), badIP.BadIPCSCC.GetFinding().GetEventTime(), services); err != nil {
 				return err
 			}
 		}

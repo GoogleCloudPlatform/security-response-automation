@@ -263,16 +263,19 @@ func TestRouter(t *testing.T) {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
 		ps := services.NewPubSub(psStub)
+		sccStub := &stubs.SecurityCommandCenterStub{}
+		scc := services.NewCommandCenter(sccStub)
 
 		t.Run(tt.name, func(t *testing.T) {
 
 			if err := Execute(ctx, &Values{
 				Finding: tt.finding,
 			}, &Services{
-				PubSub:        ps,
-				Logger:        services.NewLogger(&stubs.LoggerStub{}),
-				Configuration: conf,
-				Resource:      r,
+				PubSub:                ps,
+				Logger:                services.NewLogger(&stubs.LoggerStub{}),
+				Configuration:         conf,
+				Resource:              r,
+				SecurityCommandCenter: scc,
 			}); err != nil {
 				t.Fatalf("%q failed: %q", tt.name, err)
 			}
