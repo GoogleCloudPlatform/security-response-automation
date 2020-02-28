@@ -109,11 +109,11 @@ to create and configure the Security Command Center Notifications in your organi
 use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findings`.
 
 ```shell
-# The Project ID of your project that you installed the automations.
+# The Project ID of your project that you installed the automations
 export $AUTOMATION_PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
 
 # The Service Account generated in the installation of the automations
-export SERVICE_ACCOUNT_EMAIL=automation-service-account@$$AUTOMATION_PROJECT_ID.iam.gserviceaccount.com \
+export SERVICE_ACCOUNT_EMAIL=automation-service-account@$AUTOMATION_PROJECT_ID.iam.gserviceaccount.com \
 
 # The numeric ID of the organization
 export ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
@@ -129,16 +129,16 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 
 
 # The Notifications ID
-NOTIFICATION_NAME=sra-notification
+export NOTIFICATION_NAME=sra-notification
 
 # The topic to which the notifications are published
-PUBSUB_TOPIC="projects/$PROJECT_ID/topics/threat-findings"
+export PUBSUB_TOPIC="projects/$PROJECT_ID/topics/threat-findings"
 
 # The description for the NotificationConfig
-DESCRIPTION="Notifies for active findings"
+export DESCRIPTION="Notifies for active findings"
 
 # Filters for active findings
-FILTER="state=\"ACTIVE"\"
+export FILTER="state=\"ACTIVE"\"
 
 gcloud alpha scc notifications create NOTIFICATION_NAME \
 --organization "$ORGANIZATION_ID" \
