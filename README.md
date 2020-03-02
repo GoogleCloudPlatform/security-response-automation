@@ -109,14 +109,10 @@ to create and configure the Security Command Center Notifications in your organi
 use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findings`.
 
 ```shell
-# The Project ID of your project that you installed the automations
-export AUTOMATION_PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
-
-# The Service Account generated in the installation of the automations
-export SERVICE_ACCOUNT_EMAIL=automation-service-account@$AUTOMATION_PROJECT_ID.iam.gserviceaccount.com \
-
-# The numeric ID of the organization
-export ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
+export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
+export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gserviceaccount.com \
+ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
+TOPIC_ID=threat-findings
 
 gcloud beta organizations add-iam-policy-binding \
 $ORGANIZATION_ID \
@@ -127,26 +123,17 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
 --role='roles/pubsub.admin'
 
-
-# The Notifications ID
-export NOTIFICATION_NAME=sra-notification
-
-# The topic to which the notifications are published
-export PUBSUB_TOPIC="projects/$AUTOMATION_PROJECT_ID/topics/threat-findings"
-
-# The description for the NotificationConfig
-export DESCRIPTION="Notifies for active findings"
-
-# Filters for active findings
-export FILTER="state=\"ACTIVE"\"
-
-gcloud alpha scc notifications create $NOTIFICATION_NAME \
+gcloud alpha scc notifications create sra-notification \
 --organization "$ORGANIZATION_ID" \
---description "$DESCRIPTION" \
---pubsub-topic $PUBSUB_TOPIC \
+--description "Notifies for active findings" \
+--pubsub-topic projects/$AUTOMATION_PROJECT_ID/topics/$TOPIC_ID \
 --event-type FINDING \
---filter $FILTER \
+--filter "state=\"ACTIVE"\" \
 --impersonate-service-account $SERVICE_ACCOUNT_EMAIL
+
+gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
+--member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+--role='roles/pubsub.admin'
 ```
 
 ## Installation
