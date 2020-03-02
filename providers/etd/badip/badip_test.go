@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
+	"golang.org/x/xerrors"
 )
 
 func TestBadIP(t *testing.T) {
@@ -40,10 +40,7 @@ func TestBadIP(t *testing.T) {
 				  "properties_location": "us-central1-a"
 			  },
 			  "securityMarks": {
-				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
-				"marks": {
-					"sra-remediated-event-time": "2019-11-22T18:34:00.000Z"
-				}
+				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks"
 			  },
 			  "eventTime": "2019-11-22T18:34:36.153Z",
 			  "createTime": "2019-11-22T18:34:36.688Z"
@@ -76,28 +73,26 @@ func TestBadIP(t *testing.T) {
 		Zone:      "us-central1-a",
 	}
 	for _, tt := range []struct {
-		name           string
-		values         *createsnapshot.Values
-		ruleName       string
-		finding        []byte
-		expectedErrMsg string
+		name          string
+		values        *createsnapshot.Values
+		ruleName      string
+		finding       []byte
+		expectedError error
 	}{
-		{name: "bad_ip SD", values: sdExpectedValues, finding: []byte(badIPStackdriver), ruleName: "bad_ip", expectedErrMsg: ""},
-		{name: "bad_ip CSCC", values: sccExpectedValues, finding: []byte(badIPSCC), ruleName: "bad_ip", expectedErrMsg: ""},
+		{name: "bad_ip SD", values: sdExpectedValues, finding: []byte(badIPStackdriver), ruleName: "bad_ip", expectedError: nil},
+		{name: "bad_ip CSCC", values: sccExpectedValues, finding: []byte(badIPSCC), ruleName: "bad_ip", expectedError: nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.finding)
-			if err != nil && tt.expectedErrMsg != "" && err.Error() != tt.expectedErrMsg {
-				t.Fatalf("%s failed: got:%q want:%q", tt.name, err, tt.expectedErrMsg)
+			if err != nil && !xerrors.Is(err, tt.expectedError) {
+				t.Fatalf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
 			}
-			if f != nil {
-				values := f.CreateSnapshot()
-				if diff := cmp.Diff(values, tt.values); diff != "" {
-					t.Errorf("%q failed, difference:%+v", tt.name, diff)
-				}
-				if name := f.Name(tt.finding); name != tt.ruleName {
-					t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
-				}
+			values := f.CreateSnapshot()
+			if diff := cmp.Diff(values, tt.values); diff != "" {
+				t.Errorf("%q failed, difference:%+v", tt.name, diff)
+			}
+			if name := f.Name(tt.finding); name != tt.ruleName {
+				t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
 			}
 		})
 	}

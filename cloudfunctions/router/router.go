@@ -172,11 +172,10 @@ func ruleName(b []byte) string {
 	return ""
 }
 
-// markAsRemediated updates the mark sra-remediated-event-time with a new eventTime.
-func markAsRemediated(ctx context.Context, name string, eventTime string, services *Services) error {
+func markAsRemediated(ctx context.Context, name, eventTime string, services *Services) error {
 	m := map[string]string{"sra-remediated-event-time": eventTime}
 	if _, err := services.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
-		return errors.Wrapf(err, "failed to update security marks into %q", name)
+		return err
 	}
 	return nil
 }
@@ -190,7 +189,7 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
-		if badIP.BadIPCSCC != nil {
+		if badIP.UseCSCC {
 			securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
 			remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
 			if remediated {
