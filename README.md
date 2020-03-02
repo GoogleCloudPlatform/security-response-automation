@@ -110,7 +110,7 @@ use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findin
 
 ```shell
 # The Project ID of your project that you installed the automations
-export $AUTOMATION_PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
+export AUTOMATION_PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
 
 # The Service Account generated in the installation of the automations
 export SERVICE_ACCOUNT_EMAIL=automation-service-account@$AUTOMATION_PROJECT_ID.iam.gserviceaccount.com \
@@ -132,7 +132,7 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 export NOTIFICATION_NAME=sra-notification
 
 # The topic to which the notifications are published
-export PUBSUB_TOPIC="projects/$PROJECT_ID/topics/threat-findings"
+export PUBSUB_TOPIC="projects/$AUTOMATION_PROJECT_ID/topics/threat-findings"
 
 # The description for the NotificationConfig
 export DESCRIPTION="Notifies for active findings"
@@ -140,15 +140,14 @@ export DESCRIPTION="Notifies for active findings"
 # Filters for active findings
 export FILTER="state=\"ACTIVE"\"
 
-gcloud alpha scc notifications create NOTIFICATION_NAME \
+gcloud alpha scc notifications create $NOTIFICATION_NAME \
 --organization "$ORGANIZATION_ID" \
 --description "$DESCRIPTION" \
 --pubsub-topic $PUBSUB_TOPIC \
 --event-type FINDING \
---filter $FILTER
+--filter $FILTER \
+--impersonate-service-account $SERVICE_ACCOUNT_EMAIL
 ```
-
-
 
 ## Installation
 
