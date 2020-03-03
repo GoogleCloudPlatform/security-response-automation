@@ -54,6 +54,7 @@ func TestBadIP(t *testing.T) {
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
 	)
+
 	for _, tt := range []struct {
 		name     string
 		ruleName string
@@ -65,7 +66,7 @@ func TestBadIP(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.finding)
 			if err != nil {
-				t.Fatalf("%s failed: %q", tt.name, err)
+				t.Fatalf("%q failed: %q", tt.name, err)
 			}
 			if name := f.Name(tt.finding); name != tt.ruleName {
 				t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
