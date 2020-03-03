@@ -123,7 +123,7 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 
 gcloud alpha scc notifications create sra-notification \
 --organization "$ORGANIZATION_ID" \
---description "Notifies for active findings" \
+--description "Notifications for active findings" \
 --pubsub-topic projects/$PROJECT_ID/topics/$TOPIC_ID \
 --event-type FINDING \
 --filter "state=\"ACTIVE"\" \
