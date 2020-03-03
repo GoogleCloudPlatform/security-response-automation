@@ -104,9 +104,7 @@ If you only want to process Event Threat Detection findings, then your configura
 
 Security Command Center Notifications will enable you to receive Security Health Analytics & Event Threat Detection findings.
 
-The following commands are based on the [official documentation](https://cloud.google.com/security-command-center/docs/how-to-notifications/#create-notification-config) with the steps
-to create and configure the Security Command Center Notifications in your organization. Just remember to first install the Security Response Automation and to
-use the **correct topic**  `projects/$AUTOMATION_PROJECT_ID/topics/threat-findings`.
+Configure Security Command Center notifications
 
 ```shell
 export PROJECT_ID=<YOUR_AUTOMATION_PROJECT_ID>
