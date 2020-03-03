@@ -124,7 +124,7 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 gcloud alpha scc notifications create sra-notification \
 --organization "$ORGANIZATION_ID" \
 --description "Notifies for active findings" \
---pubsub-topic projects/$AUTOMATION_PROJECT_ID/topics/$TOPIC_ID \
+--pubsub-topic projects/$PROJECT_ID/topics/$TOPIC_ID \
 --event-type FINDING \
 --filter "state=\"ACTIVE"\" \
 --impersonate-service-account $SERVICE_ACCOUNT_EMAIL
