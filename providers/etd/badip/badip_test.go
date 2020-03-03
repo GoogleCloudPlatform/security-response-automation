@@ -16,10 +16,6 @@ package badip
 
 import (
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
-	"golang.org/x/xerrors"
 )
 
 func TestBadIP(t *testing.T) {
@@ -39,9 +35,7 @@ func TestBadIP(t *testing.T) {
 				  "properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
 				  "properties_location": "us-central1-a"
 			  },
-			  "securityMarks": {
-				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks"
-			  },
+			  "securityMarks": {},
 			  "eventTime": "2019-11-22T18:34:36.153Z",
 			  "createTime": "2019-11-22T18:34:36.688Z"
 			}
@@ -50,8 +44,8 @@ func TestBadIP(t *testing.T) {
 			"jsonPayload": {
 				"properties": {
 					"location": "us-central1",
-					"project_id": "test-project-15511551515",
-					"instanceDetails": "/zones/us-central1-a/instances/bad-ip-caller"
+					"project_id": "test-project",
+					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
 				},
 				"detectionCategory": {
 					"ruleName": "bad_ip"
@@ -60,36 +54,18 @@ func TestBadIP(t *testing.T) {
 			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 		}`
 	)
-	sdExpectedValues := &createsnapshot.Values{
-		ProjectID: "test-project-15511551515",
-		RuleName:  "bad_ip",
-		Instance:  "bad-ip-caller",
-		Zone:      "us-central1-a",
-	}
-	sccExpectedValues := &createsnapshot.Values{
-		ProjectID: "test-project-15511551515",
-		RuleName:  "bad_ip",
-		Instance:  "bad-ip-caller",
-		Zone:      "us-central1-a",
-	}
 	for _, tt := range []struct {
-		name          string
-		values        *createsnapshot.Values
-		ruleName      string
-		finding       []byte
-		expectedError error
+		name     string
+		ruleName string
+		finding  []byte
 	}{
-		{name: "bad_ip SD", values: sdExpectedValues, finding: []byte(badIPStackdriver), ruleName: "bad_ip", expectedError: nil},
-		{name: "bad_ip CSCC", values: sccExpectedValues, finding: []byte(badIPSCC), ruleName: "bad_ip", expectedError: nil},
+		{name: "bad_ip SD", finding: []byte(badIPStackdriver), ruleName: "bad_ip"},
+		{name: "bad_ip CSCC", finding: []byte(badIPSCC), ruleName: "bad_ip"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.finding)
-			if err != nil && !xerrors.Is(err, tt.expectedError) {
-				t.Fatalf("%s failed: got:%q want:%q", tt.name, err, tt.expectedError)
-			}
-			values := f.CreateSnapshot()
-			if diff := cmp.Diff(values, tt.values); diff != "" {
-				t.Errorf("%q failed, difference:%+v", tt.name, diff)
+			if err != nil {
+				t.Fatalf("%s failed: %q", tt.name, err)
 			}
 			if name := f.Name(tt.finding); name != tt.ruleName {
 				t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
