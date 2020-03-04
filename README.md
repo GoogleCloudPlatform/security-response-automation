@@ -121,29 +121,12 @@ gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
 --role='roles/pubsub.admin'
 
-go run ./local/cli/main.go \
---command create \
---org-id=$ORGANIZATION_ID \
---topic=projects/$PROJECT_ID/topics/$TOPIC_ID
-
-// Note the output, specifically the generated `service_acount`:
-//
-// 2019/11/07 14:06:00 New NotificationConfig created: \
-// name:"organizations/1037840971520/notificationConfigs/sampleConfigId"
-// description:"Notifies active findings"
-// event_type:FINDING pubsub_topic:"projects/ae-threat-detection/topics/cscc-notifications-topic"
-// service_account:"service-459837319394@gcp-sa-scc-notification.iam.gserviceaccount.com"
-// streaming_config:<filter:"state = \"ACTIVE\"" >
-//
-// Make sure to replace `$SERVICE_ACCOUNT_FROM_ABOVE` with the generated service account.
-
-gcloud beta pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/$TOPIC_ID \
---member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
---role="roles/pubsub.publisher"
-
-gcloud pubsub topics add-iam-policy-binding projects/$PROJECT_ID/topics/threat-findings \
---member="serviceAccount:$SERVICE_ACCOUNT_FROM_ABOVE" \
---role="roles/securitycenter.notificationServiceAgent"
+gcloud alpha scc notifications create sra-notification \
+--organization "$ORGANIZATION_ID" \
+--description "Notifications for active findings" \
+--pubsub-topic projects/$PROJECT_ID/topics/$TOPIC_ID \
+--event-type FINDING \
+--filter "state=\"ACTIVE"\"
 
 gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
 --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
