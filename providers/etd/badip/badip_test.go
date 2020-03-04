@@ -58,7 +58,6 @@ func TestBadIP(t *testing.T) {
 	for _, tt := range []struct {
 		name     string
 		ruleName string
-		mapTo    []byte
 		finding  []byte
 	}{
 		{name: "bad_ip SD", finding: []byte(badIPStackdriver), ruleName: "bad_ip"},

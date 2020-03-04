@@ -30,8 +30,8 @@ func (f *Finding) Name(b []byte) string {
 		return ""
 	}
 	name := ""
-	if ff.useCSCC {
-		name = ff.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
+	if ff.UseCSCC {
+		name = ff.BadIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName()
 	} else {
 		name = ff.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName()
 	}
@@ -43,9 +43,9 @@ func (f *Finding) Name(b []byte) string {
 
 // Finding represents a bad IP finding.
 type Finding struct {
-	useCSCC   bool
+	UseCSCC   bool
 	badIP     *pb.BadIP
-	badIPCSCC *pb.BadIPSCC
+	BadIPCSCC *pb.BadIPSCC
 }
 
 // New returns a new bad IP finding.
@@ -57,21 +57,21 @@ func New(b []byte) (*Finding, error) {
 	if f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName() != "" {
 		return &f, nil
 	}
-	if err := json.Unmarshal(b, &f.badIPCSCC); err != nil {
+	if err := json.Unmarshal(b, &f.BadIPCSCC); err != nil {
 		return nil, err
 	}
-	f.useCSCC = true
+	f.UseCSCC = true
 	return &f, nil
 }
 
 // CreateSnapshot returns values for the create snapshot automation.
 func (f *Finding) CreateSnapshot() *createsnapshot.Values {
-	if f.useCSCC {
+	if f.UseCSCC {
 		return &createsnapshot.Values{
-			ProjectID: f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesProjectId(),
-			RuleName:  f.badIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
-			Instance:  etd.Instance(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
-			Zone:      etd.Zone(f.badIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
+			ProjectID: f.BadIPCSCC.GetFinding().GetSourceProperties().GetPropertiesProjectId(),
+			RuleName:  f.BadIPCSCC.GetFinding().GetSourceProperties().GetDetectionCategoryRuleName(),
+			Instance:  etd.Instance(f.BadIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
+			Zone:      etd.Zone(f.BadIPCSCC.GetFinding().GetSourceProperties().GetPropertiesInstanceDetails()),
 		}
 	}
 	return &createsnapshot.Values{
