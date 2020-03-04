@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/pagerduty"
 	"io/ioutil"
 	"log"
 
@@ -85,6 +86,7 @@ var topics = map[string]struct{ Topic string }{
 	"close_public_dataset":      {Topic: "threat-findings-close-public-dataset"},
 	"enable_audit_logs":         {Topic: "threat-findings-enable-audit-logs"},
 	"remove_non_org_members":    {Topic: "threat-findings-remove-non-org-members"},
+	"pagerduty_create_incident": {Topic: "threat-findings-pagerduty-create-incident"},
 }
 
 // Automation represents configuration for an automation.
@@ -114,6 +116,12 @@ type Automation struct {
 		NonOrgMembers struct {
 			AllowDomains []string `yaml:"allow_domains"`
 		} `yaml:"non_org_members"`
+		PagerDuty struct {
+			APIKey    string `yaml:"api_key"`
+			FromEmail string `yaml:"from_email"`
+			ServiceID string `yaml:"service_id"`
+			Title     string `yaml:"title"`
+		} `yaml:"pagerduty_create_incident"`
 	}
 }
 
@@ -522,11 +530,29 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 					services.Logger.Error("failed to publish: %q", err)
 					continue
 				}
+			case "pagerduty_create_incident":
+				values := pagerduty.Values{
+					APIKey:    automation.Properties.PagerDuty.APIKey,
+					FromEmail: automation.Properties.PagerDuty.FromEmail,
+					ServiceID: automation.Properties.PagerDuty.ServiceID,
+					Title:     automation.Properties.PagerDuty.Title,
+					Body:      "",
+					DryRun:    automation.Properties.DryRun,
+				}
+				topic := topics[automation.Action].Topic
+				b, err := json.Marshal(&values)
+				if err != nil {
+					services.Logger.Error("failed to marshal when running %q", automation.Action)
+					continue
+				}
+				if _, err := services.PubSub.Publish(ctx, topic, &pubsub.Message{Data: b}); err != nil {
+					services.Logger.Error("failed to publish to %q for action %q", topic, automation.Action)
+					continue
+				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
-
 	default:
 		return fmt.Errorf("rule %q not found", name)
 	}

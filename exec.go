@@ -18,6 +18,8 @@ package exec
 import (
 	"context"
 	"encoding/json"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/pagerduty"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 
@@ -389,6 +391,21 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 			Resource: svcs.Resource,
 			Logger:   svcs.Logger,
 		})
+	default:
+		return err
+	}
+}
+
+// PagerDutyCreateIncident creates incident on PagerDuty.
+func PagerDutyCreateIncident(ctx context.Context, m pubsub.Message) error {
+	var values pagerduty.Values
+	switch err := json.Unmarshal(m.Data, &values); err {
+	case nil:
+		if values.FromEmail == "" || values.APIKey == "" || values.ServiceID == "" {
+			return errors.New("missing PagerDuty config values")
+		}
+		pd := services.InitPagerDuty(values.APIKey)
+		return pagerduty.Execute(ctx, &values, &pagerduty.Services{PagerDuty: pd, Logger: svcs.Logger})
 	default:
 		return err
 	}
