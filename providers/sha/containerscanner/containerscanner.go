@@ -11,7 +11,7 @@ import (
 
 // Finding represents this finding.
 type Finding struct {
-	containerscanner *pb.ContainerScanner
+	Containerscanner *pb.ContainerScanner
 }
 
 // Name returns the rule name of the finding.
@@ -29,7 +29,7 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.containerscanner); err != nil {
+	if err := json.Unmarshal(b, &f.Containerscanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -38,8 +38,8 @@ func New(b []byte) (*Finding, error) {
 // DisableDashboard returns values for the disable dashboard automation.
 func (f *Finding) DisableDashboard() *disabledashboard.Values {
 	return &disabledashboard.Values{
-		ProjectID: f.containerscanner.GetFinding().GetSourceProperties().GetProjectID(),
-		Zone:      sha.ClusterZone(f.containerscanner.GetFinding().GetResourceName()),
-		ClusterID: sha.ClusterID(f.containerscanner.GetFinding().GetResourceName()),
+		ProjectID: f.Containerscanner.GetFinding().GetSourceProperties().GetProjectID(),
+		Zone:      sha.ClusterZone(f.Containerscanner.GetFinding().GetResourceName()),
+		ClusterID: sha.ClusterID(f.Containerscanner.GetFinding().GetResourceName()),
 	}
 }
