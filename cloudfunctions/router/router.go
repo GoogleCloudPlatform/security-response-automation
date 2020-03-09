@@ -52,6 +52,9 @@ var findings = []Namer{
 	&iamscanner.Finding{},
 }
 
+// originalEventTime is the security mark key name used to hold the finding's event time.
+const originalEventTime = "sra-remediated-event-time"
+
 // Namer represents findings that export their name.
 type Namer interface {
 	Name([]byte) string
@@ -59,10 +62,11 @@ type Namer interface {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub        *services.PubSub
-	Configuration *Configuration
-	Logger        *services.Logger
-	Resource      *services.Resource
+	PubSub                *services.PubSub
+	Configuration         *Configuration
+	Logger                *services.Logger
+	Resource              *services.Resource
+	SecurityCommandCenter *services.CommandCenter
 }
 
 // Values contains the required values for this function.
@@ -168,6 +172,14 @@ func ruleName(b []byte) string {
 	return ""
 }
 
+func markAsRemediated(ctx context.Context, name, eventTime string, services *Services) error {
+	m := map[string]string{"sra-remediated-event-time": eventTime}
+	if _, err := services.SecurityCommandCenter.AddSecurityMarks(ctx, name, m); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Execute will route the incoming finding to the appropriate remediations.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	switch name := ruleName(values.Finding); name {
@@ -176,6 +188,14 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		badIP, err := badip.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		if badIP.UseCSCC {
+			securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
+			remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
+			if remediated {
+				log.Printf("finding already remediated")
+				return nil
+			}
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -193,6 +213,11 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				}
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
+			}
+		}
+		if badIP.UseCSCC {
+			if err := markAsRemediated(ctx, badIP.BadIPCSCC.GetFinding().GetName(), badIP.BadIPCSCC.GetFinding().GetEventTime(), services); err != nil {
+				return err
 			}
 		}
 	case "iam_anomalous_grant":

@@ -61,6 +61,12 @@ resource "google_project_iam_member" "log-writer-pubsub" {
   member  = google_logging_project_sink.sink.writer_identity
 }
 
+resource "google_organization_iam_member" "scc-marks-writer" {
+  role   = "roles/securitycenter.findingSecurityMarksWriter"
+  org_id = var.organization-id
+  member = "serviceAccount:${google_service_account.automation-service-account.email}"
+}
+
 resource "google_pubsub_topic" "topic" {
   name = "threat-findings"
 }
@@ -113,6 +119,13 @@ resource "google_project_service" "logging_api" {
 resource "google_project_service" "cloudfunctions_api" {
   project                    = var.automation-project
   service                    = "cloudfunctions.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "securitycenter_api" {
+  project                    = var.automation-project
+  service                    = "securitycenter.googleapis.com"
   disable_dependent_services = false
   disable_on_destroy         = false
 }

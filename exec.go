@@ -75,10 +75,11 @@ func Router(ctx context.Context, m pubsub.Message) error {
 	return router.Execute(ctx, &router.Values{
 		Finding: m.Data,
 	}, &router.Services{
-		PubSub:        ps,
-		Configuration: conf,
-		Logger:        svcs.Logger,
-		Resource:      svcs.Resource,
+		PubSub:                ps,
+		Configuration:         conf,
+		Logger:                svcs.Logger,
+		Resource:              svcs.Resource,
+		SecurityCommandCenter: svcs.SecurityCommandCenter,
 	})
 }
 
