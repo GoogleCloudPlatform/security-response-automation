@@ -273,6 +273,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		securityMarks := storageScanner.StorageScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == storageScanner.StorageScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
+		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
@@ -288,11 +294,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, storageScanner.StorageScanner.GetFinding().GetName(), storageScanner.StorageScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "bucket_policy_only_disabled":
 		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
 		storageScanner, err := storagescanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := storageScanner.StorageScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == storageScanner.StorageScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -309,11 +324,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, storageScanner.StorageScanner.GetFinding().GetName(), storageScanner.StorageScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "public_sql_instance":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicSQLInstance
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -330,11 +354,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "ssl_not_enforced":
 		automations := services.Configuration.Spec.Parameters.SHA.SSLNotEnforced
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -351,11 +384,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "sql_no_root_password":
 		automations := services.Configuration.Spec.Parameters.SHA.SQLNoRootPassword
 		sqlScanner, err := sqlscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -376,11 +418,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "public_ip_address":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicIPAddress
 		computeInstanceScanner, err := computeinstancescanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -397,11 +448,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetName(), computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "open_firewall":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
 		firewallScanner, err := firewallscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -419,6 +479,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
+		}
+		if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
 		}
 	case "open_ssh_port":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
@@ -426,6 +489,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
+		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
@@ -442,6 +511,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
+		}
+		if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
 		}
 	case "open_rdp_port":
 		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
@@ -449,6 +521,12 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 		if err != nil {
 			return err
 		}
+		securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
+		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
 			switch automation.Action {
@@ -466,11 +544,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "public_dataset":
 		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
 		publicDataset, err := datasetscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := publicDataset.DatasetScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == publicDataset.DatasetScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -487,11 +574,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, publicDataset.DatasetScanner.GetFinding().GetName(), publicDataset.DatasetScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "audit_logging_disabled":
 		automations := services.Configuration.Spec.Parameters.SHA.AuditLoggingDisabled
 		loggingScanner, err := loggingscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := loggingScanner.Loggingscanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == loggingScanner.Loggingscanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -508,11 +604,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, loggingScanner.Loggingscanner.GetFinding().GetName(), loggingScanner.Loggingscanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "web_ui_enabled":
 		automations := services.Configuration.Spec.Parameters.SHA.WebUIEnabled
 		containerScanner, err := containerscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := containerScanner.Containerscanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == containerScanner.Containerscanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -529,11 +634,20 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
 		}
+		if err := markAsRemediated(ctx, containerScanner.Containerscanner.GetFinding().GetName(), containerScanner.Containerscanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
 	case "non_org_iam_member":
 		automations := services.Configuration.Spec.Parameters.SHA.NonOrgMembers
 		iamScanner, err := iamscanner.New(values.Finding)
 		if err != nil {
 			return err
+		}
+		securityMarks := iamScanner.IAMScanner.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == iamScanner.IAMScanner.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
 		}
 		log.Printf("got rule %q with %d automations", name, len(automations))
 		for _, automation := range automations {
@@ -550,6 +664,9 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			default:
 				return fmt.Errorf("action %q not found", automation.Action)
 			}
+		}
+		if err := markAsRemediated(ctx, iamScanner.IAMScanner.GetFinding().GetName(), iamScanner.IAMScanner.GetFinding().GetEventTime(), services); err != nil {
+			return err
 		}
 
 	default:

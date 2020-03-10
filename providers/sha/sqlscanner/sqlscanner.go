@@ -21,7 +21,7 @@ const (
 
 // Finding represents this finding.
 type Finding struct {
-	sqlScanner *pb.SqlScanner
+	SQLScanner *pb.SqlScanner
 }
 
 // Name returns the rule name of the finding.
@@ -39,7 +39,7 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.sqlScanner); err != nil {
+	if err := json.Unmarshal(b, &f.SQLScanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -48,8 +48,8 @@ func New(b []byte) (*Finding, error) {
 // RemovePublic returns values for the remove public automation.
 func (f *Finding) RemovePublic() *removepublic.Values {
 	return &removepublic.Values{
-		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
-		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		ProjectID:    f.SQLScanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceName: sha.Instance(f.SQLScanner.GetFinding().GetResourceName()),
 	}
 }
 
@@ -60,8 +60,8 @@ func (f *Finding) UpdatePassword() (*updatepassword.Values, error) {
 		return nil, err
 	}
 	return &updatepassword.Values{
-		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
-		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		ProjectID:    f.SQLScanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceName: sha.Instance(f.SQLScanner.GetFinding().GetResourceName()),
 		Host:         hostWildcard,
 		UserName:     userName,
 		Password:     password,
@@ -71,7 +71,7 @@ func (f *Finding) UpdatePassword() (*updatepassword.Values, error) {
 // RequireSSL returns values for the require SSL automation.
 func (f *Finding) RequireSSL() *requiressl.Values {
 	return &requiressl.Values{
-		ProjectID:    f.sqlScanner.GetFinding().GetSourceProperties().GetProjectID(),
-		InstanceName: sha.Instance(f.sqlScanner.GetFinding().GetResourceName()),
+		ProjectID:    f.SQLScanner.GetFinding().GetSourceProperties().GetProjectID(),
+		InstanceName: sha.Instance(f.SQLScanner.GetFinding().GetResourceName()),
 	}
 }

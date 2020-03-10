@@ -11,7 +11,7 @@ import (
 
 // Finding represents this finding.
 type Finding struct {
-	firewallScanner *pb.FirewallScanner
+	FirewallScanner *pb.FirewallScanner
 }
 
 // Name returns the rule name of the finding.
@@ -29,7 +29,7 @@ func (f *Finding) Name(b []byte) string {
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.firewallScanner); err != nil {
+	if err := json.Unmarshal(b, &f.FirewallScanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -38,7 +38,7 @@ func New(b []byte) (*Finding, error) {
 // OpenFirewall returns values for the remediate automation.
 func (f *Finding) OpenFirewall() *openfirewall.Values {
 	return &openfirewall.Values{
-		ProjectID:  f.firewallScanner.GetFinding().GetSourceProperties().GetProjectId(),
-		FirewallID: sha.FirewallID(f.firewallScanner.GetFinding().GetResourceName()),
+		ProjectID:  f.FirewallScanner.GetFinding().GetSourceProperties().GetProjectId(),
+		FirewallID: sha.FirewallID(f.FirewallScanner.GetFinding().GetResourceName()),
 	}
 }
