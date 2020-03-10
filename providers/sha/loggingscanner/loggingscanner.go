@@ -10,13 +10,13 @@ import (
 
 // Finding represents this finding.
 type Finding struct {
-	loggingscanner *pb.LoggingScanner
+	Loggingscanner *pb.LoggingScanner
 }
 
 // New returns a new finding.
 func New(b []byte) (*Finding, error) {
 	var f Finding
-	if err := json.Unmarshal(b, &f.loggingscanner); err != nil {
+	if err := json.Unmarshal(b, &f.Loggingscanner); err != nil {
 		return nil, err
 	}
 	return &f, nil
@@ -37,6 +37,6 @@ func (f *Finding) Name(b []byte) string {
 // EnableAuditLogs return values for the enable audit logs automation.
 func (f *Finding) EnableAuditLogs() *enableauditlogs.Values {
 	return &enableauditlogs.Values{
-		ProjectID: f.loggingscanner.GetFinding().GetSourceProperties().GetProjectID(),
+		ProjectID: f.Loggingscanner.GetFinding().GetSourceProperties().GetProjectID(),
 	}
 }
