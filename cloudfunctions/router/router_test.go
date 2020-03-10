@@ -469,6 +469,9 @@ func TestRemediated(t *testing.T) {
 			}); err != nil {
 				t.Fatalf("%q failed: %q", tt.name, err)
 			}
+			if psStub.PublishedMessage != nil {
+				t.Errorf("%q failed, not supposed to trigger automation", tt.name)
+			}
 		})
 	}
 }
