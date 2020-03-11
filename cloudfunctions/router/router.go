@@ -149,6 +149,17 @@ type Configuration struct {
 	}
 }
 
+// outputTopics maps outputs names to the respective PubSub topics.
+var outputTopics = map[string]struct{ Topic string }{
+	"turbinia": {Topic: "notify-turbinia"},
+}
+
+// OutputData contains the requirements to publish to any given output.
+type OutputData struct {
+	Name    string
+	Message []byte
+}
+
 // Config will return the router's configuration.
 func Config() (*Configuration, error) {
 	var c Configuration
@@ -692,4 +703,23 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 	}
 	log.Printf("sent to pubsub topic: %q", topic)
 	return nil
+}
+
+// TriggerOutput will route & publish the incoming message to the appropriate output function.
+func TriggerOutput(ctx context.Context, o *OutputData, services *Services) error {
+
+	log.Printf("executing output %q", o.Name)
+
+	if topic, ok := outputTopics[o.Name]; ok {
+		if _, err := services.PubSub.Publish(ctx, topic.Topic, &pubsub.Message{Data: o.Message}); err != nil {
+			services.Logger.Error("failed to publish to %q for %q - %q", topic, o.Name, err)
+			return err
+		}
+
+		log.Printf("sent to pubsub topic: %q", topic.Topic)
+		return nil
+	}
+
+	services.Logger.Error("Invalid output option")
+	return errors.New("invalid output option")
 }

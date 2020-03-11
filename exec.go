@@ -36,7 +36,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/revoke"
-	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/output/turbinia"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/router"
 	"github.com/googlecloudplatform/security-response-automation/services"
@@ -135,16 +134,17 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
+
 		log.Printf("available outputs: %q", values.Outputs)
 		for _, o := range values.Outputs {
-			outputJson, err := json.Marshal(res)
+			outputJSON, err := json.Marshal(res)
 			if err != nil {
-				return errors.Wrapf(err, "failed to marshal when running %q", outputJson)
+				return errors.Wrapf(err, "failed to marshal when running %q", outputJSON)
 			}
-			v := &output.Values{Name: o, Message: outputJson}
+			v := &router.OutputData{Name: o, Message: outputJSON}
 
 			log.Printf("sending %q to output %q", v.Message, o)
-			err = output.Execute(ctx, v, &output.Services{Logger: svcs.Logger, PubSub: ps})
+			err = router.TriggerOutput(ctx, v, &router.Services{Logger: svcs.Logger, PubSub: ps})
 			if err != nil {
 				return errors.Wrapf(err, "failed to send outputs to %s", ps)
 			}
@@ -405,7 +405,7 @@ func UpdatePassword(ctx context.Context, m pubsub.Message) error {
 
 // Turbinia sends data to Turbinia.
 func Turbinia(ctx context.Context, m pubsub.Message) error {
-	var outputs output.Output
+	var outputs createsnapshot.Output
 	switch err := json.Unmarshal(m.Data, &outputs); err {
 	case nil:
 		conf, err := turbinia.Config()
