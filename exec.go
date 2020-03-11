@@ -121,10 +121,6 @@ func IAMRevoke(ctx context.Context, m pubsub.Message) error {
 //
 func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 	var values createsnapshot.Values
-	ps, err := services.InitPubSub(ctx, projectID)
-	if err != nil {
-		return err
-	}
 	switch err := json.Unmarshal(m.Data, &values); err {
 	case nil:
 		res, err := createsnapshot.Execute(ctx, &values, &createsnapshot.Services{
@@ -134,22 +130,22 @@ func SnapshotDisk(ctx context.Context, m pubsub.Message) error {
 		if err != nil {
 			return err
 		}
-
-		log.Printf("available outputs: %q", values.Outputs)
-		for _, o := range values.Outputs {
-			outputJSON, err := json.Marshal(res)
-			if err != nil {
-				return errors.Wrapf(err, "failed to marshal when running %q", outputJSON)
-			}
-			v := &router.OutputData{Name: o, Message: outputJSON}
-
-			log.Printf("sending %q to output %q", v.Message, o)
-			err = router.TriggerOutput(ctx, v, &router.Services{Logger: svcs.Logger, PubSub: ps})
-			if err != nil {
-				return errors.Wrapf(err, "failed to send outputs to %s", ps)
-			}
+		conf, err := router.Config()
+		if err != nil {
+			return err
 		}
-		return nil
+		automations := conf.Spec.Parameters.ETD.BadIP
+		action := "gce_create_disk_snapshot"
+		outputList := router.OutputsList(automations, action)
+		outputJSON, err := json.Marshal(res)
+		if err != nil {
+			return errors.Wrapf(err, "failed to marshal when running %q", outputJSON)
+		}
+		ps, err := services.InitPubSub(ctx, projectID)
+		if err != nil {
+			return err
+		}
+		return router.TriggerOutput(ctx, outputList, outputJSON, &router.Services{Logger: svcs.Logger, PubSub: ps})
 	default:
 		return err
 	}
@@ -408,22 +404,25 @@ func Turbinia(ctx context.Context, m pubsub.Message) error {
 	var outputs createsnapshot.Output
 	switch err := json.Unmarshal(m.Data, &outputs); err {
 	case nil:
-		conf, err := turbinia.Config()
+		conf, err := router.Config()
 		if err != nil {
 			return err
 		}
 		values := &turbinia.Values{
 			DiskNames: outputs.DiskNames,
 			RequestID: uuid.New().String(),
+			Project:   conf.Spec.Outputs.Turbinia.ProjectID,
+			Topic:     conf.Spec.Outputs.Turbinia.Topic,
+			Zone:      conf.Spec.Outputs.Turbinia.Zone,
 		}
-		if conf.Spec.Outputs.Turbinia.ProjectID == "" || conf.Spec.Outputs.Turbinia.Topic == "" || conf.Spec.Outputs.Turbinia.Zone == "" {
+		if values.Project == "" || values.Topic == "" || values.Zone == "" {
 			return errors.New("missing Turbinia config values")
 		}
 		ps, err := services.InitPubSub(ctx, conf.Spec.Outputs.Turbinia.ProjectID)
 		if err != nil {
 			return err
 		}
-		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger, Configuration: conf})
+		return turbinia.Execute(ctx, values, &turbinia.Services{PubSub: ps, Logger: svcs.Logger})
 	default:
 		return err
 	}

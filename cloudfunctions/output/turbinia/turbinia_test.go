@@ -31,7 +31,7 @@ func TestTurbinia(t *testing.T) {
 	ancestryResponse := services.CreateAncestors([]string{"project/test-project", "folder/123", "organization/456"})
 	crmStub.GetAncestryResponse = ancestryResponse
 
-	var req TurbiniaRequest
+	var req RequestTurbinia
 	req.RequestID = uuid.New().String()
 	req.Type = turbiniaRequestType
 	req.Requester = "Security Response Automation"
@@ -52,12 +52,10 @@ func TestTurbinia(t *testing.T) {
 	val := &Values{
 		DiskNames: []string{"forensic_test"},
 		RequestID: req.RequestID,
+		Project:   "turbinia-tests-20200207",
+		Topic:     "turbinia",
+		Zone:      "us-central1-a",
 	}
-
-	conf := &Configuration{}
-	conf.Spec.Outputs.Turbinia.ProjectID = "turbinia-tests-20200207"
-	conf.Spec.Outputs.Turbinia.Topic = "turbinia"
-	conf.Spec.Outputs.Turbinia.Zone = "us-central1-a"
 
 	for _, tt := range []struct {
 		name    string
@@ -75,7 +73,7 @@ func TestTurbinia(t *testing.T) {
 		ps := services.NewPubSub(psStub)
 
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Execute(ctx, tt.values, &Services{Configuration: conf, PubSub: ps, Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
+			if err := Execute(ctx, tt.values, &Services{PubSub: ps, Logger: services.NewLogger(&stubs.LoggerStub{})}); err != nil {
 				t.Errorf("%q failed: %q", tt.name, err)
 			}
 

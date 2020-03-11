@@ -102,14 +102,8 @@ type Automation struct {
 			AllowDomains []string `yaml:"allow_domains"`
 		} `yaml:"revoke_iam"`
 		CreateSnapshot struct {
-			TargetSnapshotProjectID string   `yaml:"target_snapshot_project_id"`
-			TargetSnapshotZone      string   `yaml:"target_snapshot_zone"`
-			Outputs                 []string `yaml:"outputs"`
-			Turbinia                struct {
-				Project string `yaml:"project_id"`
-				Topic   string
-				Zone    string
-			}
+			TargetSnapshotProjectID string `yaml:"target_snapshot_project_id"`
+			TargetSnapshotZone      string `yaml:"target_snapshot_zone"`
 		} `yaml:"gce_create_snapshot"`
 		OpenFirewall struct {
 			SourceRanges      []string `yaml:"source_ranges"`
@@ -119,6 +113,7 @@ type Automation struct {
 			AllowDomains []string `yaml:"allow_domains"`
 		} `yaml:"non_org_members"`
 	}
+	Outputs []string `yaml:"outputs"`
 }
 
 // Configuration maps findings to automations.
@@ -146,6 +141,13 @@ type Configuration struct {
 				NonOrgMembers           []Automation `yaml:"non_org_members"`
 			}
 		}
+		Outputs struct {
+			Turbinia struct {
+				ProjectID string `yaml:"project_id"`
+				Zone      string
+				Topic     string
+			}
+		}
 	}
 }
 
@@ -154,11 +156,8 @@ var outputTopics = map[string]struct{ Topic string }{
 	"turbinia": {Topic: "notify-turbinia"},
 }
 
-// OutputData contains the requirements to publish to any given output.
-type OutputData struct {
-	Name    string
-	Message []byte
-}
+// ErrInvalidOutput is an error to an invalid output option.
+var ErrInvalidOutput = errors.New("invalid output option")
 
 // Config will return the router's configuration.
 func Config() (*Configuration, error) {
@@ -214,7 +213,6 @@ func Execute(ctx context.Context, values *Values, services *Services) error {
 			case "gce_create_disk_snapshot":
 				values := badIP.CreateSnapshot()
 				values.DryRun = automation.Properties.DryRun
-				values.Outputs = automation.Properties.CreateSnapshot.Outputs
 				values.DestProjectID = automation.Properties.CreateSnapshot.TargetSnapshotProjectID
 				values.DestZone = automation.Properties.CreateSnapshot.TargetSnapshotZone
 				topic := topics[automation.Action].Topic
@@ -705,21 +703,31 @@ func publish(ctx context.Context, services *Services, action, topic, projectID s
 	return nil
 }
 
-// TriggerOutput will route & publish the incoming message to the appropriate output function.
-func TriggerOutput(ctx context.Context, o *OutputData, services *Services) error {
-
-	log.Printf("executing output %q", o.Name)
-
-	if topic, ok := outputTopics[o.Name]; ok {
-		if _, err := services.PubSub.Publish(ctx, topic.Topic, &pubsub.Message{Data: o.Message}); err != nil {
-			services.Logger.Error("failed to publish to %q for %q - %q", topic, o.Name, err)
-			return err
+// OutputsList returns a list of outputs for a given automation.
+func OutputsList(automations []Automation, action string) []string {
+	for _, a := range automations {
+		if a.Action == action {
+			return a.Outputs
 		}
-
-		log.Printf("sent to pubsub topic: %q", topic.Topic)
-		return nil
 	}
+	return nil
+}
 
-	services.Logger.Error("Invalid output option")
-	return errors.New("invalid output option")
+// TriggerOutput will route & publish the message to the appropriate output topic.
+func TriggerOutput(ctx context.Context, outputList []string, message []byte, services *Services) error {
+	log.Printf("available outputs: %q", outputList)
+	for _, output := range outputList {
+		log.Printf("sending %q to output %q", message, output)
+
+		if topic, ok := outputTopics[output]; ok {
+			if _, err := services.PubSub.Publish(ctx, topic.Topic, &pubsub.Message{Data: message}); err != nil {
+				services.Logger.Error("failed to publish to %q for %q - %q", topic, output, err)
+				return err
+			}
+			log.Printf("sent to pubsub topic: %q", topic.Topic)
+		} else {
+			return ErrInvalidOutput
+		}
+	}
+	return nil
 }

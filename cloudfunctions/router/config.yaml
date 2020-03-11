@@ -14,13 +14,9 @@ spec:
             gce_create_snapshot:
               target_snapshot_project_id: target-projectid
               target_snapshot_zone: target-zone
-              outputs:
-                - turbinia
-                - email
-              turbinia:
-                project_id: turbinia-projectid
-                topic: turbinia-topic
-                zone: turbinia-zone
+          outputs:
+            - turbinia
+            - email
       anomalous_iam:
         - action: iam_revoke
           target:

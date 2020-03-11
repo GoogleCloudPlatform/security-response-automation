@@ -17,12 +17,10 @@ package turbinia
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/googlecloudplatform/security-response-automation/services"
-	"gopkg.in/yaml.v2"
 )
 
 const turbiniaRequestType = "TurbiniaRequest"
@@ -43,11 +41,11 @@ type GoogleCloudDisk struct {
 	ParentEvidence string `json:"parent_evidence"`
 }
 
-// Recipe struct to TurbiniaRequest
+// Recipe struct to RequestTurbinia
 type Recipe struct{}
 
-// TurbiniaRequest is a request to send to Turbinia.
-type TurbiniaRequest struct {
+// RequestTurbinia is a request to send to Turbinia.
+type RequestTurbinia struct {
 	RequestID string            `json:"request_id"`
 	Type      string            `json:"type"`
 	Evidence  []GoogleCloudDisk `json:"evidence"`
@@ -58,65 +56,39 @@ type TurbiniaRequest struct {
 
 // Services contains the services needed for this function.
 type Services struct {
-	PubSub        *services.PubSub
-	Logger        *services.Logger
-	Configuration *Configuration
+	PubSub *services.PubSub
+	Logger *services.Logger
 }
 
 // Values contains the required values needed for this function.
 type Values struct {
 	DiskNames []string
 	RequestID string
-}
-
-// Configuration maps outputs attributes.
-type Configuration struct {
-	APIVersion string
-	Spec       struct {
-		Outputs struct {
-			Turbinia struct {
-				ProjectID string `yaml:"project_id"`
-				Zone      string
-				Topic     string
-			}
-		}
-	}
-}
-
-// Config will return the output's configuration.
-func Config() (*Configuration, error) {
-	var c Configuration
-	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
-	if err != nil {
-		log.Fatalf("error getting configuration file %s", err)
-		return nil, err
-	}
-	if err := yaml.Unmarshal(b, &c); err != nil {
-		return nil, err
-	}
-	return &c, nil
+	Project   string
+	Topic     string
+	Zone      string
 }
 
 // Execute will send the disks to Turbinia.
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	for _, d := range values.DiskNames {
-		b, err := buildRequest(services.Configuration.Spec.Outputs.Turbinia.ProjectID,
-			services.Configuration.Spec.Outputs.Turbinia.Zone,
+		b, err := buildRequest(values.Project,
+			values.Zone,
 			d, values.RequestID)
 		if err != nil {
 			return err
 		}
-		log.Printf("sending disk %q to Turbinia project %q", d, services.Configuration.Spec.Outputs.Turbinia.ProjectID)
-		if _, err := services.PubSub.Publish(ctx, services.Configuration.Spec.Outputs.Turbinia.Topic, &pubsub.Message{Data: b}); err != nil {
+		log.Printf("sending disk %q to Turbinia project %q", d, values.Project)
+		if _, err := services.PubSub.Publish(ctx, values.Topic, &pubsub.Message{Data: b}); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func buildRequest(projectID, zone, diskName string, requestId string) ([]byte, error) {
-	var req TurbiniaRequest
-	req.RequestID = requestId
+func buildRequest(projectID, zone, diskName string, requestID string) ([]byte, error) {
+	var req RequestTurbinia
+	req.RequestID = requestID
 	req.Type = turbiniaRequestType
 	req.Requester = "Security Response Automation"
 	req.Evidence = []GoogleCloudDisk{

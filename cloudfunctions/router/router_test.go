@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"golang.org/x/xerrors"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/bigquery/closepublicdataset"
@@ -471,6 +473,40 @@ func TestRemediated(t *testing.T) {
 			}
 			if psStub.PublishedMessage != nil {
 				t.Errorf("%q failed, not supposed to trigger automation", tt.name)
+			}
+		})
+	}
+}
+
+func TestRouteOutput(t *testing.T) {
+	diskList := createsnapshot.Output{DiskNames: []string{"sample-disk-name-1", "sample-disk-name-2"}}
+	message, _ := json.Marshal(diskList)
+	outputList := []string{"turbinia"}
+
+	invalidOutput := []string{"invalid-Output"}
+
+	for _, tt := range []struct {
+		name          string
+		outputList    []string
+		message       []byte
+		expectedError error
+	}{
+		{name: "CreateSnapshot sending list of disks to Turbinia", outputList: outputList, message: message, expectedError: nil},
+		{name: "invalid output", outputList: invalidOutput, message: message, expectedError: ErrInvalidOutput},
+	} {
+		ctx := context.Background()
+		ps := services.NewPubSub(&stubs.PubSubStub{})
+		logger := services.NewLogger(&stubs.LoggerStub{})
+
+		services := &Services{
+			PubSub: ps,
+			Logger: logger,
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+
+			if err := TriggerOutput(ctx, tt.outputList, tt.message, services); !xerrors.Is(err, tt.expectedError) {
+				t.Fatalf("%q failed: %q", tt.name, err)
 			}
 		})
 	}
