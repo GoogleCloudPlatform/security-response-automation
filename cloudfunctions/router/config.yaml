@@ -125,7 +125,7 @@ spec:
             dry_run: false
   outputs:
     turbinia:
-      project: turbinia-projectid
+      project_id: turbinia-projectid
       topic: turbinia-topic
       zone: turbinia-zone
     sendgrid:
