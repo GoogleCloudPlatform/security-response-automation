@@ -478,7 +478,7 @@ func TestRemediated(t *testing.T) {
 	}
 }
 
-func TestRouteOutput(t *testing.T) {
+func TestTriggerOutput(t *testing.T) {
 	diskList := createsnapshot.Output{DiskNames: []string{"sample-disk-name-1", "sample-disk-name-2"}}
 	message, _ := json.Marshal(diskList)
 	outputList := []string{"turbinia"}
