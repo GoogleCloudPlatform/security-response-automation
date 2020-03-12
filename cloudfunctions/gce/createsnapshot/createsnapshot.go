@@ -16,7 +16,6 @@ package createsnapshot
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -30,7 +29,6 @@ const (
 	snapshotPrefix = "forensic-snapshots-"
 	// allowSnapshotOlderThanDuration defines how old a snapshot must be before we overwrite.
 	allowSnapshotOlderThanDuration = 5 * time.Minute
-	funcName                       = "createsnapshot"
 )
 
 // labels to be saved with each disk snapshot created.
@@ -125,8 +123,8 @@ func Execute(ctx context.Context, values *Values, services *Services) (*Output, 
 
 		if values.DestProjectID != "" {
 			log.Printf("copying snapshot %q for %q to %q in %q", snapshotName, disk.Name, values.DestProjectID, values.DestZone)
-			newDiskName := fmt.Sprintf("%s-%d", snapshotName, time.Now().Unix())
-			if err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, values.DestProjectID, values.DestZone, snapshotName, newDiskName); err != nil {
+			newDiskName, err := services.Host.CopyDiskSnapshot(ctx, values.ProjectID, values.DestProjectID, values.DestZone, snapshotName)
+			if err != nil {
 				return nil, errors.Wrapf(err, "failed to copy disk to %q", values.DestProjectID)
 			}
 			disksCopied = append(disksCopied, newDiskName)
