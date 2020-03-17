@@ -1,6 +1,6 @@
 # Automations
 
-**Common propeties**
+**Common properties**
 
 All automations accept a `dry_run` value to ensure no changes are made to your environment. Changes that would have been made are logged to StackDriver. For each below configuration this `dry_run` property will be omitted. Only properties unique to the automation will be listed.
 
@@ -137,15 +137,7 @@ Configuration settings for this automation are under the `gce_create_snapshot` k
 
 - `target_snapshot_project_id`: Project ID where disk snapshots should be sent to. If outputting to Turbinia this should be the same as `turbinia_project_id`.
 - `target_snapshot_project_zone`: Zone where disk snapshots should be sent to. If outputting to Turbinia this should be the same as `turbinia_zone`.
-- `output`: Repeated set of optional output destinations after the function has executed. Currently only `turbinia` is supported.
-
-Required if output contains `turbinia`:
-
-The below keys are placed under the `turbinia` key:
-
-- `project_id` Project ID where Tubinia is installed.
-- `topic_name` Pub/Sub topic where we should notify Turbinia.
-- `zone` Zone where Turbinia disks are kept.
+- `outputs`: Repeated set of optional output destinations after the function has executed. Currently only `turbinia` is supported.
 
 ```yaml
 properties:
@@ -153,12 +145,8 @@ properties:
   gce_create_snapshot:
     target_snapshot_project_id: target-projectid
     target_snapshot_zone: us-central1-a
-    outputs:
-      - turbinia
-    turbinia:
-      project_id: turbinia-projectid
-      topic: turbinia-topic
-      zone: us-central1-a
+outputs:
+  - turbinia
 ```
 
 ### Remove public IPs from an instance
@@ -270,3 +258,26 @@ Supported findings:
 Action name:
 
 - `close_public_dataset`
+
+# Outputs
+
+## Turbinia
+
+```yaml
+apiVersion: security-response-automation.cloud.google.com/v1alpha1
+kind: Remediation
+metadata:
+  name: router
+spec:
+  outputs:
+      turbinia:
+        project_id: turbinia-projectid
+        topic: turbinia-topic
+        zone: turbinia-zone
+```
+
+Required if `outputs` contains `turbinia`. The below keys are placed under the `turbinia` key:
+
+- `project_id` Project ID where Tubinia is installed.
+- `topic_name` Pub/Sub topic where we should notify Turbinia.
+- `zone` Zone where Turbinia disks are kept.

@@ -85,6 +85,11 @@ All automations have the `dry_run` property that allow to see what actions would
 
 The `allow_domains` property is specific to the iam_revoke automation. To see examples of how to configure the other automations see the full [documentation](/automations.md).
 
+### Configure outputs
+
+Automations can optionally configure an output for the remediations. Currently we only support **Turbinia** for the `Create Snapshot` automation.
+To see how to configure the outputs see the full [documentation](/automations.md) in section `Outputs`.
+
 ## Configuring permissions
 
 The service account is configured separately within [main.tf](/main.tf). Here we inform Terraform which folders we're enforcing so the required roles are automatically granted. You have a few choices for how to configure this step:
