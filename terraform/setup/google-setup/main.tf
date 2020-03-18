@@ -27,7 +27,8 @@ data "archive_file" "cloud_functions_zip" {
     google_project_service.cloudresourcemanager_api,
     google_project_service.logging_api,
     google_project_service.pubsub_api,
-    google_project_service.cloudfunctions_api
+    google_project_service.cloudfunctions_api,
+    google_project_service.cloudbuild_api
   ]
 }
 
@@ -127,6 +128,13 @@ resource "google_project_service" "cloudfunctions_api" {
 resource "google_project_service" "securitycenter_api" {
   project                    = var.automation-project
   service                    = "securitycenter.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
+resource "google_project_service" "cloudbuild_api" {
+  project                    = var.automation-project
+  service                    = "cloudbuild.googleapis.com"
   disable_dependent_services = false
   disable_on_destroy         = false
 }
