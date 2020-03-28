@@ -63,12 +63,6 @@ resource "google_project_iam_member" "log-writer-pubsub" {
   member  = google_logging_project_sink.sink.writer_identity
 }
 
-resource "google_organization_iam_member" "scc-marks-writer" {
-  role   = "roles/securitycenter.findingSecurityMarksWriter"
-  org_id = var.organization-id
-  member = "serviceAccount:${google_service_account.automation-service-account.email}"
-}
-
 resource "google_pubsub_topic" "topic" {
   name = "threat-findings"
 }
