@@ -112,8 +112,7 @@ export SERVICE_ACCOUNT_EMAIL=automation-service-account@$PROJECT_ID.iam.gservice
 ORGANIZATION_ID=<YOUR_ORGANIZATION_ID> \
 TOPIC_ID=threat-findings
 
-gcloud beta organizations add-iam-policy-binding \
-$ORGANIZATION_ID \
+gcloud organizations add-iam-policy-binding $ORGANIZATION_ID \
 --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
 --role='roles/securitycenter.notificationConfigEditor'
 
@@ -125,7 +124,6 @@ gcloud alpha scc notifications create sra-notification \
 --organization "$ORGANIZATION_ID" \
 --description "Notifications for active findings" \
 --pubsub-topic projects/$PROJECT_ID/topics/$TOPIC_ID \
---event-type FINDING \
 --filter "state=\"ACTIVE"\"
 
 gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
