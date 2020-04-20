@@ -92,13 +92,60 @@ The service account is configured separately within [main.tf](/main.tf). Here we
 - **Recommended** Specify a list of folder IDs that SRA could grant its service account the necessary roles to. This ensures SRA only has the access it needs at the folders where it's being used. This list will be asked below in the **Installation** section.
 - Grant permissions on your own either per project or at the organizational level.
 
+## Installation
+
+Following these instructions will deploy all automations. Before you get started be sure
+you have the following installed:
+
+- Go version 1.11
+- Terraform version 0.12.17
+
+```shell
+gcloud auth application-default login
+terraform init
+terraform apply
+```
+
+If you don't want to install all automations you can specify certain automations individually by running `terraform apply --target module.revoke_iam_grants`. The module name for each automation is found in [main.tf](main.tf). Note the `module.router` is required to be installed.
+
+TIP: Instead of entering variables every time you can create `terraform.tfvars`
+file and input key value pairs there, i.e.
+`automation-project="aerial-jigsaw-235219"`.
+
+If at any point you want to revert the changes we've made just run `terraform destroy .`
+
+### Reinstalling a Cloud Function
+
+Terraform will create or destroy everything by default. To redeploy a single Cloud Function you can do:
+
+```shell
+// revoke_iam_grants is the name of the Terraform module in `./main.tf`.
+// IAMRevoke is the exported Cloud Function name in `exec.go`.
+scripts/deploy.sh revoke_iam_grants IAMRevoke $PROJECT_ID
+```
+
+### Logging
+
+Each Cloud Function logs its actions to the below log location. This can be accessed by visiting
+StackDriver and clicking on the arrow on the right hand side then 'Convert to advanced filter'.
+Then paste in the below filter making sure to change the project ID to the project where your
+Cloud Functions are installed.
+
 ## Forward findings to Pub/Sub
 
 Currently Event Threat Detection publishes to StackDriver and Security Command Center, Security Health Analytics publishes to Security Command Center only. We're currently in the process of moving to Security Command Center notifications but for completeness sake we'll list instructions for StackDriver (legacy) and Security Command Center notifications.
 
 ### StackDriver
 
-If you only want to process Event Threat Detection findings, then your configuration is done for you automatically below using Terraform. You can skip the **Set up Security Command Center Notifications** section.
+If you only want to process Event Threat Detection findings, then your configuration was done for you automatically by using Terraform. You can skip the **Set up Security Command Center Notifications** section.
+
+**NOTE**:
+
+If you set up Security Command Center notifications, you need to remove the StackDriver export so that automations are not triggered twice. To do this, run:
+
+```shell
+gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
+```
 
 ### Set up Security Command Center Notifications
 
@@ -130,50 +177,3 @@ gcloud organizations remove-iam-policy-binding $ORGANIZATION_ID \
 --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
 --role='roles/pubsub.admin'
 ```
-
-## Installation
-
-Following these instructions will deploy all automations. Before you get started be sure
-you have the following installed:
-
-- Go version 1.11
-- Terraform version 0.12.17
-
-```shell
-gcloud auth application-default login
-terraform init
-terraform apply
-```
-
-If you don't want to install all automations you can specify certain automations individually by running `terraform apply --target module.revoke_iam_grants`. The module name for each automation is found in [main.tf](main.tf). Note the `module.router` is required to be installed.
-
-**NOTE**:
-
-If you set up Security Command Center notifications, you need to remove the StackDriver export so that automations are not triggered twice. To do this, run:
-
-```shell
-gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
-```
-
-TIP: Instead of entering variables every time you can create `terraform.tfvars`
-file and input key value pairs there, i.e.
-`automation-project="aerial-jigsaw-235219"`.
-
-If at any point you want to revert the changes we've made just run `terraform destroy .`
-
-### Reinstalling a Cloud Function
-
-Terraform will create or destroy everything by default. To redeploy a single Cloud Function you can do:
-
-```shell
-// revoke_iam_grants is the name of the Terraform module in `./main.tf`.
-// IAMRevoke is the exported Cloud Function name in `exec.go`.
-scripts/deploy.sh revoke_iam_grants IAMRevoke $PROJECT_ID
-```
-
-### Logging
-
-Each Cloud Function logs its actions to the below log location. This can be accessed by visiting
-StackDriver and clicking on the arrow on the right hand side then 'Convert to advanced filter'.
-Then paste in the below filter making sure to change the project ID to the project where your
-Cloud Functions are installed.
