@@ -52,7 +52,7 @@ The first parameter represents the finding provider, `sha` (Security Health Anal
 
 Each provider lists findings which contain a list of automations to be applied to those findings. In this example we apply the `revoke_iam` automation to Event Threat Detection's Anomalous IAM Grant finding. For a full list of automations and their supported findings see [automations.md](automations.md).
 
-The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. The target and exclude patterns are both considered however the excludes takes precedence. The ancestry pattern allows you to specify granularity at the organization, folder and project level.
+The `target` and `exclude` arrays accepts an ancestry pattern that is compared against the incoming project. The target and exclude patterns are both considered however the excludes takes precedence. The ancestry pattern allows you to specify granularity at the [organization](https://cloud.google.com/resource-manager/docs/creating-managing-organization), [folder](https://cloud.google.com/resource-manager/docs/creating-managing-folders) and [project](https://cloud.google.com/resource-manager/docs/creating-managing-projects) level.
 
 <table>
   <tr>
