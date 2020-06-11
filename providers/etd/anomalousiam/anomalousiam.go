@@ -10,14 +10,14 @@ import (
 
 // Name verifies and returns the rule name of the finding.
 func (f *Finding) Name(b []byte) string {
-	var finding pb.AnomalousIAMGrant
+	var finding pb.AnomalousIAMGrantSCC
 	if err := json.Unmarshal(b, &finding); err != nil {
 		return ""
 	}
-	if finding.GetJsonPayload().GetDetectionCategory().GetRuleName() != "iam_anomalous_grant" {
+	if finding.GetFinding().GetSourceProperties().GetDetectionCategory().GetRuleName() != "iam_anomalous_grant" {
 		return ""
 	}
-	return finding.GetJsonPayload().GetDetectionCategory().GetRuleName()
+	return finding.GetFinding().GetSourceProperties().GetDetectionCategory().GetRuleName()
 }
 
 // New returns a new finding.
@@ -31,13 +31,13 @@ func New(b []byte) (*Finding, error) {
 
 // Finding represents this finding.
 type Finding struct {
-	anomalousIAM *pb.AnomalousIAMGrant
+	anomalousIAM *pb.AnomalousIAMGrantSCC
 }
 
 // IAMRevoke returns values for the IAM revoke automation.
 func (f *Finding) IAMRevoke() *revoke.Values {
 	return &revoke.Values{
-		ProjectID:       f.anomalousIAM.GetJsonPayload().GetProperties().GetProjectId(),
-		ExternalMembers: f.anomalousIAM.GetJsonPayload().GetProperties().GetExternalMembers(),
+		ProjectID:       f.anomalousIAM.GetFinding().GetSourceProperties().GetEvidence()[0].GetSourceLogId().GetProjectId(),
+		ExternalMembers: f.anomalousIAM.GetFinding().GetSourceProperties().GetProperties().GetSensitiveRoleGrant().GetMembers(),
 	}
 }

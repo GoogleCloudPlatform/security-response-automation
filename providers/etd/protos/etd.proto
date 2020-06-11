@@ -155,3 +155,48 @@ message BadIPSCC {
         string notificationConfigName = 1;
         Finding finding = 2;
 }
+
+message AnomalousIAMGrantSCC {
+
+    message SecurityMarks {
+        map<string, string> marks = 1;
+    }
+
+    message SourceLogId {
+        string projectId = 1;
+    }
+    message Evidence {
+        SourceLogId sourceLogId = 1;
+    }
+
+    message SensitiveRoleGrant {
+        repeated string members = 1;
+    }
+
+    message Properties {
+        SensitiveRoleGrant sensitiveRoleGrant = 1;
+    }
+
+    message DetectionCategory {
+        string ruleName = 1;
+    }
+
+    message SourceProperties {
+        Properties properties = 1;
+        DetectionCategory detectionCategory = 2;
+        repeated Evidence evidence = 3;
+    }
+
+    message Finding {
+        SourceProperties sourceProperties = 1;
+        string category = 2;
+        string resourceName = 3;
+        string state = 4;
+        SecurityMarks securityMarks = 5;
+        string eventTime = 6;
+        string name = 7;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}
