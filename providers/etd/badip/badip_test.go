@@ -30,10 +30,15 @@ func TestBadIP(t *testing.T) {
 			  "category": "C2: Bad IP",
 			  "externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
 			  "sourceProperties": {
-					"detectionCategory_ruleName": "bad_ip",
-				  "properties_project_id": "test-project-15511551515",
-				  "properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
-				  "properties_location": "us-central1-a"
+					"detectionCategory": {
+						 "ruleName": "bad_ip"
+					},
+				    "properties": {
+					     "instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+                          "network": {
+							  "project": "test-project-15511551515"
+						   }
+				     }
 			  },
 			  "securityMarks": {},
 			  "eventTime": "2019-11-22T18:34:36.153Z",

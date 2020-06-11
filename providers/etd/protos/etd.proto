@@ -124,11 +124,22 @@ message BadIPSCC {
             map<string, string> marks = 1;
         }
 
+        message Network {
+            string project = 1;
+        }
+
+        message Properties {
+            Network network = 1;
+            string instanceDetails = 2;
+        }
+
+        message DetectionCategory {
+            string ruleName = 1;
+        }
+
         message SourceProperties {
-            string properties_project_id = 1;
-            string properties_location = 2;
-            string properties_instanceDetails = 3;
-            string detectionCategory_ruleName = 4;
+            Properties properties = 1;
+            DetectionCategory detectionCategory = 2;
         }
 
         message Finding {

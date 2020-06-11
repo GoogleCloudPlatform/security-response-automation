@@ -54,10 +54,15 @@ func TestRouter(t *testing.T) {
 				"category": "C2: Bad IP",
 				"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
 				"sourceProperties": {
-					"detectionCategory_ruleName": "bad_ip",
-					"properties_project_id": "test-project-15511551515",
-					"properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
-					"properties_location": "us-central1-a"
+					"detectionCategory": {
+						"ruleName": "bad_ip"
+					},
+					"properties": {
+						"instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+							"network": {
+   								"project": "test-project-15511551515"
+							}
+						}
 				},
 				"securityMarks": {
 					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
@@ -298,10 +303,15 @@ func TestRemediated(t *testing.T) {
 				"category": "C2: Bad IP",
 				"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
 				"sourceProperties": {
-					"detectionCategory_ruleName": "bad_ip",
-					"properties_project_id": "test-project-15511551515",
-					"properties_instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
-					"properties_location": "us-central1-a"
+					"detectionCategory": {
+						"ruleName": "bad_ip"
+					},
+					"properties": {
+						"instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+							"network": {
+   								"project": "test-project-15511551515"
+							}
+						}
 				},
 				"securityMarks": {
 					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
