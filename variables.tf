@@ -5,7 +5,7 @@ variable "automation-project" {
 
 variable "findings-project" {
   type        = string
-  description = "Project ID where security findings are sent to."
+  description = "Project ID where Event Threat Detection security findings are sent to by the Security Command Center. Configured in the Google Cloud Console in Security > Threat Detection."
 }
 
 variable "organization-id" {

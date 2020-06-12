@@ -75,7 +75,7 @@ func (f *Finding) CreateSnapshot() *createsnapshot.Values {
 		}
 	}
 	return &createsnapshot.Values{
-		ProjectID: f.badIP.GetJsonPayload().GetProperties().GetProjectId(),
+		ProjectID: f.badIP.GetJsonPayload().GetProperties().GetNetwork().GetProject(),
 		RuleName:  f.badIP.GetJsonPayload().GetDetectionCategory().GetRuleName(),
 		Instance:  etd.Instance(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),
 		Zone:      etd.Zone(f.badIP.GetJsonPayload().GetProperties().GetInstanceDetails()),

@@ -48,9 +48,10 @@ func TestBadIP(t *testing.T) {
 		badIPStackdriver = `{
 			"jsonPayload": {
 				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
+					"instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+					"network": {
+						"project": "test-project-15511551515"
+					}
 				},
 				"detectionCategory": {
 					"ruleName": "bad_ip"
@@ -61,12 +62,15 @@ func TestBadIP(t *testing.T) {
 	)
 
 	for _, tt := range []struct {
-		name     string
-		ruleName string
-		finding  []byte
+		name      string
+		ruleName  string
+		finding   []byte
+		projectID string
+		instance  string
+		zone      string
 	}{
-		{name: "bad_ip SD", finding: []byte(badIPStackdriver), ruleName: "bad_ip"},
-		{name: "bad_ip CSCC", finding: []byte(badIPSCC), ruleName: "bad_ip"},
+		{name: "bad_ip SD", finding: []byte(badIPStackdriver), ruleName: "bad_ip", projectID: "test-project-15511551515", instance: "bad-ip-caller", zone: "us-central1-a"},
+		{name: "bad_ip CSCC", finding: []byte(badIPSCC), ruleName: "bad_ip", projectID: "test-project-15511551515", instance: "bad-ip-caller", zone: "us-central1-a"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			f, err := New(tt.finding)
@@ -75,6 +79,19 @@ func TestBadIP(t *testing.T) {
 			}
 			if name := f.Name(tt.finding); name != tt.ruleName {
 				t.Errorf("%q got:%q want:%q", tt.name, name, tt.ruleName)
+			}
+			if err == nil && f != nil {
+				values := f.CreateSnapshot()
+				if values.ProjectID != tt.projectID {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, values.ProjectID, tt.projectID)
+				}
+				if values.Instance != tt.instance {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, values.Instance, tt.instance)
+				}
+				if values.Zone != tt.zone {
+					t.Errorf("%s failed: got:%q want:%q", tt.name, values.Zone, tt.zone)
+				}
+
 			}
 		})
 	}

@@ -29,13 +29,21 @@ message BadDomain {
 }
 
 message AnomalousIAMGrant {
-    message Properties {
-        string project_id = 1;
-        repeated string externalMembers = 2;
+
+    message SensitiveRoleGrant {
+        repeated string members = 1;
     }
 
-    message AffectedResource {
-        string gcpResourceName = 1;
+    message Properties {
+        SensitiveRoleGrant sensitiveRoleGrant = 1;
+    }
+
+    message SourceLogId {
+        string projectId = 1;
+    }
+
+    message Evidence {
+        SourceLogId sourceLogId = 1;
     }
 
     message DetectionCategory {
@@ -44,9 +52,9 @@ message AnomalousIAMGrant {
     }
 
     message JSONPayload {
-        repeated AffectedResource affectedResources = 1;
-        Properties properties = 2;
-        DetectionCategory detectionCategory = 3;
+        Properties properties = 1;
+        DetectionCategory detectionCategory = 2;
+        repeated Evidence evidence = 3;
     }
 
     string insertId = 1;
@@ -56,11 +64,13 @@ message AnomalousIAMGrant {
 
 message BadIP {
 
+    message Network {
+        string project = 1;
+    }
+
     message Properties {
-        string project_id = 1;
-        string location = 2;
-        string instanceDetails = 3;
-        string zone = 4;
+        Network network = 1;
+        string instanceDetails = 2;
     }
 
     message AffectedResource {
@@ -187,6 +197,53 @@ message AnomalousIAMGrantSCC {
         repeated Evidence evidence = 3;
     }
 
+    message Finding {
+        SourceProperties sourceProperties = 1;
+        string category = 2;
+        string resourceName = 3;
+        string state = 4;
+        SecurityMarks securityMarks = 5;
+        string eventTime = 6;
+        string name = 7;
+    }
+
+    string notificationConfigName = 1;
+    Finding finding = 2;
+}
+
+message SshBruteForceSCC {
+
+    message SecurityMarks {
+        map<string, string> marks = 1;
+    }
+
+    message LoginAttempt {
+        string authResult = 1;
+        string sourceIp = 2;
+        string userName = 3;
+        string vmName = 4;
+    }
+
+    message Properties {
+        string instance_id = 1;
+        string project_id = 2;
+        string zone = 3;
+        repeated LoginAttempt LoginAttempts = 4;
+    }
+
+    message AffectedResource {
+        string gcpResourceName = 1;
+    }
+
+    message DetectionCategory {
+        string ruleName = 1;
+    }
+
+    message SourceProperties {
+        repeated AffectedResource affectedResources = 1;
+        Properties properties = 2;
+        DetectionCategory detectionCategory = 3;
+    }
     message Finding {
         SourceProperties sourceProperties = 1;
         string category = 2;

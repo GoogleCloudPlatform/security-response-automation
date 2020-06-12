@@ -34,9 +34,10 @@ func TestRouter(t *testing.T) {
 		validBadIP = `{
 			"jsonPayload": {
 				"properties": {
-					"location": "us-central1",
-					"project_id": "test-project",
-					"instanceDetails": "/zones/zone-name/instances/source-instance-name"
+					"instanceDetails": "/projects/test-project/zones/zone-name/instances/source-instance-name",
+					"network": {
+						"project": "test-project"
+					}
 				},
 				"detectionCategory": {
 					"ruleName": "bad_ip"
@@ -62,7 +63,7 @@ func TestRouter(t *testing.T) {
 							"network": {
    								"project": "test-project-15511551515"
 							}
-						}
+					}
 				},
 				"securityMarks": {
 					"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5/securityMarks",
