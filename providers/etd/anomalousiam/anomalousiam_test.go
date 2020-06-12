@@ -12,42 +12,42 @@ func TestReadFinding(t *testing.T) {
 		sccAnomalousIAM = `{
 			"notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
 			"finding": {
-			  "name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
-			  "parent": "organizations/0000000000000/sources/0000000000000000000",
-			  "resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
-			  "state": "ACTIVE",
-			  "category": "Persistence: IAM Anomalous Grant",
-			  "externalUri": "https://console.cloud.google.com/home?project=onboarding-project",
-			  "sourceProperties": {
+				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+				"parent": "organizations/0000000000000/sources/0000000000000000000",
+				"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
+				"state": "ACTIVE",
+				"category": "Persistence: IAM Anomalous Grant",
+				"externalUri": "https://console.cloud.google.com/home?project=onboarding-project",
+				"sourceProperties": {
 					"detectionCategory": {
-						 "ruleName": "iam_anomalous_grant"
+						"ruleName": "iam_anomalous_grant"
 					},
 					"evidence": [{"sourceLogId": {"projectId": "onboarding-project"}}],
 					"properties": {
-			   			"sensitiveRoleGrant": {
-				    		"members": ["user:john.doe@example.com", "user:jane.doe@example.com"]
-   						}
-  					}
-			  },
-			  "securityMarks": {},
-			  "eventTime": "2019-11-22T18:34:36.153Z",
-			  "createTime": "2019-11-22T18:34:36.688Z"
+						"sensitiveRoleGrant": {
+							"members": ["user:john.doe@example.com", "user:jane.doe@example.com"]
+						}
+					}
+				},
+				"securityMarks": {},
+				"eventTime": "2019-11-22T18:34:36.153Z",
+				"createTime": "2019-11-22T18:34:36.688Z"
 			}
-	  }`
+		}`
 		etdAnomalousIAM = `{
-		"jsonPayload": {
-          "properties": {
-			   "sensitiveRoleGrant": {
-				    "members": ["user:john.doe@example.com", "user:jane.doe@example.com"]
-   				}
-  			},
-          "evidence": [{"sourceLogId": {"projectId": "onboarding-project"}}],
-		  "detectionCategory": {
-			"ruleName": "iam_anomalous_grant"
-		  }
-		},
-		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
-	}`
+			"jsonPayload": {
+				"properties": {
+					"sensitiveRoleGrant": {
+						"members": ["user:john.doe@example.com", "user:jane.doe@example.com"]
+					}
+				},
+				"evidence": [{"sourceLogId": {"projectId": "onboarding-project"}}],
+				"detectionCategory": {
+					"ruleName": "iam_anomalous_grant"
+				}
+			},
+			"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
+		}`
 	)
 	for _, tt := range []struct {
 		name, projectID string

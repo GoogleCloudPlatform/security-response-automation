@@ -21,30 +21,29 @@ import (
 func TestBadIP(t *testing.T) {
 	const (
 		badIPSCC = `{
-			"notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
 			"finding": {
-			  "name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
-			  "parent": "organizations/0000000000000/sources/0000000000000000000",
-			  "resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
-			  "state": "ACTIVE",
-			  "category": "C2: Bad IP",
-			  "externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
-			  "sourceProperties": {
+				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+				"parent": "organizations/0000000000000/sources/0000000000000000000",
+				"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
+				"state": "ACTIVE",
+				"category": "C2: Bad IP",
+				"externalUri": "https://console.cloud.google.com/home?project=test-project-15511551515",
+				"sourceProperties": {
 					"detectionCategory": {
-						 "ruleName": "bad_ip"
+						"ruleName": "bad_ip"
 					},
-				    "properties": {
-					     "instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
-                          "network": {
-							  "project": "test-project-15511551515"
-						   }
-				     }
-			  },
-			  "securityMarks": {},
-			  "eventTime": "2019-11-22T18:34:36.153Z",
-			  "createTime": "2019-11-22T18:34:36.688Z"
+					"properties": {
+						"instanceDetails": "/projects/test-project-15511551515/zones/us-central1-a/instances/bad-ip-caller",
+							"network": {
+								"project": "test-project-15511551515"
+							}
+					}
+				},
+				"securityMarks": {},
+				"eventTime": "2019-11-22T18:34:36.153Z",
+				"createTime": "2019-11-22T18:34:36.688Z"
 			}
-	  }`
+		}`
 		badIPStackdriver = `{
 			"jsonPayload": {
 				"properties": {

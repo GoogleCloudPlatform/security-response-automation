@@ -12,39 +12,39 @@ func TestReadFinding(t *testing.T) {
 		sccSSHBruteForceFinding = `{
 			"notificationConfigName": "organizations/0000000000000/notificationConfigs/noticonf-active-001-id",
 			"finding": {
-			  "name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
-			  "parent": "organizations/0000000000000/sources/0000000000000000000",
-			  "resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
-			  "state": "ACTIVE",
-			  "category": "Brute_force: SSH Brute Force",
-			  "externalUri": "https://console.cloud.google.com/home?project=onboarding-project",
-			  "sourceProperties": {
+				"name": "organizations/0000000000000/sources/0000000000000000000/findings/6a30ce604c11417995b1fa260753f3b5",
+				"parent": "organizations/0000000000000/sources/0000000000000000000",
+				"resourceName": "//cloudresourcemanager.googleapis.com/projects/000000000000",
+				"state": "ACTIVE",
+				"category": "Brute_force: SSH Brute Force",
+				"externalUri": "https://console.cloud.google.com/home?project=onboarding-project",
+				"sourceProperties": {
 					"detectionCategory": {
-						 "ruleName": "ssh_brute_force"
+						"ruleName": "ssh_brute_force"
 					},
-        			"properties": {
-        				"project_id": "onboarding-project",
-        				"loginAttempts": [{
-        					"authResult": "FAIL",
-        					"sourceIp": "10.200.0.2",
-        					"userName": "okokok",
-        					"vmName": "ssh-password-auth-debian-9"
-        					}, {
-        					"authResult": "SUCCESS",
-        					"sourceIp": "10.200.0.3",
-        					"userName": "okokok",
-        					"vmName": "ssh-password-auth-debian-9"
-        					}]
-        		  }
-			  },
-			  "securityMarks": {},
-			  "eventTime": "2019-11-22T18:34:36.153Z",
-			  "createTime": "2019-11-22T18:34:36.688Z"
+					"properties": {
+						"project_id": "onboarding-project",
+						"loginAttempts": [{
+							"authResult": "FAIL",
+							"sourceIp": "10.200.0.2",
+							"userName": "okokok",
+							"vmName": "ssh-password-auth-debian-9"
+							}, {
+							"authResult": "SUCCESS",
+							"sourceIp": "10.200.0.3",
+							"userName": "okokok",
+							"vmName": "ssh-password-auth-debian-9"
+							}]
+					}
+				},
+				"securityMarks": {},
+				"eventTime": "2019-11-22T18:34:36.153Z",
+				"createTime": "2019-11-22T18:34:36.688Z"
 			}
-	  }`
+		}`
 		etdSSHBruteForceFinding = `{
 		"jsonPayload": {
-          "properties": {
+			"properties": {
 				"project_id": "onboarding-project",
 				"loginAttempts": [{
 					"authResult": "FAIL",
@@ -56,11 +56,11 @@ func TestReadFinding(t *testing.T) {
 					"sourceIp": "10.200.0.3",
 					"userName": "okokok",
 					"vmName": "ssh-password-auth-debian-9"
-                 }]
-		  },
-		  "detectionCategory": {
+				}]
+			},
+			"detectionCategory": {
 			"ruleName": "ssh_brute_force"
-		  }
+			}
 		},
 		"logName": "projects/test-project/logs/threatdetection.googleapis.com` + "%%2F" + `detection"
 	}`
