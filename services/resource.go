@@ -205,7 +205,7 @@ func (r *Resource) removeUsersFromPolicy(policy *crm.Policy, users []string) *cr
 			isUser := strings.HasPrefix(member, "user:")
 			found := false
 			for _, user := range users {
-				if strings.EqualFold(user, member) {
+				if user == member {
 					found = true
 					break
 				}
