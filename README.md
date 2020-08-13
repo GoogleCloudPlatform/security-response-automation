@@ -16,7 +16,7 @@ You're in control:
 
 ## Configure automations
 
-Before installation we'll configure our automations, copy `./cloudfunctions/router/empty-config.yaml` to `./cloudfunctions/router/config.yaml`. Within this file we'll define a few steps to get started:
+Before installation we'll configure our automations, copy `./cloudfunctions/router/empty-config.yaml` to `./cloudfunctions/router/config.yaml`. You can also view a mostly filled out [sample configuration file](https://github.com/GoogleCloudPlatform/security-response-automation/wiki/Sample-configuration). Within this file we'll define a few steps to get started:
 
 - Which automations should apply to which findings.
 - Which projects to target these automations with and which to exclude.
