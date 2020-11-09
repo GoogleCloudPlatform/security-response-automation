@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"cloud.google.com/go/logging"
-	"google.golang.org/api/option"
 )
 
 const loggerName = "security-response-automation"
@@ -36,8 +35,8 @@ type Logger struct {
 }
 
 // NewLogger initializes and returns a Logger struct.
-func NewLogger(ctx context.Context, authFile string) (*Logger, error) {
-	c, err := logging.NewClient(ctx, projectID, option.WithCredentialsFile(authFile))
+func NewLogger(ctx context.Context) (*Logger, error) {
+	c, err := logging.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %q", err)
 	}

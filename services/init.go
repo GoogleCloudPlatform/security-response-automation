@@ -7,10 +7,6 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/clients"
 )
 
-const (
-	authFile = "credentials/auth.json"
-)
-
 // Global holds all initialized services.
 type Global struct {
 	Logger                *Logger
@@ -78,7 +74,7 @@ func InitPagerDuty(apiKey string) *PagerDuty {
 
 // InitBigQuery creates and initializes a new instance of BigQuery.
 func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
-	bq, err := clients.NewBigQuery(ctx, authFile, projectID)
+	bq, err := clients.NewBigQuery(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize bigquery client: %q", err)
 	}
@@ -87,7 +83,7 @@ func InitBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
 
 // InitPubSub creates and initializes a new instance of PubSub.
 func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
-	pubsub, err := clients.NewPubSub(ctx, authFile, projectID)
+	pubsub, err := clients.NewPubSub(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize pubsub client: %q", err)
 	}
@@ -95,7 +91,7 @@ func InitPubSub(ctx context.Context, projectID string) (*PubSub, error) {
 }
 
 func initHost(ctx context.Context) (*Host, error) {
-	cs, err := clients.NewCompute(ctx, authFile)
+	cs, err := clients.NewCompute(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
@@ -103,7 +99,7 @@ func initHost(ctx context.Context) (*Host, error) {
 }
 
 func initLog(ctx context.Context) (*Logger, error) {
-	logClient, err := clients.NewLogger(ctx, authFile)
+	logClient, err := clients.NewLogger(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize logger client: %q", err)
 	}
@@ -111,11 +107,11 @@ func initLog(ctx context.Context) (*Logger, error) {
 }
 
 func initResource(ctx context.Context) (*Resource, error) {
-	crm, err := clients.NewCloudResourceManager(ctx, authFile)
+	crm, err := clients.NewCloudResourceManager(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize cloud resource manager client: %q", err)
 	}
-	stg, err := clients.NewStorage(ctx, authFile)
+	stg, err := clients.NewStorage(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize storage client: %q", err)
 	}
@@ -123,7 +119,7 @@ func initResource(ctx context.Context) (*Resource, error) {
 }
 
 func initFirewall(ctx context.Context) (*Firewall, error) {
-	cs, err := clients.NewCompute(ctx, authFile)
+	cs, err := clients.NewCompute(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize compute client: %q", err)
 	}
@@ -131,7 +127,7 @@ func initFirewall(ctx context.Context) (*Firewall, error) {
 }
 
 func initContainer(ctx context.Context) (*Container, error) {
-	cc, err := clients.NewContainer(ctx, authFile)
+	cc, err := clients.NewContainer(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize container client: %q", err)
 	}
@@ -139,7 +135,7 @@ func initContainer(ctx context.Context) (*Container, error) {
 }
 
 func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
-	cs, err := clients.NewCloudSQL(ctx, authFile)
+	cs, err := clients.NewCloudSQL(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize sql client: %q", err)
 	}
@@ -147,7 +143,7 @@ func initCloudSQL(ctx context.Context) (*CloudSQL, error) {
 }
 
 func initSecurityCommandCenter(ctx context.Context) (*CommandCenter, error) {
-	scc, err := clients.NewSecurityCommandCenter(ctx, authFile)
+	scc, err := clients.NewSecurityCommandCenter(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize scc client: %q", err)
 	}

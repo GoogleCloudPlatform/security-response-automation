@@ -20,7 +20,6 @@ import (
 	"fmt"
 
 	commandcenter "cloud.google.com/go/securitycenter/apiv1beta1"
-	"google.golang.org/api/option"
 	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
 
@@ -30,8 +29,8 @@ type SecurityCommandCenter struct {
 }
 
 // NewSecurityCommandCenter returns and initializes a SecurityCommandCenter client.
-func NewSecurityCommandCenter(ctx context.Context, authFile string) (*SecurityCommandCenter, error) {
-	scc, err := commandcenter.NewClient(ctx, option.WithCredentialsFile(authFile))
+func NewSecurityCommandCenter(ctx context.Context) (*SecurityCommandCenter, error) {
+	scc, err := commandcenter.NewClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init scc: %q", err)
 	}

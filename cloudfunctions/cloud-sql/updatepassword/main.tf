@@ -22,6 +22,7 @@ resource "google_cloudfunctions_function" "update-password" {
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "UpdatePassword"
+  service_account_email = var.setup.automation-service-account
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"

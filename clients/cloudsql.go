@@ -20,7 +20,6 @@ import (
 	"log"
 	"time"
 
-	"google.golang.org/api/option"
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
@@ -31,8 +30,8 @@ type CloudSQL struct {
 }
 
 // NewCloudSQL returns and initializes a Cloud SQL client.
-func NewCloudSQL(ctx context.Context, authFile string) (*CloudSQL, error) {
-	sql, err := sqladmin.NewService(ctx, option.WithCredentialsFile(authFile))
+func NewCloudSQL(ctx context.Context) (*CloudSQL, error) {
+	sql, err := sqladmin.NewService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init scc: %q", err)
 	}

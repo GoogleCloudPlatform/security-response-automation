@@ -22,7 +22,7 @@ resource "google_cloudfunctions_function" "close-cloud-sql" {
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "CloseCloudSQL"
-
+  service_account_email = var.setup.automation-service-account
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = "threat-findings-remove-public-sql"

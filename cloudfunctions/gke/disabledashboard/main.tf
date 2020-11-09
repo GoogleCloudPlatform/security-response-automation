@@ -23,6 +23,7 @@ resource "google_cloudfunctions_function" "disable-dashboard" {
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "DisableDashboard"
+  service_account_email = var.setup.automation-service-account
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"

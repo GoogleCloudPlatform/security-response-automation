@@ -24,6 +24,7 @@ resource "google_cloudfunctions_function" "revoke_member_function" {
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "IAMRevoke"
+  service_account_email = var.setup.automation-service-account
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
