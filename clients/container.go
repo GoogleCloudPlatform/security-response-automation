@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	container "google.golang.org/api/container/v1"
-	"google.golang.org/api/option"
 )
 
 // Container client.
@@ -28,8 +27,8 @@ type Container struct {
 }
 
 // NewContainer returns and initializes a Container client.
-func NewContainer(ctx context.Context, authFile string) (*Container, error) {
-	cc, err := container.NewService(ctx, option.WithCredentialsFile(authFile))
+func NewContainer(ctx context.Context) (*Container, error) {
+	cc, err := container.NewService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to init container service: %q", err)
 	}

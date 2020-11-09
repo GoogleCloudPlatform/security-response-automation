@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/pubsub"
-	"google.golang.org/api/option"
 )
 
 // PubSub client.
@@ -28,8 +27,8 @@ type PubSub struct {
 }
 
 // NewPubSub returns the PubSub client.
-func NewPubSub(ctx context.Context, authFile, projectID string) (*PubSub, error) {
-	client, err := pubsub.NewClient(ctx, projectID, option.WithCredentialsFile(authFile))
+func NewPubSub(ctx context.Context, projectID string) (*PubSub, error) {
+	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init pubsub: %q", err)
 	}

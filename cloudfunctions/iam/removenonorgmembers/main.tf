@@ -22,6 +22,7 @@ resource "google_cloudfunctions_function" "remove-non-org-members" {
   project               = var.setup.automation-project
   region                = var.setup.region
   entry_point           = "RemoveNonOrganizationMembers"
+  service_account_email = var.setup.automation-service-account
 
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"

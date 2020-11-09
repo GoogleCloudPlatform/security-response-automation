@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/bigquery"
-	"google.golang.org/api/option"
 )
 
 // BigQuery client.
@@ -28,8 +27,8 @@ type BigQuery struct {
 }
 
 // NewBigQuery returns the BigQuery client.
-func NewBigQuery(ctx context.Context, authFile, projectID string) (*BigQuery, error) {
-	client, err := bigquery.NewClient(ctx, projectID, option.WithCredentialsFile(authFile))
+func NewBigQuery(ctx context.Context, projectID string) (*BigQuery, error) {
+	client, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init bigquery: %q", err)
 	}

@@ -20,7 +20,6 @@ import (
 
 	"cloud.google.com/go/iam"
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/option"
 )
 
 // Storage client.
@@ -29,8 +28,8 @@ type Storage struct {
 }
 
 // NewStorage returns and initializes the Storage client.
-func NewStorage(ctx context.Context, authFile string) (*Storage, error) {
-	c, err := storage.NewClient(ctx, option.WithCredentialsFile(authFile))
+func NewStorage(ctx context.Context) (*Storage, error) {
+	c, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init storage: %q", err)
 	}

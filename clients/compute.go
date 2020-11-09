@@ -21,7 +21,6 @@ import (
 	"time"
 
 	compute "google.golang.org/api/compute/v1"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -41,8 +40,8 @@ type Compute struct {
 }
 
 // NewCompute returns and initializes a Compute client.
-func NewCompute(ctx context.Context, authFile string) (*Compute, error) {
-	cc, err := compute.NewService(ctx, option.WithCredentialsFile(authFile))
+func NewCompute(ctx context.Context) (*Compute, error) {
+	cc, err := compute.NewService(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init cs: %q", err)
 	}

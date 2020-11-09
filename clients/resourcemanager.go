@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	crm "google.golang.org/api/cloudresourcemanager/v1"
-	"google.golang.org/api/option"
 )
 
 // CloudResourceManager client.
@@ -29,8 +28,8 @@ type CloudResourceManager struct {
 }
 
 // NewCloudResourceManager returns and initalizes the Cloud Resource Manager client.
-func NewCloudResourceManager(ctx context.Context, authFile string) (*CloudResourceManager, error) {
-	s, err := crm.NewService(ctx, option.WithCredentialsFile(authFile))
+func NewCloudResourceManager(ctx context.Context) (*CloudResourceManager, error) {
+	s, err := crm.NewService(ctx)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to init crm: %q", err)

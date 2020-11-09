@@ -5,8 +5,7 @@ locals {
 
 // GCF
 resource "google_storage_bucket" "gcf_bucket" {
-  name       = local.bucket-name
-  depends_on = [local_file.cloudfunction-key-file]
+  name = local.bucket-name
 }
 
 resource "google_storage_bucket_object" "gcf_object" {
@@ -23,7 +22,6 @@ data "archive_file" "cloud_functions_zip" {
   excludes = ["deploy", ".git", ".gitignore", ".terraform", ".pre-commit-config.yaml", ".github", ".vscode", ".idea",
   "README.md", "CONTRIBUTING.md", "automations.md", "LICENSE", "terraform.tfstate", "terraform", "local"]
   depends_on = [
-    local_file.cloudfunction-key-file,
     google_project_service.cloudresourcemanager_api,
     google_project_service.logging_api,
     google_project_service.pubsub_api,
@@ -37,15 +35,6 @@ resource "google_service_account" "automation-service-account" {
   account_id   = "automation-service-account"
   display_name = "Service account used by automation Cloud Function"
   project      = var.automation-project
-}
-
-resource "google_service_account_key" "cloudfunction-key" {
-  service_account_id = google_service_account.automation-service-account.name
-}
-
-resource "local_file" "cloudfunction-key-file" {
-  content  = base64decode(google_service_account_key.cloudfunction-key.private_key)
-  filename = "./credentials/auth.json"
 }
 
 // sinks
