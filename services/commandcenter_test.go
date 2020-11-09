@@ -16,6 +16,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -76,8 +77,18 @@ func TestAddSecurityMarkToFinding(t *testing.T) {
 			ctx := context.Background()
 			c := NewCommandCenter(commandCenterStub)
 			r, err := c.AddSecurityMarks(ctx, tt.serviceID, tt.securityMark)
-
-			if diff := cmp.Diff(commandCenterStub.GetUpdateSecurityMarksRequest, tt.expectedRequest); diff != "" {
+			cmpRequest := cmp.Comparer(func(x, y *sccpb.UpdateSecurityMarksRequest) bool {
+				xb, err := json.Marshal(x)
+				if err != nil {
+					t.Fatal(err)
+				}
+				yb, err := json.Marshal(x)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return (string(xb) == string(yb))
+			})
+			if diff := cmp.Diff(commandCenterStub.GetUpdateSecurityMarksRequest, tt.expectedRequest, cmpRequest); diff != "" {
 				t.Errorf("%v failed, difference: %+v", tt.name, diff)
 			}
 

@@ -46,3 +46,8 @@ func (s *SecurityCommandCenter) UpdateFinding(ctx context.Context, request *sccp
 func (s *SecurityCommandCenter) AddSecurityMarks(ctx context.Context, request *sccpb.UpdateSecurityMarksRequest) (*sccpb.SecurityMarks, error) {
 	return s.service.UpdateSecurityMarks(ctx, request)
 }
+
+// SetFindingState sets the state on a finding
+func (s *SecurityCommandCenter) SetFindingState(ctx context.Context, request *sccpb.SetFindingStateRequest) (*sccpb.Finding, error) {
+	return s.service.SetFindingState(ctx, request)
+}

@@ -14,7 +14,7 @@
 resource "google_cloudfunctions_function" "remove-non-org-members" {
   name                  = "RemoveNonOrganizationMembers"
   description           = "Removes all non-org members in which organization is not in the whitelist"
-  runtime               = "go111"
+  runtime               = "go113"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
@@ -25,7 +25,7 @@ resource "google_cloudfunctions_function" "remove-non-org-members" {
   service_account_email = var.setup.automation-service-account
 
   event_trigger {
-    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    event_type = "google.pubsub.topic.publish"
     resource   = "threat-findings-remove-non-org-members"
   }
 }

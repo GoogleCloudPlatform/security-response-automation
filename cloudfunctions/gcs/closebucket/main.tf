@@ -14,7 +14,7 @@
 resource "google_cloudfunctions_function" "close-bucket" {
   name                  = "CloseBucket"
   description           = "Removes users that enable public viewing of GCS buckets."
-  runtime               = "go111"
+  runtime               = "go113"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
@@ -25,8 +25,11 @@ resource "google_cloudfunctions_function" "close-bucket" {
   service_account_email = var.setup.automation-service-account
 
   event_trigger {
-    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    event_type = "google.pubsub.topic.publish"
     resource   = "threat-findings-close-bucket"
+  }
+  environment_variables = {
+    GCP_PROJECT = var.setup.automation-project
   }
 }
 

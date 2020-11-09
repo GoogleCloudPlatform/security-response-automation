@@ -19,11 +19,13 @@ import (
 
 	crm "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 	"google.golang.org/genproto/protobuf/field_mask"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // CommandCenterClient contains minimum interface required by the command center service.
 type CommandCenterClient interface {
 	AddSecurityMarks(context.Context, *crm.UpdateSecurityMarksRequest) (*crm.SecurityMarks, error)
+	SetFindingState(ctx context.Context, request *crm.SetFindingStateRequest) (*crm.Finding, error)
 }
 
 // CommandCenter service.
@@ -51,5 +53,14 @@ func (r *CommandCenter) AddSecurityMarks(ctx context.Context, serviceID string, 
 			Name:  serviceID + "/securityMarks",
 			Marks: securityMarks,
 		},
+	})
+}
+
+// SetInactive sets a finding as inactive
+func (r *CommandCenter) SetInactive(ctx context.Context, name string) (*crm.Finding, error) {
+	return r.client.SetFindingState(ctx, &crm.SetFindingStateRequest{
+		Name:      name,
+		State:     crm.Finding_INACTIVE,
+		StartTime: timestamppb.Now(),
 	})
 }

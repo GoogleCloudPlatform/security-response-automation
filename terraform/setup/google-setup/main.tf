@@ -52,14 +52,16 @@ resource "google_project_iam_member" "log-writer-pubsub" {
   member  = google_logging_project_sink.sink.writer_identity
 }
 
-resource "google_organization_iam_member" "scc-marks-writer" {
-  role   = "roles/securitycenter.findingSecurityMarksWriter"
-  org_id = var.organization-id
-  member = "serviceAccount:${google_service_account.automation-service-account.email}"
-}
 
-resource "google_pubsub_topic" "topic" {
-  name = "threat-findings"
+resource "google_organization_iam_member" "update-findings" {
+  for_each = toset([
+    "roles/securitycenter.findingsStateSetter",
+    "roles/securitycenter.findingSecurityMarksWriter",
+  ])
+
+  member = "serviceAccount:${google_service_account.automation-service-account.email}"
+  role   = each.value
+  org_id = var.organization-id
 }
 
 // CSCC notifications.
@@ -71,6 +73,50 @@ resource "google_pubsub_subscription" "cscc-notifications-subscription" {
   name                 = "${var.cscc-notifications-topic-prefix}-subscription"
   topic                = google_pubsub_topic.cscc-notifications-topic.name
   ack_deadline_seconds = 20
+}
+// Triggers the filter function which will forward desired
+// findings through to the router topic
+resource "google_pubsub_topic" "topic" {
+  project = var.automation-project
+  name    = var.findings-topic
+}
+
+// PubSub topic to for findings that are filtered
+resource "google_pubsub_topic" "router-topic" {
+  project = var.automation-project
+  name    = "threat-findings-router"
+}
+// NOTE: Since SCC Notification Config is not yet supported
+// as a terraform resource, we create it here instead via a
+// null_resource
+resource "null_resource" "notification" {
+  count = var.enable-scc-notification ? 1 : 0
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/create-notification.sh"
+    environment = {
+      ORG_ID            = var.organization-id
+      NOTIFICATION_NAME = var.notification-name
+      PROJECT           = var.automation-project
+      PUBSUB_TOPIC      = google_pubsub_topic.topic.id
+    }
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "${path.module}/scripts/delete-notification.sh"
+    environment = {
+      ORG_ID            = self.triggers.org_id
+      NOTIFICATION_NAME = self.triggers.notification
+    }
+  }
+
+  triggers = {
+    org_id       = var.organization-id
+    notification = var.notification-name
+    topic        = google_pubsub_topic.topic.id
+  }
+
+  depends_on = [google_project_service.securitycenter_api]
 }
 
 resource "google_project_iam_member" "stackdriver-writer" {

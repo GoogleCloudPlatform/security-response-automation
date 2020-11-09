@@ -1,0 +1,9 @@
+package sra.filter
+
+whitelist {
+	whitelist := {
+		# IPs that trigger false positives in ETD
+		"8.8.8.8",
+	}
+	input.finding.sourceProperties.properties.ips[_] == whitelist[_]
+}

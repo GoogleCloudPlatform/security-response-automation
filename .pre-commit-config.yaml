@@ -27,7 +27,7 @@ repos:
     - id: go-imports
       exclude: '.*\.pb\.go'
     - id: go-cyclo
-      args: [-over=10]
+      args: [-over=20]
       exclude: '.*_test\.go'
     - id: validate-toml
     - id: no-go-testing

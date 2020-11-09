@@ -54,6 +54,7 @@ var findings = []Namer{
 
 // originalEventTime is the security mark key name used to hold the finding's event time.
 const originalEventTime = "sra-remediated-event-time"
+const configPath = "./serverless_function_source_code/config/sra.yaml"
 
 // Namer represents findings that export their name.
 type Namer interface {
@@ -152,7 +153,7 @@ type Configuration struct {
 // Config will return the router's configuration.
 func Config() (*Configuration, error) {
 	var c Configuration
-	b, err := ioutil.ReadFile("./cloudfunctions/router/config.yaml")
+	b, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -184,493 +185,571 @@ func markAsRemediated(ctx context.Context, name, eventTime string, services *Ser
 func Execute(ctx context.Context, values *Values, services *Services) error {
 	switch name := ruleName(values.Finding); name {
 	case "bad_ip":
-		automations := services.Configuration.Spec.Parameters.ETD.BadIP
-		badIP, err := badip.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		if badIP.UseCSCC {
-			securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
-			remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
-			if remediated {
-				log.Printf("finding already remediated")
-				return nil
-			}
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "gce_create_disk_snapshot":
-				values := badIP.CreateSnapshot()
-				values.DryRun = automation.Properties.DryRun
-				values.Output = automation.Properties.CreateSnapshot.Output
-				values.DestProjectID = automation.Properties.CreateSnapshot.TargetSnapshotProjectID
-				values.DestZone = automation.Properties.CreateSnapshot.TargetSnapshotZone
-				values.Turbinia.ProjectID = automation.Properties.CreateSnapshot.Turbinia.ProjectID
-				values.Turbinia.Topic = automation.Properties.CreateSnapshot.Turbinia.Topic
-				values.Turbinia.Zone = automation.Properties.CreateSnapshot.Turbinia.Zone
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if badIP.UseCSCC {
-			if err := markAsRemediated(ctx, badIP.BadIPCSCC.GetFinding().GetName(), badIP.BadIPCSCC.GetFinding().GetEventTime(), services); err != nil {
-				return err
-			}
-		}
+		return executeBadIP(ctx, name, values, services)
 	case "iam_anomalous_grant":
-		automations := services.Configuration.Spec.Parameters.ETD.AnomalousIAM
-		anomalousIAM, err := anomalousiam.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "iam_revoke":
-				values := anomalousIAM.IAMRevoke()
-				values.DryRun = automation.Properties.DryRun
-				values.AllowDomains = automation.Properties.RevokeIAM.AllowDomains
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
+		return executeIamAnomalousGrant(ctx, name, values, services)
 	case "ssh_brute_force":
-		automations := services.Configuration.Spec.Parameters.ETD.SSHBruteForce
-		sshBruteForce, err := sshbruteforce.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "remediate_firewall":
-				values := sshBruteForce.OpenFirewall()
-				values.DryRun = automation.Properties.DryRun
-				values.Action = "block_ssh"
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
+		return executeSSHBruteForce(ctx, name, values, services)
 	case "public_bucket_acl":
-		automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
-		storageScanner, err := storagescanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := storageScanner.StorageScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == storageScanner.StorageScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "close_bucket":
-				values := storageScanner.CloseBucket()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, storageScanner.StorageScanner.GetFinding().GetName(), storageScanner.StorageScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executePublicBucketACL(ctx, name, values, services)
 	case "bucket_policy_only_disabled":
-		automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
-		storageScanner, err := storagescanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := storageScanner.StorageScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == storageScanner.StorageScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "enable_bucket_only_policy":
-				values := storageScanner.EnableBucketOnlyPolicy()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, storageScanner.StorageScanner.GetFinding().GetName(), storageScanner.StorageScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeBucketPolicyOnlyDisabled(ctx, name, values, services)
 	case "public_sql_instance":
-		automations := services.Configuration.Spec.Parameters.SHA.PublicSQLInstance
-		sqlScanner, err := sqlscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "close_cloud_sql":
-				values := sqlScanner.RemovePublic()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executePublicSQLInstance(ctx, name, values, services)
 	case "ssl_not_enforced":
-		automations := services.Configuration.Spec.Parameters.SHA.SSLNotEnforced
-		sqlScanner, err := sqlscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "cloud_sql_require_ssl":
-				values := sqlScanner.RequireSSL()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeSSLNotEnforced(ctx, name, values, services)
 	case "sql_no_root_password":
-		automations := services.Configuration.Spec.Parameters.SHA.SQLNoRootPassword
-		sqlScanner, err := sqlscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "cloud_sql_update_password":
-				values, err := sqlScanner.UpdatePassword()
-				if err != nil {
-					services.Logger.Error("failed to get values for %q: %q", automation.Action, err)
-					continue
-				}
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeSQLNoRootPassword(ctx, name, values, services)
 	case "public_ip_address":
-		automations := services.Configuration.Spec.Parameters.SHA.PublicIPAddress
-		computeInstanceScanner, err := computeinstancescanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "remove_public_ip":
-				values := computeInstanceScanner.RemovePublicIP()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetName(), computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executePublicIPAddress(ctx, name, values, services)
 	case "open_firewall":
-		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
-		firewallScanner, err := firewallscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "remediate_firewall":
-				values := firewallScanner.OpenFirewall()
-				values.DryRun = automation.Properties.DryRun
-				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
-				values.Action = automation.Properties.OpenFirewall.RemediationAction
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeOpenFirewall(ctx, name, values, services)
 	case "open_ssh_port":
-		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
-		firewallScanner, err := firewallscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "remediate_firewall":
-				values := firewallScanner.OpenFirewall()
-				values.DryRun = automation.Properties.DryRun
-				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
-				values.Action = automation.Properties.OpenFirewall.RemediationAction
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeOpenSSHPort(ctx, name, values, services)
 	case "open_rdp_port":
-		automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
-		firewallScanner, err := firewallscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "remediate_firewall":
-				values := firewallScanner.OpenFirewall()
-				values.DryRun = automation.Properties.DryRun
-				values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
-				values.Action = automation.Properties.OpenFirewall.RemediationAction
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeOpenRDPPort(ctx, name, values, services)
 	case "public_dataset":
-		automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
-		publicDataset, err := datasetscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := publicDataset.DatasetScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == publicDataset.DatasetScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "close_public_dataset":
-				values := publicDataset.ClosePublicDataset()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, publicDataset.DatasetScanner.GetFinding().GetName(), publicDataset.DatasetScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executePublicDataset(ctx, name, values, services)
 	case "audit_logging_disabled":
-		automations := services.Configuration.Spec.Parameters.SHA.AuditLoggingDisabled
-		loggingScanner, err := loggingscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := loggingScanner.Loggingscanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == loggingScanner.Loggingscanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "enable_audit_logs":
-				values := loggingScanner.EnableAuditLogs()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, loggingScanner.Loggingscanner.GetFinding().GetName(), loggingScanner.Loggingscanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeAuditLoggingDisabled(ctx, name, values, services)
 	case "web_ui_enabled":
-		automations := services.Configuration.Spec.Parameters.SHA.WebUIEnabled
-		containerScanner, err := containerscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := containerScanner.Containerscanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == containerScanner.Containerscanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "disable_dashboard":
-				values := containerScanner.DisableDashboard()
-				values.DryRun = automation.Properties.DryRun
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, containerScanner.Containerscanner.GetFinding().GetName(), containerScanner.Containerscanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
+		return executeWebUIEnabled(ctx, name, values, services)
 	case "non_org_iam_member":
-		automations := services.Configuration.Spec.Parameters.SHA.NonOrgMembers
-		iamScanner, err := iamscanner.New(values.Finding)
-		if err != nil {
-			return err
-		}
-		securityMarks := iamScanner.IAMScanner.GetFinding().GetSecurityMarks().GetMarks()
-		remediated := securityMarks[originalEventTime] == iamScanner.IAMScanner.GetFinding().GetEventTime()
-		if remediated {
-			log.Printf("finding already remediated")
-			return nil
-		}
-		log.Printf("got rule %q with %d automations", name, len(automations))
-		for _, automation := range automations {
-			switch automation.Action {
-			case "remove_non_org_members":
-				values := iamScanner.RemoveNonOrgMembers()
-				values.DryRun = automation.Properties.DryRun
-				values.AllowDomains = automation.Properties.NonOrgMembers.AllowDomains
-				topic := topics[automation.Action].Topic
-				if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
-					services.Logger.Error("failed to publish: %q", err)
-					continue
-				}
-			default:
-				return fmt.Errorf("action %q not found", automation.Action)
-			}
-		}
-		if err := markAsRemediated(ctx, iamScanner.IAMScanner.GetFinding().GetName(), iamScanner.IAMScanner.GetFinding().GetEventTime(), services); err != nil {
-			return err
-		}
-
+		return executeNonOrgIamMember(ctx, name, values, services)
 	default:
 		return fmt.Errorf("rule %q not found", name)
+	}
+}
+
+func executeBadIP(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.ETD.BadIP
+	badIP, err := badip.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	if badIP.UseCSCC {
+		securityMarks := badIP.BadIPCSCC.GetFinding().GetSecurityMarks().GetMarks()
+		remediated := securityMarks[originalEventTime] == badIP.BadIPCSCC.GetFinding().GetEventTime()
+		if remediated {
+			log.Printf("finding already remediated")
+			return nil
+		}
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "gce_create_disk_snapshot":
+			values := badIP.CreateSnapshot()
+			values.DryRun = automation.Properties.DryRun
+			values.Output = automation.Properties.CreateSnapshot.Output
+			values.DestProjectID = automation.Properties.CreateSnapshot.TargetSnapshotProjectID
+			values.DestZone = automation.Properties.CreateSnapshot.TargetSnapshotZone
+			values.Turbinia.ProjectID = automation.Properties.CreateSnapshot.Turbinia.ProjectID
+			values.Turbinia.Topic = automation.Properties.CreateSnapshot.Turbinia.Topic
+			values.Turbinia.Zone = automation.Properties.CreateSnapshot.Turbinia.Zone
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if badIP.UseCSCC {
+		if err := markAsRemediated(ctx, badIP.BadIPCSCC.GetFinding().GetName(), badIP.BadIPCSCC.GetFinding().GetEventTime(), services); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func executeIamAnomalousGrant(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.ETD.AnomalousIAM
+	anomalousIAM, err := anomalousiam.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "iam_revoke":
+			values := anomalousIAM.IAMRevoke()
+			values.DryRun = automation.Properties.DryRun
+			values.AllowDomains = automation.Properties.RevokeIAM.AllowDomains
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	return nil
+}
+
+func executeSSHBruteForce(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.ETD.SSHBruteForce
+	sshBruteForce, err := sshbruteforce.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "remediate_firewall":
+			values := sshBruteForce.OpenFirewall()
+			values.DryRun = automation.Properties.DryRun
+			values.Action = "block_ssh"
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	return nil
+}
+
+func executePublicBucketACL(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.PublicBucketACL
+	storageScanner, err := storagescanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := storageScanner.StorageScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == storageScanner.StorageScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "close_bucket":
+			values := storageScanner.CloseBucket()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, storageScanner.StorageScanner.GetFinding().GetName(), storageScanner.StorageScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeBucketPolicyOnlyDisabled(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.BucketPolicyOnlyDisable
+	storageScanner, err := storagescanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := storageScanner.StorageScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == storageScanner.StorageScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "enable_bucket_only_policy":
+			values := storageScanner.EnableBucketOnlyPolicy()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, storageScanner.StorageScanner.GetFinding().GetName(), storageScanner.StorageScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executePublicSQLInstance(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.PublicSQLInstance
+	sqlScanner, err := sqlscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "close_cloud_sql":
+			values := sqlScanner.RemovePublic()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeSSLNotEnforced(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.SSLNotEnforced
+	sqlScanner, err := sqlscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "cloud_sql_require_ssl":
+			values := sqlScanner.RequireSSL()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeSQLNoRootPassword(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.SQLNoRootPassword
+	sqlScanner, err := sqlscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := sqlScanner.SQLScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == sqlScanner.SQLScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "cloud_sql_update_password":
+			values, err := sqlScanner.UpdatePassword()
+			if err != nil {
+				services.Logger.Error("failed to get values for %q: %q", automation.Action, err)
+				continue
+			}
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, sqlScanner.SQLScanner.GetFinding().GetName(), sqlScanner.SQLScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executePublicIPAddress(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.PublicIPAddress
+	computeInstanceScanner, err := computeinstancescanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "remove_public_ip":
+			values := computeInstanceScanner.RemovePublicIP()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetName(), computeInstanceScanner.ComputeInstanceScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeOpenFirewall(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
+	firewallScanner, err := firewallscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "remediate_firewall":
+			values := firewallScanner.OpenFirewall()
+			values.DryRun = automation.Properties.DryRun
+			values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
+			values.Action = automation.Properties.OpenFirewall.RemediationAction
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeOpenSSHPort(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
+	firewallScanner, err := firewallscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "remediate_firewall":
+			values := firewallScanner.OpenFirewall()
+			values.DryRun = automation.Properties.DryRun
+			values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
+			values.Action = automation.Properties.OpenFirewall.RemediationAction
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeOpenRDPPort(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.OpenFirewall
+	firewallScanner, err := firewallscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := firewallScanner.FirewallScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == firewallScanner.FirewallScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "remediate_firewall":
+			values := firewallScanner.OpenFirewall()
+			values.DryRun = automation.Properties.DryRun
+			values.SourceRanges = automation.Properties.OpenFirewall.SourceRanges
+			values.Action = automation.Properties.OpenFirewall.RemediationAction
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, firewallScanner.FirewallScanner.GetFinding().GetName(), firewallScanner.FirewallScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executePublicDataset(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.PublicDataset
+	publicDataset, err := datasetscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := publicDataset.DatasetScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == publicDataset.DatasetScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "close_public_dataset":
+			values := publicDataset.ClosePublicDataset()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, publicDataset.DatasetScanner.GetFinding().GetName(), publicDataset.DatasetScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeAuditLoggingDisabled(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.AuditLoggingDisabled
+	loggingScanner, err := loggingscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := loggingScanner.Loggingscanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == loggingScanner.Loggingscanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "enable_audit_logs":
+			values := loggingScanner.EnableAuditLogs()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, loggingScanner.Loggingscanner.GetFinding().GetName(), loggingScanner.Loggingscanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeWebUIEnabled(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.WebUIEnabled
+	containerScanner, err := containerscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := containerScanner.Containerscanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == containerScanner.Containerscanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "disable_dashboard":
+			values := containerScanner.DisableDashboard()
+			values.DryRun = automation.Properties.DryRun
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, containerScanner.Containerscanner.GetFinding().GetName(), containerScanner.Containerscanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
+	}
+	return nil
+}
+
+func executeNonOrgIamMember(ctx context.Context, name string, values *Values, services *Services) error {
+	automations := services.Configuration.Spec.Parameters.SHA.NonOrgMembers
+	iamScanner, err := iamscanner.New(values.Finding)
+	if err != nil {
+		return err
+	}
+	securityMarks := iamScanner.IAMScanner.GetFinding().GetSecurityMarks().GetMarks()
+	remediated := securityMarks[originalEventTime] == iamScanner.IAMScanner.GetFinding().GetEventTime()
+	if remediated {
+		log.Printf("finding already remediated")
+		return nil
+	}
+	log.Printf("got rule %q with %d automations", name, len(automations))
+	for _, automation := range automations {
+		switch automation.Action {
+		case "remove_non_org_members":
+			values := iamScanner.RemoveNonOrgMembers()
+			values.DryRun = automation.Properties.DryRun
+			values.AllowDomains = automation.Properties.NonOrgMembers.AllowDomains
+			topic := topics[automation.Action].Topic
+			if err := publish(ctx, services, automation.Action, topic, values.ProjectID, automation.Target, automation.Exclude, values); err != nil {
+				services.Logger.Error("failed to publish: %q", err)
+				continue
+			}
+		default:
+			return fmt.Errorf("action %q not found", automation.Action)
+		}
+	}
+	if err := markAsRemediated(ctx, iamScanner.IAMScanner.GetFinding().GetName(), iamScanner.IAMScanner.GetFinding().GetEventTime(), services); err != nil {
+		return err
 	}
 	return nil
 }

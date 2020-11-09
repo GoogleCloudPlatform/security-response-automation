@@ -19,7 +19,7 @@ locals {
 
 provider "google" {
   project = var.automation-project
-  region  = "local.region"
+  region  = local.region
 }
 
 module "google-setup" {
@@ -31,6 +31,12 @@ module "google-setup" {
   findings-project                = var.findings-project
   cscc-notifications-topic-prefix = local.cscc-findings-topic
   findings-topic                  = local.findings-topic
+  enable-scc-notification         = var.enable-scc-notification
+}
+
+module "filter" {
+  source = "./cloudfunctions/filter"
+  setup  = module.google-setup
 }
 
 module "router" {
