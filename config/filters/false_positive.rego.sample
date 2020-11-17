@@ -1,0 +1,14 @@
+# This is a sample Rego module that filters out all findings
+# that are triggered as a Malware: Bad IP that look like an NTPd
+# server since this pattern is often confused for a C2 threat.
+#
+# This package name must be the same for all Rego files
+package sra.filter
+
+# This rule name must match the name of the file without the `.rego` extension. 
+# So for this file, the rule name is "false_positive". The query the Cloud Function
+# uses will be "data.sra.filter.<filename-without-extension>" which should be a true/false
+# for whether to filter out this finding.
+false_positive {
+	input.finding.sourceProperties.properties.domains[_] == "etd-malware-trigger.goog"
+}

@@ -22,8 +22,16 @@ output "region" {
   value = var.region
 }
 
-output "findings-topic" {
-  value = var.findings-topic
+output "findings-topic-id" {
+  value = google_pubsub_topic.topic.id
+}
+
+output "router-topic-name" {
+  value = google_pubsub_topic.router-topic.name
+}
+
+output "router-topic-id" {
+  value = google_pubsub_topic.router-topic.id
 }
 
 output "organization-id" {

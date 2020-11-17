@@ -37,3 +37,8 @@ func (s *SecurityCommandCenterStub) AddSecurityMarks(ctx context.Context, reques
 	}
 	return &sccpb.SecurityMarks{}, nil
 }
+
+// SetFindingState sets finding state
+func (s *SecurityCommandCenterStub) SetFindingState(ctx context.Context, request *sccpb.SetFindingStateRequest) (*sccpb.Finding, error) {
+	return &sccpb.Finding{}, nil
+}

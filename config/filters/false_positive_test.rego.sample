@@ -1,0 +1,27 @@
+package sra.filter
+
+test_bad_domain {
+	false_positive with input as {
+    "notificationConfigName": "organizations/x/notificationConfigs/sra-notifications",
+    "finding": {
+      "name": "organizations/x/sources/x/findings/x",
+      "state": "ACTIVE",
+      "category": "Malware: Bad Domain",
+      "sourceProperties": {
+        "properties": {
+          "domains": ["etd-malware-trigger.goog"],
+        },
+      },
+
+      "eventTime": "2020-11-16T21:30:58.190Z",
+      "createTime": "2020-11-16T21:30:59.175Z"
+    },
+    "resource": {
+      "name": "//cloudresourcemanager.googleapis.com/projects/x",
+      "project": "//cloudresourcemanager.googleapis.com/projects/x",
+      "projectDisplayName": "x",
+      "parent": "//cloudresourcemanager.googleapis.com/organizations/x",
+      "parentDisplayName": "x"
+    }
+  }
+}

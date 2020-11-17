@@ -1,0 +1,20 @@
+package sra.filter
+
+test_whitelist {
+  whitelist with input as {
+    "notificationConfigName": "organizations/x/notificationConfigs/sra-notifications",
+    "finding": {
+      "name": "organizations/x/sources/x/findings/x",
+      "state": "ACTIVE",
+      "category": "Malware: Bad Domain",
+      "sourceProperties": {
+        "properties": { 
+          "ips": [ "8.8.8.8" ]
+        },
+      },
+
+      "eventTime": "2020-11-16T21:30:58.190Z",
+      "createTime": "2020-11-16T21:30:59.175Z"
+    }
+  }
+}

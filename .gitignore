@@ -10,4 +10,6 @@ deploy
 .history
 .vscode
 .idea
-cloudfunctions/router/config.yaml
+config/sra.yaml
+config/filters/*.rego
+cloudfunctions/filter/internal/storage/blob.go

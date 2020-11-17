@@ -14,7 +14,7 @@
 resource "google_cloudfunctions_function" "router" {
   name                  = "Router"
   description           = "Routes findings to automations."
-  runtime               = "go111"
+  runtime               = "go113"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
@@ -25,8 +25,11 @@ resource "google_cloudfunctions_function" "router" {
   service_account_email = var.setup.automation-service-account
 
   event_trigger {
-    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = "threat-findings"
+    event_type = "google.pubsub.topic.publish"
+    resource   = var.setup.router-topic-id
+  }
+  environment_variables = {
+    GCP_PROJECT = var.setup.automation-project
   }
 }
 

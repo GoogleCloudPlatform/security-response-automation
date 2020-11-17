@@ -15,7 +15,7 @@
 resource "google_cloudfunctions_function" "disable-dashboard" {
   name                  = "DisableDasboard"
   description           = "Disable the Kubernetes dashboard addon"
-  runtime               = "go111"
+  runtime               = "go113"
   available_memory_mb   = 128
   source_archive_bucket = var.setup.gcf-bucket-name
   source_archive_object = var.setup.gcf-object-name
@@ -26,8 +26,11 @@ resource "google_cloudfunctions_function" "disable-dashboard" {
   service_account_email = var.setup.automation-service-account
 
   event_trigger {
-    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    event_type = "google.pubsub.topic.publish"
     resource   = "threat-findings-disable-dashboard"
+  }
+  environment_variables = {
+    GCP_PROJECT = var.setup.automation-project
   }
 }
 

@@ -43,7 +43,7 @@ func NewCloudSQL(ctx context.Context) (*CloudSQL, error) {
 
 // UpdateUser updates a given user.
 func (s *CloudSQL) UpdateUser(ctx context.Context, projectID, instance, host, name string, user *sqladmin.User) (*sqladmin.Operation, error) {
-	return s.service.Users.Update(projectID, instance, name, user).Host(host).Context(ctx).Do()
+	return s.service.Users.Update(projectID, instance, user).Host(host).Context(ctx).Do()
 }
 
 // PatchInstance updates partialy a Cloud SQL instance.

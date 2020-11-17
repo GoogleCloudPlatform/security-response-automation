@@ -26,6 +26,7 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/removepublic"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/requiressl"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/cloud-sql/updatepassword"
+	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/filter"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/createsnapshot"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/openfirewall"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/gce/removepublicip"
@@ -45,6 +46,7 @@ var (
 )
 
 func init() {
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	ctx := context.Background()
 	var err error
 	if projectID == "" {
@@ -54,6 +56,22 @@ func init() {
 	if err != nil {
 		log.Fatalf("failed to initialize services: %q", err)
 	}
+}
+
+// Filter is the entry point for the Filter Cloud function.
+// This function will receive all findings and filter them against
+// any user-defined Rego policies before forwarding along to the
+// Router function.
+func Filter(ctx context.Context, m pubsub.Message) error {
+	ps, err := services.InitPubSub(ctx, projectID)
+	if err != nil {
+		return err
+	}
+	return filter.Execute(ctx, m, &filter.Services{
+		PubSub:                ps,
+		Logger:                svcs.Logger,
+		SecurityCommandCenter: svcs.SecurityCommandCenter,
+	})
 }
 
 // Router is the entry point for the router Cloud Function.
