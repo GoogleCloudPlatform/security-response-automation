@@ -48,7 +48,7 @@ _NOTE: Filters are only supported if using SCC Notifications_
 
 Sometimes in your environment, you'll run into a scenario where a finding is a false positive because it is expected in your environment. In this case, we use the Filter Cloud Function to automatically mark findings as false positives in SCC and then set them as INACTIVE so you don't have to alert on them. To filter, we use a common policy language used in other Google Cloud open source called [Rego](https://www.openpolicyagent.org/docs/latest/#rego) from the good folks at [Open Policy Agent](https://www.openpolicyagent.org/).
 
-To add your own Rego files simply add them in `./config/filters`. The Cloud Function will pick up any files with the `.rego` extension except `*_test.rego` so please also add tests. Each file must have a single "rule" where `deny` is true (and the finding is filtered) if the block evaluates to `true`. For example, let's say in a particular project that is low risk, we want to filter out Bad IP findings that look like a valid NTP request, since many times they are. The rego would look like this:
+To add your own Rego files simply add them in `./config/filters`. The Cloud Function will pick up any files with the `.rego` extension except `*_test.rego` so please also add tests. Each file must have a single "rule" that evaluates to true if the finding should be filtered. For example, let's say in a particular project that is low risk, we want to filter out Bad IP findings that look like a valid NTP request, since many times they are. The rego would look like this:
 
 ```rego
 # filename: ntpd.rego
