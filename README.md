@@ -11,7 +11,7 @@ You're in control:
 
 - Service account runs with lowest permission needed granted at granularity you specify.
 - You control which projects are enforced by each automation.
-- Every action is logged to StackDriver and is easily auditable.
+- Every action is logged to Cloud Logging and is easily auditable.
 - Can be run in monitor mode where actions are logged only.
 
 ## Architecture
@@ -74,7 +74,7 @@ uses is `data.sra.filter.<filename-without-extension>`
 OPA gives you the ability to test your Rego policies against actual JSON. To do this, simply add the Notification JSON structure into the test and make assertions against it. We give an example of this in `./config/filters/false_positive_test.rego`. You can run tests yourself  after you [download OPA](https://www.openpolicyagent.org/docs/latest/#running-opa) by trying the following:
 
 ```
-cp config/filters/false_positive.rego config/filters/false_positive.rego
+cp config/filters/false_positive.rego.sample config/filters/false_positive.rego
 cp config/filters/false_positive_test.rego.sample config/filters/false_positive_test.rego
 opa test config/filters
 ```
@@ -146,7 +146,7 @@ The `target` and `exclude` arrays accepts an ancestry pattern that is compared a
   </tr>
 </table>
 
-All automations have the `dry_run` property that allow to see what actions would have been taken. This is recommend to confirm the actions taken are as expected. Once you have confirmed this by viewing logs in StackDriver you can change this property to false then redeploy the automations.
+All automations have the `dry_run` property that allow to see what actions would have been taken. This is recommend to confirm the actions taken are as expected. Once you have confirmed this by viewing logs in Cloud Logging you can change this property to false then redeploy the automations.
 
 The `allow_domains` property is specific to the iam_revoke automation. To see examples of how to configure the other automations see the full [documentation](/automations.md).
 
@@ -163,7 +163,7 @@ Following these instructions will deploy all automations. Before you get started
 you have the following installed:
 
 - Go version 1.13
-- Terraform version 0.12.17
+- Terraform version >= 0.13
 
 ```shell
 gcloud auth login --update-adc
@@ -184,9 +184,7 @@ If at any point you want to revert the changes we've made just run `terraform de
 Terraform will create or destroy everything by default. To redeploy a single Cloud Function you can do:
 
 ```shell
-// revoke_iam_grants is the name of the Terraform module in `./main.tf`.
-// IAMRevoke is the exported Cloud Function name in `exec.go`.
-scripts/deploy.sh revoke_iam_grants IAMRevoke $PROJECT_ID
+terraform apply --target module.revoke_iam_grants
 ```
 
 ### Terraform Inputs
@@ -202,25 +200,26 @@ scripts/deploy.sh revoke_iam_grants IAMRevoke $PROJECT_ID
 ### Logging
 
 Each Cloud Function logs its actions to the below log location. This can be accessed by visiting
-StackDriver and clicking on the arrow on the right hand side then 'Convert to advanced filter'.
+Cloud Logging and clicking on the arrow on the right hand side then 'Convert to advanced filter'.
 Then paste in the below filter making sure to change the project ID to the project where your
 Cloud Functions are installed.
 
-## Forward findings to Pub/Sub
-
-Currently Event Threat Detection publishes to StackDriver and Security Command Center, Security Health Analytics publishes to Security Command Center only. We're currently in the process of moving to Security Command Center notifications but for completeness sake we'll list instructions for StackDriver (legacy) and Security Command Center notifications.
-
-### StackDriver
-
-If you only want to process Event Threat Detection findings, then your configuration was done for you automatically by using Terraform. You can skip the **Set up Security Command Center Notifications** section.
-
-**NOTE**:
-
-If you set up Security Command Center notifications, you need to remove the StackDriver export so that automations are not triggered twice. To do this, run:
-
-```shell
-gcloud logging sinks delete sink-threat-findings --project=$PROJECT_ID
-```
+| Function | Filter |
+|----------|--------|
+|Filter|`resource.type = "cloud_function" AND resource.labels.function_name = "Filter"`|
+|Router|`resource.type = "cloud_function" AND resource.labels.function_name = "Router"`|
+|CloseBucket|`resource.type = "cloud_function" AND resource.labels.function_name = "CloseBucket"`|
+|CloseCloudSQL|`resource.type = "cloud_function" AND resource.labels.function_name = "CloseCloudSQL"`|
+|ClosePublicDataset|`resource.type = "cloud_function" AND resource.labels.function_name = "ClosePublicDataset"`|
+|CloudSQLRequireSSL|`resource.type = "cloud_function" AND resource.labels.function_name = "CloudSQLRequireSSL"`|
+|DisableDashboard|`resource.type = "cloud_function" AND resource.labels.function_name = "DisableDashboard"`|
+|EnableAuditLogs|`resource.type = "cloud_function" AND resource.labels.function_name = "EnableAuditLogs"`|
+|EnableBucketOnlyPolicy|`resource.type = "cloud_function" AND resource.labels.function_name = "EnableBucketOnlyPolicy"`|
+|IAMRevoke|`resource.type = "cloud_function" AND resource.labels.function_name = "IAMRevoke"`|
+|OpenFirewall|`resource.type = "cloud_function" AND resource.labels.function_name = "OpenFirewall"`|
+|RemovePublicIP|`resource.type = "cloud_function" AND resource.labels.function_name = "RemovePublicIP"`|
+|SnapshotDisk|`resource.type = "cloud_function" AND resource.labels.function_name = "SnapshotDisk"`|
+|UpdatePassword|`resource.type = "cloud_function" AND resource.labels.function_name = "UpdatePassword"`|
 
 ## Development
 
@@ -230,8 +229,16 @@ Make sure you have installed the following tools for development and test:
 
 * Go 1.13 or higher
 * `terraform`
-* `gocyclo`
-* `golint`
-* `golangci-lint`
-* `pre-commit`
 * `opa`
+
+For additional tools needed for testing:
+
+```
+make tools
+```
+
+To run the same tests that are run in the Pull Request:
+
+```
+make test
+```

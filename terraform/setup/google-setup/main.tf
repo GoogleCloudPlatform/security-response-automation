@@ -39,6 +39,7 @@ resource "google_service_account" "automation-service-account" {
 
 // sinks
 resource "google_logging_project_sink" "sink" {
+  count                  = var.enable-scc-notification ? 0 : 1
   name                   = "sink-threat-findings"
   destination            = "pubsub.googleapis.com/projects/${var.automation-project}/topics/threat-findings"
   filter                 = "resource.type = threat_detector"
@@ -47,9 +48,10 @@ resource "google_logging_project_sink" "sink" {
 }
 
 resource "google_project_iam_member" "log-writer-pubsub" {
+  count   = var.enable-scc-notification ? 0 : 1
   role    = "roles/pubsub.publisher"
   project = var.automation-project
-  member  = google_logging_project_sink.sink.writer_identity
+  member  = google_logging_project_sink.sink[0].writer_identity
 }
 
 
@@ -64,16 +66,6 @@ resource "google_organization_iam_member" "update-findings" {
   org_id = var.organization-id
 }
 
-// CSCC notifications.
-resource "google_pubsub_topic" "cscc-notifications-topic" {
-  name = "${var.cscc-notifications-topic-prefix}-topic"
-}
-
-resource "google_pubsub_subscription" "cscc-notifications-subscription" {
-  name                 = "${var.cscc-notifications-topic-prefix}-subscription"
-  topic                = google_pubsub_topic.cscc-notifications-topic.name
-  ack_deadline_seconds = 20
-}
 // Triggers the filter function which will forward desired
 // findings through to the router topic
 resource "google_pubsub_topic" "topic" {

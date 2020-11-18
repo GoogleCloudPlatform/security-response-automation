@@ -15,10 +15,11 @@ variable "organization-id" {
 
 variable "folder-ids" {
   type        = list(string)
-  description = "Folder IDs to apply automations to."
+  description = "Folder IDs on which to grant permission"
 }
 
 variable "enable-scc-notification" {
   type        = bool
+  default     = true
   description = "If true, create the notification config from SCC instead of Cloud Logging"
 }
