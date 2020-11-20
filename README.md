@@ -192,9 +192,9 @@ terraform apply --target module.revoke_iam_grants
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:-----:|
 | automation-project | Project ID where the Cloud Functions should be installed. | `string` | n/a | yes |
-| enable-scc-notification | If true, create the notification config from SCC instead of Cloud Logging | `bool` | n/a | yes |
-| findings-project | Project ID where Event Threat Detection security findings are sent to by the Security Command Center. Configured in the Google Cloud Console in Security > Threat Detection. | `string` | n/a | yes |
-| folder-ids | Folder IDs to apply automations to. | `list(string)` | n/a | yes |
+| enable-scc-notification | If true, create the notification config from SCC instead of Cloud Logging | `bool` | `true` | no |
+| findings-project | (Unused if `enable-scc-notification` is true) Project ID where Event Threat Detection security findings are sent to by the Security Command Center. Configured in the Google Cloud Console in Security > Threat Detection. | `string` | `""` | no |
+| folder-ids | Folder IDs on which to grant permission | `list(string)` | n/a | yes |
 | organization-id | Organization ID. | `string` | n/a | yes |
 
 ### Logging
