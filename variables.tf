@@ -5,7 +5,8 @@ variable "automation-project" {
 
 variable "findings-project" {
   type        = string
-  description = "Project ID where Event Threat Detection security findings are sent to by the Security Command Center. Configured in the Google Cloud Console in Security > Threat Detection."
+  default     = ""
+  description = "(Unused if `enable-scc-notification` is true) Project ID where Event Threat Detection security findings are sent to by the Security Command Center. Configured in the Google Cloud Console in Security > Threat Detection."
 }
 
 variable "organization-id" {
@@ -15,10 +16,11 @@ variable "organization-id" {
 
 variable "folder-ids" {
   type        = list(string)
-  description = "Folder IDs to apply automations to."
+  description = "Folder IDs on which to grant permission"
 }
 
 variable "enable-scc-notification" {
   type        = bool
+  default     = true
   description = "If true, create the notification config from SCC instead of Cloud Logging"
 }
