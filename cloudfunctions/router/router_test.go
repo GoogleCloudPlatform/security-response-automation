@@ -89,7 +89,6 @@ func TestRouter(t *testing.T) {
 					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
 					"SeverityLevel": "High",
 					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "test-project",
 					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
 					"ScannerName": "STORAGE_SCANNER",
 					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
@@ -100,6 +99,9 @@ func TestRouter(t *testing.T) {
 					"marks": {
 						"babab": "3"
 					}
+				},
+				"resource": {
+					"projectDisplayName": "test-project"
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
 				"createTime": "2019-09-23T17:20:27.934Z"
@@ -338,7 +340,6 @@ func TestRemediated(t *testing.T) {
 					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
 					"SeverityLevel": "High",
 					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "test-project",
 					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
 					"ScannerName": "STORAGE_SCANNER",
 					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
@@ -349,6 +350,9 @@ func TestRemediated(t *testing.T) {
 					"marks": {
 						"sra-remediated-event-time": "2019-09-23T17:20:27.204Z"
 					}
+				},
+				"resource": {
+					"projectDisplayName": "test-project"
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
 				"createTime": "2019-09-23T17:20:27.934Z"
