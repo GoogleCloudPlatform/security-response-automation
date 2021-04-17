@@ -10,6 +10,9 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 	const (
 		storageScanner = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"resource": {
+				"projectDisplayName": "aerial-jigsaw-235219"
+			},
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
@@ -32,9 +35,6 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 					"marks": {
 						"babab": "3"
 					}
-				},
-				"resource": {
-					"projectDisplayName": "aerial-jigsaw-235219"
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
 				"createTime": "2019-09-23T17:20:27.934Z"
@@ -71,6 +71,9 @@ func TestReadFindingCloseBucket(t *testing.T) {
 	const (
 		storageScanner = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"resource": {
+				"projectDisplayName": "aerial-jigsaw-235219"
+			},
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
@@ -93,9 +96,6 @@ func TestReadFindingCloseBucket(t *testing.T) {
 					"marks": {
 						"babab": "3"
 					}
-				},
-				"resource": {
-					"projectDisplayName": "aerial-jigsaw-235219"
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
 				"createTime": "2019-09-23T17:20:27.934Z"

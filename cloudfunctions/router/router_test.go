@@ -77,6 +77,9 @@ func TestRouter(t *testing.T) {
 		}`
 		validPublicBucket = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"resource": {
+				"projectDisplayName": "test-project"
+			},
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
@@ -99,10 +102,7 @@ func TestRouter(t *testing.T) {
 					"marks": {
 						"babab": "3"
 					}
-				},
-				"resource": {
-					"projectDisplayName": "test-project"
-				},
+				},				
 				"eventTime": "2019-09-23T17:20:27.204Z",
 				"createTime": "2019-09-23T17:20:27.934Z"
 			}
@@ -328,6 +328,9 @@ func TestRemediated(t *testing.T) {
 		}`
 		remediatedPublicBucket = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"resource": {
+				"projectDisplayName": "test-project"
+			},
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
@@ -350,9 +353,6 @@ func TestRemediated(t *testing.T) {
 					"marks": {
 						"sra-remediated-event-time": "2019-09-23T17:20:27.204Z"
 					}
-				},
-				"resource": {
-					"projectDisplayName": "test-project"
 				},
 				"eventTime": "2019-09-23T17:20:27.204Z",
 				"createTime": "2019-09-23T17:20:27.934Z"

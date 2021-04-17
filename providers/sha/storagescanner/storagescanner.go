@@ -39,7 +39,7 @@ func New(b []byte) (*Finding, error) {
 // EnableBucketOnlyPolicy returns values for the enable bucket only policy automation.
 func (f *Finding) EnableBucketOnlyPolicy() *enablebucketonlypolicy.Values {
 	return &enablebucketonlypolicy.Values{
-		ProjectID:  f.StorageScanner.GetFinding().GetResource().GetProjectDisplayName(),
+		ProjectID:  f.StorageScanner.GetResource().GetProjectDisplayName(),
 		BucketName: sha.BucketName(f.StorageScanner.GetFinding().GetResourceName()),
 	}
 }
@@ -47,7 +47,7 @@ func (f *Finding) EnableBucketOnlyPolicy() *enablebucketonlypolicy.Values {
 // CloseBucket returns values for the close bucket automation.
 func (f *Finding) CloseBucket() *closebucket.Values {
 	return &closebucket.Values{
-		ProjectID:  f.StorageScanner.GetFinding().GetResource().GetProjectDisplayName(),
+		ProjectID:  f.StorageScanner.GetResource().GetProjectDisplayName(),
 		BucketName: sha.BucketName(f.StorageScanner.GetFinding().GetResourceName()),
 	}
 }

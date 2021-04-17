@@ -45,12 +45,12 @@ message StorageScanner {
       string state = 4;
       SecurityMarks securityMarks = 5;
       string eventTime = 6;
-      string name = 7;
-      Resource resource = 8;
+      string name = 7;      
     }
 
     string notificationConfigName = 1;
     Finding finding = 2;
+    Resource resource = 3;
 }
 
 message FirewallScanner {
