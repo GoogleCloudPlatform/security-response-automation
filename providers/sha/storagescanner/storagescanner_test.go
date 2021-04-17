@@ -10,6 +10,9 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 	const (
 		storageScanner = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"resource": {
+				"projectDisplayName": "aerial-jigsaw-235219"
+			},
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
@@ -21,8 +24,7 @@ func TestReadFindingEnableBucketOnlyPolicy(t *testing.T) {
 					"ReactivationCount": 0.0,
 					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
 					"SeverityLevel": "High",
-					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "aerial-jigsaw-235219",
+					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",					
 					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
 					"ScannerName": "STORAGE_SCANNER",
 					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
@@ -69,6 +71,9 @@ func TestReadFindingCloseBucket(t *testing.T) {
 	const (
 		storageScanner = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			"resource": {
+				"projectDisplayName": "aerial-jigsaw-235219"
+			},
 			"finding": {
 				"name": "organizations/154584661726/sources/2673592633662526977/findings/782e52631d61da6117a3772137c270d8",
 				"parent": "organizations/154584661726/sources/2673592633662526977",
@@ -81,7 +86,6 @@ func TestReadFindingCloseBucket(t *testing.T) {
 					"ExceptionInstructions": "Add the security mark \"allow_public_bucket_acl\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
 					"SeverityLevel": "High",
 					"Recommendation": "Go to https://console.cloud.google.com/storage/browser/this-is-public-on-purpose, click on the Permissions tab, and remove \"allUsers\" and \"allAuthenticatedUsers\" from the bucket's members.",
-					"ProjectId": "aerial-jigsaw-235219",
 					"AssetCreationTime": "2019-09-19T20:08:29.102Z",
 					"ScannerName": "STORAGE_SCANNER",
 					"ScanRunId": "2019-09-23T10:20:27.204-07:00",
