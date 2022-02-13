@@ -22,14 +22,19 @@
 
 syntax = "proto3";
 
+option go_package = "sha/protos";
+
+message Resource {
+    string projectDisplayName = 1;
+}
+
 message StorageScanner {
 
     message SecurityMarks {
         map<string, string> marks = 1;
     }
 
-    message SourceProperties {
-        string projectId = 1;
+    message SourceProperties {        
         string ScannerName = 2;
     }
 
@@ -40,11 +45,12 @@ message StorageScanner {
       string state = 4;
       SecurityMarks securityMarks = 5;
       string eventTime = 6;
-      string name = 7;
+      string name = 7;      
     }
 
     string notificationConfigName = 1;
     Finding finding = 2;
+    Resource resource = 3;
 }
 
 message FirewallScanner {
