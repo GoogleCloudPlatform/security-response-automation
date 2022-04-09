@@ -1,0 +1,78 @@
+{
+  "notificationConfigName": "organizations/0000000000/notificationConfigs/sampleConfigId",
+  "finding": {
+    "access": {},
+    "assetDisplayName": "open-cassandra-port-tcp-7199",
+    "assetId": "organizations/0000000000/assets/17891988241833004615",
+    "canonicalName": "projects/12345678/sources/0000000/findings/2087237f91e4904e344a624c98e52ae6",
+    "category": "OPEN_FIREWALL",
+    "createTime": "2019-11-16T03:45:50.400Z",
+    "eventTime": "2021-06-01T14:57:33.426Z",
+    "externalUri": "https://console.cloud.google.com/networking/firewalls/details/open-cassandra-port-tcp-7199?project=test-project",
+    "findingClass": "MISCONFIGURATION",
+    "findingProviderId": "organizations/0000000000/firstPartyFindingProviders/security_health_advisor",
+    "indicator": {},
+    "mitreAttack": {},
+    "mute": "UNDEFINED",
+    "name": "organizations/0000000000/sources/0000000/findings/2087237f91e4904e344a624c98e52ae6",
+    "parent": "organizations/0000000000/sources/0000000",
+    "severity": "HIGH",
+    "sourceDisplayName": "Security Health Analytics",
+    "state": "ACTIVE",
+    "vulnerability": {},
+    "resource": {
+      "name": "//compute.googleapis.com/projects/test-project/global/firewalls/4695668982209007936",
+      "display_name": "open-cassandra-port-tcp-7199",
+      "project_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "project_display_name": "test-project",
+      "parent_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "parent_display_name": "test-project",
+      "type": "google.compute.Firewall",
+      "folders": [
+        {
+          "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/987654321"
+        }
+      ]
+    },
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/2087237f91e4904e344a624c98e52ae6/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2021-06-01T14:57:33.426Z"
+      }
+    },
+    "sourceProperties": {
+      "Recommendation": "Restrict the firewall rules at: https://console.cloud.google.com/networking/firewalls/details/open-cassandra-port-tcp-7199?project=test-project",
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_open_firewall\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "Firewall rules that allow connections from all IP addresses or on all ports may expose resources to attackers.",
+      "ScannerName": "FIREWALL_SCANNER",
+      "ResourcePath": [
+        "projects/test-project/",
+        "folders/987654321/",
+        "organizations/0000000000/"
+      ],
+      "compliance_standards": {
+        "pci": [
+          {
+            "ids": [
+              "1.2.1"
+            ]
+          }
+        ]
+      },
+      "AllowedIpRange": "All",
+      "ActivationTrigger": "Allows all IP addresses",
+      "ExternalSourceRanges": [
+        "0.0.0.0/0"
+      ],
+      "ExternallyAccessibleProtocolsAndPorts": [
+        {
+          "IPProtocol": "tcp",
+          "ports": [
+            "7199"
+          ]
+        }
+      ]
+    }
+  }
+}

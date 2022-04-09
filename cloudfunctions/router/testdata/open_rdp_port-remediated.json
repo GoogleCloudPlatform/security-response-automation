@@ -1,0 +1,97 @@
+{
+  "finding": {
+    "access": {},
+    "assetDisplayName": "default-allow-rdp",
+    "assetId": "organizations/0000000000/assets/9439544858484562111",
+    "canonicalName": "projects/12345678/sources/0000000/findings/5cc27561f6040c8570077e348a962c77",
+    "category": "OPEN_RDP_PORT",
+    "createTime": "2021-02-10T20:00:16.994Z",
+    "eventTime": "2021-06-05T14:54:49.731Z",
+    "externalUri": "https://console.cloud.google.com/networking/firewalls/details/default-allow-rdp?project=test-project",
+    "findingClass": "MISCONFIGURATION",
+    "findingProviderId": "organizations/0000000000/firstPartyFindingProviders/security_health_advisor",
+    "indicator": {},
+    "mitreAttack": {},
+    "mute": "UNDEFINED",
+    "name": "organizations/0000000000/sources/0000000/findings/5cc27561f6040c8570077e348a962c77",
+    "parent": "organizations/0000000000/sources/0000000",
+    "severity": "HIGH",
+    "sourceDisplayName": "Security Health Analytics",
+    "state": "ACTIVE",
+    "vulnerability": {},
+    "workflowState": "NEW",
+    "resource": {
+      "name": "//compute.googleapis.com/projects/test-project/global/firewalls/43256709",
+      "display_name": "default-allow-rdp",
+      "project_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "project_display_name": "test-project",
+      "parent_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "parent_display_name": "test-project",
+      "type": "google.compute.Firewall",
+      "folders": []
+    },
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/5cc27561f6040c8570077e348a962c77/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2021-06-05T14:54:49.731Z"
+      }
+    },
+    "sourceProperties": {
+      "Recommendation": "Restrict the firewall rules at: https://console.cloud.google.com/networking/firewalls/details/default-allow-rdp?project=test-project",
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_open_rdp_port\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "Firewall rules that allow connections from all IP addresses on TCP port 3389 or UDP port 3389 may expose RDP services to attackers.",
+      "ScannerName": "FIREWALL_SCANNER",
+      "ResourcePath": [
+        "projects/test-project/",
+        "organizations/0000000000/"
+      ],
+      "compliance_standards": {
+        "iso": [
+          {
+            "ids": [
+              "A.13.1.1"
+            ]
+          }
+        ],
+        "pci": [
+          {
+            "ids": [
+              "1.2.1"
+            ]
+          }
+        ],
+        "cis": [
+          {
+            "version": "1.0",
+            "ids": [
+              "3.7"
+            ]
+          },
+          {
+            "version": "1.1",
+            "ids": [
+              "3.7"
+            ]
+          }
+        ],
+        "nist": [
+          {
+            "ids": [
+              "SC-7"
+            ]
+          }
+        ]
+      },
+      "ExposedService": "RDP",
+      "OpenPorts": {
+        "TCP": [
+          3389
+        ],
+        "UDP": [
+          3389
+        ]
+      }
+    }
+  }
+}

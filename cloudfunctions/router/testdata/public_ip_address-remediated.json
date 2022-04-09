@@ -1,0 +1,85 @@
+{
+  "finding": {
+    "access": {},
+    "assetDisplayName": "integration-test-default-service-account-non-vuln-instance",
+    "assetId": "organizations/0000000000/assets/9992102437510379842",
+    "canonicalName": "projects/12345678/sources/0000000/findings/7b7bcfcc8597d2f8a3b7eddcb14f0ed6",
+    "category": "PUBLIC_IP_ADDRESS",
+    "createTime": "2022-01-08T01:21:42.076Z",
+    "eventTime": "2022-01-08T01:21:41.578Z",
+    "externalUri": "https://console.cloud.google.com/compute/instancesDetail/zones/us-central1-a/instances/integration-test-default-service-account-non-vuln-instance?project=test-project",
+    "findingClass": "MISCONFIGURATION",
+    "findingProviderId": "organizations/0000000000/firstPartyFindingProviders/security_health_advisor",
+    "indicator": {},
+    "mitreAttack": {},
+    "mute": "UNDEFINED",
+    "name": "organizations/0000000000/sources/0000000/findings/7b7bcfcc8597d2f8a3b7eddcb14f0ed6",
+    "parent": "organizations/0000000000/sources/0000000",
+    "severity": "HIGH",
+    "sourceDisplayName": "Security Health Analytics",
+    "state": "ACTIVE",
+    "vulnerability": {},
+    "workflowState": "NEW",
+    "resource": {
+      "name": "//compute.googleapis.com/projects/test-project/zones/us-central1-a/instances/6796113316167375355",
+      "display_name": "integration-test-default-service-account-non-vuln-instance",
+      "project_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "project_display_name": "test-project",
+      "parent_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "parent_display_name": "test-project",
+      "type": "google.compute.Instance",
+      "folders": [
+        {
+          "resourceFolderDisplayName": "enabled_folder",
+          "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/987654321"
+        }
+      ]
+    },
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/7b7bcfcc8597d2f8a3b7eddcb14f0ed6/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2022-01-08T01:21:41.578Z"
+      }
+    },
+    "sourceProperties": {
+      "Recommendation": "If this is unintended, please go to https://console.cloud.google.com/compute/instancesDetail/zones/us-central1-a/instances/integration-test-default-service-account-non-vuln-instance?project=test-project and click \"Edit\". For each interface under the \"Network interfaces\" heading, set \"External IP\" to \"None\", then click \"Done\" and \"Save\". If you would like to learn more about securing access to your infrastructure, see https://cloud.google.com/solutions/connecting-securely.",
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_public_ip_address\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "To reduce the attack surface, avoid assigning public IP addresses to your VMs. Stopped instances may still be flagged with a Public IP finding, e.g. if the network interfaces are configured to assign an ephemeral public IP on start. Ensure the network configurations for stopped instances do not include external access.",
+      "ScannerName": "COMPUTE_INSTANCE_SCANNER",
+      "ResourcePath": [
+        "projects/test-project/",
+        "folders/987654321/",
+        "organizations/0000000000/"
+      ],
+      "compliance_standards": {
+        "pci": [
+          {
+            "ids": [
+              "1.2.1"
+            ]
+          }
+        ],
+        "cis": [
+          {
+            "version": "1.1",
+            "ids": [
+              "4.9"
+            ]
+          }
+        ],
+        "nist": [
+          {
+            "ids": [
+              "CA-3",
+              "SC-7"
+            ]
+          }
+        ]
+      },
+      "VulnerableNetworkInterfaceNames": [
+        "nic0"
+      ]
+    }
+  }
+}

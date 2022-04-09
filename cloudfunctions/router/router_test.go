@@ -369,9 +369,19 @@ func TestRemediated(t *testing.T) {
 		{name: "audit_logging_disabled", finding: "audit_logging_disabled-remediated.json"},
 		{name: "bad_ip_scc", finding: "bad_ip_scc-remediated.json"},
 		{name: "bucket_policy_only_disabled", finding: "bucket_policy_only_disabled-remediated.json"},
+		{name: "iam_anomalous_grant", finding: "iam_anomalous_grant-remediated.json"},
 		{name: "non_org_iam_member", finding: "non_org_iam_member-remediated.json"},
+		{name: "open_firewall", finding: "open_firewall-remediated.json"},
+		{name: "open_rdp_port", finding: "open_rdp_port-remediated.json"},
+		{name: "open_ssh_port", finding: "open_ssh_port-remediated.json"},
 		{name: "public_bucket_acl", finding: "public_bucket_acl-remediated.json"},
 		{name: "public_dataset", finding: "public_dataset-remediated.json"},
+		{name: "public_ip_address", finding: "public_ip_address-remediated.json"},
+		{name: "public_sql_instance", finding: "public_sql_instance-remediated.json"},
+		{name: "sql_no_root_password", finding: "sql_no_root_password-remediated.json"},
+		{name: "ssh_brute_force", finding: "ssh_brute_force-remediated.json"},
+		{name: "ssl_not_enforced", finding: "ssl_not_enforced-remediated.json"},
+		{name: "web_ui_enabled", finding: "web_ui_enabled-remediated.json"},
 	} {
 		finding := testData(t, tt.finding)
 
