@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googlecloudplatform/security-response-automation/clients/stubs"
@@ -27,6 +28,12 @@ import (
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/enableauditlogs"
 	"github.com/googlecloudplatform/security-response-automation/cloudfunctions/iam/removenonorgmembers"
 	"github.com/googlecloudplatform/security-response-automation/services"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/testing/protocmp"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
+
+	sccv1pb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1"
+	sccpb "google.golang.org/genproto/googleapis/cloud/securitycenter/v1beta1"
 )
 
 func TestRouter(t *testing.T) {
@@ -155,9 +162,7 @@ func TestRouter(t *testing.T) {
 				"name": "organizations/154584661726/sources/1986930501971458034/findings/1c35bd4b4f6d7145e441f2965c32f074/securityMarks"
 			},
 			"eventTime": "2019-10-22T21:01:08.832Z",
-			"createTime": "2019-10-22T21:01:39.098Z",
-			"assetId": "organizations/154584661726/assets/11190834741917282179",
-			"assetDisplayName": "test-project"
+			"createTime": "2019-10-22T21:01:39.098Z"
 		   }
 		}`
 		validNonOrgMembers = `{
@@ -258,13 +263,39 @@ func TestRouter(t *testing.T) {
 		name    string
 		mapTo   []byte
 		finding []byte
+		nonSCC  bool
 	}{
-		{name: "bad_ip", finding: []byte(validBadIP), mapTo: createSnapshot},
-		{name: "bad_ip_scc", finding: []byte(validBadIPSCC), mapTo: sccCreateSnapshot},
-		{name: "public_bucket_acl", finding: []byte(validPublicBucket), mapTo: closeBucket},
-		{name: "public_dataset", finding: []byte(validPublicDataset), mapTo: closePublicDataset},
-		{name: "audit_logging_disabled", finding: []byte(validAuditLogDisabled), mapTo: enableAuditLog},
-		{name: "non_org_members", finding: []byte(validNonOrgMembers), mapTo: removeNonOrgMembers},
+		{
+			name:    "audit_logging_disabled",
+			finding: []byte(validAuditLogDisabled),
+			mapTo:   enableAuditLog,
+		},
+		{
+			name:    "bad_ip",
+			finding: []byte(validBadIP),
+			nonSCC:  true,
+			mapTo:   createSnapshot,
+		},
+		{
+			name:    "bad_ip_scc",
+			finding: []byte(validBadIPSCC),
+			mapTo:   sccCreateSnapshot,
+		},
+		{
+			name:    "non_org_members",
+			finding: []byte(validNonOrgMembers),
+			mapTo:   removeNonOrgMembers,
+		},
+		{
+			name:    "public_bucket_acl",
+			finding: []byte(validPublicBucket),
+			mapTo:   closeBucket,
+		},
+		{
+			name:    "public_dataset",
+			finding: []byte(validPublicDataset),
+			mapTo:   closePublicDataset,
+		},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
@@ -273,6 +304,13 @@ func TestRouter(t *testing.T) {
 		scc := services.NewCommandCenter(sccStub)
 
 		t.Run(tt.name, func(t *testing.T) {
+			var nm *sccv1pb.NotificationMessage
+			if !tt.nonSCC {
+				nm = &sccv1pb.NotificationMessage{}
+				if err := protojson.Unmarshal(tt.finding, nm); err != nil {
+					t.Fatalf("Unmarshal(tt.finding) = %v, want nil \nfinding: \n%s", err, string(tt.finding))
+				}
+			}
 
 			if err := Execute(ctx, &Values{
 				Finding: tt.finding,
@@ -287,6 +325,24 @@ func TestRouter(t *testing.T) {
 			}
 			if diff := cmp.Diff(psStub.PublishedMessage.Data, tt.mapTo); diff != "" {
 				t.Errorf("%q failed, difference:%+v", tt.name, diff)
+			}
+
+			if nm != nil {
+				f := nm.GetFinding()
+				want := &sccpb.UpdateSecurityMarksRequest{
+					SecurityMarks: &sccpb.SecurityMarks{
+						Name: f.GetName() + "/securityMarks",
+						Marks: map[string]string{
+							originalEventTime: f.GetEventTime().AsTime().UTC().Format(time.RFC3339Nano),
+						},
+					},
+					UpdateMask: &fieldmaskpb.FieldMask{
+						Paths: []string{"marks." + originalEventTime},
+					},
+				}
+				if diff := cmp.Diff(want, sccStub.GetUpdateSecurityMarksRequest, protocmp.Transform()); diff != "" {
+					t.Errorf("Wrong scc.AddSecurityMarks call, diff (-want +got): \n%s", diff)
+				}
 			}
 		})
 	}
@@ -324,6 +380,110 @@ func TestRemediated(t *testing.T) {
 				"createTime": "2019-11-22T18:34:36.688Z"
 			}
 		}`
+		remediatedBucketPolicyOnlyDisabled = `{
+			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+			  "finding": {
+			    "name": "organizations/000000000000/sources/0000000000000000000/findings/2f8efe97cf7c854a95918b4b2255967f",
+			    "parent": "organizations/000000000000/sources/0000000000000000000",
+			    "resourceName": "//storage.googleapis.com/unique-test-bucket",
+			    "state": "ACTIVE",
+			    "category": "BUCKET_POLICY_ONLY_DISABLED",
+			    "externalUri": "https://console.cloud.google.com/storage/browser/unique-test-bucket",
+			    "sourceProperties": {
+			      "Recommendation": "Go to https://console.cloud.google.com/storage/browser/unique-test-bucket, click the \"Configuration\" tab, in the row for \"Access control\", click the edit icon, select \"Uniform\" in the \"Edit Access Control\" dialog, then click \"Save\".",
+			      "ExceptionInstructions": "Add the security mark \"allow_bucket_policy_only_disabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+			      "Explanation": "The Bucket Policy Only feature simplifies bucket access control by disabling object-level permissions (ACLs). When enabled, only bucket-level Cloud IAM permissions grant access to the bucket and the objects it contains. Learn more at: https://cloud.google.com/storage/docs/bucket-policy-only",
+			      "ScannerName": "STORAGE_SCANNER",
+			      "ResourcePath": ["projects/unique-test/", "organizations/000000000000/"],
+			      "compliance_standards": {
+			        "cis": [{
+			          "version": "1.2",
+			          "ids": ["5.2"]
+			        }]
+			      },
+			      "ReactivationCount": 0.0
+			    },
+			    "securityMarks": {
+			      "name": "organizations/000000000000/sources/0000000000000000000/findings/2f8efe97cf7c854a95918b4b2255967f/securityMarks",
+				"marks": {
+					"sra-remediated-event-time": "2022-04-08T23:15:23.219Z"
+				}
+			    },
+			    "eventTime": "2022-04-08T23:15:23.219Z",
+			    "createTime": "2022-04-08T23:15:23.665Z",
+			    "propertyDataTypes": {
+			      "ResourcePath": {
+			        "listValues": {
+			          "propertyDataTypes": [{
+			            "primitiveDataType": "STRING"
+			          }]
+			        }
+			      },
+			      "ReactivationCount": {
+			        "primitiveDataType": "NUMBER"
+			      },
+			      "Explanation": {
+			        "primitiveDataType": "STRING"
+			      },
+			      "ScannerName": {
+			        "primitiveDataType": "STRING"
+			      },
+			      "compliance_standards": {
+			        "structValue": {
+			          "fields": {
+			            "cis": {
+			              "listValues": {
+			                "propertyDataTypes": [{
+			                  "structValue": {
+			                    "fields": {
+			                      "version": {
+			                        "primitiveDataType": "STRING"
+			                      },
+			                      "ids": {
+			                        "listValues": {
+			                          "propertyDataTypes": [{
+			                            "primitiveDataType": "STRING"
+			                          }]
+			                        }
+			                      }
+			                    }
+			                  }
+			                }]
+			              }
+			            }
+			          }
+			        }
+			      },
+			      "ExceptionInstructions": {
+			        "primitiveDataType": "STRING"
+			      },
+			      "Recommendation": {
+			        "primitiveDataType": "STRING"
+			      }
+			    },
+			    "severity": "MEDIUM",
+			    "workflowState": "NEW",
+			    "canonicalName": "projects/1234567889/sources/0000000000000000000/findings/2f8efe97cf7c854a95918b4b2255967f",
+			    "mute": "UNDEFINED",
+			    "findingClass": "MISCONFIGURATION",
+			    "compliances": [{
+			      "standard": "cis",
+			      "version": "1.2",
+			      "ids": ["5.2"]
+			    }],
+			    "originalProviderId": "SECURITY_HEALTH_ADVISOR",
+			    "description": "The Bucket Policy Only feature simplifies bucket access control by disabling object-level permissions (ACLs). When enabled, only bucket-level Cloud IAM permissions grant access to the bucket and the objects it contains. Learn more at: https://cloud.google.com/storage/docs/bucket-policy-only"
+			  },
+			  "resource": {
+			    "name": "//storage.googleapis.com/unique-test-bucket",
+			    "projectName": "//cloudresourcemanager.googleapis.com/projects/1234567889",
+			    "projectDisplayName": "unique-test",
+			    "parentName": "//cloudresourcemanager.googleapis.com/projects/1234567889",
+			    "parentDisplayName": "unique-test",
+			    "type": "google.cloud.storage.Bucket",
+			    "displayName": "unique-test-bucket"
+			  }
+			}`
 		remediatedPublicBucket = `{
 			"notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
 			"finding": {
@@ -449,11 +609,12 @@ func TestRemediated(t *testing.T) {
 		name    string
 		finding []byte
 	}{
+		{name: "audit_logging_disabled", finding: []byte(remediatedAuditLogDisabled)},
 		{name: "bad_ip_scc", finding: []byte(remediatedBadIPSCC)},
+		{name: "bucket_policy_only_disabled", finding: []byte(remediatedBucketPolicyOnlyDisabled)},
+		{name: "non_org_iam_member", finding: []byte(remediatedNonOrgMembers)},
 		{name: "public_bucket_acl", finding: []byte(remediatedPublicBucket)},
 		{name: "public_dataset", finding: []byte(remediatedPublicDataset)},
-		{name: "audit_logging_disabled", finding: []byte(remediatedAuditLogDisabled)},
-		{name: "non_org_members", finding: []byte(remediatedNonOrgMembers)},
 	} {
 		ctx := context.Background()
 		psStub := &stubs.PubSubStub{}
@@ -468,7 +629,6 @@ func TestRemediated(t *testing.T) {
 		scc := services.NewCommandCenter(sccStub)
 
 		t.Run(tt.name, func(t *testing.T) {
-
 			if err := Execute(ctx, &Values{
 				Finding: tt.finding,
 			}, &Services{
@@ -482,6 +642,9 @@ func TestRemediated(t *testing.T) {
 			}
 			if psStub.PublishedMessage != nil {
 				t.Errorf("%q failed, not supposed to trigger automation", tt.name)
+			}
+			if got := sccStub.GetUpdateSecurityMarksRequest; got != nil {
+				t.Errorf("AddSecurityMarks(req) called for remediated finding \nreq: \n%+v \nfinding: \n%s", got, string(tt.finding))
 			}
 		})
 	}
