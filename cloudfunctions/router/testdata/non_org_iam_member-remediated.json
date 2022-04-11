@@ -1,0 +1,29 @@
+{
+  "finding": {
+    "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a",
+    "parent": "organizations/1050000000008/sources/1986930501000008034",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/72300000536",
+    "state": "ACTIVE",
+    "category": "NON_ORG_IAM_MEMBER",
+    "externalUri": "https://console.cloud.google.com/iam-admin/iam?project=test-project",
+    "sourceProperties": {
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_non_org_iam_member\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "SeverityLevel": "High",
+      "Recommendation": "Go to https://console.cloud.google.com/iam-admin/iam?project=test-project and remove entries for users which are not in your organization (e.g. gmail.com addresses).",
+      "ProjectId": "test-project",
+      "AssetCreationTime": "2019-02-26T15:41:40.726Z",
+      "ScannerName": "IAM_SCANNER",
+      "ScanRunId": "2019-10-18T08:30:22.082-07:00",
+      "Explanation": "A user outside of your organization has IAM permissions on a project or organization."
+    },
+    "securityMarks": {
+      "name": "organizations/1050000000008/sources/1986930501000008034/findings/047db1bc23a4b1fb00cbaa79b468945a/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2019-10-18T15:30:22.082Z"
+      }
+    },
+    "eventTime": "2019-10-18T15:30:22.082Z",
+    "createTime": "2019-10-18T15:31:58.487Z"
+  }
+}
