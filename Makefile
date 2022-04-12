@@ -2,9 +2,9 @@ generate:
 	go generate ./...
 
 tools:
-	go get github.com/securego/gosec/v2/cmd/gosec
-	go get github.com/fzipp/gocyclo/cmd/gocyclo
-	go get golang.org/x/lint/golint
+	go install github.com/securego/gosec/v2/cmd/gosec
+	go install github.com/fzipp/gocyclo/cmd/gocyclo
+	go install golang.org/x/lint/golint
 
 fmt:
 	go fmt ./...
