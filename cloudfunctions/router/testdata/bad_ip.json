@@ -1,0 +1,14 @@
+{
+  "jsonPayload": {
+    "properties": {
+      "instanceDetails": "/projects/test-project/zones/zone-name/instances/source-instance-name",
+      "network": {
+	"project": "test-project"
+      }
+    },
+    "detectionCategory": {
+      "ruleName": "bad_ip"
+    }
+  },
+  "logName": "projects/test-project/logs/threatdetection.googleapis.com%%2Fdetection"
+}

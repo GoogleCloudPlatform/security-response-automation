@@ -1,0 +1,90 @@
+{
+  "finding": {
+    "access": {},
+    "assetDisplayName": "test",
+    "assetId": "organizations/0000000000/assets/5205430297007135564",
+    "canonicalName": "projects/12345678/sources/0000000/findings/99aa4eb54551972f0d7d32187bb0122b",
+    "category": "SSL_NOT_ENFORCED",
+    "createTime": "2022-01-05T00:28:45.505Z",
+    "eventTime": "2022-01-05T00:28:45.356Z",
+    "externalUri": "https://console.cloud.google.com/sql/instances/test/connections?project=test-project",
+    "findingClass": "MISCONFIGURATION",
+    "findingProviderId": "organizations/0000000000/firstPartyFindingProviders/security_health_advisor",
+    "indicator": {},
+    "mitreAttack": {},
+    "mute": "UNDEFINED",
+    "name": "organizations/0000000000/sources/0000000/findings/99aa4eb54551972f0d7d32187bb0122b",
+    "parent": "organizations/0000000000/sources/0000000",
+    "severity": "HIGH",
+    "sourceDisplayName": "Security Health Analytics",
+    "state": "ACTIVE",
+    "vulnerability": {},
+    "workflowState": "NEW",
+    "resource": {
+      "name": "//cloudsql.googleapis.com/projects/test-project/instances/test",
+      "display_name": "test",
+      "project_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "project_display_name": "test-project",
+      "parent_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "parent_display_name": "test-project",
+      "type": "google.cloud.sql.Instance",
+      "folders": []
+    },
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/99aa4eb54551972f0d7d32187bb0122b/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2022-01-05T00:28:45.356Z"
+      }
+    },
+    "sourceProperties": {
+      "Recommendation": "Go to https://console.cloud.google.com/sql/instances/test/overview?project=test-project and verify that the instance is running by looking for a green checkmark icon next to the instance name. If it is not running, then click on the \"START\" button. (The instance must be running in order to perform the next remediation step, but need not remain running afterwards.) Go to https://console.cloud.google.com/sql/instances/test/connections?project=test-project and click the \"Allow only SSL connections\" button.",
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_ssl_not_enforced\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "To avoid leaking sensitive data in transit through unencrypted communications, all incoming connections to your SQL database instance should use SSL. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ssl-instance",
+      "ScannerName": "SQL_SCANNER",
+      "ResourcePath": [
+        "projects/test-project/",
+        "organizations/0000000000/"
+      ],
+      "compliance_standards": {
+        "iso": [
+          {
+            "ids": [
+              "A.8.2.3",
+              "A.13.2.1",
+              "A.14.1.3"
+            ]
+          }
+        ],
+        "pci": [
+          {
+            "ids": [
+              "4.1"
+            ]
+          }
+        ],
+        "cis": [
+          {
+            "version": "1.0",
+            "ids": [
+              "6.1"
+            ]
+          },
+          {
+            "version": "1.1",
+            "ids": [
+              "6.4"
+            ]
+          }
+        ],
+        "nist": [
+          {
+            "ids": [
+              "SC-7"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

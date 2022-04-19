@@ -1,0 +1,94 @@
+{
+  "finding": {
+    "name": "organizations/0000000000/sources/0000000/findings/12345",
+    "parent": "organizations/0000000000/sources/0000000",
+    "resourceName": "//cloudresourcemanager.googleapis.com/projects/12345678",
+    "state": "ACTIVE",
+    "category": "Brute Force: SSH",
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/12345/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "1970-01-01T00:00:00Z"
+      }
+    },
+    "sourceProperties": {
+      "evidence": [
+        {
+          "sourceLogId": {
+            "projectId": "test-project",
+            "timestamp": {
+              "nanos": 0.0,
+              "seconds": "65"
+            },
+            "insertId": "3",
+            "resourceContainer": "projects/test-project"
+          }
+        }
+      ],
+      "properties": {
+        "projectId": "test-project",
+        "zone": "us-west1-a",
+        "instanceId": "1234",
+        "attempts": [
+          {
+            "sourceIp": "192.0.2.100",
+            "username": "etd_tester",
+            "vmName": "instance-1",
+            "authResult": "SUCCESS"
+          },
+          {
+            "sourceIp": "192.0.2.100",
+            "username": "etd_tester",
+            "vmName": "instance-1",
+            "authResult": "FAIL"
+          },
+          {
+            "sourceIp": "192.0.2.100",
+            "username": "etd_tester-2",
+            "vmName": "instance-1",
+            "authResult": "FAIL"
+          }
+        ]
+      },
+      "detectionPriority": "HIGH",
+      "sourceId": {
+        "projectNumber": "6789",
+        "customerOrganizationNumber": "12345"
+      },
+      "contextUris": {
+        "mitreUri": {
+          "displayName": "MITRE Link",
+          "url": "https://attack.mitre.org/techniques/T1078/003/"
+        },
+        "cloudLoggingQueryUri": [
+          {
+            "displayName": "Cloud Logging Query Link",
+            "url": "https://console.cloud.google.com/logs/query;query=timestamp%3D%221970-01-01T00:01:05Z%22%0AinsertId%3D%223%22%0Aresource.labels.project_id%3D%22test-project%22?project=test-project"
+          }
+        ],
+        "relatedFindingUri": {
+          "displayName": "Related SSH Brute Force Findings",
+          "url": "https://console.cloud.google.com/security/command-center/findings?organizationId=12345&pageState=(%22cscc-inventory%22:(%22f%22:%22%255B%257B_22k_22_3A_22sourceProperties.detectionCategory.ruleName_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22ssh_brute_force_5C_22_22%257D_2C%257B_22k_22_3A_22_22_2C_22t_22_3A10_2C_22v_22_3A_22_5C_22%2528resourceName_3A_5C_5C_5C_22//cloudresourcemanager.googleapis.com/projects/12345678_5C_5C_5C_22%2529_5C_22_22%257D%255D%22))"
+        }
+      },
+      "detectionCategory": {
+        "technique": "brute_force",
+        "indicator": "flow_log",
+        "ruleName": "ssh_brute_force"
+      },
+      "affectedResources": [
+        {
+          "gcpResourceName": "//cloudresourcemanager.googleapis.com/projects/12345678"
+        }
+      ]
+    },
+    "mitreAttack": {
+      "primary_tactic": "INITIAL_ACCESS",
+      "primary_techniques": ["VALID_ACCOUNTS", "LOCAL_ACCOUNTS"]
+    },
+    "severity": "HIGH",
+    "findingClass": "THREAT",
+    "eventTime": "1970-01-01T00:00:00Z",
+    "createTime": "1970-01-01T00:00:00Z"
+  }
+}

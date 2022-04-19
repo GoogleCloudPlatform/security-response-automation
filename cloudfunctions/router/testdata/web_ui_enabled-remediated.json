@@ -1,0 +1,78 @@
+{
+  "finding": {
+    "access": {},
+    "assetDisplayName": "insecure-cluster-1",
+    "assetId": "organizations/0000000000/assets/16405759896410614897",
+    "canonicalName": "projects/12345678/sources/0000000/findings/809adea65212b9fe4c5b0de52bc43dea",
+    "category": "WEB_UI_ENABLED",
+    "createTime": "2019-11-12T02:29:37.637Z",
+    "eventTime": "2021-10-01T19:24:17.786Z",
+    "externalUri": "https://console.cloud.google.com/kubernetes/clusters/details/us-west1-a/insecure-cluster-1?project=test-project",
+    "findingClass": "MISCONFIGURATION",
+    "findingProviderId": "organizations/0000000000/firstPartyFindingProviders/security_health_advisor",
+    "indicator": {},
+    "mitreAttack": {},
+    "mute": "UNDEFINED",
+    "name": "organizations/0000000000/sources/0000000/findings/809adea65212b9fe4c5b0de52bc43dea",
+    "parent": "organizations/0000000000/sources/0000000",
+    "severity": "HIGH",
+    "sourceDisplayName": "Security Health Analytics",
+    "state": "ACTIVE",
+    "vulnerability": {},
+    "resource": {
+      "name": "//container.googleapis.com/projects/test-project/zones/us-west1-a/clusters/insecure-cluster-1",
+      "display_name": "insecure-cluster-1",
+      "project_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "project_display_name": "test-project",
+      "parent_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "parent_display_name": "test-project",
+      "type": "google.container.Cluster",
+      "folders": [
+        {
+          "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/987654321"
+        }
+      ]
+    },
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/809adea65212b9fe4c5b0de52bc43dea/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2021-10-01T19:24:17.786Z"
+      }
+    },
+    "sourceProperties": {
+      "Recommendation": "Go to https://console.cloud.google.com/kubernetes/clusters/details/us-west1-a/insecure-cluster-1?project=test-project. In the \"Features\" section, click on the edit icon in the \"Kubernetes dashboard\" row. In the dialog that appears, disable the feature and then click \"SAVE CHANGES\". Note that a cluster cannot be modified while it is reconfiguring itself.",
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_web_ui_enabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "The Kubernetes web UI is backed by a highly privileged Kubernetes Service Account, which can be abused if compromised. If you are already using the GCP console, the Kubernetes web UI extends your attack surface unnecessarily. Learn more about how to disable the Kubernetes web UI and other techniques for hardening your Kubernetes clusters at https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster#disable_kubernetes_dashboard",
+      "ScannerName": "CONTAINER_SCANNER",
+      "ResourcePath": [
+        "projects/test-project/",
+        "folders/987654321/",
+        "organizations/0000000000/"
+      ],
+      "compliance_standards": {
+        "pci": [
+          {
+            "ids": [
+              "6.6"
+            ]
+          }
+        ],
+        "cis": [
+          {
+            "version": "1.0",
+            "ids": [
+              "7.6"
+            ]
+          },
+          {
+            "version": "1.0",
+            "ids": [
+              "6.10.1"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

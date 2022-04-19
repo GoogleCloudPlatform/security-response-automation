@@ -1,0 +1,104 @@
+{
+  "notificationConfigName": "organizations/154584661726/notificationConfigs/sampleConfigId",
+  "finding": {
+    "name": "organizations/000000000000/sources/0000000000000000000/findings/2f8efe97cf7c854a95918b4b2255967f",
+    "parent": "organizations/000000000000/sources/0000000000000000000",
+    "resourceName": "//storage.googleapis.com/unique-test-bucket",
+    "state": "ACTIVE",
+    "category": "BUCKET_POLICY_ONLY_DISABLED",
+    "externalUri": "https://console.cloud.google.com/storage/browser/unique-test-bucket",
+    "sourceProperties": {
+      "Recommendation": "Go to https://console.cloud.google.com/storage/browser/unique-test-bucket, click the \"Configuration\" tab, in the row for \"Access control\", click the edit icon, select \"Uniform\" in the \"Edit Access Control\" dialog, then click \"Save\".",
+      "ExceptionInstructions": "Add the security mark \"allow_bucket_policy_only_disabled\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "The Bucket Policy Only feature simplifies bucket access control by disabling object-level permissions (ACLs). When enabled, only bucket-level Cloud IAM permissions grant access to the bucket and the objects it contains. Learn more at: https://cloud.google.com/storage/docs/bucket-policy-only",
+      "ScannerName": "STORAGE_SCANNER",
+      "ResourcePath": ["projects/unique-test/", "organizations/000000000000/"],
+      "compliance_standards": {
+	"cis": [{
+	  "version": "1.2",
+	  "ids": ["5.2"]
+	}]
+      },
+      "ReactivationCount": 0.0
+    },
+    "securityMarks": {
+      "name": "organizations/000000000000/sources/0000000000000000000/findings/2f8efe97cf7c854a95918b4b2255967f/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2022-04-08T23:15:23.219Z"
+      }
+    },
+    "eventTime": "2022-04-08T23:15:23.219Z",
+    "createTime": "2022-04-08T23:15:23.665Z",
+    "propertyDataTypes": {
+      "ResourcePath": {
+	"listValues": {
+	  "propertyDataTypes": [{
+	    "primitiveDataType": "STRING"
+	  }]
+	}
+      },
+      "ReactivationCount": {
+	"primitiveDataType": "NUMBER"
+      },
+      "Explanation": {
+	"primitiveDataType": "STRING"
+      },
+      "ScannerName": {
+	"primitiveDataType": "STRING"
+      },
+      "compliance_standards": {
+	"structValue": {
+	  "fields": {
+	    "cis": {
+	      "listValues": {
+		"propertyDataTypes": [{
+		  "structValue": {
+		    "fields": {
+		      "version": {
+			"primitiveDataType": "STRING"
+		      },
+		      "ids": {
+			"listValues": {
+			  "propertyDataTypes": [{
+			    "primitiveDataType": "STRING"
+			  }]
+			}
+		      }
+		    }
+		  }
+		}]
+	      }
+	    }
+	  }
+	}
+      },
+      "ExceptionInstructions": {
+	"primitiveDataType": "STRING"
+      },
+      "Recommendation": {
+	"primitiveDataType": "STRING"
+      }
+    },
+    "severity": "MEDIUM",
+    "workflowState": "NEW",
+    "canonicalName": "projects/1234567889/sources/0000000000000000000/findings/2f8efe97cf7c854a95918b4b2255967f",
+    "mute": "UNDEFINED",
+    "findingClass": "MISCONFIGURATION",
+    "compliances": [{
+      "standard": "cis",
+      "version": "1.2",
+      "ids": ["5.2"]
+    }],
+    "originalProviderId": "SECURITY_HEALTH_ADVISOR",
+    "description": "The Bucket Policy Only feature simplifies bucket access control by disabling object-level permissions (ACLs). When enabled, only bucket-level Cloud IAM permissions grant access to the bucket and the objects it contains. Learn more at: https://cloud.google.com/storage/docs/bucket-policy-only"
+  },
+  "resource": {
+    "name": "//storage.googleapis.com/unique-test-bucket",
+    "projectName": "//cloudresourcemanager.googleapis.com/projects/1234567889",
+    "projectDisplayName": "unique-test",
+    "parentName": "//cloudresourcemanager.googleapis.com/projects/1234567889",
+    "parentDisplayName": "unique-test",
+    "type": "google.cloud.storage.Bucket",
+    "displayName": "unique-test-bucket"
+  }
+}

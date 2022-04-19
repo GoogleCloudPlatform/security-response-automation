@@ -1,0 +1,95 @@
+{
+  "finding": {
+    "access": {},
+    "assetDisplayName": "postgre-nossl-open-nobackup",
+    "assetId": "organizations/0000000000/assets/868897641785017066",
+    "canonicalName": "projects/12345678/sources/0000000/findings/a3c5065740814c03680baaa3ad81167d",
+    "category": "PUBLIC_SQL_INSTANCE",
+    "createTime": "2019-11-12T00:20:37.543Z",
+    "eventTime": "2021-06-17T17:21:50.215Z",
+    "externalUri": "https://console.cloud.google.com/sql/instances/postgre-nossl-open-nobackup/connections?project=test-project",
+    "findingClass": "MISCONFIGURATION",
+    "findingProviderId": "organizations/0000000000/firstPartyFindingProviders/security_health_advisor",
+    "indicator": {},
+    "mitreAttack": {},
+    "mute": "UNDEFINED",
+    "name": "organizations/0000000000/sources/0000000/findings/a3c5065740814c03680baaa3ad81167d",
+    "parent": "organizations/0000000000/sources/0000000",
+    "severity": "HIGH",
+    "sourceDisplayName": "Security Health Analytics",
+    "state": "ACTIVE",
+    "vulnerability": {},
+    "resource": {
+      "name": "//cloudsql.googleapis.com/projects/test-project/instances/postgre-nossl-open-nobackup",
+      "display_name": "postgre-nossl-open-nobackup",
+      "project_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "project_display_name": "test-project",
+      "parent_name": "//cloudresourcemanager.googleapis.com/projects/12345678",
+      "parent_display_name": "test-project",
+      "type": "google.cloud.sql.Instance",
+      "folders": [
+        {
+          "resourceFolder": "//cloudresourcemanager.googleapis.com/folders/987654321"
+        }
+      ]
+    },
+    "securityMarks": {
+      "name": "organizations/0000000000/sources/0000000/findings/a3c5065740814c03680baaa3ad81167d/securityMarks",
+      "marks": {
+	"sra-remediated-event-time": "2021-06-17T17:21:50.215Z"
+      }
+    },
+    "sourceProperties": {
+      "Recommendation": "Restrict the authorized networks at https://console.cloud.google.com/sql/instances/postgre-nossl-open-nobackup/connections?project=test-project.",
+      "ReactivationCount": 0,
+      "ExceptionInstructions": "Add the security mark \"allow_public_sql_instance\" to the asset with a value of \"true\" to prevent this finding from being activated again.",
+      "Explanation": "You have added 0.0.0.0/0 as an allowed network. This prefix will allow any IPv4 client to pass the network firewall and make login attempts to your instance, including clients you did not intend to allow. Clients still need valid credentials to successfully log in to your instance. Learn more at: https://cloud.google.com/sql/docs/mysql/configure-ip",
+      "ScannerName": "SQL_SCANNER",
+      "ResourcePath": [
+        "projects/test-project/",
+        "folders/987654321/",
+        "organizations/0000000000/"
+      ],
+      "compliance_standards": {
+        "iso": [
+          {
+            "ids": [
+              "A.8.2.3",
+              "A.13.1.3",
+              "A.14.1.3"
+            ]
+          }
+        ],
+        "pci": [
+          {
+            "ids": [
+              "1.2.1"
+            ]
+          }
+        ],
+        "cis": [
+          {
+            "version": "1.0",
+            "ids": [
+              "6.2"
+            ]
+          },
+          {
+            "version": "1.1",
+            "ids": [
+              "6.5"
+            ]
+          }
+        ],
+        "nist": [
+          {
+            "ids": [
+              "CA-3",
+              "SC-7"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
