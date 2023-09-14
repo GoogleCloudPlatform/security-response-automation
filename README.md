@@ -1,3 +1,5 @@
+Update: This repository is no longer maintained.
+
 # Security Response Automation
 
 Take automated actions on your Security Command Center findings:
